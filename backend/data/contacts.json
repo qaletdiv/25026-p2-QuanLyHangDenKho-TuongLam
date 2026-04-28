@@ -1,0 +1,34 @@
+[
+  {
+    "id": "1",
+    "name": "Jane Doe",
+    "email": "jane.doe@ecotech.com",
+    "company": "EcoTech Garments",
+    "role": "Logistics Manager",
+    "group": "Suppliers"
+  },
+  {
+    "id": "2",
+    "name": "John Smith",
+    "email": "jsmith@fedex.com",
+    "company": "FedEx",
+    "role": "Account Executive",
+    "group": "FedEx"
+  },
+  {
+    "id": "3",
+    "name": "Alice Johnson",
+    "email": "alice.j@nri-logistics.com",
+    "company": "NRI Canada",
+    "role": "Warehouse Supervisor",
+    "group": "NRI Canada"
+  },
+  {
+    "id": "4",
+    "name": "Bob Williams",
+    "email": "bwilliams@tentree.com",
+    "company": "tentree",
+    "role": "Supply Chain Director",
+    "group": "tentree Internal"
+  }
+]

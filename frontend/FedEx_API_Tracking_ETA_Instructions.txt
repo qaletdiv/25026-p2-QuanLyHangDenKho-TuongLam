@@ -1,0 +1,41 @@
+FedEx API Tracking ETA - Brief Instruction
+====================================================
+
+API Endpoint:
+POST https://apis.fedex.com/track/v1/trackingnumbers
+
+Required Headers:
+- Content-Type: application/json
+- x-customer-transaction-id: (unique UUID)
+- x-locale: en_US
+- Authorization: Bearer {OAUTH_TOKEN}
+
+Request Body:
+{
+  "includeDetailedScans": true,
+  "trackingInfo": [
+    {
+      "trackingNumber": "YOUR_TRACKING_NUMBER"
+    }
+  ]
+}
+
+ETA Response Fields:
+output.completeTrackResults[0].trackResults[0].estimatedDeliveryTimeWindow:
+  - window.begins: ETA start date/time
+  - window.ends: ETA end date/time
+
+Additional Fields:
+- status: Current shipment status
+- scanEvents: Detailed tracking events
+- delayDetail: Delay information (if any)
+
+Key Points:
+1. Requires OAuth 2.0 authentication
+2. Maximum 30 tracking numbers per request
+3. ETA available for FedEx Express, Ground, and Home Delivery
+4. Set "includeDetailedScans" to true for complete information
+5. Response time window varies by delivery service and location
+
+For more details:
+https://developer.fedex.com/api/en-us/catalog/track/v1/docs.html

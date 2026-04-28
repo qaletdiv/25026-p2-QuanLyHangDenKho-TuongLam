@@ -1,0 +1,222 @@
+[
+  {
+    "id": "1777339760638",
+    "type": "mainline",
+    "vendor_name": "EcoTech Garments",
+    "tentree_po_number": "PO-SS26-001",
+    "receiving_warehouse": "NRI CAN",
+    "number_of_cartons": "100",
+    "cargo_ready_date": "2026-05-15",
+    "courier": "Ceva",
+    "tracking_number": "",
+    "mode": "Ocean",
+    "incoterm": "FOB",
+    "season": "SS26",
+    "trn_number": "TRN-1001",
+    "po_details": [
+      {
+        "po_number": "PO-SS26-001",
+        "units": "5000",
+        "cartons": "100",
+        "weight": "200",
+        "cbm": "6.0"
+      },
+      {
+        "po_number": "",
+        "cartons": "",
+        "units": "",
+        "cbm": "",
+        "weight": ""
+      },
+      {
+        "po_number": "",
+        "cartons": "",
+        "units": "",
+        "cbm": "",
+        "weight": ""
+      },
+      {
+        "po_number": "",
+        "cartons": "",
+        "units": "",
+        "cbm": "",
+        "weight": ""
+      },
+      {
+        "po_number": "",
+        "cartons": "",
+        "units": "",
+        "cbm": "",
+        "weight": ""
+      }
+    ],
+    "booking_number": "BKG-2873",
+    "booking_status": "Customs Clearance",
+    "submitted_at": "2026-04-28T01:29:20.616Z",
+    "freight_forwarder": "Ceva",
+    "approved_at": "2026-04-28T01:39:25.434Z",
+    "shipment_status": "Customs Clearance"
+  },
+  {
+    "id": "1777340557228",
+    "type": "mainline",
+    "vendor_name": "Green Fabrics Ltd",
+    "tentree_po_number": "PO-FW26-003",
+    "receiving_warehouse": "NRI CAN",
+    "number_of_cartons": "6000",
+    "cargo_ready_date": "2026-07-01",
+    "courier": "Ceva",
+    "tracking_number": "SO4897",
+    "mode": "Ocean",
+    "incoterm": "FOB",
+    "season": "FW26",
+    "trn_number": "TRN-1003",
+    "po_details": [
+      {
+        "po_number": "PO-FW26-003",
+        "units": "12000",
+        "cartons": "6000",
+        "weight": "300",
+        "cbm": "15"
+      }
+    ],
+    "booking_number": "BKG-9135",
+    "booking_status": "Booking Approved",
+    "submitted_at": "2026-04-28T01:42:37.202Z",
+    "approved_at": "2026-04-28T01:42:49.352Z"
+  },
+  {
+    "id": "1777340791492",
+    "type": "mainline",
+    "vendor_name": "Pacific Stitch",
+    "tentree_po_number": "PO-SS26-006",
+    "receiving_warehouse": "NRI CAN",
+    "number_of_cartons": "200",
+    "cargo_ready_date": "2026-05-25",
+    "courier": "Ceva",
+    "tracking_number": "123456789",
+    "mode": "Ocean",
+    "incoterm": "Ex-works",
+    "season": "SS26",
+    "trn_number": "TRN-1006",
+    "po_details": [
+      {
+        "po_number": "PO-SS26-006",
+        "units": "4000",
+        "cartons": "200",
+        "weight": "100",
+        "cbm": "50"
+      }
+    ],
+    "booking_number": "BKG-5036",
+    "booking_status": "In-Transit",
+    "submitted_at": "2026-04-28T01:46:31.468Z",
+    "approved_at": "2026-04-28T01:46:48.933Z",
+    "shipment_status": "In-Transit"
+  },
+  {
+    "id": "1777340868831",
+    "type": "mainline",
+    "vendor_name": "Pacific Stitch",
+    "tentree_po_number": "PO-SS26-006",
+    "receiving_warehouse": "NRI CAN",
+    "number_of_cartons": "100",
+    "cargo_ready_date": "2026-05-25",
+    "courier": "Ceva",
+    "tracking_number": "hihihihi",
+    "mode": "Ocean",
+    "incoterm": "Ex-works",
+    "season": "SS26",
+    "trn_number": "TRN-1006",
+    "po_details": [
+      {
+        "po_number": "PO-SS26-006",
+        "units": "2000",
+        "cartons": "100",
+        "weight": "100",
+        "cbm": "25"
+      }
+    ],
+    "booking_number": "BKG-6988",
+    "booking_status": "Customs Clearance",
+    "submitted_at": "2026-04-28T01:47:48.805Z",
+    "approved_at": "2026-04-28T01:48:04.037Z",
+    "shipment_status": "Customs Clearance"
+  },
+  {
+    "id": "1777342375069",
+    "type": "mainline",
+    "vendor_name": "Green Fabrics Ltd",
+    "tentree_po_number": "",
+    "receiving_warehouse": "NRI US",
+    "number_of_cartons": "450",
+    "cargo_ready_date": "",
+    "courier": "Ceva",
+    "tracking_number": "1234567890",
+    "mode": "Air",
+    "incoterm": "FOB",
+    "season": "FW26",
+    "trn_number": "TRN-1011",
+    "po_details": [],
+    "booking_number": "BKG-2249",
+    "booking_status": "Booking Pending",
+    "submitted_at": "2026-04-28T02:12:55.030Z"
+  },
+  {
+    "id": "1777344143131",
+    "type": "mainline",
+    "vendor_name": "Green Fabrics Ltd",
+    "tentree_po_number": "PO-FW26-004, PO-FW26-014",
+    "receiving_warehouse": "NRI US",
+    "number_of_cartons": "30",
+    "cargo_ready_date": "2026-07-10",
+    "courier": "",
+    "tracking_number": "",
+    "mode": "Air",
+    "incoterm": "FOB",
+    "season": "FW26",
+    "trn_number": "TRN-1004",
+    "po_details": [
+      {
+        "po_number": "PO-FW26-004",
+        "cartons": "15",
+        "units": "1500",
+        "cbm": "15",
+        "weight": "100"
+      },
+      {
+        "po_number": "PO-FW26-014",
+        "cartons": "15",
+        "units": "1500",
+        "cbm": "15",
+        "weight": "100"
+      },
+      {
+        "po_number": "",
+        "cartons": "",
+        "units": "",
+        "cbm": "",
+        "weight": ""
+      },
+      {
+        "po_number": "",
+        "cartons": "",
+        "units": "",
+        "cbm": "",
+        "weight": ""
+      },
+      {
+        "po_number": "",
+        "cartons": "",
+        "units": "",
+        "cbm": "",
+        "weight": ""
+      }
+    ],
+    "booking_number": "BKG-1601",
+    "booking_status": "Customs Clearance",
+    "submitted_at": "2026-04-28T02:42:23.097Z",
+    "approved_at": "2026-04-28T02:43:33.888Z",
+    "shipment_status": "Customs Clearance"
+  }
+]

@@ -1,0 +1,2715 @@
+
+
+============================================================
+FILE: package.json
+============================================================
+{
+  "name": "base44-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint . --quiet",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc -p ./jsconfig.json",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@base44/sdk": "^0.8.26",
+    "@base44/vite-plugin": "^1.0.10",
+    "@hello-pangea/dnd": "^17.0.0",
+    "@hookform/resolvers": "^4.1.2",
+    "@radix-ui/react-accordion": "^1.2.3",
+    "@radix-ui/react-alert-dialog": "^1.1.6",
+    "@radix-ui/react-aspect-ratio": "^1.1.2",
+    "@radix-ui/react-avatar": "^1.1.3",
+    "@radix-ui/react-checkbox": "^1.1.4",
+    "@radix-ui/react-collapsible": "^1.1.3",
+    "@radix-ui/react-context-menu": "^2.2.6",
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-dropdown-menu": "^2.1.6",
+    "@radix-ui/react-hover-card": "^1.1.6",
+    "@radix-ui/react-label": "^2.1.2",
+    "@radix-ui/react-menubar": "^1.1.6",
+    "@radix-ui/react-navigation-menu": "^1.2.5",
+    "@radix-ui/react-popover": "^1.1.6",
+    "@radix-ui/react-progress": "^1.1.2",
+    "@radix-ui/react-radio-group": "^1.2.3",
+    "@radix-ui/react-scroll-area": "^1.2.3",
+    "@radix-ui/react-select": "^2.1.6",
+    "@radix-ui/react-separator": "^1.1.2",
+    "@radix-ui/react-slider": "^1.2.3",
+    "@radix-ui/react-slot": "^1.1.2",
+    "@radix-ui/react-switch": "^1.1.3",
+    "@radix-ui/react-tabs": "^1.1.3",
+    "@radix-ui/react-toast": "^1.2.2",
+    "@radix-ui/react-toggle": "^1.1.2",
+    "@radix-ui/react-toggle-group": "^1.1.2",
+    "@radix-ui/react-tooltip": "^1.1.8",
+    "@stripe/react-stripe-js": "^3.0.0",
+    "@stripe/stripe-js": "^5.2.0",
+    "@tanstack/react-query": "^5.84.1",
+    "canvas-confetti": "^1.9.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.0.0",
+    "date-fns": "^3.6.0",
+    "embla-carousel-react": "^8.5.2",
+    "framer-motion": "^11.16.4",
+    "html2canvas": "^1.4.1",
+    "input-otp": "^1.4.2",
+    "jspdf": "^4.0.0",
+    "lodash": "^4.17.21",
+    "lucide-react": "^0.475.0",
+    "moment": "^2.30.1",
+    "next-themes": "^0.4.4",
+    "react": "^18.2.0",
+    "react-day-picker": "^8.10.1",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.54.2",
+    "react-hot-toast": "^2.6.0",
+    "react-leaflet": "^4.2.1",
+    "react-markdown": "^9.0.1",
+    "react-quill": "^2.0.0",
+    "react-resizable-panels": "^2.1.7",
+    "react-router-dom": "^6.26.0",
+    "recharts": "^2.15.4",
+    "sonner": "^2.0.1",
+    "tailwind-merge": "^3.0.2",
+    "tailwindcss-animate": "^1.0.7",
+    "three": "^0.171.0",
+    "vaul": "^1.1.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "@types/node": "^22.13.5",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "baseline-browser-mapping": "^2.8.32",
+    "eslint": "^9.19.0",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.18",
+    "eslint-plugin-unused-imports": "^4.3.0",
+    "globals": "^15.14.0",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.2",
+    "vite": "^6.1.0"
+  }
+}
+
+
+============================================================
+FILE: index.html
+============================================================
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="https://base44.com/logo_v2.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>Base44 APP</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+
+============================================================
+FILE: eslint.config.js
+============================================================
+import globals from "globals";
+import pluginJs from "@eslint/js";
+import pluginReact from "eslint-plugin-react";
+import pluginReactHooks from "eslint-plugin-react-hooks";
+import pluginUnusedImports from "eslint-plugin-unused-imports";
+
+export default [
+  {
+    files: [
+      "src/components/**/*.{js,mjs,cjs,jsx}",
+      "src/pages/**/*.{js,mjs,cjs,jsx}",
+      "src/Layout.jsx",
+    ],
+    ignores: ["src/lib/**/*", "src/components/ui/**/*"],
+    ...pluginJs.configs.recommended,
+    ...pluginReact.configs.flat.recommended,
+    languageOptions: {
+      globals: globals.browser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: "module",
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    settings: {
+      react: {
+        version: "detect",
+      },
+    },
+    plugins: {
+      react: pluginReact,
+      "react-hooks": pluginReactHooks,
+      "unused-imports": pluginUnusedImports,
+    },
+    rules: {
+      "no-unused-vars": "off",
+      "react/jsx-uses-vars": "error",
+      "react/jsx-uses-react": "error",
+      "unused-imports/no-unused-imports": "error",
+      "unused-imports/no-unused-vars": [
+        "warn",
+        {
+          vars: "all",
+          varsIgnorePattern: "^_",
+          args: "after-used",
+          argsIgnorePattern: "^_",
+        },
+      ],
+      "react/prop-types": "off",
+      "react/react-in-jsx-scope": "off",
+      "react/no-unknown-property": [
+        "error",
+        { ignore: ["cmdk-input-wrapper", "toast-close"] },
+      ],
+      "react-hooks/rules-of-hooks": "error",
+    },
+  },
+];
+
+
+============================================================
+FILE: jsconfig.json
+============================================================
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "jsx": "react-jsx",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["esnext", "dom"],
+    "target": "esnext",
+    "checkJs": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "types": []
+  },
+  "include": ["src/components/**/*.js", "src/pages/**/*.jsx", "src/Layout.jsx"],
+  "exclude": ["node_modules", "dist", "src/vite-plugins", "src/components/ui", "src/api", "src/lib"]
+} 
+
+============================================================
+FILE: postcss.config.js
+============================================================
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+
+============================================================
+FILE: tailwind.config.js
+============================================================
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+    darkMode: ["class"],
+    content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
+  theme: {
+  	fontFamily: {
+  		inter: ['var(--font-inter)'],
+  	},
+  	extend: {
+  		borderRadius: {
+  			lg: 'var(--radius)',
+  			md: 'calc(var(--radius) - 2px)',
+  			sm: 'calc(var(--radius) - 4px)'
+  		},
+  		colors: {
+  			background: 'hsl(var(--background))',
+  			foreground: 'hsl(var(--foreground))',
+  			card: {
+  				DEFAULT: 'hsl(var(--card))',
+  				foreground: 'hsl(var(--card-foreground))'
+  			},
+  			popover: {
+  				DEFAULT: 'hsl(var(--popover))',
+  				foreground: 'hsl(var(--popover-foreground))'
+  			},
+  			primary: {
+  				DEFAULT: 'hsl(var(--primary))',
+  				foreground: 'hsl(var(--primary-foreground))'
+  			},
+  			secondary: {
+  				DEFAULT: 'hsl(var(--secondary))',
+  				foreground: 'hsl(var(--secondary-foreground))'
+  			},
+  			muted: {
+  				DEFAULT: 'hsl(var(--muted))',
+  				foreground: 'hsl(var(--muted-foreground))'
+  			},
+  			accent: {
+  				DEFAULT: 'hsl(var(--accent))',
+  				foreground: 'hsl(var(--accent-foreground))'
+  			},
+  			destructive: {
+  				DEFAULT: 'hsl(var(--destructive))',
+  				foreground: 'hsl(var(--destructive-foreground))'
+  			},
+  			border: 'hsl(var(--border))',
+  			input: 'hsl(var(--input))',
+  			ring: 'hsl(var(--ring))',
+  			chart: {
+  				'1': 'hsl(var(--chart-1))',
+  				'2': 'hsl(var(--chart-2))',
+  				'3': 'hsl(var(--chart-3))',
+  				'4': 'hsl(var(--chart-4))',
+  				'5': 'hsl(var(--chart-5))'
+  			},
+  			sidebar: {
+  				DEFAULT: 'hsl(var(--sidebar-background))',
+  				foreground: 'hsl(var(--sidebar-foreground))',
+  				primary: 'hsl(var(--sidebar-primary))',
+  				'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+  				accent: 'hsl(var(--sidebar-accent))',
+  				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+  				border: 'hsl(var(--sidebar-border))',
+  				ring: 'hsl(var(--sidebar-ring))'
+  			}
+  		},
+  		keyframes: {
+  			'accordion-down': {
+  				from: {
+  					height: '0'
+  				},
+  				to: {
+  					height: 'var(--radix-accordion-content-height)'
+  				}
+  			},
+  			'accordion-up': {
+  				from: {
+  					height: 'var(--radix-accordion-content-height)'
+  				},
+  				to: {
+  					height: '0'
+  				}
+  			}
+  		},
+  		animation: {
+  			'accordion-down': 'accordion-down 0.2s ease-out',
+  			'accordion-up': 'accordion-up 0.2s ease-out'
+  		}
+  	}
+  },
+  plugins: [require("tailwindcss-animate")],
+}
+
+============================================================
+FILE: vite.config.js
+============================================================
+import base44 from "@base44/vite-plugin"
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+
+// https://vite.dev/config/
+export default defineConfig({
+  logLevel: 'error', // Suppress warnings, only show errors
+  plugins: [
+    base44({
+      // Support for legacy code that imports the base44 SDK with @/integrations, @/entities, etc.
+      // can be removed if the code has been updated to use the new SDK imports from @base44/sdk
+      legacySDKImports: process.env.BASE44_LEGACY_SDK_IMPORTS === 'true',
+      hmrNotifier: true,
+      navigationNotifier: true,
+      analyticsTracker: true,
+      visualEditAgent: true
+    }),
+    react(),
+  ]
+});
+
+============================================================
+FILE: components.json
+============================================================
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": false,
+  "tsx": false,
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "src/index.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  },
+  "iconLibrary": "lucide"
+}
+
+============================================================
+FILE: .gitignore
+============================================================
+#env
+.env
+.env.*
+
+# Logs
+/logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+.env
+.vite
+
+
+============================================================
+FILE: src/App.jsx
+============================================================
+import { Toaster } from "@/components/ui/toaster"
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClientInstance } from '@/lib/query-client'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import PageNotFound from './lib/PageNotFound';
+import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import AppLayout from '@/components/layout/AppLayout';
+import Dashboard from '@/pages/Dashboard';
+import Shipments from '@/pages/Shipments';
+import Bookings from '@/pages/Bookings';
+import AsnWorkflow from '@/pages/AsnWorkflow';
+import EndOfMonth from '@/pages/EndOfMonth';
+import Contacts from '@/pages/Contacts';
+import History from '@/pages/History';
+
+const AuthenticatedApp = () => {
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+
+  // Show loading spinner while checking app public settings or auth
+  if (isLoadingPublicSettings || isLoadingAuth) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Handle authentication errors
+  if (authError) {
+    if (authError.type === 'user_not_registered') {
+      return <UserNotRegisteredError />;
+    } else if (authError.type === 'auth_required') {
+      // Redirect to login automatically
+      navigateToLogin();
+      return null;
+    }
+  }
+
+  // Render the main app
+  return (
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/shipments" element={<Shipments />} />
+        <Route path="/bookings" element={<Bookings />} />
+        <Route path="/asn" element={<AsnWorkflow />} />
+        <Route path="/eom" element={<EndOfMonth />} />
+        <Route path="/contacts" element={<Contacts />} />
+        <Route path="/history" element={<History />} />
+      </Route>
+      <Route path="*" element={<PageNotFound />} />
+    </Routes>
+  );
+};
+
+
+function App() {
+
+  return (
+    <AuthProvider>
+      <QueryClientProvider client={queryClientInstance}>
+        <Router>
+          <AuthenticatedApp />
+        </Router>
+        <Toaster />
+      </QueryClientProvider>
+    </AuthProvider>
+  )
+}
+
+export default App
+
+============================================================
+FILE: src/index.css
+============================================================
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', sans-serif;
+    --background: 210 20% 97%;
+    --foreground: 210 50% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 50% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 50% 10%;
+    --primary: 210 58% 30%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 210 40% 93%;
+    --secondary-foreground: 210 50% 20%;
+    --muted: 210 20% 94%;
+    --muted-foreground: 210 15% 46%;
+    --accent: 210 56% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 18% 88%;
+    --input: 210 18% 88%;
+    --ring: 210 58% 30%;
+    --chart-1: 210 58% 30%;
+    --chart-2: 210 56% 45%;
+    --chart-3: 160 50% 40%;
+    --chart-4: 38 80% 55%;
+    --chart-5: 0 70% 55%;
+    --radius: 0.5rem;
+    --sidebar-background: 210 58% 18%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 210 56% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 50% 24%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 210 40% 25%;
+    --sidebar-ring: 210 56% 45%;
+  }
+
+  .dark {
+    --background: 210 30% 8%;
+    --foreground: 210 20% 95%;
+    --card: 210 25% 12%;
+    --card-foreground: 210 20% 95%;
+    --popover: 210 25% 12%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 210 56% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 25% 18%;
+    --secondary-foreground: 210 20% 90%;
+    --muted: 210 20% 16%;
+    --muted-foreground: 210 15% 55%;
+    --accent: 210 56% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 20% 20%;
+    --input: 210 20% 20%;
+    --ring: 210 56% 45%;
+    --chart-1: 210 56% 45%;
+    --chart-2: 210 58% 30%;
+    --chart-3: 160 50% 40%;
+    --chart-4: 38 80% 55%;
+    --chart-5: 0 70% 55%;
+    --sidebar-background: 210 30% 8%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 210 56% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 25% 15%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 210 20% 18%;
+    --sidebar-ring: 210 56% 45%;
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+============================================================
+FILE: src/main.jsx
+============================================================
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from '@/App.jsx'
+import '@/index.css'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <App />
+)
+
+
+============================================================
+FILE: src/pages/AsnWorkflow.jsx
+============================================================
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Check, ChevronRight, Upload, ArrowLeft } from 'lucide-react';
+import { format } from 'date-fns';
+import SopPanel from '@/components/layout/SopPanel';
+
+const sopSections = [
+  {
+    title: 'ASN — General Rule',
+    content: <p className="text-xs">Send the ASN at least <strong>14 days</strong> before the estimated delivery date.</p>,
+  },
+  {
+    title: 'GoBolt Process',
+    content: (
+      <ul className="list-disc list-inside space-y-1.5 text-xs">
+        <li>Location: Markham YYZ5.</li>
+        <li>Use Floor Loaded if pallet count unknown. Air via CEVA = LTL Floor Loaded. DHL/FedEx = Parcel.</li>
+        <li>Upload SKU/quantity CSV from packing list. If SKU not found, email Sibin.</li>
+        <li><strong>PO number is mandatory</strong> — this flows receipt data to NetSuite.</li>
+        <li>Attach packing list as PDF. For DHL, also attach waybill.</li>
+        <li>One ASN per PO (not per shipment/AWB).</li>
+      </ul>
+    ),
+  },
+  {
+    title: 'NRI Canada / US Process',
+    content: (
+      <ul className="list-disc list-inside space-y-1.5 text-xs">
+        <li>Use the "tentree inbound ASN" email template.</li>
+        <li>Attach the packing list.</li>
+        <li>Send to the correct contact group (see Contacts).</li>
+      </ul>
+    ),
+  },
+  {
+    title: 'Special Cases',
+    content: (
+      <div className="space-y-2 text-xs">
+        <p><strong>Polymailers:</strong> No PO number. Write "Polymailer" in tracking. Not inventory items — no warehouse receipt needed.</p>
+        <p><strong>ASN Email Contacts:</strong></p>
+        <ul className="list-disc list-inside">
+          <li>GoBolt → Sibin (via portal)</li>
+          <li>NRI US → appt-LH, Yarumi, Simon, Veronika</li>
+          <li>NRI Canada → Alyssa, appt-kam@nri-distribution.com</li>
+        </ul>
+      </div>
+    ),
+  },
+];
+
+const steps = ['Select Shipment', 'Warehouse Type', 'ASN Details', 'Review & Send'];
+
+export default function AsnWorkflow() {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [selectedShipmentId, setSelectedShipmentId] = useState(null);
+  const [warehouseType, setWarehouseType] = useState('');
+  const [sopOpen, setSopOpen] = useState(true);
+  const [form, setForm] = useState({
+    loading_type: 'Floor Loaded',
+    po_number: '', unit_count: '', carton_count: '',
+    tracking_number: '', eta: '', notes: '',
+  });
+
+  const queryClient = useQueryClient();
+
+  const { data: shipments = [] } = useQuery({
+    queryKey: ['shipments'],
+    queryFn: () => base44.entities.Shipment.list('-created_date', 200),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.AsnRecord.create(data),
+    onSuccess: async (_, variables) => {
+      if (selectedShipmentId) {
+        await base44.entities.Shipment.update(selectedShipmentId, { asn_sent: true });
+      }
+      queryClient.invalidateQueries({ queryKey: ['shipments'] });
+      setCurrentStep(0);
+      setSelectedShipmentId(null);
+      setWarehouseType('');
+      setForm({ loading_type: 'Floor Loaded', po_number: '', unit_count: '', carton_count: '', tracking_number: '', eta: '', notes: '' });
+    },
+  });
+
+  const activeShipments = shipments.filter(s => !s.asn_sent && s.status !== 'Received');
+  const selectedShipment = shipments.find(s => s.id === selectedShipmentId);
+
+  const update = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleSubmit = () => {
+    createMutation.mutate({
+      shipment_id: selectedShipmentId || '',
+      warehouse_type: warehouseType,
+      po_number: form.po_number || selectedShipment?.po_number || '',
+      supplier: selectedShipment?.supplier || '',
+      eta: form.eta || selectedShipment?.eta || '',
+      loading_type: warehouseType === 'GoBolt' ? form.loading_type : undefined,
+      unit_count: Number(form.unit_count) || 0,
+      carton_count: Number(form.carton_count) || 0,
+      tracking_number: form.tracking_number,
+      status: 'Sent',
+      notes: form.notes,
+    });
+  };
+
+  return (
+    <div className="flex h-full">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {/* Step Indicator */}
+        <div className="flex items-center gap-2">
+          {steps.map((step, i) => (
+            <React.Fragment key={step}>
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                i === currentStep ? 'bg-primary text-primary-foreground' : i < currentStep ? 'bg-emerald-100 text-emerald-800' : 'bg-muted text-muted-foreground'
+              }`}>
+                {i < currentStep ? <Check className="w-3 h-3" /> : <span>{i + 1}</span>}
+                <span className="hidden sm:inline">{step}</span>
+              </div>
+              {i < steps.length - 1 && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+            </React.Fragment>
+          ))}
+        </div>
+
+        {/* Step 0: Select Shipment */}
+        {currentStep === 0 && (
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold">Select a Shipment</h3>
+            {activeShipments.length === 0 ? (
+              <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">No shipments awaiting ASN</CardContent></Card>
+            ) : (
+              activeShipments.map(s => (
+                <Card key={s.id} className={`cursor-pointer transition-all hover:shadow-md ${selectedShipmentId === s.id ? 'ring-2 ring-primary' : ''}`} onClick={() => setSelectedShipmentId(s.id)}>
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-sm">{s.supplier} — {s.po_number}</p>
+                      <p className="text-xs text-muted-foreground">{s.mode} • {s.destination_warehouse} • ETA {s.eta ? format(new Date(s.eta), 'MMM d') : '—'}</p>
+                    </div>
+                    <Badge variant="secondary">{s.status}</Badge>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+            <Button disabled={!selectedShipmentId} onClick={() => { setCurrentStep(1); setForm(p => ({ ...p, po_number: selectedShipment?.po_number || '', eta: selectedShipment?.eta || '' })); }}>
+              Continue <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        )}
+
+        {/* Step 1: Warehouse Type */}
+        {currentStep === 1 && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Select Warehouse Type</h3>
+            <RadioGroup value={warehouseType} onValueChange={setWarehouseType} className="grid grid-cols-3 gap-4">
+              {['GoBolt', 'NRI Canada', 'NRI US'].map(w => (
+                <Label key={w} className={`flex items-center justify-center p-6 border-2 rounded-xl cursor-pointer transition-all ${warehouseType === w ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'}`}>
+                  <RadioGroupItem value={w} className="sr-only" />
+                  <span className="font-medium">{w}</span>
+                </Label>
+              ))}
+            </RadioGroup>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setCurrentStep(0)}><ArrowLeft className="w-4 h-4 mr-1" /> Back</Button>
+              <Button disabled={!warehouseType} onClick={() => setCurrentStep(2)}>Continue <ChevronRight className="w-4 h-4 ml-1" /></Button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: ASN Details */}
+        {currentStep === 2 && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">ASN Details — {warehouseType}</h3>
+            <Card>
+              <CardContent className="p-5 space-y-4">
+                {warehouseType === 'GoBolt' && (
+                  <div className="space-y-1.5">
+                    <Label>Loading Type</Label>
+                    <Select value={form.loading_type} onValueChange={v => update('loading_type', v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Palletized">Palletized</SelectItem>
+                        <SelectItem value="Floor Loaded">Floor Loaded</SelectItem>
+                        <SelectItem value="Parcel">Parcel</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5"><Label>PO Number *</Label><Input value={form.po_number} onChange={e => update('po_number', e.target.value)} /></div>
+                  <div className="space-y-1.5"><Label>ETA</Label><Input type="date" value={form.eta} onChange={e => update('eta', e.target.value)} /></div>
+                  <div className="space-y-1.5"><Label>Unit Count</Label><Input type="number" value={form.unit_count} onChange={e => update('unit_count', e.target.value)} /></div>
+                  <div className="space-y-1.5"><Label>Carton Count</Label><Input type="number" value={form.carton_count} onChange={e => update('carton_count', e.target.value)} /></div>
+                </div>
+                <div className="space-y-1.5"><Label>Tracking / GRID Number</Label><Input value={form.tracking_number} onChange={e => update('tracking_number', e.target.value)} /></div>
+                <div className="space-y-1.5"><Label>Notes</Label><Textarea value={form.notes} onChange={e => update('notes', e.target.value)} rows={2} /></div>
+              </CardContent>
+            </Card>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setCurrentStep(1)}><ArrowLeft className="w-4 h-4 mr-1" /> Back</Button>
+              <Button onClick={() => setCurrentStep(3)}>Review <ChevronRight className="w-4 h-4 ml-1" /></Button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Review & Send */}
+        {currentStep === 3 && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Review & Send</h3>
+            <Card>
+              <CardContent className="p-5 divide-y divide-border">
+                <div className="flex justify-between py-2"><span className="text-sm text-muted-foreground">Shipment</span><span className="text-sm font-medium">{selectedShipment?.supplier} — {form.po_number}</span></div>
+                <div className="flex justify-between py-2"><span className="text-sm text-muted-foreground">Warehouse</span><span className="text-sm font-medium">{warehouseType}</span></div>
+                {warehouseType === 'GoBolt' && <div className="flex justify-between py-2"><span className="text-sm text-muted-foreground">Loading Type</span><span className="text-sm font-medium">{form.loading_type}</span></div>}
+                <div className="flex justify-between py-2"><span className="text-sm text-muted-foreground">Units / Cartons</span><span className="text-sm font-medium">{form.unit_count} / {form.carton_count}</span></div>
+                <div className="flex justify-between py-2"><span className="text-sm text-muted-foreground">ETA</span><span className="text-sm font-medium">{form.eta ? format(new Date(form.eta), 'MMM d, yyyy') : '—'}</span></div>
+                <div className="flex justify-between py-2"><span className="text-sm text-muted-foreground">Tracking</span><span className="text-sm font-medium">{form.tracking_number || '—'}</span></div>
+              </CardContent>
+            </Card>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setCurrentStep(2)}><ArrowLeft className="w-4 h-4 mr-1" /> Back</Button>
+              <Button onClick={handleSubmit} disabled={createMutation.isPending}>
+                {createMutation.isPending ? 'Sending...' : 'Send ASN'}
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+      <SopPanel title="ASN SOP" sections={sopSections} isOpen={sopOpen} onToggle={() => setSopOpen(!sopOpen)} />
+    </div>
+  );
+}
+
+============================================================
+FILE: src/pages/Bookings.jsx
+============================================================
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Search, Plus } from 'lucide-react';
+import { format } from 'date-fns';
+import SopPanel from '@/components/layout/SopPanel';
+import BookingForm from '@/components/bookings/BookingForm';
+import BookingDetailDrawer from '@/components/bookings/BookingDetailDrawer';
+import CustomsPlaceholder from '@/components/bookings/CustomsPlaceholder';
+
+const statusColors = {
+  'Pending Approval': 'bg-amber-100 text-amber-800',
+  'Approved': 'bg-emerald-100 text-emerald-800',
+  'Declined': 'bg-red-100 text-red-800',
+  'Draft': 'bg-gray-100 text-gray-700',
+};
+
+const sopSections = [
+  {
+    title: 'Booking Approval — Checklist',
+    content: (
+      <ul className="list-disc list-inside space-y-2 text-xs">
+        <li>Verify destination warehouse is correct (right 3PL location for the season).</li>
+        <li>Mode of transport matches shipment size. Under 10–12 cartons → FedEx courier.</li>
+        <li>GRID shipment number exists (LGINBSH...). If not, post in #prod_ops.</li>
+        <li>Quantities in booking match GRID.</li>
+        <li>Once approved: share GRID number in reply to CEVA, update GRID status, record in tracker.</li>
+      </ul>
+    ),
+  },
+  {
+    title: 'Shipping Method Guide',
+    content: (
+      <ul className="list-disc list-inside space-y-1.5 text-xs">
+        <li><strong>Under 10–12 cartons</strong> → FedEx courier (cheaper)</li>
+        <li><strong>10+ cartons</strong> → Ocean or Air via CEVA</li>
+      </ul>
+    ),
+  },
+];
+
+function BookingsList({ onSelectBooking }) {
+  const queryClient = useQueryClient();
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('All');
+
+  const { data: bookings = [], isLoading } = useQuery({
+    queryKey: ['bookings-v2'],
+    queryFn: () => base44.entities.Booking.list('-created_date', 200),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Booking.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bookings-v2'] }),
+  });
+
+  const handleApprove = async (booking) => {
+    await updateMutation.mutateAsync({ id: booking.id, data: { booking_status: 'Approved', approved_at: new Date().toISOString() } });
+    if (booking.freight_forwarder === 'Ceva') {
+      await base44.integrations.Core.SendEmail({
+        to: 'ceva@ceva.com',
+        subject: `Booking Approved – ${booking.booking_number}`,
+        body: `Booking ${booking.booking_number} has been approved.\n\nVendor: ${booking.vendor_name}\nPO Number: ${booking.tentree_po_number}\nWarehouse: ${booking.receiving_warehouse}\nCartons: ${booking.number_of_cartons}\nCargo Ready Date: ${booking.cargo_ready_date}`,
+      });
+    }
+  };
+
+  const handleDecline = async (booking, reason) => {
+    await updateMutation.mutateAsync({ id: booking.id, data: { booking_status: 'Declined', decline_reason: reason } });
+  };
+
+  const filtered = bookings.filter(b => {
+    const matchSearch = !search ||
+      b.vendor_name?.toLowerCase().includes(search.toLowerCase()) ||
+      b.tentree_po_number?.toLowerCase().includes(search.toLowerCase()) ||
+      b.booking_number?.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = filterStatus === 'All' || b.booking_status === filterStatus;
+    return matchSearch && matchStatus;
+  });
+
+  const [selectedBooking, setSelectedBooking] = useState(null);
+
+  return (
+    <>
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Search by vendor, PO, booking #..." className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
+        </div>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="All">All Statuses</SelectItem>
+            <SelectItem value="Pending Approval">Pending Approval</SelectItem>
+            <SelectItem value="Approved">Approved</SelectItem>
+            <SelectItem value="Declined">Declined</SelectItem>
+            <SelectItem value="Draft">Draft</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50">
+              <TableHead className="font-semibold">Booking #</TableHead>
+              <TableHead className="font-semibold">Vendor</TableHead>
+              <TableHead className="font-semibold">PO Number</TableHead>
+              <TableHead className="font-semibold">Warehouse</TableHead>
+              <TableHead className="font-semibold">Cartons</TableHead>
+              <TableHead className="font-semibold">Cargo Ready</TableHead>
+              <TableHead className="font-semibold">Forwarder</TableHead>
+              <TableHead className="font-semibold">Status</TableHead>
+              <TableHead className="font-semibold">Submitted</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+            ) : filtered.length === 0 ? (
+              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No bookings found</TableCell></TableRow>
+            ) : (
+              filtered.map(b => (
+                <TableRow key={b.id} className="cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setSelectedBooking(b)}>
+                  <TableCell className="font-mono text-xs font-medium">{b.booking_number || '—'}</TableCell>
+                  <TableCell className="text-sm">{b.vendor_name}</TableCell>
+                  <TableCell className="text-sm font-medium">{b.tentree_po_number}</TableCell>
+                  <TableCell className="text-sm">{b.receiving_warehouse}</TableCell>
+                  <TableCell className="text-sm">{b.number_of_cartons ?? '—'}</TableCell>
+                  <TableCell className="text-sm">{b.cargo_ready_date ? format(new Date(b.cargo_ready_date + 'T12:00:00'), 'MMM d, yyyy') : '—'}</TableCell>
+                  <TableCell className="text-sm">{b.freight_forwarder}</TableCell>
+                  <TableCell>
+                    <Badge className={statusColors[b.booking_status] || 'bg-gray-100 text-gray-700'} variant="secondary">
+                      {b.booking_status || 'Draft'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {b.submitted_at ? format(new Date(b.submitted_at), 'MMM d') : '—'}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <BookingDetailDrawer
+        booking={selectedBooking}
+        open={!!selectedBooking}
+        onClose={() => setSelectedBooking(null)}
+        onApprove={handleApprove}
+        onDecline={handleDecline}
+      />
+    </>
+  );
+}
+
+export default function Bookings() {
+  const [activeTab, setActiveTab] = useState('list');
+  const [sopOpen, setSopOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  return (
+    <div className="flex h-full">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold font-inter">Bookings</h1>
+          {activeTab === 'list' && (
+            <Button onClick={() => setActiveTab('submit')}>
+              <Plus className="w-4 h-4 mr-1.5" /> New Booking
+            </Button>
+          )}
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="list">All Bookings</TabsTrigger>
+            <TabsTrigger value="submit">Submit Booking</TabsTrigger>
+            <TabsTrigger value="customs">Customs Line Optimizer</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="list" className="mt-4">
+            <BookingsList />
+          </TabsContent>
+
+          <TabsContent value="submit" className="mt-4">
+            <BookingForm onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: ['bookings-v2'] });
+              setTimeout(() => setActiveTab('list'), 3000);
+            }} />
+          </TabsContent>
+
+          <TabsContent value="customs" className="mt-4">
+            <CustomsPlaceholder />
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      <SopPanel title="Booking SOP" sections={sopSections} isOpen={sopOpen} onToggle={() => setSopOpen(!sopOpen)} />
+    </div>
+  );
+}
+
+============================================================
+FILE: src/pages/Contacts.jsx
+============================================================
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Search, Mail, Copy, User } from 'lucide-react';
+import { toast } from 'sonner';
+import SopPanel from '@/components/layout/SopPanel';
+
+const groupColors = {
+  'Suppliers': 'bg-blue-100 text-blue-800',
+  'FedEx': 'bg-purple-100 text-purple-800',
+  'NRI USA': 'bg-emerald-100 text-emerald-800',
+  'NRI Canada': 'bg-teal-100 text-teal-800',
+  'CEVA Logistics': 'bg-indigo-100 text-indigo-800',
+  'tentree Internal': 'bg-amber-100 text-amber-800',
+  'Finance': 'bg-rose-100 text-rose-800',
+};
+
+const allGroups = ['All', 'Suppliers', 'FedEx', 'NRI USA', 'NRI Canada', 'CEVA Logistics', 'tentree Internal', 'Finance'];
+
+const sopSections = [
+  {
+    title: 'Using the Contacts Directory',
+    content: (
+      <ul className="list-disc list-inside space-y-1.5 text-xs">
+        <li>For ASN sends, use the pre-populated contact lists in the ASN module.</li>
+        <li>For CEVA rate updates, contact Joyce Ho or Calvin Huang.</li>
+        <li>For ocean bookings and customs, contact Mikhail Efimov.</li>
+        <li>For customs issues (Canada): Jeffrey at CEVA. For US: Nikki at Cole.</li>
+        <li>For NRI escalations (Canada): Sam. Account / rate questions: Alex.</li>
+      </ul>
+    ),
+  },
+];
+
+export default function Contacts() {
+  const [search, setSearch] = useState('');
+  const [activeGroup, setActiveGroup] = useState('All');
+  const [sopOpen, setSopOpen] = useState(true);
+
+  const { data: contacts = [] } = useQuery({
+    queryKey: ['contacts'],
+    queryFn: () => base44.entities.Contact.list('group', 200),
+  });
+
+  const filtered = contacts.filter(c => {
+    const matchGroup = activeGroup === 'All' || c.group === activeGroup;
+    const matchSearch = !search || 
+      c.name?.toLowerCase().includes(search.toLowerCase()) ||
+      c.email?.toLowerCase().includes(search.toLowerCase()) ||
+      c.company?.toLowerCase().includes(search.toLowerCase()) ||
+      c.role?.toLowerCase().includes(search.toLowerCase());
+    return matchGroup && matchSearch;
+  });
+
+  const copyEmail = (email) => {
+    navigator.clipboard.writeText(email);
+    toast.success('Email copied');
+  };
+
+  return (
+    <div className="flex h-full">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        {/* Search & Filter */}
+        <div className="flex flex-col gap-3">
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="Search by name, email, or company..." className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
+          </div>
+          <Tabs value={activeGroup} onValueChange={setActiveGroup}>
+            <TabsList className="flex-wrap h-auto gap-1">
+              {allGroups.map(g => (
+                <TabsTrigger key={g} value={g} className="text-xs">{g}</TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </div>
+
+        {/* Contact Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {filtered.map(contact => (
+            <Card key={contact.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <User className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-medium text-sm text-foreground truncate">{contact.name || contact.role || 'Unknown'}</p>
+                    </div>
+                    {contact.role && contact.name && (
+                      <p className="text-xs text-muted-foreground truncate">{contact.role}</p>
+                    )}
+                    {contact.company && (
+                      <p className="text-xs text-muted-foreground">{contact.company}</p>
+                    )}
+                    {contact.email && (
+                      <button
+                        onClick={() => copyEmail(contact.email)}
+                        className="flex items-center gap-1.5 mt-2 text-xs text-primary hover:underline group"
+                      >
+                        <Mail className="w-3 h-3" />
+                        <span className="truncate">{contact.email}</span>
+                        <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+                    )}
+                    {contact.notes && (
+                      <p className="text-xs text-muted-foreground mt-1.5 italic">{contact.notes}</p>
+                    )}
+                    <Badge className={`${groupColors[contact.group] || 'bg-muted text-muted-foreground'} mt-2 text-[10px]`} variant="secondary">
+                      {contact.group}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+          {filtered.length === 0 && (
+            <div className="col-span-full py-12 text-center text-muted-foreground text-sm">No contacts found</div>
+          )}
+        </div>
+      </div>
+      <SopPanel title="Contacts SOP" sections={sopSections} isOpen={sopOpen} onToggle={() => setSopOpen(!sopOpen)} />
+    </div>
+  );
+}
+
+============================================================
+FILE: src/pages/Dashboard.jsx
+============================================================
+import React from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Package, FileText, Shield, CalendarCheck, Ship, Plane, Truck, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { format } from 'date-fns';
+
+const statusColors = {
+  'Booking Received': 'bg-amber-100 text-amber-800',
+  'Booking Approved': 'bg-blue-100 text-blue-800',
+  'Docs Sent': 'bg-indigo-100 text-indigo-800',
+  'Customs Cleared': 'bg-purple-100 text-purple-800',
+  'In Transit': 'bg-cyan-100 text-cyan-800',
+  'ASN Sent': 'bg-emerald-100 text-emerald-800',
+  'Received': 'bg-green-100 text-green-800',
+};
+
+const modeIcons = { Ocean: Ship, Air: Plane, Courier: Truck, DDP: Truck };
+
+export default function Dashboard() {
+  const { data: shipments = [] } = useQuery({
+    queryKey: ['shipments'],
+    queryFn: () => base44.entities.Shipment.list('-created_date', 100),
+  });
+  const { data: bookings = [] } = useQuery({
+    queryKey: ['bookings'],
+    queryFn: () => base44.entities.Booking.list('-created_date', 50),
+  });
+  const { data: eomTasks = [] } = useQuery({
+    queryKey: ['eomTasks'],
+    queryFn: () => base44.entities.EomTask.list('-created_date', 50),
+  });
+
+  const activeShipments = shipments.filter(s => s.status !== 'Received');
+  const pendingBookings = bookings.filter(b => b.decision === 'Pending');
+  const currentMonth = format(new Date(), 'yyyy-MM');
+  const monthTasks = eomTasks.filter(t => t.month === currentMonth);
+  const completedTasks = monthTasks.filter(t => t.status === 'Done').length;
+  const totalTasks = monthTasks.length;
+
+  const statsByStatus = {};
+  activeShipments.forEach(s => {
+    statsByStatus[s.status] = (statsByStatus[s.status] || 0) + 1;
+  });
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Link to="/shipments">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-primary">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Active Shipments</p>
+                  <p className="text-3xl font-bold text-foreground mt-1">{activeShipments.length}</p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Package className="w-5 h-5 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link to="/bookings">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-amber-500">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Pending Bookings</p>
+                  <p className="text-3xl font-bold text-foreground mt-1">{pendingBookings.length}</p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-amber-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link to="/asn">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-emerald-500">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">ASN Pending</p>
+                  <p className="text-3xl font-bold text-foreground mt-1">
+                    {activeShipments.filter(s => !s.asn_sent && ['In Transit', 'Customs Cleared'].includes(s.status)).length}
+                  </p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-emerald-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link to="/eom">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-purple-500">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">EoM Progress</p>
+                  <p className="text-3xl font-bold text-foreground mt-1">
+                    {totalTasks ? `${completedTasks}/${totalTasks}` : '—'}
+                  </p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
+                  <CalendarCheck className="w-5 h-5 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Status Breakdown */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold">Shipment Pipeline</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {Object.entries(statsByStatus).length === 0 && (
+              <p className="text-sm text-muted-foreground">No active shipments</p>
+            )}
+            {Object.entries(statsByStatus).map(([status, count]) => (
+              <div key={status} className="flex items-center justify-between py-1.5">
+                <Badge className={statusColors[status] || 'bg-muted text-muted-foreground'} variant="secondary">
+                  {status}
+                </Badge>
+                <span className="text-sm font-semibold text-foreground">{count}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Recent Shipments */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-3 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-semibold">Recent Shipments</CardTitle>
+            <Link to="/shipments" className="text-xs text-primary hover:underline flex items-center gap-1">
+              View all <ArrowRight className="w-3 h-3" />
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {activeShipments.slice(0, 6).map((s) => {
+                const ModeIcon = modeIcons[s.mode] || Package;
+                return (
+                  <div key={s.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                      <ModeIcon className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{s.supplier} — {s.po_number}</p>
+                      <p className="text-xs text-muted-foreground">{s.destination_warehouse} • ETA {s.eta ? format(new Date(s.eta), 'MMM d') : '—'}</p>
+                    </div>
+                    <Badge className={statusColors[s.status] || 'bg-muted'} variant="secondary">
+                      {s.status}
+                    </Badge>
+                  </div>
+                );
+              })}
+              {activeShipments.length === 0 && (
+                <p className="text-sm text-muted-foreground py-4 text-center">No active shipments yet</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+============================================================
+FILE: src/pages/EndOfMonth.jsx
+============================================================
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertTriangle, CheckCircle2, Circle, Clock } from 'lucide-react';
+import { format } from 'date-fns';
+import SopPanel from '@/components/layout/SopPanel';
+
+const tasksByGroup = {
+  'In-Transit Report': [
+    'Filter Master Tracker: ETD POL ≤ month-end date, NetSuite Receipt Date = blank',
+    'Pull shipment data from TnT tab',
+    'Retrieve invoice number, total, and quantity from each commercial invoice',
+    'Compile and send report to Finance (Gladis, Pedro, Barbara, Peter)',
+    'Check Chart of Account 1207 — In Transit in NetSuite for TO value; notify Finance if found',
+  ],
+  'Landed Costs': [
+    'Duplicate last month\'s LCT file, rename for current month',
+    'Download receipt data from NetSuite saved searches (Last Month / This Month)',
+    'Identify empty fields (Memo, Customs Entry Number, Cost — Duty & Freight)',
+    'Enter landed costs on each NetSuite item receipt',
+    'Split costs across POs for multi-PO invoices using conversion sheet',
+    'For Pratibha shipments: include commission amount',
+    'Notify Barbara Faggiotto and Gladis Salguero when complete',
+  ],
+  'Inventory Reconciliation': [
+    'Review NRI Canada, NRI US, and GoBolt inventory rec reports',
+    'Filter Summary tab by Var Total — compare warehouse vs. NetSuite on-hand',
+    'Identify adjustments to post',
+    'Export CSV from Daily_ tab (adjustments) or Transfer_ tab (transfers)',
+    'Remove blank rows from export, upload to NetSuite',
+    'Check for negative inventory before and after upload',
+    'Set posting period and date to last day of the month',
+    'Send completed rec to Gladis Salguero',
+  ],
+};
+
+const statusIcons = {
+  'Not Started': <Circle className="w-4 h-4 text-muted-foreground" />,
+  'In Progress': <Clock className="w-4 h-4 text-amber-500" />,
+  'Done': <CheckCircle2 className="w-4 h-4 text-emerald-500" />,
+};
+
+const statusColors = {
+  'Not Started': 'bg-muted text-muted-foreground',
+  'In Progress': 'bg-amber-100 text-amber-800',
+  'Done': 'bg-emerald-100 text-emerald-800',
+};
+
+const sopSections = [
+  {
+    title: 'Rules & Deadlines',
+    content: (
+      <ul className="list-disc list-inside space-y-1.5 text-xs">
+        <li>All three tasks must be completed by the <strong>3rd business day</strong> after month end.</li>
+        <li>In-Transit: only shipments with ETD on or before month end, no NetSuite receipt yet. FOB terms apply.</li>
+        <li>LCT: all receipts must have Memo, Customs Entry Number, and Cost fields populated.</li>
+        <li>Inventory Rec: upload adjustments with posting period set to month end, not today.</li>
+      </ul>
+    ),
+  },
+  {
+    title: 'LCT Special Cases',
+    content: (
+      <ul className="list-disc list-inside space-y-1.5 text-xs">
+        <li>DDP shipments: skip — freight and duty are built into unit costs.</li>
+        <li>DHL/FedEx with no invoice by EOM: use SMS Calculator for estimates.</li>
+        <li>Freight always in USD from CEVA invoice.</li>
+        <li>Duty: Canada = CAD from CEVA (convert to USD). US = USD from Cole invoice.</li>
+      </ul>
+    ),
+  },
+  {
+    title: 'Inventory Rec Notes',
+    content: (
+      <ul className="list-disc list-inside space-y-1.5 text-xs">
+        <li>NetSuite must never exceed warehouse inventory (Shopify connection).</li>
+        <li>Small discrepancies under 3 units can be ignored.</li>
+        <li>Mobile mini inventory does not appear in NRI DC inventory.</li>
+        <li>TRF SKUs are not inventory items in NetSuite.</li>
+      </ul>
+    ),
+  },
+];
+
+export default function EndOfMonth() {
+  const currentMonth = format(new Date(), 'yyyy-MM');
+  const [sopOpen, setSopOpen] = useState(true);
+  const queryClient = useQueryClient();
+
+  const { data: tasks = [], isLoading } = useQuery({
+    queryKey: ['eomTasks', currentMonth],
+    queryFn: () => base44.entities.EomTask.filter({ month: currentMonth }),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.EomTask.bulkCreate(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['eomTasks'] }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.EomTask.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['eomTasks'] }),
+  });
+
+  // Initialize tasks for the month if none exist
+  useEffect(() => {
+    if (!isLoading && tasks.length === 0) {
+      const allTasks = [];
+      Object.entries(tasksByGroup).forEach(([group, items]) => {
+        items.forEach((title, i) => {
+          allTasks.push({ month: currentMonth, group, title, status: 'Not Started', order_index: i });
+        });
+      });
+      createMutation.mutate(allTasks);
+    }
+  }, [isLoading, tasks.length]);
+
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(t => t.status === 'Done').length;
+  const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+  return (
+    <div className="flex h-full">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {/* Deadline Banner */}
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+          <p className="text-sm text-amber-800 font-medium">
+            All EoM tasks must be completed by the 3rd business day after month end.
+          </p>
+        </div>
+
+        {/* Progress */}
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-semibold text-foreground">{format(new Date(), 'MMMM yyyy')} Progress</p>
+              <p className="text-sm font-bold text-primary">{completedTasks}/{totalTasks}</p>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </CardContent>
+        </Card>
+
+        {/* Task Groups */}
+        {Object.entries(tasksByGroup).map(([group]) => {
+          const groupTasks = tasks.filter(t => t.group === group).sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+          const groupDone = groupTasks.filter(t => t.status === 'Done').length;
+          return (
+            <Card key={group}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-semibold">{group}</CardTitle>
+                  <Badge variant="secondary" className="text-xs">{groupDone}/{groupTasks.length}</Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                {groupTasks.map(task => (
+                  <div key={task.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
+                    <button onClick={() => {
+                      const next = task.status === 'Not Started' ? 'In Progress' : task.status === 'In Progress' ? 'Done' : 'Not Started';
+                      updateMutation.mutate({ id: task.id, data: { status: next } });
+                    }}>
+                      {statusIcons[task.status]}
+                    </button>
+                    <span className={`text-sm flex-1 ${task.status === 'Done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                      {task.title}
+                    </span>
+                    <Select value={task.status} onValueChange={v => updateMutation.mutate({ id: task.id, data: { status: v } })}>
+                      <SelectTrigger className="w-28 h-7 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Not Started">Not Started</SelectItem>
+                        <SelectItem value="In Progress">In Progress</SelectItem>
+                        <SelectItem value="Done">Done</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+      <SopPanel title="EoM SOP" sections={sopSections} isOpen={sopOpen} onToggle={() => setSopOpen(!sopOpen)} />
+    </div>
+  );
+}
+
+============================================================
+FILE: src/pages/History.jsx
+============================================================
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Search, Archive, Download } from 'lucide-react';
+import { format } from 'date-fns';
+import { exportToCsv } from '@/utils/exportCsv';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+
+const statusColors = {
+  'Received': 'bg-green-100 text-green-800',
+  'Delivered': 'bg-blue-100 text-blue-800',
+};
+
+const csvColumns = [
+  { label: 'Season', key: 'season' },
+  { label: 'PO Number', key: 'po_number' },
+  { label: 'Lot', key: 'lot_number' },
+  { label: 'TRN No.', key: 'trn_number' },
+  { label: 'Supplier', key: 'supplier' },
+  { label: 'Mode', key: 'mode'},
+  { label: 'Courier', key: 'courier' },
+  { label: 'Tracking No.', key: 'tracking_number'},
+  { label: 'Warehouse', key: 'destination_warehouse' },
+  { label: 'ETD', key: 'etd' },
+  { label: 'ETA', key: 'eta' },
+  { label: 'Status', key: 'status' },
+  { label: 'Origin', key: 'origin'},
+  { label: 'Expected Qty', key: 'expected_quantity' },
+  { label: 'Received Qty', key: 'received_quantity' },
+  { label: 'Cartons', key: 'carton_count' },
+  { label: 'Archived Date', key: 'archived_date' },
+  { label: 'Notes', key: 'notes' },
+];
+
+function HistoryTable({ list, isLoading, columns }) {
+  return (
+    <div className="bg-card rounded-xl border border-border overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            {columns.map(c => <TableHead key={c} className="font-semibold">{c}</TableHead>)}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading ? (
+            <TableRow><TableCell colSpan={columns.length} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+          ) : list.length === 0 ? (
+            <TableRow><TableCell colSpan={columns.length} className="text-center py-8 text-muted-foreground">No archived shipments</TableCell></TableRow>
+          ) : (
+            list.map(s => (
+              <TableRow key={s.id}>
+                <TableCell className="text-sm font-mono text-xs">{s.season || '—'}</TableCell>
+                <TableCell className="font-medium text-sm">{s.po_number || '-'}</TableCell>
+                <TableCell className="font-medium text-sm">{s.lot_number || '-'}</TableCell>
+                <TableCell className="text-sm font-mono text-xs">{s.trn_number || '—'}</TableCell>
+                <TableCell className="text-sm">{s.supplier}</TableCell>
+                <TableCell className="text-sm">{s.mode}</TableCell>                
+                <TableCell className="text-sm">{s.courier}</TableCell>
+                <TableCell className="text-sm">{s.origin}</TableCell>
+                <TableCell className="text-sm">{s.destination_warehouse}</TableCell>
+                <TableCell className="text-sm">{s.tracking_number}</TableCell>
+                <TableCell className="text-sm">{s.eta ? format(new Date(s.eta + 'T12:00:00'), 'MMM d, yyyy') : '—'}</TableCell>
+                <TableCell>
+                  <Badge className={statusColors[s.status] || 'bg-gray-100 text-gray-800'} variant="secondary">{s.status}</Badge>
+                </TableCell>
+                <TableCell className="text-sm">{s.expected_quantity ?? '—'}</TableCell>
+                <TableCell className="text-sm font-medium">{s.received_quantity ?? '—'}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{s.archived_date ? format(new Date(s.archived_date + 'T12:00:00'), 'MMM d, yyyy') : '—'}</TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+export default function History() {
+  const [search, setSearch] = useState('');
+  const [filterWarehouse, setFilterWarehouse] = useState('All');
+  const [activeTab, setActiveTab] = useState('mainline');
+
+  const { data: shipments = [], isLoading } = useQuery({
+    queryKey: ['shipments-history'],
+    queryFn: () => base44.entities.Shipment.filter({ archived: true }, '-archived_date', 500),
+  });
+
+  const applyFilters = (list) => list.filter(s => {
+    const matchSearch = !search ||
+      s.po_number?.toLowerCase().includes(search.toLowerCase()) ||
+      s.supplier?.toLowerCase().includes(search.toLowerCase()) ||
+      s.trn_number?.toLowerCase().includes(search.toLowerCase());
+    const matchWarehouse = filterWarehouse === 'All' || s.destination_warehouse === filterWarehouse;
+    return matchSearch && matchWarehouse;
+  });
+
+  const mainlineList = applyFilters(shipments.filter(s => s.mode !== 'Courier'));
+  const smsList = applyFilters(shipments.filter(s => s.mode === 'Courier'));
+  const activeList = activeTab === 'mainline' ? mainlineList : smsList;
+
+  const sharedColumns = ['Season', 'PO Number', 'Lot', 'TRN No.', 'Mode', 'Courier', 'Supplier', 'Origin', 'Warehouse', 'Tracking No.', 'ETA', 'Status', 'Expected Qty', 'Received Qty', 'Archived'];
+
+  return (
+    <div className="p-6 space-y-4">
+      <div className="flex items-center gap-3">
+        <Archive className="w-5 h-5 text-primary" />
+        <h1 className="text-xl font-semibold font-inter">Shipment History</h1>
+        <div className="ml-auto">
+          <Button variant="outline" size="sm" onClick={() => exportToCsv(`${activeTab}-history.csv`, activeList, csvColumns)}>
+            <Download className="w-4 h-4 mr-1.5" /> Export
+          </Button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Search by PO, Supplier, TRN..." className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
+        </div>
+        <Select value={filterWarehouse} onValueChange={setFilterWarehouse}>
+          <SelectTrigger className="w-36"><SelectValue placeholder="Warehouse" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="All">All Warehouses</SelectItem>
+            <SelectItem value="NRI Canada">NRI Canada</SelectItem>
+            <SelectItem value="NRI US">NRI US</SelectItem>
+            <SelectItem value="GoBolt">GoBolt</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="mainline">Mainline ({mainlineList.length})</TabsTrigger>
+          <TabsTrigger value="sms">SMS ({smsList.length})</TabsTrigger>
+        </TabsList>
+        <TabsContent value="mainline">
+          <HistoryTable list={mainlineList} isLoading={isLoading} columns={sharedColumns} />
+        </TabsContent>
+        <TabsContent value="sms">
+          <HistoryTable list={smsList} isLoading={isLoading} columns={sharedColumns} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+============================================================
+FILE: src/pages/Shipments.jsx
+============================================================
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, Search, Ship, Plane, Truck, Package, ChevronUp, ChevronDown, ChevronsUpDown, Upload, Download } from 'lucide-react';
+import { exportToCsv } from '@/utils/exportCsv';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { format } from 'date-fns';
+import SopPanel from '@/components/layout/SopPanel';
+import ShipmentDetailDrawer from '@/components/shipments/ShipmentDetailDrawer';
+import ShipmentForm from '@/components/shipments/ShipmentForm';
+import SmsDetailDrawer from '@/components/shipments/SmsDetailDrawer';
+import SmsShipmentForm from '@/components/shipments/SmsShipmentForm';
+import AsnEmailModal from '@/components/shipments/AsnEmailModal';
+import SmsImportModal from '@/components/shipments/SmsImportModal';
+import ReceivedQuantityModal from '@/components/shipments/ReceivedQuantityModal';
+
+const statusColors = {
+  'Booking Received': 'bg-amber-100 text-amber-800',
+  'Booking Approved': 'bg-blue-100 text-blue-800',
+  'Docs Sent': 'bg-indigo-100 text-indigo-800',
+  'Customs Cleared': 'bg-purple-100 text-purple-800',
+  'In Transit': 'bg-cyan-100 text-cyan-800',
+  'ASN Sent': 'bg-emerald-100 text-emerald-800',
+  'Received': 'bg-green-100 text-green-800',
+  // SMS statuses
+  'Ready to Ship': 'bg-green-100 text-green-800',
+  'Pending': 'bg-orange-100 text-orange-800',
+  'In-Transit': 'bg-yellow-100 text-yellow-800',
+  'Customs Issue': 'bg-red-100 text-red-800',
+  'Delivered': 'bg-blue-100 text-blue-800',
+};
+
+const mainlineStatuses = ['Booking Received', 'Booking Approved', 'Docs Sent', 'Customs Cleared', 'In Transit', 'ASN Sent', 'Received'];
+const smsStatuses = ['Ready to Ship', 'Pending', 'In-Transit', 'Customs Issue', 'Delivered'];
+
+const modeIcons = { Ocean: Ship, Air: Plane, Courier: Truck, DDP: Truck };
+const statuses = ['Shipement Status', 'Booking Received', 'Booking Approved', 'Docs Sent', 'Customs Cleared', 'In Transit', 'ASN Sent', 'Received'];
+const warehouses = ['Warehouse', 'NRI Canada', 'NRI US', 'GoBolt'];
+const modes = ['Mode', 'Ocean', 'Air', 'Courier', 'DDP'];
+
+function getTrackingUrl(courier, trackingNumber) {
+  if (!trackingNumber) return null;
+  const c = (courier || '').toLowerCase();
+  if (c.includes('fedex')) return `https://www.fedex.com/fedextrack/?trknbr=${trackingNumber}`;
+  if (c.includes('dhl')) return `https://www.dhl.com/ca-en/home/tracking/tracking-express.html?submit=1&tracking-id=${trackingNumber}`;
+  if (c.includes('avion')) return `https://link.cevalogistics.com/Search/Shipment?DynModel.NUM_HAWB=${trackingNumber}`;
+  return null;
+}
+
+const sopSections = [
+  {
+    title: 'Shipment Process — Quick Reference',
+    content: (
+      <ol className="list-decimal list-inside space-y-2 text-xs">
+        <li>Prep the tracker with PO numbers after redistribution and Air/Sea splits.</li>
+        <li>Supplier creates the shipment in GRID and contacts CEVA (Mikhail Efimov).</li>
+        <li>CEVA sends a booking request email — validate details against GRID and record in tracker.</li>
+        <li>Approve or decline the booking. If info is missing, follow up in #prod_ops.</li>
+        <li>Supplier sends Commercial Invoice (CI) and Packing List (PL).</li>
+        <li>Consolidate invoices and send to Mikhail at CEVA.</li>
+        <li>Review and approve customs declaration from Jeffrey (CA) or Nikki/Cole (US).</li>
+        <li>Shipment arrives at port and is dispatched to warehouse.</li>
+        <li>Send ASN to warehouse 14 days before ETA.</li>
+        <li>Validate receipt: check variances, enter date in tracker, notify Production.</li>
+      </ol>
+    ),
+  },
+  {
+    title: 'Key Notes',
+    content: (
+      <ul className="list-disc list-inside space-y-1.5 text-xs">
+        <li>Air and courier shipments must be manually added to the tracker.</li>
+        <li>GoBolt receipts are automated. NRI requires manual receipt date entry.</li>
+        <li>DDP shipments: supplier manages end-to-end — tentree does not receive docs or ETAs.</li>
+      </ul>
+    ),
+  },
+];
+
+export default function Shipments() {
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('All');
+  const [filterWarehouse, setFilterWarehouse] = useState('All');
+  const [filterMode, setFilterMode] = useState('All');
+  const [selectedShipment, setSelectedShipment] = useState(null);
+  const [selectedSmsShipment, setSelectedSmsShipment] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [showSmsForm, setShowSmsForm] = useState(false);
+  const [editingShipment, setEditingShipment] = useState(null);
+  const [editingSmsShipment, setEditingSmsShipment] = useState(null);
+  const [asnShipment, setAsnShipment] = useState(null);
+  const [showSmsImport, setShowSmsImport] = useState(false);
+  const [archivingShipment, setArchivingShipment] = useState(null);
+  const [sopOpen, setSopOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('mainline');
+  const [sortKey, setSortKey] = useState(null);
+  const [sortDir, setSortDir] = useState('asc');
+
+  const handleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  const applySorting = (list) => {
+    if (!sortKey) return list;
+    return [...list].sort((a, b) => {
+      let av = a[sortKey] ?? '';
+      let bv = b[sortKey] ?? '';
+      if (sortKey === 'eta' || sortKey === 'etd') {
+        av = av ? new Date(av).getTime() : 0;
+        bv = bv ? new Date(bv).getTime() : 0;
+      } else {
+        av = String(av).toLowerCase();
+        bv = String(bv).toLowerCase();
+      }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const queryClient = useQueryClient();
+  const { data: shipments = [], isLoading } = useQuery({
+    queryKey: ['shipments'],
+    queryFn: () => base44.entities.Shipment.list('-created_date', 200),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data) => {
+      // Auto-lot logic: applies to both Courier (SMS) and Mainline modes
+      if (data.po_number) {
+        const existing = shipments.filter(
+          s => s.mode === data.mode && s.po_number === data.po_number
+        );
+        if (existing.length > 0) {
+          // Assign lot 1 to any existing shipment that has no lot number
+          const unassigned = existing.filter(s => !s.lot_number);
+          await Promise.all(unassigned.map(s => base44.entities.Shipment.update(s.id, { lot_number: 1 })));
+          // New shipment gets max lot + 1
+          const maxLot = Math.max(...existing.map(s => s.lot_number || 1));
+          data = { ...data, lot_number: maxLot + 1 };
+        }
+      }
+      return base44.entities.Shipment.create(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipments'] });
+      setShowForm(false);
+      setShowSmsForm(false);
+      setEditingShipment(null);
+      setEditingSmsShipment(null);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Shipment.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipments'] });
+      setSelectedSmsShipment(null);
+      setSelectedShipment(null);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Shipment.update(id, data),
+    onSuccess: (_, { id, data }) => {
+      queryClient.invalidateQueries({ queryKey: ['shipments'] });
+      setShowForm(false);
+      setShowSmsForm(false);
+      setEditingShipment(null);
+      setEditingSmsShipment(null);
+      // Refresh drawer with updated data
+      setSelectedShipment(prev => prev?.id === id ? { ...prev, ...data } : prev);
+      setSelectedSmsShipment(prev => prev?.id === id ? { ...prev, ...data } : prev);
+    },
+  });
+
+  const applyFilters = (list) => list.filter(s => {
+    const matchSearch = !search || s.po_number?.toLowerCase().includes(search.toLowerCase()) || s.supplier?.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = filterStatus === 'All' || s.status === filterStatus;
+    const matchWarehouse = filterWarehouse === 'All' || s.destination_warehouse === filterWarehouse;
+    const matchMode = filterMode === 'All' || s.mode === filterMode;
+    return matchSearch && matchStatus && matchWarehouse && matchMode;
+  });
+
+  const handleStatusChange = (shipment, newStatus) => {
+    const terminalStatus = shipment.mode === 'Courier' ? 'Delivered' : 'Received';
+    if (newStatus === terminalStatus) {
+      setArchivingShipment({ shipment, newStatus });
+    } else {
+      updateMutation.mutate({ id: shipment.id, data: { status: newStatus } });
+    }
+  };
+
+  const handleArchiveConfirm = (receivedQty) => {
+    const { shipment, newStatus } = archivingShipment;
+    updateMutation.mutate({
+      id: shipment.id,
+      data: {
+        status: newStatus,
+        archived: true,
+        archived_date: new Date().toISOString().split('T')[0],
+        ...(receivedQty !== null ? { received_quantity: receivedQty } : {}),
+      },
+    });
+    setArchivingShipment(null);
+  };
+
+  const smsShipments = applySorting(applyFilters(shipments.filter(s => s.mode === 'Courier' && !s.archived)));
+  const mainlineShipments = applySorting(applyFilters(shipments.filter(s => s.mode !== 'Courier' && !s.archived)));
+
+  return (
+    <div className="flex h-full">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="Search by PO or Supplier..." className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
+          </div>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-40"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectContent>{statuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={filterWarehouse} onValueChange={setFilterWarehouse}>
+            <SelectTrigger className="w-36"><SelectValue placeholder="Warehouse" /></SelectTrigger>
+            <SelectContent>{warehouses.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={filterMode} onValueChange={setFilterMode}>
+            <SelectTrigger className="w-32"><SelectValue placeholder="Mode" /></SelectTrigger>
+            <SelectContent>{modes.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+          </Select>
+          <div className="ml-auto flex gap-2">
+            {activeTab === 'sms' && (
+              <>
+                <Button variant="outline" onClick={() => exportToCsv('sms-shipments.csv', smsShipments, [
+                  { label: 'Season', key: 'season' },
+                  { label: 'TRN No.', key: 'trn_number' },
+                  { label: 'PO Number', key: 'po_number' },
+                  { label: 'Lot', key: 'lot_number' },
+                  { label: 'Supplier', key: 'supplier' },
+                  { label: 'Courier', key: 'courier' },
+                  { label: 'Tracking #', key: 'tracking_number' },
+                  { label: 'Origin', key: 'origin' },
+                  { label: 'Warehouse', key: 'destination_warehouse' },
+                  { label: 'ETD', key: 'etd' },
+                  { label: 'ETA', key: 'eta' },
+                  { label: 'Status', key: 'status' },
+                  { label: 'Cartons', key: 'carton_count' },
+                  { label: 'Expected Quantity', key: 'expected_quantity' },
+                  { label: 'Units', key: 'unit_quantity' },
+                  { label: 'Invoice Value', key: 'invoice_value'},
+                  { label: 'ASN Sent', key: 'asn_sent' },
+                  { label: 'Notes', key: 'notes' },
+                ])}>
+                  <Download className="w-4 h-4 mr-1.5" /> Export
+                </Button>
+                <Button variant="outline" onClick={() => setShowSmsImport(true)}>
+                  <Upload className="w-4 h-4 mr-1.5" /> Import
+                </Button>
+                <Button variant="outline" onClick={() => { setEditingSmsShipment(null); setShowSmsForm(true); }}>
+                  <Plus className="w-4 h-4 mr-1.5" /> New SMS
+                </Button>
+              </>
+            )}
+            {activeTab === 'mainline' && (
+              <>
+                <Button variant="outline" onClick={() => exportToCsv('mainline-shipments.csv', mainlineShipments, [
+                  { label: 'PO Number', key: 'po_number' },
+                  { label: 'Lot', key: 'lot_number' },
+                  { label: 'Supplier', key: 'supplier' },
+                  { label: 'GRID #', key: 'grid_shipment_number' },
+                  { label: 'TRN No.', key: 'trn_number' },
+                  { label: 'Mode', key: 'mode' },
+                  { label: 'Courier', key: 'courier' },
+                  { label: 'Tracking #', key: 'tracking_number' },
+                  { label: 'Origin', key: 'origin_country' },
+                  { label: 'Warehouse', key: 'destination_warehouse' },
+                  { label: 'ETD', key: 'etd' },
+                  { label: 'ETA', key: 'eta' },
+                  { label: 'Status', key: 'status' },
+                  { label: 'ASN Sent', key: 'asn_sent' },
+                  { label: 'Cartons', key: 'carton_count' },
+                  { label: 'Units', key: 'unit_quantity' },
+                  { label: 'Invoice Value', key: 'invoice_value'},                  
+                  { label: 'NetSuite Receipt', key: 'netsuite_receipt_date' },
+                  { label: 'Notes', key: 'notes' },
+                ])}>
+                  <Download className="w-4 h-4 mr-1.5" /> Export
+                </Button>
+                <Button onClick={() => { setEditingShipment(null); setShowForm(true); }}>
+                  <Plus className="w-4 h-4 mr-1.5" /> New Mainline
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="mainline">Mainline ({mainlineShipments.length})</TabsTrigger>
+            <TabsTrigger value="sms">SMS ({smsShipments.length})</TabsTrigger>
+          </TabsList>
+
+          {['mainline', 'sms'].map(tab => {
+            const list = tab === 'sms' ? smsShipments : mainlineShipments;
+            return (
+              <TabsContent key={tab} value={tab}>
+                <div className="bg-card rounded-xl border border-border overflow-hidden">
+                  <Table>
+                   <TableHeader>
+                     <TableRow className="bg-muted/50">
+                       {[
+                         { label: 'Season', key: 'season' },
+                         { label: 'TRN No.', key: 'trn_number' },
+                         { label: 'PO', key: 'po_number' },
+                         { label: 'Lot', key: 'lot_number' },
+                         { label: 'Supplier', key: 'supplier' },
+                         { label: 'Mode', key: 'mode' },
+                         { label: 'Courier', key: 'courier' },
+                         { label: 'Tracking #', key: 'tracking_number' },
+                         { label: 'Warehouse', key: 'destination_warehouse' },
+                         { label: 'ETD', key: 'etd' },
+                         { label: 'ETA', key: 'eta' },
+                         { label: 'Status', key: 'status' },
+                         { label: 'Booking', key: null },
+                         { label: 'ASN', key: null },
+                       ].map(({ label, key }) => (
+                         <TableHead
+                           key={label}
+                           className={`font-semibold ${key ? 'cursor-pointer select-none hover:bg-muted/80 transition-colors' : ''}`}
+                           onClick={() => key && handleSort(key)}
+                         >
+                           <div className="flex items-center gap-1">
+                             {label}
+                             {key && (
+                               sortKey === key
+                                 ? sortDir === 'asc'
+                                   ? <ChevronUp className="w-3.5 h-3.5 text-primary" />
+                                   : <ChevronDown className="w-3.5 h-3.5 text-primary" />
+                                 : <ChevronsUpDown className="w-3 h-3 text-muted-foreground opacity-50" />
+                             )}
+                           </div>
+                         </TableHead>
+                       ))}
+                     </TableRow>
+                   </TableHeader>
+                   <TableBody>
+                     {isLoading ? (
+                       <TableRow><TableCell colSpan={14} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+                     ) : list.length === 0 ? (
+                       <TableRow><TableCell colSpan={14} className="text-center py-8 text-muted-foreground">No shipments found</TableCell></TableRow>
+                     ) : (
+                       list.map(s => {
+                         const ModeIcon = modeIcons[s.mode] || Package;
+                         const trackingUrl = getTrackingUrl(s.courier, s.tracking_number);
+                         const isSms = tab === 'sms';
+                         const statusOptions = isSms ? smsStatuses : mainlineStatuses;
+                         return (
+                           <TableRow key={s.id} className="cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => isSms ? setSelectedSmsShipment(s) : setSelectedShipment(s)}>
+                             <TableCell className="text-sm font-mono text-xs">{s.season || '—'}</TableCell>
+                             <TableCell className="text-sm font-mono text-xs">{s.trn_number || '—'}</TableCell>
+                             <TableCell className="font-medium text-sm">{s.po_number}</TableCell>
+                             <TableCell className="text-sm">{s.lot_number ? `Lot ${s.lot_number}` : '—'}</TableCell>
+                             <TableCell className="text-sm">{s.supplier}</TableCell>
+                             <TableCell><div className="flex items-center gap-1.5"><ModeIcon className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-sm">{s.mode}</span></div></TableCell>
+                             <TableCell className="text-sm">{s.courier || '—'}</TableCell>
+                             <TableCell className="text-sm font-mono text-xs" onClick={e => trackingUrl && e.stopPropagation()}>
+                               {trackingUrl ? (
+                                 <a href={trackingUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:no-underline">{s.tracking_number}</a>
+                               ) : (s.tracking_number || '—')}
+                             </TableCell>
+                             <TableCell className="text-sm">{s.destination_warehouse}</TableCell>
+                             <TableCell className="text-sm">{s.etd ? format(new Date(s.etd + 'T12:00:00'), 'MMM d') : '—'}</TableCell>
+                             <TableCell className="text-sm">{s.eta ? format(new Date(s.eta + 'T12:00:00'), 'MMM d') : '—'}</TableCell>
+                             <TableCell onClick={e => e.stopPropagation()}>
+                               <Select value={s.status} onValueChange={val => handleStatusChange(s, val)}>
+                                 <SelectTrigger className="h-7 text-xs border-0 shadow-none p-0 w-auto gap-1 focus:ring-0">
+                                   <Badge className={statusColors[s.status]} variant="secondary">{s.status}</Badge>
+                                 </SelectTrigger>
+                                 <SelectContent>
+                                   {statusOptions.map(st => (
+                                     <SelectItem key={st} value={st} className="text-xs">{st}</SelectItem>
+                                   ))}
+                                 </SelectContent>
+                               </Select>
+                             </TableCell>
+                             <TableCell className="text-xs" onClick={e => e.stopPropagation()}>
+                               {s.booking_number ? (
+                                 <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium ${s.booking_status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : s.booking_status === 'Declined' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>
+                                   {s.booking_number}
+                                 </span>
+                               ) : '—'}
+                             </TableCell>
+                             <TableCell onClick={e => e.stopPropagation()}>
+                               {s.asn_sent ? (
+                                 <span className="text-xs font-medium text-emerald-600">Sent</span>
+                               ) : (
+                                 <Button size="sm" variant="outline" className="h-6 text-xs px-2" onClick={() => setAsnShipment(s)}>
+                                   Send ASN
+                                 </Button>
+                               )}
+                             </TableCell>
+                           </TableRow>
+                         );
+                       })
+                     )}
+                   </TableBody>
+                  </Table>
+                </div>
+              </TabsContent>
+            );
+          })}
+        </Tabs>
+      </div>
+
+      <SopPanel title="Shipment SOP" sections={sopSections} isOpen={sopOpen} onToggle={() => setSopOpen(!sopOpen)} />
+
+      <ShipmentDetailDrawer
+        shipment={selectedShipment}
+        open={!!selectedShipment}
+        onClose={() => setSelectedShipment(null)}
+        onEdit={(s) => { setSelectedShipment(null); setEditingShipment(s); setShowForm(true); }}
+        onDelete={(s) => deleteMutation.mutate(s.id)}
+        onDuplicate={(s) => {
+          setSelectedShipment(null);
+          const { id, created_date, updated_date, created_by, lot_number, ...rest } = s;
+          createMutation.mutate({ ...rest, asn_sent: false });
+        }}
+      />
+      <SmsDetailDrawer
+        shipment={selectedSmsShipment}
+        open={!!selectedSmsShipment}
+        onClose={() => setSelectedSmsShipment(null)}
+        onEdit={(s) => { setSelectedSmsShipment(null); setEditingSmsShipment(s); setShowSmsForm(true); }}
+        onDelete={(s) => deleteMutation.mutate(s.id)}
+        onDuplicate={(s) => {
+          setSelectedSmsShipment(null);
+          const { id, created_date, updated_date, created_by, lot_number, ...rest } = s;
+          createMutation.mutate({ ...rest, asn_sent: false });
+        }}
+      />
+
+      <AsnEmailModal
+        shipment={asnShipment}
+        open={!!asnShipment}
+        onClose={() => setAsnShipment(null)}
+        onSent={(id) => updateMutation.mutate({ id, data: { asn_sent: true } })}
+      />
+
+      {showForm && (
+        <ShipmentForm
+          open={showForm}
+          onClose={() => { setShowForm(false); setEditingShipment(null); }}
+          initial={editingShipment}
+          onSubmit={(data) => {
+            if (editingShipment) {
+              updateMutation.mutate({ id: editingShipment.id, data });
+            } else {
+              createMutation.mutate(data);
+            }
+          }}
+        />
+      )}
+
+      <SmsImportModal
+        open={showSmsImport}
+        onClose={() => setShowSmsImport(false)}
+        existingShipments={shipments}
+        onDone={() => { queryClient.invalidateQueries({ queryKey: ['shipments'] }); }}
+      />
+
+      <ReceivedQuantityModal
+        open={!!archivingShipment}
+        shipment={archivingShipment?.shipment}
+        onConfirm={handleArchiveConfirm}
+        onCancel={() => setArchivingShipment(null)}
+      />
+
+      {showSmsForm && (
+        <SmsShipmentForm
+          open={showSmsForm}
+          onClose={() => { setShowSmsForm(false); setEditingSmsShipment(null); }}
+          initial={editingSmsShipment}
+          onSubmit={(data) => {
+            if (editingSmsShipment) {
+              updateMutation.mutate({ id: editingSmsShipment.id, data });
+            } else {
+              createMutation.mutate(data);
+            }
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+============================================================
+FILE: src/api/base44Client.js
+============================================================
+import { createClient } from '@base44/sdk';
+import { appParams } from '@/lib/app-params';
+
+const { appId, token, functionsVersion, appBaseUrl } = appParams;
+
+//Create a client with authentication required
+export const base44 = createClient({
+  appId,
+  token,
+  functionsVersion,
+  serverUrl: '',
+  requiresAuth: false,
+  appBaseUrl
+});
+
+
+============================================================
+FILE: src/components/bookings/BookingDetailDrawer.jsx
+============================================================
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { CheckCircle2, XCircle, FileText, ExternalLink } from 'lucide-react';
+import { format } from 'date-fns';
+
+const statusColors = {
+  'Pending Approval': 'bg-amber-100 text-amber-800',
+  'Approved': 'bg-emerald-100 text-emerald-800',
+  'Declined': 'bg-red-100 text-red-800',
+  'Draft': 'bg-gray-100 text-gray-700',
+};
+
+function DetailRow({ label, value }) {
+  return (
+    <div className="flex justify-between py-2">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-sm font-medium text-right max-w-[60%]">{value || '—'}</span>
+    </div>
+  );
+}
+
+export default function BookingDetailDrawer({ booking, open, onClose, onApprove, onDecline }) {
+  const [showDecline, setShowDecline] = useState(false);
+  const [declineReason, setDeclineReason] = useState('');
+
+  if (!booking) return null;
+
+  const syncShipmentBookingStatus = async (status) => {
+    if (!booking.tentree_po_number) return;
+    const allByPo = await base44.entities.Shipment.filter({ po_number: booking.tentree_po_number });
+    const shipments = allByPo.filter(s => !s.archived);
+    for (const s of shipments) {
+      if (s.booking_number === booking.booking_number) {
+        await base44.entities.Shipment.update(s.id, { booking_status: status });
+      }
+    }
+  };
+
+  const isPending = booking.booking_status === 'Pending Approval';
+
+  return (
+    <Sheet open={open} onOpenChange={onClose}>
+      <SheetContent className="w-[460px] sm:w-[520px] overflow-y-auto">
+        <SheetHeader>
+          <div className="flex items-start justify-between gap-2">
+            <SheetTitle className="font-inter text-base">
+              {booking.booking_number || 'Booking Details'}
+            </SheetTitle>
+            <Badge className={statusColors[booking.booking_status]} variant="secondary">
+              {booking.booking_status}
+            </Badge>
+          </div>
+        </SheetHeader>
+
+        <div className="mt-6 space-y-6">
+          <div className="divide-y divide-border">
+            <DetailRow label="Vendor" value={booking.vendor_name} />
+            <DetailRow label="PO Number" value={booking.tentree_po_number} />
+            <DetailRow label="Warehouse" value={booking.receiving_warehouse} />
+            <DetailRow label="Freight Forwarder" value={booking.freight_forwarder} />
+            <DetailRow label="Cartons" value={booking.number_of_cartons} />
+            <DetailRow label="Dimensions" value={booking.dimensions} />
+            <DetailRow label="Units/Carton" value={booking.units_per_carton} />
+            <DetailRow label="Weight (kg)" value={booking.weight_kg} />
+            <DetailRow label="CBM" value={booking.cbm_cubic_metre} />
+            <DetailRow label="Ship in Full" value={booking.ship_in_full ? 'Yes' : 'No'} />
+            {!booking.ship_in_full && <DetailRow label="Lot Number" value={booking.lot_number} />}
+            <DetailRow label="Cargo Ready Date" value={booking.cargo_ready_date ? format(new Date(booking.cargo_ready_date + 'T12:00:00'), 'MMM d, yyyy') : null} />
+            <DetailRow label="Submitted At" value={booking.submitted_at ? format(new Date(booking.submitted_at), 'MMM d, yyyy HH:mm') : null} />
+            {booking.approved_at && <DetailRow label="Approved At" value={format(new Date(booking.approved_at), 'MMM d, yyyy HH:mm')} />}
+            {booking.decline_reason && <DetailRow label="Decline Reason" value={booking.decline_reason} />}
+          </div>
+
+          {booking.notes && (
+            <>
+              <Separator />
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Notes</p>
+                <p className="text-sm">{booking.notes}</p>
+              </div>
+            </>
+          )}
+
+          {booking.document_urls?.length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Documents</p>
+                <div className="space-y-2">
+                  {booking.document_urls.map((url, i) => (
+                    <a key={i} href={url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-primary hover:underline">
+                      <FileText className="w-4 h-4 shrink-0" />
+                      Document {i + 1}
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {isPending && (
+            <>
+              <Separator />
+              {showDecline ? (
+                <div className="space-y-3">
+                  <Label>Decline Reason *</Label>
+                  <Input value={declineReason} onChange={e => setDeclineReason(e.target.value)} placeholder="Enter reason..." />
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => { setShowDecline(false); setDeclineReason(''); }}>Cancel</Button>
+                    <Button size="sm" variant="destructive" disabled={!declineReason}
+                      onClick={async () => { await syncShipmentBookingStatus('Declined'); onDecline(booking, declineReason); setShowDecline(false); setDeclineReason(''); onClose(); }}>
+                      Confirm Decline
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Button className="flex-1" onClick={async () => { await syncShipmentBookingStatus('Approved'); onApprove(booking); onClose(); }}>
+                    <CheckCircle2 className="w-4 h-4 mr-1.5" /> Approve
+                  </Button>
+                  <Button variant="outline" className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5" onClick={() => setShowDecline(true)}>
+                    <XCircle className="w-4 h-4 mr-1.5" /> Decline
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+============================================================
+FILE: src/components/bookings/BookingForm.jsx
+============================================================
+import React, { useState, useRef } from 'react';
+import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Upload, X, FileText, CheckCircle2, Loader2 } from 'lucide-react';
+import { format } from 'date-fns';
+
+const warehouses = ['NRI Canada', 'NRI US', 'GoBolt', 'Headquarter'];
+
+function generateBookingNumber() {
+  const date = format(new Date(), 'yyyyMMdd');
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `BK-${date}-${rand}`;
+}
+
+export default function BookingForm({ onSuccess }) {
+  const [form, setForm] = useState({
+    vendor_name: '',
+    tentree_po_number: '',
+    receiving_warehouse: '',
+    freight_forwarder: '',
+    number_of_cartons: '',
+    dimensions: '',
+    units_per_carton: '',
+    weight_kg: '',
+    cbm_cubic_metre: '',
+    ship_in_full: true,
+    lot_number: '',
+    cargo_ready_date: '',
+    notes: '',
+  });
+  const [files, setFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(null);
+  const [errors, setErrors] = useState({});
+  const fileRef = useRef();
+
+  const update = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleFiles = (e) => {
+    const selected = Array.from(e.target.files || []);
+    setFiles(prev => [...prev, ...selected]);
+  };
+
+  const removeFile = (idx) => setFiles(prev => prev.filter((_, i) => i !== idx));
+
+  const validate = () => {
+    const errs = {};
+    if (!form.vendor_name) errs.vendor_name = 'Required';
+    if (!form.tentree_po_number) errs.tentree_po_number = 'Required';
+    if (!form.receiving_warehouse) errs.receiving_warehouse = 'Required';
+    if (!form.freight_forwarder) errs.freight_forwarder = 'Required';
+    if (!form.number_of_cartons) errs.number_of_cartons = 'Required';
+    if (!form.dimensions) errs.dimensions = 'Required';
+    if (!form.units_per_carton) errs.units_per_carton = 'Required';
+    if (!form.weight_kg) errs.weight_kg = 'Required';
+    if (!form.cbm_cubic_metre) errs.cbm_cubic_metre = 'Required';
+    if (!form.cargo_ready_date) errs.cargo_ready_date = 'Required';
+    if (!form.ship_in_full && !form.lot_number) errs.lot_number = 'Required when not shipping in full';
+    if (files.length === 0) errs.files = 'Please upload at least one document';
+    return errs;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    setErrors({});
+    setUploading(true);
+
+    // Upload files
+    const uploadedUrls = [];
+    for (const file of files) {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      uploadedUrls.push(file_url);
+    }
+    setUploading(false);
+    setSubmitting(true);
+
+    const bookingNumber = generateBookingNumber();
+    const now = new Date().toISOString();
+
+    const payload = {
+      booking_number: bookingNumber,
+      vendor_name: form.vendor_name,
+      tentree_po_number: form.tentree_po_number,
+      receiving_warehouse: form.receiving_warehouse,
+      freight_forwarder: form.freight_forwarder,
+      number_of_cartons: Number(form.number_of_cartons),
+      dimensions: form.dimensions,
+      units_per_carton: Number(form.units_per_carton),
+      weight_kg: Number(form.weight_kg),
+      cbm_cubic_metre: Number(form.cbm_cubic_metre),
+      ship_in_full: form.ship_in_full,
+      lot_number: form.ship_in_full ? '' : form.lot_number,
+      cargo_ready_date: form.cargo_ready_date,
+      notes: form.notes,
+      booking_status: 'Pending Approval',
+      document_urls: uploadedUrls,
+      submitted_at: now,
+    };
+
+    await base44.entities.Booking.create(payload);
+
+    // Link booking to matching Mainline Tracker shipment by PO number
+    const allByPo = await base44.entities.Shipment.filter({ po_number: form.tentree_po_number });
+    const matchingShipments = allByPo.filter(s => !s.archived);
+    for (const shipment of matchingShipments) {
+      await base44.entities.Shipment.update(shipment.id, {
+        booking_number: bookingNumber,
+        booking_status: 'Pending Approval',
+        carton_count: Number(form.number_of_cartons) || shipment.carton_count,
+        destination_warehouse: form.receiving_warehouse || shipment.destination_warehouse,
+        etd: form.cargo_ready_date || shipment.etd,
+      });
+    }
+
+    // Send email if Ceva
+    if (form.freight_forwarder === 'Ceva') {
+      const body = `New Booking Request Submitted\n\nBooking #: ${bookingNumber}\nVendor: ${form.vendor_name}\nPO Number: ${form.tentree_po_number}\nWarehouse: ${form.receiving_warehouse}\nCartons: ${form.number_of_cartons}\nDimensions: ${form.dimensions}\nUnits/Carton: ${form.units_per_carton}\nWeight (kg): ${form.weight_kg}\nCBM: ${form.cbm_cubic_metre}\n${!form.ship_in_full ? `Lot Number: ${form.lot_number}\n` : ''}Cargo Ready Date: ${form.cargo_ready_date}\nStatus: Pending Approval\n${form.notes ? `\nNotes: ${form.notes}` : ''}`;
+      await base44.integrations.Core.SendEmail({
+        to: 'ceva@ceva.com',
+        subject: `New Booking Request – ${bookingNumber} – ${form.tentree_po_number}`,
+        body,
+      });
+    }
+
+    setSubmitting(false);
+    setSuccess(bookingNumber);
+    if (onSuccess) onSuccess();
+  };
+
+  if (success) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
+        <CheckCircle2 className="w-12 h-12 text-emerald-500" />
+        <h2 className="text-xl font-semibold font-inter">Booking Submitted!</h2>
+        <p className="text-muted-foreground">Your booking number is:</p>
+        <p className="text-2xl font-mono font-bold text-primary">{success}</p>
+        <p className="text-sm text-muted-foreground">Our team will review and respond shortly.</p>
+        <Button variant="outline" onClick={() => { setSuccess(null); setForm({ vendor_name:'',tentree_po_number:'',receiving_warehouse:'',freight_forwarder:'',number_of_cartons:'',dimensions:'',units_per_carton:'',weight_kg:'',cbm_cubic_metre:'',ship_in_full:true,lot_number:'',cargo_ready_date:'',notes:'' }); setFiles([]); }}>
+          Submit Another Booking
+        </Button>
+      </div>
+    );
+  }
+
+  const isLoading = uploading || submitting;
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+      {/* Section 1 */}
+      <Card>
+        <CardHeader><CardTitle className="text-base font-inter">Vendor & PO Info</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label>Vendor Name *</Label>
+            <Input value={form.vendor_name} onChange={e => update('vendor_name', e.target.value)} />
+            {errors.vendor_name && <p className="text-xs text-destructive">{errors.vendor_name}</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label>Tentree PO Number *</Label>
+            <Input value={form.tentree_po_number} onChange={e => update('tentree_po_number', e.target.value)} placeholder="Linked to Shipment Tracker" />
+            {errors.tentree_po_number && <p className="text-xs text-destructive">{errors.tentree_po_number}</p>}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 2 */}
+      <Card>
+        <CardHeader><CardTitle className="text-base font-inter">Shipment Details</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label>Receiving Warehouse *</Label>
+              <Select value={form.receiving_warehouse} onValueChange={v => update('receiving_warehouse', v)}>
+                <SelectTrigger><SelectValue placeholder="Select warehouse" /></SelectTrigger>
+                <SelectContent>{warehouses.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}</SelectContent>
+              </Select>
+              {errors.receiving_warehouse && <p className="text-xs text-destructive">{errors.receiving_warehouse}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Freight Forwarder *</Label>
+              <Select value={form.freight_forwarder} onValueChange={v => update('freight_forwarder', v)}>
+                <SelectTrigger><SelectValue placeholder="Select forwarder" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Ceva">Ceva</SelectItem>
+                  <SelectItem value="FedEx">FedEx</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.freight_forwarder && <p className="text-xs text-destructive">{errors.freight_forwarder}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Number of Cartons *</Label>
+              <Input type="number" min="1" value={form.number_of_cartons} onChange={e => update('number_of_cartons', e.target.value)} />
+              {errors.number_of_cartons && <p className="text-xs text-destructive">{errors.number_of_cartons}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Dimensions (LxWxH cm) *</Label>
+              <Input value={form.dimensions} onChange={e => update('dimensions', e.target.value)} placeholder="e.g. 60x40x50" />
+              {errors.dimensions && <p className="text-xs text-destructive">{errors.dimensions}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Units per Carton *</Label>
+              <Input type="number" min="1" value={form.units_per_carton} onChange={e => update('units_per_carton', e.target.value)} />
+              {errors.units_per_carton && <p className="text-xs text-destructive">{errors.units_per_carton}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Weight (kg) *</Label>
+              <Input type="number" step="0.01" value={form.weight_kg} onChange={e => update('weight_kg', e.target.value)} />
+              {errors.weight_kg && <p className="text-xs text-destructive">{errors.weight_kg}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label>CBM (cubic metre) *</Label>
+              <Input type="number" step="0.001" value={form.cbm_cubic_metre} onChange={e => update('cbm_cubic_metre', e.target.value)} />
+              {errors.cbm_cubic_metre && <p className="text-xs text-destructive">{errors.cbm_cubic_metre}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Cargo Ready Date *</Label>
+              <Input type="date" value={form.cargo_ready_date} onChange={e => update('cargo_ready_date', e.target.value)} />
+              {errors.cargo_ready_date && <p className="text-xs text-destructive">{errors.cargo_ready_date}</p>}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 py-2">
+            <Switch checked={form.ship_in_full} onCheckedChange={v => update('ship_in_full', v)} id="sif" />
+            <Label htmlFor="sif" className="cursor-pointer">Ship in Full</Label>
+          </div>
+
+          {!form.ship_in_full && (
+            <div className="space-y-1.5">
+              <Label>Lot Number *</Label>
+              <Input value={form.lot_number} onChange={e => update('lot_number', e.target.value)} placeholder="Required when not shipping in full" />
+              {errors.lot_number && <p className="text-xs text-destructive">{errors.lot_number}</p>}
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <Label>Notes</Label>
+            <Textarea value={form.notes} onChange={e => update('notes', e.target.value)} rows={2} placeholder="Any additional information..." />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 3 – Documents */}
+      <Card>
+        <CardHeader><CardTitle className="text-base font-inter">Documents</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">Upload Commercial Invoice and Packing List (PDF or XLSX)</p>
+          <div
+            className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:bg-muted/30 transition-colors"
+            onClick={() => fileRef.current?.click()}
+          >
+            <Upload className="w-5 h-5 mx-auto mb-2 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Click to select PDF or XLSX files</p>
+            <input ref={fileRef} type="file" accept=".pdf,.xlsx" multiple className="hidden" onChange={handleFiles} />
+          </div>
+          {errors.files && <p className="text-xs text-destructive">{errors.files}</p>}
+          {files.length > 0 && (
+            <div className="space-y-2">
+              {files.map((f, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm bg-muted/30 rounded-md px-3 py-2">
+                  <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="flex-1 truncate">{f.name}</span>
+                  <button type="button" onClick={() => removeFile(i)} className="text-muted-foreground hover:text-destructive">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? (
+          <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{uploading ? 'Uploading documents...' : 'Submitting...'}</>
+        ) : 'Submit Booking Request'}
+      </Button>
+    </form>
+  );
+}
+
+============================================================
+FILE: src/components/bookings/CustomsPlaceholder.jsx
+============================================================
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Upload, Sparkles } from 'lucide-react';
+
+export default function CustomsPlaceholder() {
+  return (
+    <div className="max-w-2xl mx-auto py-8">
+      <Card className="border-2 border-dashed border-border">
+        <CardContent className="p-8 text-center space-y-4">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+            <Sparkles className="w-6 h-6 text-primary" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold font-inter">Customs Line Consolidation Tool</h2>
+            <p className="text-sm font-medium text-primary">Coming Soon</p>
+          </div>
+          <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+            Upload a Ceva shipment Excel file to automatically consolidate and pivot line items to minimize
+            customs broker charges. This tool will merge duplicate HS codes and product descriptions across
+            lines, reducing the number of billable customs entries.
+          </p>
+          <Button disabled className="gap-2">
+            <Upload className="w-4 h-4" /> Upload Excel
+          </Button>
+          <p className="text-xs text-muted-foreground border-t border-border pt-4 max-w-md mx-auto">
+            Customs brokers charge per line item. This tool will reduce lines by grouping identical product types,
+            saving costs for both US and Canada entries.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

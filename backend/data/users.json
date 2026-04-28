@@ -1,0 +1,39 @@
+[
+  {
+    "id": "1",
+    "email": "admin@tentree.com",
+    "password": "password123",
+    "name": "Admin User",
+    "role": "Admin"
+  },
+  {
+    "id": "2",
+    "email": "logistics@tentree.com",
+    "password": "password123",
+    "name": "Logistics Coord",
+    "role": "Logistics Coordinator"
+  },
+  {
+    "id": "3",
+    "email": "production@tentree.com",
+    "password": "password123",
+    "name": "Production Team",
+    "role": "Production"
+  },
+  {
+    "id": "4",
+    "email": "vendor@ecotech.com",
+    "password": "password123",
+    "name": "EcoTech Factory",
+    "role": "Vendor",
+    "supplier": "EcoTech"
+  },
+  {
+    "id": "5",
+    "email": "vendor@greenfabrics.com",
+    "password": "password123",
+    "name": "Green Fabrics",
+    "role": "Vendor",
+    "supplier": "Green Fabrics"
+  }
+]
