@@ -10,6 +10,7 @@ import { X, CheckCircle, XCircle, FileText, Calendar, Package, Truck, Building2,
 import { format } from 'date-fns';
 import { updateBooking, deleteBooking, createBooking } from '@/app/actions/bookings';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export default function BookingDetailDrawer({ booking, open, onClose, onApprove, onDecline, user, onSuccess }: any) {
   const [isEditing, setIsEditing] = useState(false);
@@ -85,7 +86,7 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this booking? This will also delete the linked shipment.')) return;
-    
+
     setIsLoading(true);
     try {
       await fetch(`http://127.0.0.1:5000/bookings/${booking.id}`, { method: 'DELETE' });
@@ -124,7 +125,7 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
       const poRes = await fetch('http://127.0.0.1:5000/purchase-orders');
       const allPOs = await poRes.json();
       const poMaster = allPOs.find((p: any) => p.po_number?.trim() === mainPoNum.trim());
-      
+
       poTotal = parseInt(poMaster?.expected_qty || '0', 10);
       totalReceived = parseInt(poMaster?.received_qty || '0', 10);
       totalBooked = parseInt(poMaster?.booked_qty || '0', 10);
@@ -136,16 +137,16 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
     const currentOpen = parseInt(formData.po_details?.[0]?.units || '0', 10);
     const totalAvailable = Math.max(0, poTotal - totalReceived);
 
-    setLotQtyInfo({ 
-      poTotal, 
-      totalReceived, 
-      totalBooked, 
-      unassigned, 
-      currentOpen, 
-      totalAvailable, 
-      po_number: mainPoNum 
+    setLotQtyInfo({
+      poTotal,
+      totalReceived,
+      totalBooked,
+      unassigned,
+      currentOpen,
+      totalAvailable,
+      po_number: mainPoNum
     });
-    
+
     setLotFormData({
       units: '',
       cargo_ready_date: formData.cargo_ready_date || '',
@@ -180,7 +181,7 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
         booking_number: newBkgNum,
         booking_status: 'Booking',
         submitted_at: new Date().toISOString(),
-        po_details: baseData.po_details.map((p: any, idx: number) => 
+        po_details: baseData.po_details.map((p: any, idx: number) =>
           idx === 0 ? { ...p, units: newQty } : p
         )
       };
@@ -195,9 +196,9 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
       // Pool 2: Current Booking's open units
       const fromCurrent = Math.min(remainingToTake, lotQtyInfo.currentOpen);
       remainingToTake -= fromCurrent;
-      
+
       if (fromCurrent > 0) {
-        const updatedPoDetails = formData.po_details.map((p: any, idx: number) => 
+        const updatedPoDetails = formData.po_details.map((p: any, idx: number) =>
           idx === 0 ? { ...p, units: (parseInt(p.units) || 0) - fromCurrent } : p
         );
         await updateBooking(formData.id, { ...formData, po_details: updatedPoDetails });
@@ -207,8 +208,8 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
       if (remainingToTake > 0) {
         const res = await fetch('http://127.0.0.1:5000/bookings');
         const all = await res.json();
-        const otherBookings = all.filter((b: any) => 
-          b.id !== formData.id && 
+        const otherBookings = all.filter((b: any) =>
+          b.id !== formData.id &&
           b.po_details?.some((p: any) => p.po_number === lotQtyInfo.po_number)
         );
 
@@ -219,7 +220,7 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
 
           const otherQty = parseInt(other.po_details[poIdx].units) || 0;
           const take = Math.min(remainingToTake, otherQty);
-          
+
           if (take > 0) {
             const updatedDetails = [...other.po_details];
             updatedDetails[poIdx] = { ...updatedDetails[poIdx], units: otherQty - take };
@@ -267,7 +268,7 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
     }
   };
 
-  const handleBulkStatusUpdate = async (newStatus: string) => {
+  const handleBulkStatusUpdate = async (newStatus: any) => {
     if (!booking?.booking_number) return;
     setIsBulkUpdating(true);
     try {
@@ -306,7 +307,7 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 sm:p-6" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-lg bg-card rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
-        
+
         {/* Header */}
         <div className="p-6 border-b border-border bg-muted/30">
           <div className="flex items-center justify-between mb-4">
@@ -369,7 +370,7 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
-          
+
           {/* Vendor & PO */}
           <div className="space-y-4">
             <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
@@ -591,7 +592,7 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
                     {isBulkUpdating ? 'Updating...' : 'Update All POs →'}
                   </SelectTrigger>
                   <SelectContent>
-                    {['Booking Approved','Customs Clearance','In-Transit','ASN Sent','Delivered'].map(s => (
+                    {['Booking Approved', 'Customs Clearance', 'In-Transit', 'ASN Sent', 'Delivered'].map(s => (
                       <SelectItem key={s} value={s} className="text-xs font-medium">{s}</SelectItem>
                     ))}
                   </SelectContent>
@@ -627,15 +628,15 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
         {/* Actions */}
         {isAdminOrLogistics && isPending && !isEditing && (
           <div className="p-6 border-t border-border bg-muted/20 flex gap-3">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="flex-1 gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
               onClick={() => onDecline(formData, 'Booking details do not meet requirements.')}
             >
               <XCircle className="w-4 h-4" />
               Decline
             </Button>
-            <Button 
+            <Button
               className="flex-1 gap-2"
               onClick={() => onApprove(formData)}
             >
@@ -740,7 +741,7 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
                         <span className="text-muted-foreground">This Booking's Pool</span>
                         <span className="font-medium text-amber-600">{lotQtyInfo.currentOpen}</span>
                       </div>
-                      
+
                       <div className="flex justify-between border-t border-border/10 pt-1">
                         <span className="font-semibold">Remaining Available</span>
                         <span className={cn("font-bold", parseInt(lotFormData.units || '0') > lotQtyInfo.totalAvailable ? "text-destructive" : "text-primary")}>

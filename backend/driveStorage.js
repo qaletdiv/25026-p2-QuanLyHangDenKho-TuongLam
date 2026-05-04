@@ -110,6 +110,48 @@ class GoogleDriveStorage {
             console.error(`Error writing ${filename} to Drive:`, e.message);
         }
     }
+
+    async uploadFile(filename, bufferStream, mimeType) {
+        if (!this.drive) {
+            // Fallback to local storage
+            const uploadDir = path.join(this.localDataDir, 'uploads');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+            const filepath = path.join(uploadDir, filename);
+            
+            return new Promise((resolve, reject) => {
+                const writeStream = fs.createWriteStream(filepath);
+                bufferStream.pipe(writeStream);
+                writeStream.on('finish', () => resolve({ id: filename, url: `/uploads/${filename}` }));
+                writeStream.on('error', reject);
+            });
+        }
+
+        try {
+            const res = await this.drive.files.create({
+                requestBody: { name: filename, parents: [this.folderId] },
+                media: { mimeType, body: bufferStream },
+                fields: 'id, webViewLink'
+            });
+            
+            // Make file accessible
+            try {
+                await this.drive.permissions.create({
+                    fileId: res.data.id,
+                    requestBody: { role: 'reader', type: 'anyone' }
+                });
+            } catch(e) { 
+                console.error('Failed to set permissions:', e.message); 
+            }
+            
+            this.fileMap.set(filename, res.data.id);
+            return { id: res.data.id, url: res.data.webViewLink };
+        } catch (e) {
+            console.error(`Error uploading ${filename} to Drive:`, e.message);
+            throw e;
+        }
+    }
 }
 
 module.exports = new GoogleDriveStorage();

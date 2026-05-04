@@ -17,11 +17,24 @@ export async function submitAsnWorkflow(formData: FormData) {
   }
 
   try {
-    // 1. Mock file upload
+    // 1. Upload file if present
     let ciUrl = '';
     if (file && file.size > 0) {
-      console.log(`[MOCK UPLOAD] Saving file: ${file.name} (${file.size} bytes)`);
-      ciUrl = file.name;
+      console.log(`[UPLOAD] Uploading file: ${file.name} (${file.size} bytes)`);
+      const { fetchApi } = await import('@/lib/api');
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+      
+      const uploadRes = await fetchApi('/documents/upload', {
+        method: 'POST',
+        body: formDataUpload,
+      });
+      
+      if (uploadRes && uploadRes.url) {
+        ciUrl = uploadRes.url;
+      } else {
+        console.error('Failed to get url from upload endpoint');
+      }
     }
 
     // 2. Fetch the existing shipment to check for splitting
@@ -79,7 +92,7 @@ export async function submitAsnWorkflow(formData: FormData) {
     await updateShipment(shipmentId, partialUpdate);
 
     revalidatePath('/shipments');
-    return { success: true };
+    return { success: true, ciUrl: partialUpdate.commercial_invoice_url };
   } catch (error) {
     console.error('Error in submitAsnWorkflow:', error);
     return { error: 'Failed to process ASN workflow' };

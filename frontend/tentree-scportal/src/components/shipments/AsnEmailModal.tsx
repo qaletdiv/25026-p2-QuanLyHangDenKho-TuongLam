@@ -66,15 +66,22 @@ export default function AsnEmailModal({ open, onClose, onSuccess, shipment }: an
     setStep(2);
   };
 
-  const getEmailContent = () => {
+  const getEmailContent = (docUrl?: string) => {
     const subject = `ASN - ${shipment.mode} - ${shipment.po_number}`;
-    const body = `Please be advised of incoming shipment:\n\n` +
+    let body = `Please be advised of incoming shipment:\n\n` +
       `PO Number: ${shipment.po_number}\n` +
       `# Cartons: ${receivedQty}\n` +
       `# Units: ${receivedUnits}\n` +
       `Tracking Number: ${shipment.tracking_number || 'N/A'}\n` +
-      `ETA: ${shipment.eta || 'TBD'}\n\n` +
-      `Please find the commercial invoice attached (sent via SC Portal).\n`;
+      `ETA: ${shipment.eta || 'TBD'}\n\n`;
+      
+    if (docUrl) {
+      const fullUrl = docUrl.startsWith('http') ? docUrl : `${window.location.origin}${docUrl}`;
+      body += `Please find the commercial invoice here: ${fullUrl}\n`;
+    } else {
+      body += `Commercial Invoice will be uploaded to the SC Portal.\n`;
+    }
+    
     return { subject, body };
   };
 
@@ -100,7 +107,7 @@ export default function AsnEmailModal({ open, onClose, onSuccess, shipment }: an
       }
 
       toast.success(`ASN finalized successfully!`);
-      const { subject, body } = getEmailContent();
+      const { subject, body } = getEmailContent(result.ciUrl);
 
       if (action === 'mailto') {
         window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;

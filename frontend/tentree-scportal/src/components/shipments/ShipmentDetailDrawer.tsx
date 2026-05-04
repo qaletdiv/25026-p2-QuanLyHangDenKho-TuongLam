@@ -9,7 +9,7 @@ import { updateShipment, createShipment, deleteShipment } from '@/app/actions/sh
 import { trackFedexShipment } from '@/app/actions/fedex';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
-import { Package, MapPin, Calendar, Hash, Truck, Building2, Save, X, Edit3, RefreshCw, Copy, Trash2, Layers, DollarSign, Send } from 'lucide-react';
+import { Package, MapPin, Calendar, Hash, Truck, Building2, Save, X, Edit3, RefreshCw, Copy, Trash2, Layers, DollarSign, Send, Paperclip } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function ShipmentDetailDrawer({ open, onClose, onSuccess, onSendAsn, user }: any) {
@@ -466,6 +466,39 @@ export default function ShipmentDetailDrawer({ open, onClose, onSuccess, onSendA
             </div>
           </div>
 
+          {/* Commercial Invoice Section */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+              <Paperclip className="w-4 h-4" /> Documents
+            </h4>
+            
+            <div className="bg-muted/20 p-4 rounded-xl border border-border/50">
+              <Label className="text-xs text-muted-foreground block mb-2">Commercial Invoice</Label>
+              {formData.commercial_invoice_url ? (
+                <div className="flex items-center justify-between bg-background p-2 rounded border border-border/50">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-primary/10 p-1.5 rounded">
+                      <Paperclip className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="text-sm font-medium truncate max-w-[200px]">{formData.commercial_invoice_url}</span>
+                  </div>
+                  {formData.commercial_invoice_url.startsWith('http') || formData.commercial_invoice_url.startsWith('/') ? (
+                    <Button variant="ghost" size="sm" className="h-7 text-xs text-primary hover:text-primary hover:bg-primary/5" onClick={() => window.open(formData.commercial_invoice_url, '_blank')}>
+                      View
+                    </Button>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="text-center py-4 border-2 border-dashed border-border/50 rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-2">No invoice uploaded yet.</p>
+                  <label className="cursor-pointer">
+                    <span className="text-xs font-bold text-primary hover:underline">Upload via Send ASN</span>
+                  </label>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Identifiers Group */}
           <div className="space-y-4">
             <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
@@ -509,6 +542,15 @@ export default function ShipmentDetailDrawer({ open, onClose, onSuccess, onSendA
           </div>
 
         </div>
+
+        {/* Footer Section */}
+        {canSendAsn && onSendAsn && !isEditing && (
+          <div className="bg-muted/30 border-t border-border p-4 flex justify-end shrink-0">
+            <Button onClick={() => { onClose(); onSendAsn(formData); }} className="gap-2">
+              <Send className="w-4 h-4" /> Send ASN
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Split/Duplicate Dialog */}
@@ -625,7 +667,7 @@ export default function ShipmentDetailDrawer({ open, onClose, onSuccess, onSendA
                     />
                   </div>
 
-                  <Button className="w-full" onClick={handleSplit} disabled={isLoading}>
+                  <Button className="w-full" onClick={handleDuplicate} disabled={isLoading}>
                     {isLoading ? 'Processing...' : 'Confirm Split'}
                   </Button>
                 </div>

@@ -555,9 +555,11 @@ export default function SmsDetailDrawer({ open, onClose, onSuccess, onSendAsn, o
                     </div>
                     <span className="text-sm font-medium truncate max-w-[200px]">{formData.commercial_invoice_url}</span>
                   </div>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs text-primary hover:text-primary hover:bg-primary/5" onClick={() => window.open('#', '_blank')}>
-                    View
-                  </Button>
+                  {formData.commercial_invoice_url.startsWith('http') || formData.commercial_invoice_url.startsWith('/') ? (
+                    <Button variant="ghost" size="sm" className="h-7 text-xs text-primary hover:text-primary hover:bg-primary/5" onClick={() => window.open(formData.commercial_invoice_url, '_blank')}>
+                      View
+                    </Button>
+                  ) : null}
                 </div>
               ) : (
                 <div className="text-center py-4 border-2 border-dashed border-border/50 rounded-lg">
@@ -644,7 +646,17 @@ export default function SmsDetailDrawer({ open, onClose, onSuccess, onSendAsn, o
             </div>
           </div>
 
-        </div>
+          </div>
+
+
+        {/* Footer Section */}
+        {canSendAsn && onSendAsn && !isEditing && (
+          <div className="bg-muted/30 border-t border-border p-4 flex justify-end shrink-0">
+            <Button onClick={() => { onClose(); onSendAsn(formData); }} className="gap-2">
+              <Send className="w-4 h-4" /> Send ASN
+            </Button>
+          </div>
+        )}
       </div>
     </div>
 
@@ -752,16 +764,16 @@ export default function SmsDetailDrawer({ open, onClose, onSuccess, onSendAsn, o
                     )}>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">PO Total Qty</span>
-                        <span className="font-bold">{lotQtyInfo.poTotal}</span>
+                        <div className="font-bold">{lotQtyInfo?.poTotal} units</div>
                       </div>
                       <div className="flex justify-between border-t border-border/50 pt-1">
                         <span className="text-muted-foreground">Unassigned Pool</span>
-                        <span className="font-medium text-amber-600">{lotQtyInfo.unassigned}</span>
+                        <div className="font-bold text-emerald-600">{lotQtyInfo?.totalAvailable} units</div>
                       </div>
                       {!isVirtual && (
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Current Lot Open Pool</span>
-                          <span className="font-medium text-amber-600">{lotQtyInfo.currentOpen}</span>
+                          <span className="font-medium">{lotQtyInfo?.currentOpen} units</span>
                         </div>
                       )}
                       {(() => {
@@ -775,7 +787,7 @@ export default function SmsDetailDrawer({ open, onClose, onSuccess, onSendAsn, o
                           <>
                             <div className="flex justify-between border-t border-border/10 pt-1">
                               <span className="font-semibold">Total Available in PO</span>
-                              <span className={cn("font-bold", isOverCap ? "text-destructive" : "text-primary")}>
+                              <span className={cn("font-bold", parseInt(lotFormData.expected_quantity || '0') > (lotQtyInfo?.totalAvailable || 0) ? "text-destructive" : "text-primary")}>
                                 {Math.max(0, cap - (entered || 0))} / {cap}
                               </span>
                             </div>
@@ -810,7 +822,7 @@ export default function SmsDetailDrawer({ open, onClose, onSuccess, onSendAsn, o
                       type="number"
                       min={1}
                       max={lotQtyInfo?.totalAvailable}
-                      placeholder={lotQtyInfo ? `Max: ${lotQtyInfo.totalAvailable}` : 'Enter qty'}
+                      placeholder={lotQtyInfo ? `Max: ${Math.max(0, (lotQtyInfo?.totalAvailable || 0) - (parseInt(lotFormData.expected_quantity || '0') || 0))} / ${lotQtyInfo?.totalAvailable}` : 'Enter qty'}
                       value={lotFormData.expected_quantity}
                       onChange={(e) => setLotFormData((p: any) => ({ ...p, expected_quantity: e.target.value }))}
                       className={cn("h-9", (() => {

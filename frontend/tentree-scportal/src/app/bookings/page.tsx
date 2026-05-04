@@ -71,6 +71,7 @@ function PendingPOsList({ user, onBookNow }: any) {
               <TableHead>Remaining</TableHead>
               <TableHead>Warehouse</TableHead>
               <TableHead>ETD</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -95,8 +96,17 @@ function PendingPOsList({ user, onBookNow }: any) {
                   </TableCell>
                   <TableCell className="text-xs">{p.receiving_warehouse}</TableCell>
                   <TableCell className="text-xs">{p.etd}</TableCell>
+                  <TableCell>
+                    {p.booking_status === 'Booking Pending' ? (
+                      <Badge variant="secondary" className="bg-amber-100 text-amber-800 whitespace-nowrap">Pending Approval</Badge>
+                    ) : p.booking_status === 'Declined' ? (
+                      <Badge variant="secondary" className="bg-red-100 text-red-800 whitespace-nowrap">Declined</Badge>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    )}
+                  </TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="outline" className="h-8 gap-1 border-primary/30 text-primary hover:bg-primary/5" onClick={() => onBookNow(p)}>
+                    <Button size="sm" variant="outline" className="h-8 gap-1 border-primary/30 text-primary hover:bg-primary/5 whitespace-nowrap" onClick={() => onBookNow(p)}>
                       Book Now <ArrowRight className="w-3 h-3" />
                     </Button>
                   </TableCell>

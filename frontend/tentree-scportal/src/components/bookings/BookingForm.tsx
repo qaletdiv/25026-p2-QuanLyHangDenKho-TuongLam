@@ -123,6 +123,30 @@ export default function BookingForm({ onSuccess, prefilledPO }: any) {
     });
   };
 
+  const handleCiUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      toast.info('Uploading file...');
+      try {
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+        const { fetchApi } = await import('@/lib/api');
+        const uploadRes = await fetchApi('/documents/upload', {
+          method: 'POST',
+          body: formDataUpload,
+        });
+        if (uploadRes && uploadRes.url) {
+          updateField('commercial_invoice_url', uploadRes.url);
+          toast.success(`Commercial Invoice attached.`);
+        } else {
+          toast.error('Failed to get url from upload endpoint');
+        }
+      } catch (err) {
+        toast.error('Failed to upload file.');
+      }
+    }
+  };
+
   const handleDownloadPdf = () => {
     toast.info("Generating Booking PDF...");
     // Mock PDF generation logic
@@ -282,7 +306,7 @@ export default function BookingForm({ onSuccess, prefilledPO }: any) {
                     <Input 
                       type="number" 
                       value={formData.po_details[0].units} 
-                      onChange={(e) => updatePODetail(0, 'units', e.target.value)} 
+                      onChange={(e) => updatePODetail(0, { units: e.target.value })} 
                       className="font-bold text-primary pr-20"
                     />
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground bg-muted px-2 py-1 rounded">
@@ -295,7 +319,7 @@ export default function BookingForm({ onSuccess, prefilledPO }: any) {
                   <Input 
                     type="number" 
                     value={formData.po_details[0].cartons} 
-                    onChange={(e) => updatePODetail(0, 'cartons', e.target.value)} 
+                    onChange={(e) => updatePODetail(0, { cartons: e.target.value })} 
                     required
                   />
                 </div>
@@ -306,7 +330,7 @@ export default function BookingForm({ onSuccess, prefilledPO }: any) {
                       <Input 
                         type="number" 
                         value={formData.po_details[0].weight} 
-                        onChange={(e) => updatePODetail(0, 'weight', e.target.value)} 
+                        onChange={(e) => updatePODetail(0, { weight: e.target.value })} 
                       />
                     </div>
                     <div className="space-y-2">
@@ -314,7 +338,7 @@ export default function BookingForm({ onSuccess, prefilledPO }: any) {
                       <Input 
                         type="number" 
                         value={formData.po_details[0].cbm} 
-                        onChange={(e) => updatePODetail(0, 'cbm', e.target.value)} 
+                        onChange={(e) => updatePODetail(0, { cbm: e.target.value })} 
                       />
                     </div>
                   </>
@@ -526,6 +550,11 @@ export default function BookingForm({ onSuccess, prefilledPO }: any) {
                 className={formData.mode === 'Courier' ? "border-primary/30 focus:border-primary" : ""}
                 required={formData.mode === 'Courier'}
               />
+            </div>
+            <div className="space-y-2 col-span-2">
+              <Label className="flex items-center gap-2">Commercial Invoice (Optional)</Label>
+              <Input type="file" onChange={handleCiUpload} accept=".pdf,.png,.jpg,.jpeg" />
+              {formData.commercial_invoice_url && <p className="text-xs text-primary font-medium mt-1">Uploaded successfully!</p>}
             </div>
           </div>
         </div>

@@ -1,6 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const multer = require('multer');
+const stream = require('stream');
+const path = require('path');
 const driveStorage = require('./driveStorage');
 const { errorHandler, asyncWrap } = require('./middleware/errorHandler');
 const { initCronJobs, runHistorySweep } = require('./services/cronJobs');
@@ -12,6 +15,9 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors({ origin: '*' }));
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'data', 'uploads')));
+
+const upload = multer();
 
 const readData = async (filename) => {
     return await driveStorage.readData(filename);
@@ -596,6 +602,10 @@ app.get('/reports', asyncWrap(async (req, res) => {
             id: s.id,
             po_number: s.po_number,
             season: s.season || po.season,
+            type: (s.type || po.type || '').toLowerCase(),
+            mode: s.mode || po.mode || '',
+            courier: s.courier || '',
+            booking_number: s.booking_number || po.booking_number || '',
             supplier: s.supplier || po.supplier,
             expected_units: expected,
             received_units: received,
@@ -604,7 +614,10 @@ app.get('/reports', asyncWrap(async (req, res) => {
             duty: parseFloat(s.duty || '0'),
             freight: parseFloat(s.freight || '0'),
             total_cost: parseFloat(s.invoice_value || '0') + parseFloat(s.duty || '0') + parseFloat(s.freight || '0'),
-            status: s.status
+            status: s.status,
+            etd: s.etd || po.etd || '',
+            eta: s.eta || po.eta || '',
+            lot_number: s.lot_number || null
         };
     });
     res.json(reports);
@@ -634,9 +647,10 @@ app.get('/forecast', asyncWrap(async (req, res) => {
 
         if (!acc[weekKey]) acc[weekKey] = { week: weekKey, weekNum, cartons: 0, units: 0, warehouses: {} };
 
-        const cartons = parseInt(s.expected_quantity || '0', 10);
-        const units = parseInt(s.expected_quantity || (cartons * 20).toString(), 10);
-        const wh = s.destination_warehouse || 'Unknown';
+        const units = parseInt(s.expected_quantity || s.expected_qty || '0', 10);
+        // Fallback: estimate 20 units per carton if cartons not explicitly set
+        const cartons = parseInt(s.number_of_cartons || s.cartons || Math.ceil(units / 20).toString(), 10);
+        const wh = s.destination_warehouse || s.receiving_warehouse || 'Unknown';
 
         acc[weekKey].cartons += cartons;
         acc[weekKey].units += units;
@@ -664,6 +678,21 @@ app.post('/history/sweep', asyncWrap(async (req, res) => {
 app.get('/integrations/netsuite/pos', asyncWrap(async (req, res) => {
     const pos = await integrationService.fetchNetSuitePOs();
     res.json(pos);
+}));
+
+// DOCUMENTS UPLOAD
+app.post('/documents/upload', upload.single('file'), asyncWrap(async (req, res) => {
+    if (!req.file) {
+        const err = new Error('No file uploaded');
+        err.statusCode = 400;
+        throw err;
+    }
+
+    const bufferStream = new stream.PassThrough();
+    bufferStream.end(req.file.buffer);
+
+    const result = await driveStorage.uploadFile(req.file.originalname, bufferStream, req.file.mimetype);
+    res.json(result);
 }));
 
 // Global Error Handler must be last!
