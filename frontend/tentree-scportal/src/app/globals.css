@@ -101,11 +101,11 @@
 :root, .dark {
   /* Full Red Monochromatic Theme (OKLCH) */
   --background: oklch(0.18 0.08 20);
-  --foreground: oklch(0.95 0.02 20);
+  --foreground: oklch(0.85 0.02 20);
   --card: oklch(0.23 0.1 20);
-  --card-foreground: oklch(0.95 0.02 20);
+  --card-foreground: oklch(0.85 0.02 20);
   --popover: oklch(0.23 0.1 20);
-  --popover-foreground: oklch(0.95 0.02 20);
+  --popover-foreground: oklch(0.85 0.02 20);
   --primary: oklch(0.6 0.23 25);
   --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.3 0.12 20);
@@ -129,7 +129,7 @@
   --chart-7: #fee2e2;
 }
 
-.theme-summer {
+:root.theme-summer {
   /* Summer Theme — Sunny Yellow · Little Sea · Green Trees */
   --background: oklch(0.97 0.02 88);
   --foreground: oklch(0.22 0.05 250);

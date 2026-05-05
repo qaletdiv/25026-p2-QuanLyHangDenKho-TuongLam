@@ -27,7 +27,14 @@ export default async function RootLayout({
   const user = await getSession();
 
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
+    <html lang="en" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('portal-theme');if(t==='summer')document.documentElement.classList.add('theme-summer');}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className={`${inter.variable} antialiased`}>
         <SessionProvider initialUser={user}>
           <AppLayout>

@@ -284,11 +284,11 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="px-3 py-1 text-xs font-bold uppercase tracking-widest">
-                {formData.booking_status}
+                Booking: {formData.booking_status}
               </Badge>
-              {formData.shipment_status && (
+              {formData.shipment_status && formData.shipment_status !== formData.booking_status && (
                 <Badge variant="outline" className="px-3 py-1 text-xs font-bold uppercase tracking-widest border-primary text-primary">
-                  {formData.shipment_status}
+                  Shipment: {formData.shipment_status}
                 </Badge>
               )}
             </div>

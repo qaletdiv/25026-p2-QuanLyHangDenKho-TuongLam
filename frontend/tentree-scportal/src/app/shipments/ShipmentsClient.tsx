@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { getShipments, updateShipment, deleteShipment, createShipment } from '../actions/shipments';
 import { getPurchaseOrders } from '@/app/actions/purchase-orders';
 import { getBookings, updateBooking } from '@/app/actions/bookings';
@@ -37,11 +38,11 @@ const statusColors: any = {
   'Booking': 'bg-muted border border-border text-foreground',
   'Booking Approved': 'bg-secondary border border-border text-secondary-foreground',
   'Customs Clearance': 'bg-background border border-primary/30 text-primary',
-  'In-Transit': 'bg-accent border border-border text-accent-foreground',
+  'In-Transit': 'bg-yellow-400 border border-yellow-500 text-yellow-950',
   'ASN Sent': 'bg-primary/20 border border-primary/40 text-primary-foreground',
-  'Delivered': 'bg-primary border border-primary text-primary-foreground',
-  'Ready to Ship': 'bg-secondary border border-border text-secondary-foreground',
-  'Pending': 'bg-muted border border-border text-foreground',
+  'Delivered': 'bg-blue-500/20 border border-blue-500/50 text-blue-600',
+  'Ready to Ship': 'bg-green-500 border border-green-600 text-white',
+  'Pending': 'bg-orange-500 border border-orange-600 text-white',
   'Customs Issue': 'bg-destructive/20 border border-destructive/50 text-destructive-foreground',
 };
 
@@ -68,7 +69,7 @@ const ALL_COLUMNS = [
   { id: 'etd', label: 'ETD' },
   { id: 'eta', label: 'ETA' },
   { id: 'status', label: 'Status' },
-  { id: 'booking', label: 'Booking Status' },
+  { id: 'booking', label: 'Booking #' },
   { id: 'asn', label: 'ASN' },
 ];
 
@@ -526,7 +527,7 @@ export default function ShipmentsClient({ initialShipments }: { initialShipments
                             const statusOptions = isSms ? smsStatuses : mainlineStatuses;
 
                             return (
-                              <TableRow key={s.id} className="cursor-pointer hover:bg-muted/30 transition-colors group" onClick={() => isSms ? setSelectedSmsShipment(s) : setSelectedShipment(s)}>
+                              <TableRow key={s.id} className="cursor-pointer hover:bg-primary/10 transition-colors group" onClick={() => isSms ? setSelectedSmsShipment(s) : setSelectedShipment(s)}>
                                 {visibleColumns.includes('season') && <TableCell className="text-xs font-mono py-3">{s.season || '—'}</TableCell>}
                                 {visibleColumns.includes('trn_number') && <TableCell className="text-xs font-mono py-3">{s.trn_number || '—'}</TableCell>}
                                 {visibleColumns.includes('po_number') && <TableCell className="font-semibold text-sm py-3">{s.po_number}</TableCell>}
@@ -606,32 +607,43 @@ export default function ShipmentsClient({ initialShipments }: { initialShipments
                                       className="py-3"
                                       rowSpan={tab === 'mainline' && s.booking_number ? group.length : 1}
                                     >
-                                      <div className="flex flex-col gap-1.5 items-start">
-                                        <span className="text-xs font-mono text-primary/80">{s.booking_number || '—'}</span>
-                                        <Badge variant="outline" className={cn("h-5 text-[10px] uppercase font-bold", ['Booking Approved', 'Customs Clearance', 'In-Transit', 'Delivered'].includes(s.booking_status) ? "bg-primary/10 text-primary border-primary/30" : "bg-background text-muted-foreground border-border")}>
-                                          {s.booking_status || 'No Booking'}
-                                        </Badge>
-                                      </div>
+                                      {s.booking_number ? (
+                                        <Link
+                                          href={`/bookings?bkg=${s.booking_number}`}
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="text-xs font-mono font-semibold text-primary hover:underline underline-offset-4 decoration-primary/40"
+                                        >
+                                          {s.booking_number}
+                                        </Link>
+                                      ) : (
+                                        <span className="text-xs text-muted-foreground">—</span>
+                                      )}
                                     </TableCell>
                                   ) : null
                                 )}
                                 {visibleColumns.includes('asn') && (
-                                  <TableCell className="py-3" onClick={(e: any) => e.stopPropagation()}>
-                                    {!s.asn_sent ? (
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => setAsnShipment(s)}
-                                        className="h-7 text-xs border-primary text-primary hover:bg-primary/10"
-                                      >
-                                        Send ASN
-                                      </Button>
-                                    ) : (
-                                      <Badge variant="outline" className="h-6 text-[10px] bg-primary/20 text-primary-foreground border-primary/40 uppercase font-bold">
-                                        ASN Sent
-                                      </Badge>
-                                    )}
-                                  </TableCell>
+                                  rowIndex === 0 || tab !== 'mainline' ? (
+                                    <TableCell
+                                      className="py-3"
+                                      onClick={(e: any) => e.stopPropagation()}
+                                      rowSpan={tab === 'mainline' && s.booking_number ? group.length : 1}
+                                    >
+                                      {(tab === 'mainline' && s.booking_number ? group.some(row => row.asn_sent) : s.asn_sent) ? (
+                                        <Badge variant="outline" className="h-6 text-[10px] bg-primary/20 text-primary-foreground border-primary/40 uppercase font-bold">
+                                          ASN Sent
+                                        </Badge>
+                                      ) : (
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => setAsnShipment(group)}
+                                          className="h-7 text-xs border-primary text-primary hover:bg-primary/10"
+                                        >
+                                          Send ASN
+                                        </Button>
+                                      )}
+                                    </TableCell>
+                                  ) : null
                                 )}
                               </TableRow>
                             );

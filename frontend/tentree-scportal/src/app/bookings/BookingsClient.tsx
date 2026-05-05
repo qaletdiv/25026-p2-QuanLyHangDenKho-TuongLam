@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { getBookings, getHistoryBookings, updateBooking, createBooking, deleteBooking } from '../actions/bookings';
 import { getPurchaseOrders } from '../actions/purchase-orders';
 import { useSession } from '@/components/providers/SessionProvider';
@@ -123,15 +124,17 @@ function PendingPOsList({ user, initialPendingPOs, onBookNow }: any) {
 }
 
 const statusColors: any = {
-  'No Booking': 'bg-gray-100 text-gray-800',
-  'Booking': 'bg-amber-100 text-amber-800',
-  'Booking Approved': 'bg-blue-100 text-blue-800',
-  'Declined': 'bg-red-100 text-red-800',
-  'Customs Clearance': 'bg-purple-100 text-purple-800',
-  'In-Transit': 'bg-yellow-100 text-yellow-800',
-  'ASN Sent': 'bg-emerald-100 text-emerald-800',
-  'Delivered': 'bg-green-100 text-green-800',
-  'Draft': 'bg-gray-100 text-gray-700',
+  'No Booking':        'bg-background border border-border text-muted-foreground',
+  'Booking':           'bg-muted border border-border text-foreground',
+  'Booking Approved':  'bg-secondary border border-border text-secondary-foreground',
+  'Declined':          'bg-destructive/20 border border-destructive/50 text-destructive-foreground',
+  'Customs Clearance': 'bg-background border border-primary/30 text-primary',
+  'In-Transit':        'bg-yellow-400 border border-yellow-500 text-yellow-950',
+  'ASN Sent':          'bg-primary/20 border border-primary/40 text-primary-foreground',
+  'Delivered':         'bg-blue-500/20 border border-blue-500/50 text-blue-600',
+  'Ready to Ship':     'bg-green-500 border border-green-600 text-white',
+  'Pending':           'bg-orange-500 border border-orange-600 text-white',
+  'Draft':             'bg-background border border-border text-muted-foreground',
 };
 
 const sopSections = [
@@ -163,12 +166,19 @@ const ALL_COLUMNS = [
   { id: 'submitted_at', label: 'Submitted' }
 ];
 
-function BookingsList({ user, initialBookings, isHistory = false }: any) {
+function BookingsList({ user, initialBookings, isHistory = false, initialBkg }: any) {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [bookings, setBookings] = useState<any[]>(initialBookings || []);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+
+  useEffect(() => {
+    if (initialBkg && bookings.length > 0) {
+      const match = bookings.find((b: any) => b.booking_number === initialBkg);
+      if (match) setSelectedBooking(match);
+    }
+  }, [initialBkg, bookings]);
 
   const [visibleColumns, setVisibleColumns] = useState<string[]>(ALL_COLUMNS.map(c => c.id));
 
@@ -329,7 +339,7 @@ function BookingsList({ user, initialBookings, isHistory = false }: any) {
               <TableRow><TableCell colSpan={visibleColumns.length} className="text-center py-8 text-muted-foreground">No bookings found</TableCell></TableRow>
             ) : (
               filtered.map(b => (
-                <TableRow key={b.id} className="cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setSelectedBooking(b)}>
+                <TableRow key={b.id} className="cursor-pointer hover:bg-primary/10 transition-colors" onClick={() => setSelectedBooking(b)}>
                   {ALL_COLUMNS.filter(c => visibleColumns.includes(c.id)).map(col => {
                     if (col.id === 'booking_number') {
                       return <TableCell key={col.id} className="font-mono text-xs font-medium">{b.booking_number || '—'}</TableCell>;
@@ -420,6 +430,8 @@ export default function BookingsClient({ initialActive, initialHistory, initialP
   const [sopOpen, setSopOpen] = useState(false);
   const { user } = useSession();
   const [prefilledPO, setPrefilledPO] = useState<any>(null);
+  const searchParams = useSearchParams();
+  const initialBkg = searchParams.get('bkg');
 
   return (
     <div className="flex h-full">
@@ -453,7 +465,7 @@ export default function BookingsClient({ initialActive, initialHistory, initialP
           </TabsContent>
 
           <TabsContent value="list" className="mt-4">
-            <BookingsList user={user} initialBookings={initialActive} isHistory={false} />
+            <BookingsList user={user} initialBookings={initialActive} isHistory={false} initialBkg={initialBkg} />
           </TabsContent>
 
           <TabsContent value="history" className="mt-4">

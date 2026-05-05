@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import BookingsClient from './BookingsClient';
 import { getBookings, getHistoryBookings } from '@/app/actions/bookings';
 import { getPurchaseOrders } from '@/app/actions/purchase-orders';
@@ -29,10 +30,12 @@ export default async function BookingsPage() {
   }
 
   return (
-    <BookingsClient 
-      initialActive={activeBookings || []}
-      initialHistory={historyBookings || []}
-      initialPending={pendingPOs || []}
-    />
+    <Suspense>
+      <BookingsClient
+        initialActive={activeBookings || []}
+        initialHistory={historyBookings || []}
+        initialPending={pendingPOs || []}
+      />
+    </Suspense>
   );
 }

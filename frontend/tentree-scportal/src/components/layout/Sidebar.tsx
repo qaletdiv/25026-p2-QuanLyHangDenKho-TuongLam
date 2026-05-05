@@ -79,13 +79,20 @@ export default function Sidebar() {
   return (
     <div className="flex flex-col w-64 h-screen bg-card border-r border-border text-card-foreground shadow-sm z-10 sticky top-0">
       {/* Logo Area */}
-      <div className="h-16 flex items-center px-6 border-b border-border bg-card">
-        <div className="flex items-center gap-2 font-bold text-lg text-primary tracking-tight">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
-            <Package className="w-5 h-5" />
-          </div>
-          <span className="truncate">Tentree Portal</span>
-        </div>
+      <div className="h-16 flex items-center px-6 border-b border-border bg-card transition-colors duration-300">
+        <Link href="/" className="flex items-center gap-3 group">
+          <img
+            src={isSummer ? "/tentree_black.png" : "/tentree_white.png"}
+            alt="Tentree Logo"
+            className="h-8 w-auto object-contain transition-all duration-300 group-hover:scale-110"
+          />
+          <span className={cn(
+            "text-[11px] font-black uppercase tracking-[0.2em] leading-none transition-colors duration-300",
+            isSummer ? "text-[#1a1a1a]" : "text-white/80"
+          )}>
+            Supply Chain
+          </span>
+        </Link>
       </div>
 
       {/* Navigation */}
@@ -117,12 +124,20 @@ export default function Sidebar() {
           {isSummer ? 'Classic Red' : 'Summer'}
         </button>
         <button
-          className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-all"
+          className={cn(
+            "flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+            isSummer ? "text-black hover:bg-primary/30" : "text-destructive hover:bg-destructive/10"
+          )}
           onClick={() => logout()}
         >
           <LogOut className="w-4 h-4" />
           Log out
         </button>
+        <div className="pt-4 pb-2 text-center">
+          <p className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-[0.2em]">
+            Developed by <span className="text-primary/60 font-bold italic">lampossible</span>
+          </p>
+        </div>
       </div>
     </div>
   );
