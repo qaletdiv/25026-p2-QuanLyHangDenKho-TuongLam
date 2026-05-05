@@ -28,17 +28,17 @@ const TOOLTIP_STYLE = {
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'No Booking': return 'var(--color-border)';
-    case 'Booking': return 'var(--color-muted-foreground)';
-    case 'Booking Approved': return 'var(--color-secondary)';
-    case 'Customs Clearance': return 'var(--color-primary)';
-    case 'In-Transit': return 'var(--color-accent)';
-    case 'ASN Sent': return 'var(--color-primary)';
-    case 'Delivered': return 'var(--color-primary)';
-    case 'Ready to Ship': return 'var(--color-secondary)';
-    case 'Pending': return 'var(--color-muted-foreground)';
-    case 'Customs Issue': return 'var(--color-destructive)';
-    default: return 'var(--color-primary)';
+    case 'No Booking':        return 'var(--chart-7)';
+    case 'Booking':           return 'var(--chart-6)';
+    case 'Booking Approved':  return 'var(--chart-5)';
+    case 'Ready to Ship':     return 'var(--chart-4)';
+    case 'Customs Clearance': return 'var(--chart-3)';
+    case 'In-Transit':        return 'var(--chart-2)';
+    case 'ASN Sent':          return 'var(--chart-2)';
+    case 'Delivered':         return 'var(--chart-1)';
+    case 'Pending':           return 'var(--chart-6)';
+    case 'Customs Issue':     return 'var(--color-destructive)';
+    default:                  return 'var(--chart-1)';
   }
 };
 
@@ -305,8 +305,8 @@ export default function ReportsClient({ initialReports }: { initialReports: Repo
                     <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }} />
                     <Tooltip cursor={{ fill: 'var(--color-primary)', fillOpacity: 0.08 }} contentStyle={TOOLTIP_STYLE} labelStyle={{ color: 'var(--color-primary)', fontWeight: 700 }} />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-foreground)' }} />
-                    <Bar yAxisId="left"  dataKey="shipments" name="Shipments" fill="var(--chart-1)" fillOpacity={0.5} radius={[4, 4, 0, 0]} barSize={28} />
-                    <Bar yAxisId="right" dataKey="units"     name="Units"     fill="var(--chart-1)"                  radius={[4, 4, 0, 0]} barSize={28} />
+                    <Bar yAxisId="left"  dataKey="shipments" name="Shipments" fill="var(--chart-1)" fillOpacity={0.6} radius={[4, 4, 0, 0]} barSize={28} />
+                    <Bar yAxisId="right" dataKey="units"     name="Units"     fill="var(--chart-2)"                  radius={[4, 4, 0, 0]} barSize={28} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
