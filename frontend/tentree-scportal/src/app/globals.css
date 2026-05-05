@@ -119,4 +119,43 @@
   --input: oklch(0.32 0.1 20);
   --ring: oklch(0.6 0.23 25);
   --radius: 0.625rem;
+  /* Chart palette — reds (original) */
+  --chart-1: #ef4444;
+  --chart-2: #f87171;
+  --chart-3: #dc2626;
+  --chart-4: #991b1b;
+  --chart-5: #fca5a5;
+  --chart-6: #b91c1c;
+  --chart-7: #fee2e2;
+}
+
+.theme-summer {
+  /* Summer Theme — Sunny Yellow · Little Sea · Green Trees */
+  --background: oklch(0.97 0.02 88);
+  --foreground: oklch(0.22 0.05 250);
+  --card: oklch(1.0 0.005 88);
+  --card-foreground: oklch(0.22 0.05 250);
+  --popover: oklch(1.0 0.005 88);
+  --popover-foreground: oklch(0.22 0.05 250);
+  --primary: oklch(0.75 0.17 88);
+  --primary-foreground: oklch(0.18 0.06 70);
+  --secondary: oklch(0.68 0.13 210);
+  --secondary-foreground: oklch(0.99 0.005 210);
+  --muted: oklch(0.92 0.03 88);
+  --muted-foreground: oklch(0.52 0.04 88);
+  --accent: oklch(0.58 0.15 148);
+  --accent-foreground: oklch(0.99 0.005 148);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.86 0.04 88);
+  --input: oklch(0.86 0.04 88);
+  --ring: oklch(0.75 0.17 88);
+  --radius: 0.625rem;
+  /* Chart palette — summer */
+  --chart-1: oklch(0.75 0.17 88);
+  --chart-2: oklch(0.68 0.13 210);
+  --chart-3: oklch(0.58 0.15 148);
+  --chart-4: oklch(0.72 0.15 65);
+  --chart-5: oklch(0.62 0.14 175);
+  --chart-6: oklch(0.82 0.12 90);
+  --chart-7: oklch(0.52 0.12 230);
 }

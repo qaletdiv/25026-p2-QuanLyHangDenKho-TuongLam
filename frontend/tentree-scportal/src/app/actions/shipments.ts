@@ -9,22 +9,7 @@ export async function getShipments() {
 }
 
 export async function createShipment(data: any) {
-  // Calculate Lot number based on existing PO rows with the same po_number
-  const existing = await getShipments();
-  const matches = existing.filter((s: any) =>
-    data.po_number && s.po_number && s.po_number === data.po_number
-  );
-
-  if (matches.length > 0) {
-    // Find the highest existing lot number (default to 1 if none assigned)
-    const lotNumbers = matches.map((s: any) => parseInt(s.lot_number) || 1);
-    const maxLot = Math.max(...lotNumbers);
-    // New duplicate always gets the next lot number — originals are NEVER mutated
-    data.lot_number = maxLot + 1;
-  } else {
-    // First record for this PO: always Lot 1
-    data.lot_number = 1;
-  }
+  // Lot number is now calculated in the backend.
 
   const result = await fetchApi('/shipments', {
     method: 'POST',

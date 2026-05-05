@@ -7,26 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { logout } from '@/app/actions/auth';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useSession } from '@/components/providers/SessionProvider';
 
 export default function Header() {
   const pathname = usePathname();
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    // Try to get user from cookie directly or a global state
-    // For now, we'll parse it from the cookie if possible, but let's just 
-    // rely on a safer method.
-    try {
-      const cookies = document.cookie.split('; ');
-      const sessionCookie = cookies.find(row => row.startsWith('session='));
-      if (sessionCookie) {
-        const value = decodeURIComponent(sessionCookie.split('=')[1]);
-        setUser(JSON.parse(value));
-      }
-    } catch (e) {
-      console.error('Failed to parse user session', e);
-    }
-  }, [pathname]);
+  const { user } = useSession();
 
   // Hide header on login page
   if (pathname === '/login') return null;

@@ -9,6 +9,11 @@ export async function getBookings() {
   return data || [];
 }
 
+export async function getHistoryBookings() {
+  const data = await fetchApi('/history-bookings');
+  return data || [];
+}
+
 export async function createBooking(data: any) {
   const result = await fetchApi('/bookings', {
     method: 'POST',
@@ -26,19 +31,9 @@ export async function updateBooking(id: string, data: any) {
     body: JSON.stringify(data),
   });
 
-  // 2. If a booking_status was provided, fan-out/cascade to ALL linked PO rows in Shipments.
-  //    This is the top-down path: booking-level status → all PO rows.
   //    The per-PO bottom-up path (PO row → booking aggregate) is handled by the backend
-  //    on PUT /shipments/:id, so we do NOT call bulkUpdateShipmentStatus here when it's
-  //    a backend-triggered recalc (to avoid infinite loops). We only cascade when
-  //    the update originates from the UI/Booking drawer.
-  if (data.booking_number && data._cascadeToShipments && data.booking_status) {
-    try {
-      await bulkUpdateShipmentStatus(data.booking_number, data.booking_status);
-    } catch (e) {
-      console.error('Failed to cascade status to shipments:', e);
-    }
-  }
+  //    on PUT /shipments/:id. The top-down path (Booking → Shipments) is now also handled 
+  //    by the backend inside PUT /bookings/:id when _cascadeToShipments is true.
 
   revalidatePath('/bookings');
   revalidatePath('/shipments');
@@ -51,14 +46,8 @@ export async function deleteBooking(id: string) {
   const bookings = await getBookings();
   const bookingToDelete = bookings.find((b: any) => b.id === id);
 
-  // 2. Delete ALL linked PO shipment rows (fan-out — there may be N rows per booking)
-  if (bookingToDelete?.booking_number) {
-    const shipments = await getShipments();
-    const linkedShipments = shipments.filter((s: any) => s.booking_number === bookingToDelete.booking_number);
-    for (const s of linkedShipments) {
-      await deleteShipment(s.id);
-    }
-  }
+  // 2. Delete ALL linked PO shipment rows (fan-out) is now handled entirely by the backend
+  //    inside DELETE /bookings/:id
 
   // 3. Delete the booking itself
   const result = await fetchApi(`/bookings/${id}`, {

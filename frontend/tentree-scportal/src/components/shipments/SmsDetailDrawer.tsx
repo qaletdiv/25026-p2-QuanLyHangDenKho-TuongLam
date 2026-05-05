@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { updateShipment, createShipment, deleteShipment } from '@/app/actions/shipments';
+import { updateShipment, createShipment, deleteShipment, getShipments } from '@/app/actions/shipments';
+import { getPurchaseOrders } from '@/app/actions/purchase-orders';
 import { trackFedexShipment } from '@/app/actions/fedex';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -134,15 +135,13 @@ export default function SmsDetailDrawer({ open, onClose, onSuccess, onSendAsn, o
     let sourceLotId: string | null = null;
 
     try {
-      const poRes = await fetch('http://127.0.0.1:5000/purchase-orders');
-      const allPOs = await poRes.json();
+      const allPOs = await getPurchaseOrders();
       const poMaster = allPOs.find((p: any) => p.po_number?.trim() === formData.po_number?.trim());
       
       // Fallback: if PO not in master list, use the current record's original expected_qty
       poTotal = parseInt(poMaster?.expected_qty || formData.expected_qty || formData.expected_quantity || '0', 10);
 
-      const shipRes = await fetch('http://127.0.0.1:5000/shipments');
-      const allShipments = await shipRes.json();
+      const allShipments = await getShipments();
       const lots = allShipments.filter((s: any) =>
         s.po_number === formData.po_number && !String(s.id).startsWith('po-')
       );
@@ -238,8 +237,7 @@ export default function SmsDetailDrawer({ open, onClose, onSuccess, onSendAsn, o
 
         // 3. Take from Other Open Lots if still needed
         if (remainingToTake > 0) {
-          const res = await fetch('http://127.0.0.1:5000/shipments');
-          const all = await res.json();
+          const all = await getShipments();
           // Find other open lots for this PO, sorted by lot_number descending (newest first)
           const otherLots = all
             .filter((s: any) => 

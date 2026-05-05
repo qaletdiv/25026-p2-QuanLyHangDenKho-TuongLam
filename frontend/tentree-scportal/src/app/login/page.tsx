@@ -59,7 +59,7 @@ export default function LoginPage() {
                   type="email" 
                   required 
                   placeholder="name@tentree.com" 
-                  className="pl-10 h-12 bg-slate-50 border-slate-200 focus:bg-white transition-all rounded-xl"
+                  className="pl-10 h-12 bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-primary transition-all rounded-xl"
                 />
               </div>
             </div>
@@ -71,13 +71,13 @@ export default function LoginPage() {
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input 
-                  id="password" 
-                  name="password" 
-                  type="password" 
-                  required 
-                  placeholder="••••••••" 
-                  className="pl-10 h-12 bg-slate-50 border-slate-200 focus:bg-white transition-all rounded-xl"
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  className="pl-10 h-12 bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-primary transition-all rounded-xl"
                 />
               </div>
             </div>

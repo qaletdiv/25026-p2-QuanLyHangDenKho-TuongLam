@@ -166,8 +166,8 @@
     "receiving_warehouse": "NRI CAN",
     "etd": "2026-09-01",
     "eta": "2026-10-05",
-    "booking_status": "No Booking",
-    "booking_number": null
+    "booking_status": "Delivered",
+    "booking_number": "BKG-6647"
   },
   {
     "id": "1777342168909",
@@ -208,5 +208,21 @@
     "received_qty": 0,
     "booked_qty": 600,
     "actual_receive_date": ""
+  },
+  {
+    "id": "1777865234398",
+    "booking_status": "No Booking",
+    "booking_number": null,
+    "type": "mainline",
+    "incoterm": "FOB",
+    "season": "FW26",
+    "trn_number": "TRN12390",
+    "supplier": "EcoTech Garments",
+    "mode": "Ocean",
+    "receiving_warehouse": "Direct US",
+    "etd": "05/04/2026",
+    "eta": "07/15/2026",
+    "expected_qty": "10000",
+    "po_number": "PO05050"
   }
 ]

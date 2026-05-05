@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, FileText, CalendarCheck, Users, Settings, LogOut, BarChart3, LineChart, ClipboardList, Truck, FileCode, Palette } from 'lucide-react';
+import { LayoutDashboard, Package, FileText, CalendarCheck, Users, Settings, LogOut, BarChart3, LineChart, ClipboardList, Truck, FileCode, Palette, Sun, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { logout } from '@/app/actions/auth';
+import { useSession } from '@/components/providers/SessionProvider';
 
 const navItems = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -27,20 +28,23 @@ const masterDataItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [user, setUser] = useState<any>(null);
+  const { user } = useSession();
+  const [isSummer, setIsSummer] = useState(false);
 
   useEffect(() => {
-    try {
-      const cookies = document.cookie.split('; ');
-      const sessionCookie = cookies.find(row => row.startsWith('session='));
-      if (sessionCookie) {
-        const value = decodeURIComponent(sessionCookie.split('=')[1]);
-        setUser(JSON.parse(value));
-      }
-    } catch (e) {
-      console.error('Failed to parse user session in Sidebar', e);
+    const saved = localStorage.getItem('portal-theme');
+    if (saved === 'summer') {
+      document.documentElement.classList.add('theme-summer');
+      setIsSummer(true);
     }
-  }, [pathname]);
+  }, []);
+
+  const toggleTheme = () => {
+    const next = !isSummer;
+    setIsSummer(next);
+    localStorage.setItem('portal-theme', next ? 'summer' : 'red');
+    document.documentElement.classList.toggle('theme-summer', next);
+  };
 
   if (pathname === '/login') return null;
 
@@ -104,8 +108,15 @@ export default function Sidebar() {
       </div>
 
       {/* Bottom Actions */}
-      <div className="p-4 border-t border-border bg-card/50">
-        <button 
+      <div className="p-4 border-t border-border bg-card/50 space-y-1">
+        <button
+          className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+          onClick={toggleTheme}
+        >
+          {isSummer ? <Flame className="w-4 h-4 text-red-500" /> : <Sun className="w-4 h-4 text-yellow-400" />}
+          {isSummer ? 'Classic Red' : 'Summer'}
+        </button>
+        <button
           className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-all"
           onClick={() => logout()}
         >

@@ -25,7 +25,7 @@ export async function login(formData: any) {
     // Store user session in a cookie
     const cookieStore = await cookies();
     cookieStore.set('session', JSON.stringify(user), {
-      httpOnly: false, // Accessible by client components for role-based UI
+      httpOnly: true, // Server-only, accessed via SessionProvider
       secure: false, // Local dev friendly
       maxAge: 60 * 60 * 24 * 7, // 1 week
       path: '/',

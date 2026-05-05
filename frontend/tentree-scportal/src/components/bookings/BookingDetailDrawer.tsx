@@ -8,7 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, CheckCircle, XCircle, FileText, Calendar, Package, Truck, Building2, MapPin, Edit3, Trash2, Copy, Save, Layers, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
-import { updateBooking, deleteBooking, createBooking } from '@/app/actions/bookings';
+import { updateBooking, deleteBooking, createBooking, getBookings } from '@/app/actions/bookings';
+import { getPurchaseOrders } from '@/app/actions/purchase-orders';
+import { getShipments, bulkUpdateShipmentStatus } from '@/app/actions/shipments';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -36,8 +38,7 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
       setIsEditing(false);
       // Fetch live per-PO status from Shipments
       if (booking.booking_number) {
-        fetch('http://127.0.0.1:5000/shipments')
-          .then(r => r.json())
+        getShipments()
           .then(all => setLinkedShipments(all.filter((s: any) => s.booking_number === booking.booking_number)))
           .catch(() => setLinkedShipments([]));
       }
@@ -46,20 +47,8 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
 
   if (!booking || !open) return null;
 
-  // Resolve user from prop OR fallback to cookie (handles race condition on initial render)
-  let resolvedUser = user;
-  if (!resolvedUser) {
-    try {
-      const cookies = document.cookie.split('; ');
-      const sessionCookie = cookies.find(row => row.startsWith('session='));
-      if (sessionCookie) {
-        resolvedUser = JSON.parse(decodeURIComponent(sessionCookie.split('=')[1]));
-      }
-    } catch (e) { /* ignore */ }
-  }
-
-  const isAdminOrLogistics = ['Admin', 'Logistics Coordinator'].includes(resolvedUser?.role);
-  const isVendor = resolvedUser?.role === 'Vendor';
+  const isAdminOrLogistics = ['Admin', 'Logistics Coordinator'].includes(user?.role);
+  const isVendor = user?.role === 'Vendor';
   const isPending = booking.booking_status === 'Booking' || booking.booking_status === 'Booking Pending';
   const isDraft = booking.booking_status === 'Draft' || !booking.booking_status;
 
@@ -89,15 +78,7 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
 
     setIsLoading(true);
     try {
-      await fetch(`http://127.0.0.1:5000/bookings/${booking.id}`, { method: 'DELETE' });
-      if (booking.booking_number) {
-        const shipmentsRes = await fetch('http://127.0.0.1:5000/shipments');
-        const shipments = await shipmentsRes.json();
-        const linkedShipmentsRows = shipments.filter((s: any) => s.booking_number === booking.booking_number);
-        for (const row of linkedShipmentsRows) {
-          await fetch(`http://127.0.0.1:5000/shipments/${row.id}`, { method: 'DELETE' });
-        }
-      }
+      await deleteBooking(booking.id);
       toast.success('Booking deleted successfully');
       if (onSuccess) onSuccess();
       onClose();
@@ -122,8 +103,7 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
     let totalBooked = 0;
 
     try {
-      const poRes = await fetch('http://127.0.0.1:5000/purchase-orders');
-      const allPOs = await poRes.json();
+      const allPOs = await getPurchaseOrders();
       const poMaster = allPOs.find((p: any) => p.po_number?.trim() === mainPoNum.trim());
 
       poTotal = parseInt(poMaster?.expected_qty || '0', 10);
@@ -206,8 +186,7 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
 
       // Pool 3: Other Open Bookings/Shipments
       if (remainingToTake > 0) {
-        const res = await fetch('http://127.0.0.1:5000/bookings');
-        const all = await res.json();
+        const all = await getBookings();
         const otherBookings = all.filter((b: any) =>
           b.id !== formData.id &&
           b.po_details?.some((p: any) => p.po_number === lotQtyInfo.po_number)
@@ -272,18 +251,10 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
     if (!booking?.booking_number) return;
     setIsBulkUpdating(true);
     try {
-      // Call the backend bulk-status endpoint directly (this is a client component)
-      const res = await fetch('http://127.0.0.1:5000/shipments/bulk-status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ booking_number: booking.booking_number, status: newStatus }),
-      });
-      if (!res.ok) throw new Error('Bulk status update failed');
-      const result = await res.json();
-      toast.success(`Updated ${result.updated} PO row(s) in ${booking.booking_number} to "${newStatus}".`);
+      await bulkUpdateShipmentStatus(booking.booking_number, newStatus);
+      toast.success(`Updated PO row(s) in ${booking.booking_number} to "${newStatus}".`);
       // Refresh the live PO status table in the drawer
-      const refreshed = await fetch('http://127.0.0.1:5000/shipments');
-      const all = await refreshed.json();
+      const all = await getShipments();
       setLinkedShipments(all.filter((s: any) => s.booking_number === booking.booking_number));
       if (onSuccess) onSuccess();
     } catch (e) {

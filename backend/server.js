@@ -104,12 +104,12 @@ async function recalcBookingStatus(bookingNumber) {
         const shipments = await readData('shipments.json');
         const bookings = await readData('bookings.json');
         const masterStatuses = await readData('statuses.json').catch(() => []);
-        
+
         const linkedRows = shipments.filter(s => s.booking_number === bookingNumber);
         if (linkedRows.length === 0) return;
 
         const rowStatuses = linkedRows.map(s => s.status || 'No Booking');
-        
+
         // Dynamic order from statuses.json
         const statusOrder = masterStatuses.map(s => s.name);
         // Identify exception statuses dynamically (those with red coloring)
@@ -143,7 +143,7 @@ async function recalcBookingStatus(bookingNumber) {
 app.get('/shipments', asyncWrap(async (req, res) => {
     const shipments = await readData('shipments.json');
     const pos = await readData('purchase-orders.json').catch(() => []);
-    
+
     // Enrich shipments with PO data if fields are missing
     const enriched = shipments.map(s => {
         const po = pos.find(p => p.po_number === s.po_number);
@@ -218,12 +218,12 @@ app.post('/shipments/bulk-status', asyncWrap(async (req, res) => {
  */
 async function enrichBookings(bookings) {
     const pos = await readData('purchase-orders.json').catch(() => []);
-    
+
     return bookings.map(b => {
         // Find first PO in details to get general info if missing
         const firstPoNum = (b.po_details?.[0]?.po_number || '').trim();
         const mainPo = pos.find(p => (p.po_number || '').trim() === firstPoNum);
-        
+
         return {
             ...b,
             receiving_warehouse: b.receiving_warehouse || mainPo?.receiving_warehouse || '',
@@ -251,40 +251,40 @@ app.get('/bookings', asyncWrap(async (req, res) => {
 }));
 app.post('/bookings', asyncWrap(async (req, res) => {
     const { type, po_details, ...rest } = req.body;
-    
-        const typeLower = (type || '').toLowerCase();
-        if (typeLower === 'sms' || (rest.mode === 'Courier' && typeLower !== 'mainline')) {
-            const shipmentsData = await readData('shipments.json');
-            const pos = await readData('purchase-orders.json').catch(() => []);
-            const createdShipments = [];
 
-            if (po_details && Array.isArray(po_details)) {
-                const validPOs = po_details.filter(p => p.po_number && p.po_number.trim() !== '');
-                for (const pod of validPOs) {
-                    const units = parseInt(pod.units) || 0;
-                    const lot = await lotService.calculateLotNumber(pod.po_number, units);
-                    const po = pos.find(p => p.po_number === pod.po_number) || {};
-                    
-                    const newShipment = {
-                        ...po,
-                        ...rest,
-                        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
-                        po_number: pod.po_number,
-                        expected_quantity: units,
-                        lot_number: lot,
-                        status: 'Ready to Ship',
-                        booking_status: 'No Booking',
-                        type: 'sms',
-                        // Map specific fields for shipment tracker visibility
-                        etd: rest.cargo_ready_date || po.etd || '',
-                        supplier: rest.vendor_name || po.supplier || '',
-                        destination_warehouse: rest.receiving_warehouse || po.receiving_warehouse || ''
-                    };
-                    shipmentsData.push(newShipment);
-                    createdShipments.push(newShipment);
-                }
-                await writeData('shipments.json', shipmentsData);
-            
+    const typeLower = (type || '').toLowerCase();
+    if (typeLower === 'sms' || (rest.mode === 'Courier' && typeLower !== 'mainline')) {
+        const shipmentsData = await readData('shipments.json');
+        const pos = await readData('purchase-orders.json').catch(() => []);
+        const createdShipments = [];
+
+        if (po_details && Array.isArray(po_details)) {
+            const validPOs = po_details.filter(p => p.po_number && p.po_number.trim() !== '');
+            for (const pod of validPOs) {
+                const units = parseInt(pod.units) || 0;
+                const lot = await lotService.calculateLotNumber(pod.po_number, units);
+                const po = pos.find(p => p.po_number === pod.po_number) || {};
+
+                const newShipment = {
+                    ...po,
+                    ...rest,
+                    id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                    po_number: pod.po_number,
+                    expected_quantity: units,
+                    lot_number: lot,
+                    status: 'Ready to Ship',
+                    booking_status: 'No Booking',
+                    type: 'sms',
+                    // Map specific fields for shipment tracker visibility
+                    etd: rest.cargo_ready_date || po.etd || '',
+                    supplier: rest.vendor_name || po.supplier || '',
+                    destination_warehouse: rest.receiving_warehouse || po.receiving_warehouse || ''
+                };
+                shipmentsData.push(newShipment);
+                createdShipments.push(newShipment);
+            }
+            await writeData('shipments.json', shipmentsData);
+
             // Update PO status
             const poNumbers = po_details.map(p => p.po_number);
             const updatedPos = pos.map(p => {
@@ -295,17 +295,17 @@ app.post('/bookings', asyncWrap(async (req, res) => {
             });
             await writeData('purchase-orders.json', updatedPos);
         }
-        
+
         return res.status(201).json(createdShipments[0] || { message: 'SMS Shipments created' });
     }
 
     // Mainline Logic: Create Active Booking
     const data = await readData('bookings.json');
-    const newBooking = { 
-        id: Date.now().toString(), 
+    const newBooking = {
+        id: Date.now().toString(),
         type: 'mainline',
         ...req.body,
-        booking_status: 'Booking Pending' 
+        booking_status: 'Booking Pending'
     };
     data.push(newBooking);
     await writeData('bookings.json', data);
@@ -335,7 +335,7 @@ app.put('/bookings/:id', asyncWrap(async (req, res) => {
     if (idx > -1) {
         const oldStatus = data[idx].booking_status;
         const newStatus = req.body.booking_status;
-        
+
         data[idx] = { ...data[idx], ...req.body };
         await writeData('bookings.json', data);
 
@@ -351,7 +351,7 @@ app.put('/bookings/:id', asyncWrap(async (req, res) => {
                     const units = parseInt(pod.units) || 0;
                     const lot = await lotService.calculateLotNumber(pod.po_number, units);
                     const po = pos.find(p => p.po_number === pod.po_number) || {};
-                    
+
                     const newShipment = {
                         ...po,
                         ...booking,
@@ -392,7 +392,7 @@ app.delete('/bookings/:id', asyncWrap(async (req, res) => {
         // Reset PO statuses in master list
         const pos = await readData('purchase-orders.json').catch(() => []);
         const poNumbers = bookingToDelete.po_details.map(p => p.po_number);
-        
+
         if (poNumbers.length > 0) {
             const updatedPos = pos.map(p => {
                 if (poNumbers.includes(p.po_number)) {
@@ -421,11 +421,11 @@ app.get('/purchase-orders', asyncWrap(async (req, res) => {
         const allBookings = [...bookings, ...historyBookings];
 
         const pos = await readData('purchase-orders.json').catch(() => []);
-        
+
         const enriched = pos.map(p => {
             const poNum = (p.po_number || '').trim();
             const relatedShipments = allShipments.filter(s => (s.po_number || '').trim() === poNum);
-            
+
             // Sum received_quantity
             const totalReceived = relatedShipments.reduce((sum, s) => sum + (parseInt(s.received_quantity) || 0), 0);
 
@@ -449,12 +449,12 @@ app.get('/purchase-orders', asyncWrap(async (req, res) => {
                     totalBooked += (parseInt(s.expected_quantity) || 0);
                 }
             });
-            
+
             const receiveDates = relatedShipments
                 .map(s => s.actual_receive_date)
                 .filter(Boolean)
                 .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-            
+
             const latestDate = receiveDates.length > 0 ? receiveDates[0] : (p.actual_receive_date || '');
 
             return {
@@ -464,7 +464,7 @@ app.get('/purchase-orders', asyncWrap(async (req, res) => {
                 actual_receive_date: latestDate
             };
         });
-        
+
         res.json(enriched);
     } catch (e) {
         res.json([]);

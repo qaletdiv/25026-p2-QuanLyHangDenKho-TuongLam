@@ -62,5 +62,69 @@
     "title": "Enter landed costs",
     "status": "Not Started",
     "order_index": 1
+  },
+  {
+    "id": "iq3xsilyw",
+    "month": "2026-05",
+    "group": "In-Transit Report",
+    "title": "Filter Master Tracker",
+    "status": "Not Started",
+    "order_index": 0
+  },
+  {
+    "id": "9pw7weub7",
+    "month": "2026-05",
+    "group": "In-Transit Report",
+    "title": "Pull shipment data",
+    "status": "Not Started",
+    "order_index": 1
+  },
+  {
+    "id": "1lahawncp",
+    "month": "2026-05",
+    "group": "Landed Costs",
+    "title": "Duplicate last month LCT",
+    "status": "Not Started",
+    "order_index": 0
+  },
+  {
+    "id": "vngawo9lj",
+    "month": "2026-05",
+    "group": "Landed Costs",
+    "title": "Enter landed costs",
+    "status": "Not Started",
+    "order_index": 1
+  },
+  {
+    "id": "wfwoz349a",
+    "month": "2026-05",
+    "group": "In-Transit Report",
+    "title": "Filter Master Tracker",
+    "status": "Not Started",
+    "order_index": 0
+  },
+  {
+    "id": "2mrljf8w9",
+    "month": "2026-05",
+    "group": "In-Transit Report",
+    "title": "Pull shipment data",
+    "status": "Not Started",
+    "order_index": 1
+  },
+  {
+    "id": "es8siozkm",
+    "month": "2026-05",
+    "group": "Landed Costs",
+    "title": "Duplicate last month LCT",
+    "status": "Not Started",
+    "order_index": 0
+  },
+  {
+    "id": "oljs76rs5",
+    "month": "2026-05",
+    "group": "Landed Costs",
+    "title": "Enter landed costs",
+    "status": "Not Started",
+    "order_index": 1
   }
 ]

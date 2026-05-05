@@ -146,7 +146,7 @@
   {
     "id": "1777342375069",
     "type": "mainline",
-    "vendor_name": "Green Fabrics Ltd",
+    "vendor_name": "EcoTech Garments",
     "tentree_po_number": "",
     "receiving_warehouse": "NRI US",
     "number_of_cartons": "450",
@@ -218,5 +218,34 @@
     "submitted_at": "2026-04-28T02:42:23.097Z",
     "approved_at": "2026-04-28T02:43:33.888Z",
     "shipment_status": "Customs Clearance"
+  },
+  {
+    "id": "1777866961675",
+    "type": "mainline",
+    "vendor_name": "Green Fabrics Ltd",
+    "tentree_po_number": "PO-FW26-010",
+    "receiving_warehouse": "NRI CAN",
+    "number_of_cartons": "100",
+    "cargo_ready_date": "2026-05-04",
+    "courier": "",
+    "tracking_number": "",
+    "mode": "Ocean",
+    "incoterm": "FOB",
+    "season": "FW26",
+    "trn_number": "TRN-1010",
+    "po_details": [
+      {
+        "po_number": "PO-FW26-010",
+        "units": "5000",
+        "cartons": "100",
+        "weight": "500",
+        "cbm": "40"
+      }
+    ],
+    "booking_number": "BKG-6647",
+    "booking_status": "Delivered",
+    "submitted_at": "2026-05-04T03:56:01.647Z",
+    "approved_at": "2026-05-04T03:56:36.434Z",
+    "shipment_status": "Delivered"
   }
 ]

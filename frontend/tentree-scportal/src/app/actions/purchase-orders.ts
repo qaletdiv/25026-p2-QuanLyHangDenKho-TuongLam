@@ -52,3 +52,9 @@ export async function duplicatePurchaseOrder(po: any) {
   // Append -copy or similar if needed, or just let server handle it
   return createPurchaseOrder({ ...rest });
 }
+
+export async function syncNetSuite() {
+  const data = await fetchApi('/integrations/netsuite/pos');
+  revalidatePath('/purchase-orders');
+  return data;
+}
