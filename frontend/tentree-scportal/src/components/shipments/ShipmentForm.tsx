@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { createShipment, updateShipment } from '@/app/actions/shipments';
 import { toast } from 'sonner';
 import { X, Save, Package, Building2, Calendar, Hash, Truck, Layers, DollarSign } from 'lucide-react';
-import { getSuppliers, getCouriers, getIncoterms } from '@/app/actions/master-data';
+import { getSuppliers, getCouriers, getIncoterms, getWarehouses, getModes } from '@/app/actions/master-data';
 
 export default function ShipmentForm({ open, onClose, onSuccess, initialData }: any) {
   const [isLoading, setIsLoading] = useState(false);
@@ -29,13 +29,17 @@ export default function ShipmentForm({ open, onClose, onSuccess, initialData }: 
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [couriers, setCouriers] = useState<any[]>([]);
   const [incoterms, setIncoterms] = useState<any[]>([]);
+  const [warehouses, setWarehouses] = useState<any[]>([]);
+  const [modes, setModes] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadMaster() {
-      const [s, c, i] = await Promise.all([getSuppliers(), getCouriers(), getIncoterms()]);
+      const [s, c, i, wh, md] = await Promise.all([getSuppliers(), getCouriers(), getIncoterms(), getWarehouses(), getModes()]);
       setSuppliers(s || []);
       setCouriers(c || []);
       setIncoterms(i || []);
+      setWarehouses(wh || []);
+      setModes(md || []);
     }
     loadMaster();
 
@@ -164,9 +168,7 @@ export default function ShipmentForm({ open, onClose, onSuccess, initialData }: 
                 <Select value={formData.mode} onValueChange={(v) => updateField('mode', v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Ocean">Ocean</SelectItem>
-                    <SelectItem value="Air">Air</SelectItem>
-                    <SelectItem value="Truck">Truck</SelectItem>
+                    {modes.map(m => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -184,10 +186,7 @@ export default function ShipmentForm({ open, onClose, onSuccess, initialData }: 
                   <Select value={formData.destination_warehouse} onValueChange={(v) => updateField('destination_warehouse', v)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="NRI US">NRI US</SelectItem>
-                      <SelectItem value="NRI CAN">NRI CAN</SelectItem>
-                      <SelectItem value="Direct US">Direct US</SelectItem>
-                      <SelectItem value="Direct CAN">Direct CAN</SelectItem>
+                      {warehouses.map(w => <SelectItem key={w.id} value={w.name}>{w.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
