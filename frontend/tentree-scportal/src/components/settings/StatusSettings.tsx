@@ -14,7 +14,7 @@ export function StatusSettings() {
 
   useEffect(() => {
     getStatuses().then(data => {
-      setStatuses(data || []);
+      setStatuses(Array.isArray(data) ? data : []);
       setIsLoading(false);
     });
   }, []);

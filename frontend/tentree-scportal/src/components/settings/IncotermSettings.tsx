@@ -14,7 +14,7 @@ export function IncotermSettings() {
 
   useEffect(() => {
     getIncoterms().then(data => {
-      setIncoterms(data || []);
+      setIncoterms(Array.isArray(data) ? data : []);
       setIsLoading(false);
     });
   }, []);

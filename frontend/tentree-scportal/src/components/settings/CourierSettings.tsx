@@ -14,7 +14,7 @@ export function CourierSettings() {
 
   useEffect(() => {
     getCouriers().then(data => {
-      setCouriers(data || []);
+      setCouriers(Array.isArray(data) ? data : []);
       setIsLoading(false);
     });
   }, []);

@@ -78,8 +78,8 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
       setCouriers(c || []);
       setIncoterms(i || []);
       setStatuses(st || []);
-      setWarehouses(wh || []);
-      setModes(md || []);
+      setWarehouses(Array.isArray(wh) ? wh : []);
+      setModes(Array.isArray(md) ? md : []);
     } catch {
       // silently degrade — existing data stays on screen
     } finally {

@@ -14,7 +14,7 @@ export function SupplierSettings() {
 
   useEffect(() => {
     getSuppliers().then(data => {
-      setSuppliers(data || []);
+      setSuppliers(Array.isArray(data) ? data : []);
       setIsLoading(false);
     });
   }, []);

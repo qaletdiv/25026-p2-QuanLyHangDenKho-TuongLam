@@ -14,7 +14,7 @@ export function WarehouseSettings() {
 
   useEffect(() => {
     getWarehouses().then(data => {
-      setWarehouses(data || []);
+      setWarehouses(Array.isArray(data) ? data : []);
       setIsLoading(false);
     });
   }, []);

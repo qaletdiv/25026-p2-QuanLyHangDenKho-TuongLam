@@ -14,7 +14,7 @@ export function ModeSettings() {
 
   useEffect(() => {
     getModes().then(data => {
-      setModes(data || []);
+      setModes(Array.isArray(data) ? data : []);
       setIsLoading(false);
     });
   }, []);
