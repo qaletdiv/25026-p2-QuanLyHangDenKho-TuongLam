@@ -1,7 +1,21 @@
 {
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "permissions": {
     "allow": [
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(node -e \"require\\('./services/ciParser'\\); console.log\\('ciParser loaded OK'\\)\")",
+      "Bash(node -e \"require\\('./server'\\); console.log\\('server loaded OK'\\)\")",
+      "Bash(npx tsc:*)",
+      "Bash(curl -s http://localhost:5000/purchase-orders)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f'OK — {len\\(d\\)} POs'\\); first=d[0] if d else {}; print\\('  First PO:', first.get\\('po_number'\\), '| line_items:', len\\(first.get\\('line_items',[]\\)\\),'SKUs' if 'line_items' in first else 'none'\\)\")",
+      "Bash(python3 -c ':*)",
+      "Bash(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\)\\); console.log\\('OK -',d.length,'POs'\\); const withLI=d.filter\\(p=>p.line_items?.length>0\\); console.log\\('POs with line_items:',withLI.length\\); if\\(withLI[0]\\) console.log\\('First:',withLI[0].po_number, withLI[0].id, withLI[0].line_items.length,'SKUs'\\);\")",
+      "Bash(node -e ':*)",
+      "Bash(curl -s -w \"\\\\nHTTP:%{http_code}\" \"http://localhost:5000/shipments/1778433156017ugdyk/line-items\")",
+      "Bash(curl -s -X PUT http://localhost:5000/shipments/1778433156017ugdyk -H \"Content-Type: application/json\" -d '{\"status\":\"test\"}' -w \"\\\\nHTTP:%{http_code}\")",
+      "Bash(netstat -ano)"
     ]
   }
 }
