@@ -13,18 +13,6 @@ async function getAll(req, res) {
 async function create(req, res) {
     const { type, po_details, ...rest } = req.body;
 
-    // Fix #3 — Input validation
-    if (!rest.vendor_name && !rest.supplier) {
-        const err = new Error('vendor_name is required');
-        err.statusCode = 400;
-        throw err;
-    }
-    if (!po_details || !Array.isArray(po_details) || po_details.length === 0) {
-        const err = new Error('po_details must be a non-empty array');
-        err.statusCode = 400;
-        throw err;
-    }
-
     // G1 — Vendor-match validation for multi-PO bookings
     if (po_details && Array.isArray(po_details) && po_details.length > 1) {
         const pos = await PurchaseOrderModel.read().catch(() => []);

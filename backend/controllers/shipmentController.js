@@ -9,12 +9,6 @@ async function getAll(req, res) {
 }
 
 async function create(req, res) {
-    // Fix #3 — Input validation
-    if (!req.body.po_number) {
-        const err = new Error('po_number is required');
-        err.statusCode = 400;
-        throw err;
-    }
     const data = await ShipmentModel.read();
     const newShipment = { id: Date.now().toString(), ...req.body };
     data.push(newShipment);
@@ -63,11 +57,6 @@ async function getLineItems(req, res) {
 // BULK STATUS — update all PO rows in a booking at once, then recalc aggregate
 async function bulkStatus(req, res) {
     const { booking_number, status } = req.body;
-    if (!booking_number || !status) {
-        const err = new Error('booking_number and status are required');
-        err.statusCode = 400;
-        throw err;
-    }
     let data = await ShipmentModel.read();
     let updatedCount = 0;
     data = data.map(s => {

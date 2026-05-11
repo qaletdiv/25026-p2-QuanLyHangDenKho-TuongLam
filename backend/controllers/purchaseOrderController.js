@@ -69,12 +69,6 @@ async function getAll(req, res) {
 }
 
 async function create(req, res) {
-    // Fix #3 — Input validation
-    if (!req.body.po_number) {
-        const err = new Error('po_number is required');
-        err.statusCode = 400;
-        throw err;
-    }
     const data = await PurchaseOrderModel.read().catch(() => []);
     const newPO = { id: Date.now().toString(), booking_status: 'No Booking', booking_number: null, ...req.body };
     data.push(newPO);
@@ -193,9 +187,6 @@ async function replaceLineItems(req, res) {
         const err = new Error('Not found'); err.statusCode = 404; throw err;
     }
     const { line_items } = req.body;
-    if (!Array.isArray(line_items)) {
-        const err = new Error('line_items must be an array'); err.statusCode = 400; throw err;
-    }
     data[idx].line_items = line_items;
     // Auto-compute expected_qty from line_items
     const sum = line_items.reduce((s, item) => s + (parseInt(item.expected_qty) || 0), 0);
