@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import PoDetailDrawer from '@/components/purchase-orders/PoDetailDrawer';
 import { toast } from 'sonner';
 import { format, parse } from 'date-fns';
-import { getSuppliers, getCouriers, getIncoterms, getStatuses } from '@/app/actions/master-data';
+import { getSuppliers, getCouriers, getIncoterms, getStatuses, getWarehouses, getModes } from '@/app/actions/master-data';
 import { cn } from '@/lib/utils';
 
 const EMPTY_PO = {
@@ -56,24 +56,30 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
   const [couriers, setCouriers] = useState<any[]>([]);
   const [incoterms, setIncoterms] = useState<any[]>([]);
   const [statuses, setStatuses] = useState<any[]>([]);
+  const [warehouses, setWarehouses] = useState<any[]>([]);
+  const [modes, setModes] = useState<any[]>([]);
   const [visibleColumns, setVisibleColumns] = useState<string[]>(['season', 'po_number', 'supplier', 'mode', 'incoterm', 'expected_qty', 'received_qty', 'etd', 'eta', 'actual_receive_date', 'booking_status', 'booking_number']);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchPOs = async () => {
     setIsLoading(true);
     try {
-      const [data, s, c, i, st] = await Promise.all([
+      const [data, s, c, i, st, wh, md] = await Promise.all([
         getPurchaseOrders(),
         getSuppliers(),
         getCouriers(),
         getIncoterms(),
-        getStatuses()
+        getStatuses(),
+        getWarehouses(),
+        getModes(),
       ]);
       setPos(data || []);
       setSuppliers(s || []);
       setCouriers(c || []);
       setIncoterms(i || []);
       setStatuses(st || []);
+      setWarehouses(wh || []);
+      setModes(md || []);
     } catch {
       // silently degrade — existing data stays on screen
     } finally {
@@ -341,6 +347,8 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
         onDuplicate={handleDuplicate}
         suppliers={suppliers}
         incoterms={incoterms}
+        warehouses={warehouses}
+        modes={modes}
         isLoading={isSaving}
         user={user}
       />

@@ -12,14 +12,16 @@ import LineItemsTable from './LineItemsTable';
 import { getFulfillment, getShipmentLots } from '@/app/actions/purchase-orders';
 import { cn } from '@/lib/utils';
 
-export default function PoDetailDrawer({ 
-  open, 
-  onClose, 
-  onSave, 
-  onDelete, 
+export default function PoDetailDrawer({
+  open,
+  onClose,
+  onSave,
+  onDelete,
   onDuplicate,
-  suppliers = [], 
-  incoterms = [], 
+  suppliers = [],
+  incoterms = [],
+  warehouses = [],
+  modes = [],
   isLoading: isGlobalLoading = false,
   user
 }: any) {
@@ -260,7 +262,7 @@ export default function PoDetailDrawer({
                     <Select value={formData.mode || ''} onValueChange={v => updateField('mode', v)}>
                       <SelectTrigger className="h-9 bg-background"><SelectValue placeholder="Select" /></SelectTrigger>
                       <SelectContent>
-                        {['Air','Ocean','Courier'].map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                        {modes.map((m: any) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   ) : (
@@ -273,7 +275,7 @@ export default function PoDetailDrawer({
                     <Select value={formData.receiving_warehouse || ''} onValueChange={v => updateField('receiving_warehouse', v)}>
                       <SelectTrigger className="h-9 bg-background"><SelectValue placeholder="Select" /></SelectTrigger>
                       <SelectContent>
-                        {['NRI US','NRI CAN','Direct US','Direct CAN'].map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}
+                        {warehouses.map((w: any) => <SelectItem key={w.id} value={w.name}>{w.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   ) : (
