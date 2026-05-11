@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { getBookings, getHistoryBookings, updateBooking, createBooking, deleteBooking } from '../actions/bookings';
+import { useRouter } from 'next/navigation';
+import { getBookings, getHistoryBookings, updateBooking, deleteBooking } from '../actions/bookings';
 import { getPurchaseOrders } from '../actions/purchase-orders';
 import { useSession } from '@/components/providers/SessionProvider';
 import { Badge } from '@/components/ui/badge';
@@ -10,31 +10,30 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Search, Plus, Download, Settings2, Check, Clock, ArrowRight } from 'lucide-react';
+import { Search, Download, Settings2, Check, Clock, ArrowRight } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import SopPanel from '@/components/layout/SopPanel';
 import BookingForm from '@/components/bookings/BookingForm';
 import BookingDetailDrawer from '@/components/bookings/BookingDetailDrawer';
 import Papa from 'papaparse';
 
-const CustomsPlaceholder = () => <div>Customs Line Optimizer Placeholder</div>;
+// ─── Pending POs ────────────────────────────────────────────────────────────
 
-function PendingPOsList({ user, initialPendingPOs, onBookNow }: any) {
+function PendingPOsList({ user, initialPendingPOs }: any) {
+  const router = useRouter();
   const [pos, setPos] = useState<any[]>(initialPendingPOs || []);
   const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
+  const [confirmPO, setConfirmPO] = useState<any>(null);
 
   const fetchPending = async () => {
     setIsLoading(true);
     try {
       const all = await getPurchaseOrders() || [];
-      // Filter for current vendor and status 'No Booking'
       const pending = all.filter((p: any) => {
         const isVendorMatch = !user || user.role !== 'Vendor' || p.supplier === user.supplier;
         const remaining = (parseInt(p.expected_qty) || 0) - (parseInt(p.booked_qty) || 0);
@@ -67,97 +66,125 @@ function PendingPOsList({ user, initialPendingPOs, onBookNow }: any) {
   });
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-3 items-center">
-        <h3 className="text-sm font-semibold flex items-center gap-2 mr-2">
-          <Clock className="w-4 h-4 text-amber-500" />
-          Pending Bookings ({filtered.length}{filtered.length !== pos.length ? ` of ${pos.length}` : ''})
-        </h3>
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by PO#, TRN#, vendor..."
-            className="pl-9"
-            value={search}
-            onChange={(e: any) => setSearch(e.target.value)}
-          />
+    <>
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-3 items-center">
+          <h3 className="text-sm font-semibold flex items-center gap-2 mr-2">
+            <Clock className="w-4 h-4 text-amber-500" />
+            Pending Bookings ({filtered.length}{filtered.length !== pos.length ? ` of ${pos.length}` : ''})
+          </h3>
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by PO#, TRN#, vendor..."
+              className="pl-9"
+              value={search}
+              onChange={(e: any) => setSearch(e.target.value)}
+            />
+          </div>
+          <Select value={filterStatus} onValueChange={(val) => setFilterStatus(val || 'All')}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">All Statuses</SelectItem>
+              <SelectItem value="Booking Pending">Pending Approval</SelectItem>
+              <SelectItem value="Declined">Declined</SelectItem>
+              <SelectItem value="No Status">No Status</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={filterStatus} onValueChange={(val) => setFilterStatus(val || 'All')}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Status" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="All">All Statuses</SelectItem>
-            <SelectItem value="Booking Pending">Pending Approval</SelectItem>
-            <SelectItem value="Declined">Declined</SelectItem>
-            <SelectItem value="No Status">No Status</SelectItem>
-          </SelectContent>
-        </Select>
+
+        <div className="border rounded-lg overflow-hidden bg-card shadow-sm">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="w-[80px]">Season</TableHead>
+                <TableHead>TRN No.</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>PO#</TableHead>
+                {user?.role !== 'Vendor' && <TableHead>Vendor</TableHead>}
+                <TableHead>Mode</TableHead>
+                <TableHead>Incoterm</TableHead>
+                <TableHead>Expected</TableHead>
+                <TableHead>Booked</TableHead>
+                <TableHead>Remaining</TableHead>
+                <TableHead>Warehouse</TableHead>
+                <TableHead>ETD</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow><TableCell colSpan={user?.role !== 'Vendor' ? 14 : 13} className="text-center py-10">Loading pending POs...</TableCell></TableRow>
+              ) : filtered.length === 0 ? (
+                <TableRow><TableCell colSpan={user?.role !== 'Vendor' ? 14 : 13} className="text-center py-12 text-muted-foreground italic">{pos.length === 0 ? 'No pending POs found.' : 'No results match your search.'}</TableCell></TableRow>
+              ) : (
+                filtered.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="text-xs font-mono">{p.season || '—'}</TableCell>
+                    <TableCell className="text-xs font-mono">{p.trn_number || '—'}</TableCell>
+                    <TableCell className="text-xs capitalize">{p.type || 'mainline'}</TableCell>
+                    <TableCell className="font-semibold text-sm">{p.po_number}</TableCell>
+                    {user?.role !== 'Vendor' && <TableCell className="text-xs">{p.supplier || '—'}</TableCell>}
+                    <TableCell className="text-xs">{p.mode || '—'}</TableCell>
+                    <TableCell className="text-xs font-bold text-amber-700">{p.incoterm || '—'}</TableCell>
+                    <TableCell className="text-sm font-semibold">{p.expected_qty}</TableCell>
+                    <TableCell className="text-sm text-blue-600 font-medium">{p.booked_qty || 0}</TableCell>
+                    <TableCell className="text-sm text-emerald-600 font-bold">
+                      {(parseInt(p.expected_qty) || 0) - (parseInt(p.booked_qty) || 0)}
+                    </TableCell>
+                    <TableCell className="text-xs">{p.receiving_warehouse}</TableCell>
+                    <TableCell className="text-xs">{p.etd}</TableCell>
+                    <TableCell>
+                      {p.booking_status === 'Booking Pending' ? (
+                        <Badge variant="secondary" className="bg-amber-100 text-amber-800 whitespace-nowrap">Pending Approval</Badge>
+                      ) : p.booking_status === 'Declined' ? (
+                        <Badge variant="secondary" className="bg-red-100 text-red-800 whitespace-nowrap">Declined</Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button size="sm" variant="outline" className="h-8 gap-1 border-primary/30 text-primary hover:bg-primary/5 whitespace-nowrap" onClick={() => setConfirmPO(p)}>
+                        Book Now <ArrowRight className="w-3 h-3" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
-      <div className="border rounded-lg overflow-hidden bg-card shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead className="w-[80px]">Season</TableHead>
-              <TableHead>TRN No.</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>PO#</TableHead>
-              {user?.role !== 'Vendor' && <TableHead>Vendor</TableHead>}
-              <TableHead>Mode</TableHead>
-              <TableHead>Incoterm</TableHead>
-              <TableHead>Expected</TableHead>
-              <TableHead>Booked</TableHead>
-              <TableHead>Remaining</TableHead>
-              <TableHead>Warehouse</TableHead>
-              <TableHead>ETD</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow><TableCell colSpan={user?.role !== 'Vendor' ? 14 : 13} className="text-center py-10">Loading pending POs...</TableCell></TableRow>
-            ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={user?.role !== 'Vendor' ? 14 : 13} className="text-center py-12 text-muted-foreground italic">{pos.length === 0 ? 'No pending POs found.' : 'No results match your search.'}</TableCell></TableRow>
-            ) : (
-              filtered.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="text-xs font-mono">{p.season || '—'}</TableCell>
-                  <TableCell className="text-xs font-mono">{p.trn_number || '—'}</TableCell>
-                  <TableCell className="text-xs capitalize">{p.type || 'mainline'}</TableCell>
-                  <TableCell className="font-semibold text-sm">{p.po_number}</TableCell>
-                  {user?.role !== 'Vendor' && <TableCell className="text-xs">{p.supplier || '—'}</TableCell>}
-                  <TableCell className="text-xs">{p.mode || '—'}</TableCell>
-                  <TableCell className="text-xs font-bold text-amber-700">{p.incoterm || '—'}</TableCell>
-                  <TableCell className="text-sm font-semibold">{p.expected_qty}</TableCell>
-                  <TableCell className="text-sm text-blue-600 font-medium">{p.booked_qty || 0}</TableCell>
-                  <TableCell className="text-sm text-emerald-600 font-bold">
-                    {(parseInt(p.expected_qty) || 0) - (parseInt(p.booked_qty) || 0)}
-                  </TableCell>
-                  <TableCell className="text-xs">{p.receiving_warehouse}</TableCell>
-                  <TableCell className="text-xs">{p.etd}</TableCell>
-                  <TableCell>
-                    {p.booking_status === 'Booking Pending' ? (
-                      <Badge variant="secondary" className="bg-amber-100 text-amber-800 whitespace-nowrap">Pending Approval</Badge>
-                    ) : p.booking_status === 'Declined' ? (
-                      <Badge variant="secondary" className="bg-red-100 text-red-800 whitespace-nowrap">Declined</Badge>
-                    ) : (
-                      <span className="text-muted-foreground text-xs">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button size="sm" variant="outline" className="h-8 gap-1 border-primary/30 text-primary hover:bg-primary/5 whitespace-nowrap" onClick={() => onBookNow(p)}>
-                      Book Now <ArrowRight className="w-3 h-3" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+      {/* Confirm single-PO dialog */}
+      <Dialog open={!!confirmPO} onOpenChange={(open) => { if (!open) setConfirmPO(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Single PO Booking</DialogTitle>
+            <DialogDescription asChild>
+              <div>
+                <p>This will open a booking form for <span className="font-semibold font-mono">{confirmPO?.po_number}</span>, which supports a <span className="font-semibold">single PO only</span>.</p>
+                <p className="mt-3">If you need to ship multiple POs together, please use <span className="font-semibold">Submit Booking</span> instead.</p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmPO(null)}>Cancel</Button>
+            <Button onClick={() => {
+              router.push(`/bookings/submit?po=${encodeURIComponent(confirmPO.po_number)}`);
+              setConfirmPO(null);
+            }}>
+              Continue with Single PO
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
+
+// ─── Status Colors ───────────────────────────────────────────────────────────
 
 const statusColors: any = {
   'No Booking': 'bg-background border border-border text-muted-foreground',
@@ -173,17 +200,7 @@ const statusColors: any = {
   'Draft': 'bg-background border border-border text-muted-foreground',
 };
 
-const sopSections = [
-  {
-    title: 'Booking Approval — Checklist',
-    content: (
-      <ul className="list-disc list-inside space-y-2 text-xs">
-        <li>Verify destination warehouse is correct.</li>
-        <li>Mode of transport matches shipment size.</li>
-      </ul>
-    ),
-  }
-];
+// ─── Column Definitions ──────────────────────────────────────────────────────
 
 const ALL_COLUMNS = [
   { id: 'booking_number', label: 'Booking #' },
@@ -199,15 +216,18 @@ const ALL_COLUMNS = [
   { id: 'cargo_ready_date', label: 'Cargo Ready' },
   { id: 'freight_forwarder', label: 'Forwarder' },
   { id: 'booking_status', label: 'Status' },
-  { id: 'submitted_at', label: 'Submitted' }
+  { id: 'submitted_at', label: 'Submitted' },
 ];
 
-function BookingsList({ user, initialBookings, isHistory = false, initialBkg, refreshTrigger }: any) {
+// ─── Bookings List ───────────────────────────────────────────────────────────
+
+function BookingsList({ user, initialBookings, isHistory = false, initialBkg }: any) {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [bookings, setBookings] = useState<any[]>(initialBookings || []);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(ALL_COLUMNS.map(c => c.id));
 
   useEffect(() => {
     if (initialBkg && bookings.length > 0) {
@@ -215,8 +235,6 @@ function BookingsList({ user, initialBookings, isHistory = false, initialBkg, re
       if (match) setSelectedBooking(match);
     }
   }, [initialBkg, bookings]);
-
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(ALL_COLUMNS.map(c => c.id));
 
   const fetchBookings = async () => {
     setIsLoading(true);
@@ -235,19 +253,13 @@ function BookingsList({ user, initialBookings, isHistory = false, initialBkg, re
     fetchBookings();
   }, [isHistory]);
 
-  useEffect(() => {
-    if (refreshTrigger) fetchBookings();
-  }, [refreshTrigger]);
-
   const handleApprove = async (booking: any) => {
     try {
-      // Mark the booking as approved (Backend will automatically fan-out shipments)
       await updateBooking(booking.id, { booking_status: 'Booking Approved', approved_at: new Date().toISOString() });
       toast.success(`Booking ${booking.booking_number} approved.`);
       fetchBookings();
       setSelectedBooking(null);
     } catch (e) {
-      console.error('Failed to approve booking:', e);
       toast.error('Failed to approve booking. Please try again.');
     }
   };
@@ -259,7 +271,6 @@ function BookingsList({ user, initialBookings, isHistory = false, initialBkg, re
       fetchBookings();
       setSelectedBooking(null);
     } catch (e) {
-      console.error('Failed to decline booking:', e);
       toast.error('Failed to decline booking. Please try again.');
     }
   };
@@ -275,10 +286,7 @@ function BookingsList({ user, initialBookings, isHistory = false, initialBkg, re
       b.freight_forwarder?.toLowerCase().includes(q) ||
       b.courier?.toLowerCase().includes(q);
     const matchStatus = filterStatus === 'All' || b.booking_status === filterStatus;
-
-    // Vendor isolation
     const matchVendor = !user || user.role !== 'Vendor' || b.vendor_name === user.supplier;
-
     return matchSearch && matchStatus && matchVendor;
   });
 
@@ -287,25 +295,18 @@ function BookingsList({ user, initialBookings, isHistory = false, initialBkg, re
   };
 
   const handleExport = (allColumns = false) => {
-    if (filtered.length === 0) {
-      toast.error('No data to export');
-      return;
-    }
+    if (filtered.length === 0) { toast.error('No data to export'); return; }
     const csvData = filtered.map(s => {
       const row: any = {};
       if (allColumns) {
-        Object.keys(s).forEach(key => {
-          row[key] = s[key] !== null && s[key] !== undefined ? String(s[key]) : '';
-        });
+        Object.keys(s).forEach(key => { row[key] = s[key] !== null && s[key] !== undefined ? String(s[key]) : ''; });
       } else {
-        const columnsToExport = ALL_COLUMNS.filter(c => visibleColumns.includes(c.id));
-        columnsToExport.forEach(col => {
+        ALL_COLUMNS.filter(c => visibleColumns.includes(c.id)).forEach(col => {
           row[col.label] = s[col.id] !== null && s[col.id] !== undefined ? String(s[col.id]) : '';
         });
       }
       return row;
     });
-
     const csv = Papa.unparse(csvData);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -352,7 +353,6 @@ function BookingsList({ user, initialBookings, isHistory = false, initialBkg, re
               </div>
             </PopoverContent>
           </Popover>
-
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="h-10 gap-2 border-dashed">
@@ -365,7 +365,7 @@ function BookingsList({ user, initialBookings, isHistory = false, initialBkg, re
                 <div className="max-h-[300px] overflow-y-auto">
                   {ALL_COLUMNS.map(col => (
                     <div key={col.id} className="flex items-center gap-2 px-2 py-1.5 hover:bg-muted rounded-md cursor-pointer" onClick={() => toggleColumn(col.id)}>
-                      <div className={cn("w-4 h-4 rounded border border-primary flex items-center justify-center transition-colors", visibleColumns.includes(col.id) ? "bg-primary" : "bg-transparent border-input")}>
+                      <div className={cn('w-4 h-4 rounded border border-primary flex items-center justify-center transition-colors', visibleColumns.includes(col.id) ? 'bg-primary' : 'bg-transparent border-input')}>
                         {visibleColumns.includes(col.id) && <Check className="w-3 h-3 text-white" />}
                       </div>
                       <span className="text-sm font-medium">{col.label}</span>
@@ -396,68 +396,34 @@ function BookingsList({ user, initialBookings, isHistory = false, initialBkg, re
               filtered.map(b => (
                 <TableRow key={b.id} className="cursor-pointer hover:bg-primary/10 transition-colors" onClick={() => setSelectedBooking(b)}>
                   {ALL_COLUMNS.filter(c => visibleColumns.includes(c.id)).map(col => {
-                    if (col.id === 'booking_number') {
-                      return <TableCell key={col.id} className="font-mono text-xs font-medium">{b.booking_number || '—'}</TableCell>;
-                    }
-                    if (col.id === 'vendor_name') {
-                      return <TableCell key={col.id} className="text-sm">{b.vendor_name || '—'}</TableCell>;
-                    }
-                    if (col.id === 'season') {
-                      return <TableCell key={col.id} className="text-sm font-mono">{b.season || '—'}</TableCell>;
-                    }
-                    if (col.id === 'trn_number') {
-                      return <TableCell key={col.id} className="text-sm font-mono">{b.trn_number || '—'}</TableCell>;
-                    }
-                    if (col.id === 'type') {
-                      return <TableCell key={col.id} className="text-sm capitalize">{b.type || '—'}</TableCell>;
-                    }
-                    if (col.id === 'tentree_po_number') {
-                      return <TableCell key={col.id} className="text-sm font-medium">{b.tentree_po_number || '—'}</TableCell>;
-                    }
-                    if (col.id === 'mode') {
-                      return <TableCell key={col.id} className="text-sm">{b.mode || '—'}</TableCell>;
-                    }
-                    if (col.id === 'incoterm') {
-                      return <TableCell key={col.id} className="text-sm font-bold text-amber-700">{b.incoterm || '—'}</TableCell>;
-                    }
-                    if (col.id === 'receiving_warehouse') {
-                      return <TableCell key={col.id} className="text-sm">{b.receiving_warehouse || '—'}</TableCell>;
-                    }
-                    if (col.id === 'number_of_cartons') {
-                      return <TableCell key={col.id} className="text-sm">{b.number_of_cartons ?? '—'}</TableCell>;
-                    }
-                    if (col.id === 'cargo_ready_date') {
-                      return (
-                        <TableCell key={col.id} className="text-sm">
-                          {(() => {
-                            try {
-                              return b.cargo_ready_date ? format(new Date(b.cargo_ready_date + 'T12:00:00'), 'MMM d, yyyy') : '—';
-                            } catch (e) {
-                              return b.cargo_ready_date || '—';
-                            }
-                          })()}
-                        </TableCell>
-                      );
-                    }
-                    if (col.id === 'freight_forwarder') {
-                      return <TableCell key={col.id} className="text-sm">{b.freight_forwarder || b.courier || '—'}</TableCell>;
-                    }
-                    if (col.id === 'booking_status') {
-                      return (
-                        <TableCell key={col.id}>
-                          <Badge className={statusColors[b.booking_status] || 'bg-gray-100 text-gray-700'} variant="secondary">
-                            {b.booking_status || 'Draft'}
-                          </Badge>
-                        </TableCell>
-                      );
-                    }
-                    if (col.id === 'submitted_at') {
-                      return (
-                        <TableCell key={col.id} className="text-sm text-muted-foreground">
-                          {b.submitted_at ? format(new Date(b.submitted_at), 'MMM d') : '—'}
-                        </TableCell>
-                      );
-                    }
+                    if (col.id === 'booking_number') return <TableCell key={col.id} className="font-mono text-xs font-medium">{b.booking_number || '—'}</TableCell>;
+                    if (col.id === 'vendor_name') return <TableCell key={col.id} className="text-sm">{b.vendor_name || '—'}</TableCell>;
+                    if (col.id === 'season') return <TableCell key={col.id} className="text-sm font-mono">{b.season || '—'}</TableCell>;
+                    if (col.id === 'trn_number') return <TableCell key={col.id} className="text-sm font-mono">{b.trn_number || '—'}</TableCell>;
+                    if (col.id === 'type') return <TableCell key={col.id} className="text-sm capitalize">{b.type || '—'}</TableCell>;
+                    if (col.id === 'tentree_po_number') return <TableCell key={col.id} className="text-sm font-medium">{b.tentree_po_number || '—'}</TableCell>;
+                    if (col.id === 'mode') return <TableCell key={col.id} className="text-sm">{b.mode || '—'}</TableCell>;
+                    if (col.id === 'incoterm') return <TableCell key={col.id} className="text-sm font-bold text-amber-700">{b.incoterm || '—'}</TableCell>;
+                    if (col.id === 'receiving_warehouse') return <TableCell key={col.id} className="text-sm">{b.receiving_warehouse || '—'}</TableCell>;
+                    if (col.id === 'number_of_cartons') return <TableCell key={col.id} className="text-sm">{b.number_of_cartons ?? '—'}</TableCell>;
+                    if (col.id === 'cargo_ready_date') return (
+                      <TableCell key={col.id} className="text-sm">
+                        {(() => { try { return b.cargo_ready_date ? format(new Date(b.cargo_ready_date + 'T12:00:00'), 'MMM d, yyyy') : '—'; } catch { return b.cargo_ready_date || '—'; } })()}
+                      </TableCell>
+                    );
+                    if (col.id === 'freight_forwarder') return <TableCell key={col.id} className="text-sm">{b.freight_forwarder || b.courier || '—'}</TableCell>;
+                    if (col.id === 'booking_status') return (
+                      <TableCell key={col.id}>
+                        <Badge className={statusColors[b.booking_status] || 'bg-gray-100 text-gray-700'} variant="secondary">
+                          {b.booking_status || 'Draft'}
+                        </Badge>
+                      </TableCell>
+                    );
+                    if (col.id === 'submitted_at') return (
+                      <TableCell key={col.id} className="text-sm text-muted-foreground">
+                        {b.submitted_at ? format(new Date(b.submitted_at), 'MMM d') : '—'}
+                      </TableCell>
+                    );
                     return <TableCell key={col.id}>—</TableCell>;
                   })}
                 </TableRow>
@@ -480,97 +446,53 @@ function BookingsList({ user, initialBookings, isHistory = false, initialBkg, re
   );
 }
 
-export default function BookingsClient({ initialActive, initialHistory, initialPending }: any) {
-  const [activeTab, setActiveTab] = useState('pending');
-  const [sopOpen, setSopOpen] = useState(false);
+// ─── Main Orchestrator ───────────────────────────────────────────────────────
+
+interface BookingsClientProps {
+  tab: 'pending' | 'list' | 'history' | 'submit';
+  initialActive?: any[];
+  initialHistory?: any[];
+  initialPending?: any[];
+  initialBkg?: string;
+  prefilledPO?: any;
+}
+
+export default function BookingsClient({
+  tab,
+  initialActive = [],
+  initialHistory = [],
+  initialPending = [],
+  initialBkg,
+  prefilledPO,
+}: BookingsClientProps) {
+  const router = useRouter();
   const { user } = useSession();
-  const [prefilledPO, setPrefilledPO] = useState<any>(null);
-  const [confirmPO, setConfirmPO] = useState<any>(null);
-  const [listRefreshKey, setListRefreshKey] = useState(0);
-  const searchParams = useSearchParams();
-  const initialBkg = searchParams.get('bkg');
 
   return (
-    <div className="flex h-full">
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold font-inter">Bookings</h1>
-          {activeTab === 'list' && (
-            <Button onClick={() => setActiveTab('submit')}>
-              <Plus className="w-4 h-4 mr-1.5" /> New Booking
-            </Button>
-          )}
-        </div>
+    <div className="p-6 space-y-4">
+      {tab === 'pending' && (
+        <PendingPOsList user={user} initialPendingPOs={initialPending} />
+      )}
 
-        <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val || '')}>
-          <TabsList>
-            <TabsTrigger value="pending" className="relative">
-              Pending Bookings
-              {user?.role === 'Vendor' && <Badge variant="secondary" className="ml-1.5 h-4 px-1 text-[8px] bg-amber-500 text-white border-0">Action Required</Badge>}
-            </TabsTrigger>
-            <TabsTrigger value="list">Active Bookings</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-            <TabsTrigger value="submit">Submit Booking</TabsTrigger>
-            <TabsTrigger value="customs">Customs Line Optimizer</TabsTrigger>
-          </TabsList>
+      {tab === 'list' && (
+        <BookingsList user={user} initialBookings={initialActive} isHistory={false} initialBkg={initialBkg} />
+      )}
 
-          <TabsContent value="pending" className="mt-4">
-            <PendingPOsList user={user} initialPendingPOs={initialPending} onBookNow={(po: any) => {
-              setConfirmPO(po);
-            }} />
-          </TabsContent>
+      {tab === 'history' && (
+        <BookingsList user={user} initialBookings={initialHistory} isHistory={true} />
+      )}
 
-          <TabsContent value="list" className="mt-4">
-            <BookingsList user={user} initialBookings={initialActive} isHistory={false} initialBkg={initialBkg} refreshTrigger={listRefreshKey} />
-          </TabsContent>
-
-          <TabsContent value="history" className="mt-4">
-            <BookingsList user={user} initialBookings={initialHistory} isHistory={true} />
-          </TabsContent>
-
-          <TabsContent value="submit" className="mt-4">
-            <BookingForm
-              prefilledPO={prefilledPO}
-              onSuccess={() => {
-                setPrefilledPO(null);
-                setListRefreshKey(k => k + 1);
-                setTimeout(() => setActiveTab('list'), 1500);
-              }}
-              onSwitchToMultiPO={() => setPrefilledPO(null)}
-            />
-          </TabsContent>
-
-          <TabsContent value="customs" className="mt-4">
-            <CustomsPlaceholder />
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      <SopPanel title="Booking SOP" sections={sopSections} isOpen={sopOpen} onToggle={() => setSopOpen(!sopOpen)} />
-
-      <Dialog open={!!confirmPO} onOpenChange={(open) => { if (!open) setConfirmPO(null); }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Single PO Booking</DialogTitle>
-            <DialogDescription asChild>
-              <div>
-                <p>This will open a booking form for <span className="font-semibold font-mono">{confirmPO?.po_number}</span>, which supports a <span className="font-semibold">single PO only</span>.</p>
-                <p className="mt-3">If you need to ship multiple POs together, please use the <span className="font-semibold">Submit Booking</span> tab instead.</p>
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmPO(null)}>Cancel</Button>
-            <Button onClick={() => {
-              setPrefilledPO(confirmPO);
-              setActiveTab('submit');
-              setConfirmPO(null);
-            }}>
-              Continue with Single PO
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {tab === 'submit' && (
+        <BookingForm
+          prefilledPO={prefilledPO}
+          onSuccess={() => {
+            setTimeout(() => router.push('/bookings/active'), 1500);
+          }}
+          onSwitchToMultiPO={() => {
+            router.push('/bookings/submit');
+          }}
+        />
+      )}
     </div>
   );
 }

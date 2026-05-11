@@ -15,7 +15,6 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Search, Ship, Plane, Truck, Package, ChevronUp, ChevronDown, ChevronsUpDown, ChevronRight, Upload, Download, RefreshCw, Settings2, Check, Archive } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
@@ -84,7 +83,13 @@ function getTrackingUrl(courier: string, trackingNumber: string) {
   return null;
 }
 
-export default function ShipmentsClient({ initialShipments }: { initialShipments: any[] }) {
+export default function ShipmentsClient({
+  initialShipments,
+  activeTab = 'mainline',
+}: {
+  initialShipments: any[];
+  activeTab?: 'mainline' | 'sms' | 'history';
+}) {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterWarehouse, setFilterWarehouse] = useState('All');
@@ -98,7 +103,6 @@ export default function ShipmentsClient({ initialShipments }: { initialShipments
   const [showSmsImport, setShowSmsImport] = useState(false);
   const [asnShipment, setAsnShipment] = useState<any>(null);
   const [sopOpen, setSopOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('mainline');
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState('asc');
   const [trackingRows, setTrackingRows] = useState<Record<string, boolean>>({});
@@ -568,24 +572,12 @@ export default function ShipmentsClient({ initialShipments }: { initialShipments
           </div>
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val || 'mainline')}>
-          <TabsList className="bg-muted/30 h-10 p-1 rounded-lg inline-flex items-center">
-            <TabsTrigger value="mainline" className="px-6 h-8 rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all font-medium">
-              Mainline Tracker
-            </TabsTrigger>
-            <TabsTrigger value="sms" className="px-6 h-8 rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all font-medium">
-              SMS Tracker
-            </TabsTrigger>
-            <TabsTrigger value="history" className="px-6 h-8 rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all font-medium">
-              History
-            </TabsTrigger>
-          </TabsList>
-
-          {['mainline', 'sms', 'history'].map(tab => {
-            const list = tab === 'sms' ? smsShipments : (tab === 'history' ? historyShipments : mainlineShipments);
-            return (
-              <TabsContent key={tab} value={tab} className="mt-4">
+        {/* Tab content — rendered based on activeTab prop from URL route */}
+        {(['mainline', 'sms', 'history'] as const).map(tab => {
+          const list = tab === 'sms' ? smsShipments : (tab === 'history' ? historyShipments : mainlineShipments);
+          if (tab !== activeTab) return null;
+          return (
+            <div key={tab} className="mt-4">
                 <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
                   <Table>
                     <TableHeader>
@@ -777,7 +769,7 @@ export default function ShipmentsClient({ initialShipments }: { initialShipments
                                   <TableCell className="py-3">
                                     {bookingNumber ? (
                                       <Link
-                                        href={`/bookings?bkg=${bookingNumber}`}
+                                        href={`/bookings/active?bkg=${bookingNumber}`}
                                         onClick={(e) => e.stopPropagation()}
                                         className="text-xs font-mono font-semibold text-primary hover:underline underline-offset-4 decoration-primary/40"
                                       >
@@ -875,10 +867,9 @@ export default function ShipmentsClient({ initialShipments }: { initialShipments
                     </TableBody>
                   </Table>
                 </div>
-              </TabsContent>
-            );
-          })}
-        </Tabs>
+            </div>
+          );
+        })}
       </div>
 
       {/* Right SOP Sidebar */}

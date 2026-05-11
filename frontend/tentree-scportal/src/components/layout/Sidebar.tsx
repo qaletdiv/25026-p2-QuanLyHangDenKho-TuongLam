@@ -11,8 +11,8 @@ import { useSession } from '@/components/providers/SessionProvider';
 const navItems = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Purchase Orders', href: '/purchase-orders', icon: ClipboardList },
-  { name: 'Bookings', href: '/bookings', icon: FileText },
-  { name: 'Shipments', href: '/shipments', icon: Package },
+  { name: 'Bookings', href: '/bookings/pending', icon: FileText, matchPrefix: '/bookings' },
+  { name: 'Shipments', href: '/shipments/mainline', icon: Package, matchPrefix: '/shipments' },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Forecast', href: '/forecast', icon: LineChart },
   { name: 'EoM Progress', href: '/eom', icon: CalendarCheck },
@@ -60,7 +60,9 @@ export default function Sidebar() {
   const showMasterData = !user || ['Admin', 'Logistics Coordinator'].includes(user.role);
 
   const NavLink = ({ item }: { item: any }) => {
-    const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+    const isActive =
+      pathname === item.href ||
+      (item.matchPrefix ? pathname.startsWith(item.matchPrefix) : (item.href !== '/' && pathname.startsWith(item.href)));
     const Icon = item.icon;
     return (
       <Link
