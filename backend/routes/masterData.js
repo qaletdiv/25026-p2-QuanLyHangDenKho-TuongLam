@@ -16,4 +16,10 @@ router.put('/incoterms',    requireAuth, asyncWrap(masterDataController.putIncot
 router.get('/statuses',     asyncWrap(masterDataController.getStatuses));
 router.put('/statuses',     requireAuth, asyncWrap(masterDataController.putStatuses));
 
+router.get('/warehouses',   asyncWrap(masterDataController.getWarehouses));
+router.put('/warehouses',   requireAuth, asyncWrap(masterDataController.putWarehouses));
+
+router.get('/modes',        asyncWrap(masterDataController.getModes));
+router.put('/modes',        requireAuth, asyncWrap(masterDataController.putModes));
+
 module.exports = router;

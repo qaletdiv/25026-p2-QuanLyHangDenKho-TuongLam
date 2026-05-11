@@ -12,3 +12,8 @@ export async function updateSuppliers(data: any) { await fetchApi('/master-data/
 export async function updateCouriers(data: any) { await fetchApi('/master-data/couriers', { method: 'PUT', body: JSON.stringify(data) }); return { success: true }; }
 export async function updateIncoterms(data: any) { await fetchApi('/master-data/incoterms', { method: 'PUT', body: JSON.stringify(data) }); return { success: true }; }
 export async function updateStatuses(data: any) { await fetchApi('/master-data/statuses', { method: 'PUT', body: JSON.stringify(data) }); return { success: true }; }
+
+export async function getWarehouses() { return fetchApi('/master-data/warehouses') ?? []; }
+export async function getModes() { return fetchApi('/master-data/modes') ?? []; }
+export async function updateWarehouses(data: any) { await fetchApi('/master-data/warehouses', { method: 'PUT', body: JSON.stringify(data) }); return { success: true }; }
+export async function updateModes(data: any) { await fetchApi('/master-data/modes', { method: 'PUT', body: JSON.stringify(data) }); return { success: true }; }

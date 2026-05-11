@@ -1,0 +1,6 @@
+[
+  { "id": "w1", "name": "NRI CAN", "country": "Canada", "city": "Vancouver" },
+  { "id": "w2", "name": "NRI US", "country": "United States", "city": "Los Angeles" },
+  { "id": "w3", "name": "Direct CAN", "country": "Canada", "city": "Toronto" },
+  { "id": "w4", "name": "Direct US", "country": "United States", "city": "New York" }
+]

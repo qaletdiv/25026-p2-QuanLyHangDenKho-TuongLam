@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, FileText, CalendarCheck, Users, Settings, LogOut, BarChart3, LineChart, ClipboardList, Truck, FileCode, Palette, Sun, Flame } from 'lucide-react';
+import { LayoutDashboard, Package, FileText, CalendarCheck, Users, Settings, LogOut, BarChart3, LineChart, ClipboardList, Truck, FileCode, Palette, Sun, Flame, Warehouse, Ship } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { logout } from '@/app/actions/auth';
@@ -24,6 +24,8 @@ const masterDataItems = [
   { name: 'Couriers', href: '/settings/couriers', icon: Truck },
   { name: 'Incoterms', href: '/settings/incoterms', icon: FileCode },
   { name: 'Statuses', href: '/settings/statuses', icon: Palette },
+  { name: 'Warehouses', href: '/settings/warehouses', icon: Warehouse },
+  { name: 'Transport Modes', href: '/settings/modes', icon: Ship },
 ];
 
 export default function Sidebar() {
