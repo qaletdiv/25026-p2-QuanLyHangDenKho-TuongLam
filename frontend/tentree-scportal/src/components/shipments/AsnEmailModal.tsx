@@ -152,8 +152,7 @@ export default function AsnEmailModal({ open, onClose, onSuccess, shipment }: an
 
       if (onSuccess) onSuccess();
       onClose();
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error('An unexpected error occurred.');
     } finally {
       setIsLoading(false);

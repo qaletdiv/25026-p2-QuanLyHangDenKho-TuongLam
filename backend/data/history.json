@@ -1,128 +1,740 @@
 [
   {
-    "id": "1777312450737",
-    "po_number": "PO-SS26-002",
-    "season": "SS26",
-    "trn_number": "TRN-1002",
-    "type": "sms",
-    "supplier": "EcoTech Garments",
-    "mode": "Courier",
-    "incoterm": "DDP",
-    "expected_qty": 250,
-    "receiving_qty": 0,
-    "receiving_warehouse": "NRI US",
-    "etd": "2026-04-30",
-    "eta": "2026-05-25",
-    "booking_status": "No Booking",
-    "booking_number": "BKG-8951",
-    "vendor_name": "EcoTech Garments",
-    "tentree_po_number": "PO-SS26-002",
-    "number_of_cartons": "5",
-    "cargo_ready_date": "2026-04-30",
-    "courier": "FedEx",
-    "tracking_number": "1234567890",
-    "submitted_at": "2026-04-27T17:54:10.667Z",
-    "expected_quantity": "250",
-    "lot_number": null,
-    "status": "Delivered",
-    "destination_warehouse": "NRI US",
-    "received_qty": 0,
-    "booked_qty": 250,
-    "actual_receive_date": ""
-  },
-  {
-    "id": "po_205",
-    "po_number": "PO-SS26-005",
-    "season": "SS26",
-    "trn_number": "TRN-1005",
-    "type": "sms",
-    "supplier": "Pacific Stitch",
-    "mode": "Courier",
-    "incoterm": "DAP",
-    "expected_qty": 150,
-    "receiving_qty": 0,
-    "receiving_warehouse": "Direct CAN",
-    "etd": "2026-05-01",
-    "eta": "2026-05-18",
-    "booking_status": "No Booking",
-    "booking_number": "BKG-6149",
-    "vendor_name": "Pacific Stitch",
-    "tentree_po_number": "PO-SS26-005",
-    "number_of_cartons": "2",
-    "cargo_ready_date": "2026-05-01",
-    "courier": "DHL",
-    "tracking_number": "0987654321",
-    "submitted_at": "2026-04-28T01:11:25.706Z",
-    "expected_quantity": 100,
-    "lot_number": 1,
-    "status": "Delivered",
-    "destination_warehouse": "Direct CAN",
-    "received_qty": 0,
-    "booked_qty": 150,
-    "actual_receive_date": ""
-  },
-  {
-    "id": "po_208",
-    "po_number": "PO-FW26-008",
+    "id": "1778442008094eq8uy",
+    "po_number": "PO-FW26-001",
     "season": "FW26",
-    "trn_number": "TRN-1008",
-    "type": "sms",
-    "supplier": "Global Apparel",
-    "mode": "Courier",
-    "incoterm": "DDP",
-    "expected_qty": 400,
-    "receiving_qty": 0,
-    "receiving_warehouse": "Direct US",
-    "etd": "2026-05-04",
-    "eta": "2026-08-20",
-    "booking_status": "No Booking",
-    "booking_number": "BKG-2814",
-    "vendor_name": "Global Apparel",
-    "tentree_po_number": "PO-FW26-008",
-    "number_of_cartons": "10",
-    "cargo_ready_date": "2026-05-04",
-    "courier": "FedEx",
-    "tracking_number": "1357908642",
-    "submitted_at": "2026-04-28T01:21:41.713Z",
-    "expected_quantity": 200,
-    "lot_number": 1,
-    "status": "Delivered",
-    "destination_warehouse": "Direct US",
-    "received_qty": 0,
-    "booked_qty": 400,
-    "actual_receive_date": ""
-  },
-  {
-    "id": "1777866996457fwz6z",
-    "po_number": "PO-FW26-010",
-    "season": "FW26",
-    "trn_number": "TRN-1010",
+    "trn_number": "TRN-2001",
     "type": "mainline",
     "supplier": "Green Fabrics Ltd",
     "mode": "Ocean",
     "incoterm": "FOB",
-    "expected_qty": 10000,
+    "expected_qty": 14400,
     "receiving_qty": 0,
     "receiving_warehouse": "NRI CAN",
-    "etd": "2026-09-01",
-    "eta": "2026-10-05",
+    "etd": "2026-07-20",
+    "eta": "2026-08-25",
     "booking_status": "Booking Approved",
-    "booking_number": "BKG-6647",
+    "booking_number": "BKG-9557",
+    "received_qty": 0,
+    "booked_qty": 0,
+    "actual_receive_date": "",
+    "line_items": [
+      {
+        "sku_code": "TEN7101-FGN-XS",
+        "description": "Recycled Fleece Pullover Forest Green",
+        "expected_qty": 800,
+        "shipped_qty": 800
+      },
+      {
+        "sku_code": "TEN7101-FGN-S",
+        "description": "Recycled Fleece Pullover Forest Green",
+        "expected_qty": 1400,
+        "shipped_qty": 1400
+      },
+      {
+        "sku_code": "TEN7101-FGN-M",
+        "description": "Recycled Fleece Pullover Forest Green",
+        "expected_qty": 2000,
+        "shipped_qty": 2000
+      },
+      {
+        "sku_code": "TEN7101-FGN-L",
+        "description": "Recycled Fleece Pullover Forest Green",
+        "expected_qty": 2000,
+        "shipped_qty": 2000
+      },
+      {
+        "sku_code": "TEN7101-FGN-XL",
+        "description": "Recycled Fleece Pullover Forest Green",
+        "expected_qty": 900,
+        "shipped_qty": 900
+      },
+      {
+        "sku_code": "TEN7101-FGN-2X",
+        "description": "Recycled Fleece Pullover Forest Green",
+        "expected_qty": 100,
+        "shipped_qty": 100
+      },
+      {
+        "sku_code": "TEN7101-CHR-XS",
+        "description": "Recycled Fleece Pullover Charcoal",
+        "expected_qty": 800,
+        "shipped_qty": 800
+      },
+      {
+        "sku_code": "TEN7101-CHR-S",
+        "description": "Recycled Fleece Pullover Charcoal",
+        "expected_qty": 1400,
+        "shipped_qty": 1400
+      },
+      {
+        "sku_code": "TEN7101-CHR-M",
+        "description": "Recycled Fleece Pullover Charcoal",
+        "expected_qty": 2000,
+        "shipped_qty": 2000
+      },
+      {
+        "sku_code": "TEN7101-CHR-L",
+        "description": "Recycled Fleece Pullover Charcoal",
+        "expected_qty": 2000,
+        "shipped_qty": 2000
+      },
+      {
+        "sku_code": "TEN7101-CHR-XL",
+        "description": "Recycled Fleece Pullover Charcoal",
+        "expected_qty": 900,
+        "shipped_qty": 900
+      },
+      {
+        "sku_code": "TEN7101-CHR-2X",
+        "description": "Recycled Fleece Pullover Charcoal",
+        "expected_qty": 100,
+        "shipped_qty": 100
+      }
+    ],
     "vendor_name": "Green Fabrics Ltd",
-    "tentree_po_number": "PO-FW26-010",
-    "number_of_cartons": "100",
-    "cargo_ready_date": "2026-05-04",
+    "tentree_po_number": "PO-FW26-001",
+    "number_of_cartons": "",
+    "cargo_ready_date": "2026-07-20",
     "courier": "",
     "tracking_number": "",
-    "submitted_at": "2026-05-04T03:56:01.647Z",
-    "approved_at": "2026-05-04T03:56:36.434Z",
-    "expected_quantity": 5000,
+    "commercial_invoice": {
+      "invoice_number": "CI-S1-FULL-001",
+      "invoice_date": "2026-04-15",
+      "total_value": 237600,
+      "po_summary": [
+        {
+          "po_number": "PO-FW26-001",
+          "shipped_qty": 14400,
+          "cartons": 390,
+          "weight_kg": 3560,
+          "cbm": 44.5
+        }
+      ],
+      "status": "confirmed",
+      "confirmed_at": "2026-05-10T19:39:49.649Z",
+      "line_items": [
+        {
+          "sku_code": "TEN7101-FGN-XS",
+          "description": "Recycled Fleece Pullover Forest Green",
+          "qty": 800,
+          "unit_price": 16.5,
+          "total": 13200,
+          "weight_kg": 160,
+          "cbm": 2,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 800
+        },
+        {
+          "sku_code": "TEN7101-FGN-S",
+          "description": "Recycled Fleece Pullover Forest Green",
+          "qty": 1400,
+          "unit_price": 16.5,
+          "total": 23100,
+          "weight_kg": 280,
+          "cbm": 3.5,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 1400
+        },
+        {
+          "sku_code": "TEN7101-FGN-M",
+          "description": "Recycled Fleece Pullover Forest Green",
+          "qty": 2000,
+          "unit_price": 16.5,
+          "total": 33000,
+          "weight_kg": 400,
+          "cbm": 5,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 2000
+        },
+        {
+          "sku_code": "TEN7101-FGN-L",
+          "description": "Recycled Fleece Pullover Forest Green",
+          "qty": 2000,
+          "unit_price": 16.5,
+          "total": 33000,
+          "weight_kg": 400,
+          "cbm": 5,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 2000
+        },
+        {
+          "sku_code": "TEN7101-FGN-XL",
+          "description": "Recycled Fleece Pullover Forest Green",
+          "qty": 900,
+          "unit_price": 16.5,
+          "total": 14850,
+          "weight_kg": 320,
+          "cbm": 4,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 900
+        },
+        {
+          "sku_code": "TEN7101-FGN-2X",
+          "description": "Recycled Fleece Pullover Forest Green",
+          "qty": 100,
+          "unit_price": 16.5,
+          "total": 1650,
+          "weight_kg": 160,
+          "cbm": 2,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 100
+        },
+        {
+          "sku_code": "TEN7101-CHR-XS",
+          "description": "Recycled Fleece Pullover Charcoal",
+          "qty": 800,
+          "unit_price": 16.5,
+          "total": 13200,
+          "weight_kg": 280,
+          "cbm": 3.5,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 800
+        },
+        {
+          "sku_code": "TEN7101-CHR-S",
+          "description": "Recycled Fleece Pullover Charcoal",
+          "qty": 1400,
+          "unit_price": 16.5,
+          "total": 23100,
+          "weight_kg": 400,
+          "cbm": 5,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 1400
+        },
+        {
+          "sku_code": "TEN7101-CHR-M",
+          "description": "Recycled Fleece Pullover Charcoal",
+          "qty": 2000,
+          "unit_price": 16.5,
+          "total": 33000,
+          "weight_kg": 400,
+          "cbm": 5,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 2000
+        },
+        {
+          "sku_code": "TEN7101-CHR-L",
+          "description": "Recycled Fleece Pullover Charcoal",
+          "qty": 2000,
+          "unit_price": 16.5,
+          "total": 33000,
+          "weight_kg": 320,
+          "cbm": 4,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 2000
+        },
+        {
+          "sku_code": "TEN7101-CHR-XL",
+          "description": "Recycled Fleece Pullover Charcoal",
+          "qty": 900,
+          "unit_price": 16.5,
+          "total": 14850,
+          "weight_kg": 160,
+          "cbm": 2,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 900
+        },
+        {
+          "sku_code": "TEN7101-CHR-2X",
+          "description": "Recycled Fleece Pullover Charcoal",
+          "qty": 100,
+          "unit_price": 16.5,
+          "total": 1650,
+          "weight_kg": 280,
+          "cbm": 3.5,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 100
+        }
+      ]
+    },
+    "submitted_at": "2026-05-10T19:39:51.589Z",
+    "approved_at": "2026-05-10T19:40:08.068Z",
+    "expected_quantity": 14400,
+    "lot_number": null,
+    "status": "Delivered",
+    "received_quantity": 14400,
+    "ci_status": "confirmed",
+    "destination_warehouse": "NRI CAN"
+  },
+  {
+    "id": "1778442008094eq8uy",
+    "po_number": "PO-FW26-001",
+    "season": "FW26",
+    "trn_number": "TRN-2001",
+    "type": "mainline",
+    "supplier": "Green Fabrics Ltd",
+    "mode": "Ocean",
+    "incoterm": "FOB",
+    "expected_qty": 14400,
+    "receiving_qty": 0,
+    "receiving_warehouse": "NRI CAN",
+    "etd": "2026-07-20",
+    "eta": "2026-08-25",
+    "booking_status": "Booking Approved",
+    "booking_number": "BKG-9557",
+    "received_qty": 0,
+    "booked_qty": 0,
+    "actual_receive_date": "",
+    "line_items": [
+      {
+        "sku_code": "TEN7101-FGN-XS",
+        "description": "Recycled Fleece Pullover Forest Green",
+        "expected_qty": 800,
+        "shipped_qty": 800
+      },
+      {
+        "sku_code": "TEN7101-FGN-S",
+        "description": "Recycled Fleece Pullover Forest Green",
+        "expected_qty": 1400,
+        "shipped_qty": 1400
+      },
+      {
+        "sku_code": "TEN7101-FGN-M",
+        "description": "Recycled Fleece Pullover Forest Green",
+        "expected_qty": 2000,
+        "shipped_qty": 2000
+      },
+      {
+        "sku_code": "TEN7101-FGN-L",
+        "description": "Recycled Fleece Pullover Forest Green",
+        "expected_qty": 2000,
+        "shipped_qty": 2000
+      },
+      {
+        "sku_code": "TEN7101-FGN-XL",
+        "description": "Recycled Fleece Pullover Forest Green",
+        "expected_qty": 900,
+        "shipped_qty": 900
+      },
+      {
+        "sku_code": "TEN7101-FGN-2X",
+        "description": "Recycled Fleece Pullover Forest Green",
+        "expected_qty": 100,
+        "shipped_qty": 100
+      },
+      {
+        "sku_code": "TEN7101-CHR-XS",
+        "description": "Recycled Fleece Pullover Charcoal",
+        "expected_qty": 800,
+        "shipped_qty": 800
+      },
+      {
+        "sku_code": "TEN7101-CHR-S",
+        "description": "Recycled Fleece Pullover Charcoal",
+        "expected_qty": 1400,
+        "shipped_qty": 1400
+      },
+      {
+        "sku_code": "TEN7101-CHR-M",
+        "description": "Recycled Fleece Pullover Charcoal",
+        "expected_qty": 2000,
+        "shipped_qty": 2000
+      },
+      {
+        "sku_code": "TEN7101-CHR-L",
+        "description": "Recycled Fleece Pullover Charcoal",
+        "expected_qty": 2000,
+        "shipped_qty": 2000
+      },
+      {
+        "sku_code": "TEN7101-CHR-XL",
+        "description": "Recycled Fleece Pullover Charcoal",
+        "expected_qty": 900,
+        "shipped_qty": 900
+      },
+      {
+        "sku_code": "TEN7101-CHR-2X",
+        "description": "Recycled Fleece Pullover Charcoal",
+        "expected_qty": 100,
+        "shipped_qty": 100
+      }
+    ],
+    "vendor_name": "Green Fabrics Ltd",
+    "tentree_po_number": "PO-FW26-001",
+    "number_of_cartons": "",
+    "cargo_ready_date": "2026-07-20",
+    "courier": "",
+    "tracking_number": "",
+    "commercial_invoice": {
+      "invoice_number": "CI-S1-FULL-001",
+      "invoice_date": "2026-04-15",
+      "total_value": 237600,
+      "po_summary": [
+        {
+          "po_number": "PO-FW26-001",
+          "shipped_qty": 14400,
+          "cartons": 390,
+          "weight_kg": 3560,
+          "cbm": 44.5
+        }
+      ],
+      "status": "confirmed",
+      "confirmed_at": "2026-05-10T19:39:49.649Z",
+      "line_items": [
+        {
+          "sku_code": "TEN7101-FGN-XS",
+          "description": "Recycled Fleece Pullover Forest Green",
+          "qty": 800,
+          "unit_price": 16.5,
+          "total": 13200,
+          "weight_kg": 160,
+          "cbm": 2,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 800
+        },
+        {
+          "sku_code": "TEN7101-FGN-S",
+          "description": "Recycled Fleece Pullover Forest Green",
+          "qty": 1400,
+          "unit_price": 16.5,
+          "total": 23100,
+          "weight_kg": 280,
+          "cbm": 3.5,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 1400
+        },
+        {
+          "sku_code": "TEN7101-FGN-M",
+          "description": "Recycled Fleece Pullover Forest Green",
+          "qty": 2000,
+          "unit_price": 16.5,
+          "total": 33000,
+          "weight_kg": 400,
+          "cbm": 5,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 2000
+        },
+        {
+          "sku_code": "TEN7101-FGN-L",
+          "description": "Recycled Fleece Pullover Forest Green",
+          "qty": 2000,
+          "unit_price": 16.5,
+          "total": 33000,
+          "weight_kg": 400,
+          "cbm": 5,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 2000
+        },
+        {
+          "sku_code": "TEN7101-FGN-XL",
+          "description": "Recycled Fleece Pullover Forest Green",
+          "qty": 900,
+          "unit_price": 16.5,
+          "total": 14850,
+          "weight_kg": 320,
+          "cbm": 4,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 900
+        },
+        {
+          "sku_code": "TEN7101-FGN-2X",
+          "description": "Recycled Fleece Pullover Forest Green",
+          "qty": 100,
+          "unit_price": 16.5,
+          "total": 1650,
+          "weight_kg": 160,
+          "cbm": 2,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 100
+        },
+        {
+          "sku_code": "TEN7101-CHR-XS",
+          "description": "Recycled Fleece Pullover Charcoal",
+          "qty": 800,
+          "unit_price": 16.5,
+          "total": 13200,
+          "weight_kg": 280,
+          "cbm": 3.5,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 800
+        },
+        {
+          "sku_code": "TEN7101-CHR-S",
+          "description": "Recycled Fleece Pullover Charcoal",
+          "qty": 1400,
+          "unit_price": 16.5,
+          "total": 23100,
+          "weight_kg": 400,
+          "cbm": 5,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 1400
+        },
+        {
+          "sku_code": "TEN7101-CHR-M",
+          "description": "Recycled Fleece Pullover Charcoal",
+          "qty": 2000,
+          "unit_price": 16.5,
+          "total": 33000,
+          "weight_kg": 400,
+          "cbm": 5,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 2000
+        },
+        {
+          "sku_code": "TEN7101-CHR-L",
+          "description": "Recycled Fleece Pullover Charcoal",
+          "qty": 2000,
+          "unit_price": 16.5,
+          "total": 33000,
+          "weight_kg": 320,
+          "cbm": 4,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 2000
+        },
+        {
+          "sku_code": "TEN7101-CHR-XL",
+          "description": "Recycled Fleece Pullover Charcoal",
+          "qty": 900,
+          "unit_price": 16.5,
+          "total": 14850,
+          "weight_kg": 160,
+          "cbm": 2,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 900
+        },
+        {
+          "sku_code": "TEN7101-CHR-2X",
+          "description": "Recycled Fleece Pullover Charcoal",
+          "qty": 100,
+          "unit_price": 16.5,
+          "total": 1650,
+          "weight_kg": 280,
+          "cbm": 3.5,
+          "match_status": "matched",
+          "matched_po": "PO-FW26-001",
+          "po_expected_qty": 100
+        }
+      ]
+    },
+    "submitted_at": "2026-05-10T19:39:51.589Z",
+    "approved_at": "2026-05-10T19:40:08.068Z",
+    "expected_quantity": 14400,
+    "lot_number": null,
+    "status": "Delivered",
+    "received_quantity": 14400,
+    "ci_status": "confirmed",
+    "destination_warehouse": "NRI CAN"
+  },
+  {
+    "id": "1778443558757m9tqc",
+    "po_number": "PO-FW26-002",
+    "season": "FW26",
+    "trn_number": "TRN-2002",
+    "type": "mainline",
+    "supplier": "Pacific Stitch",
+    "mode": "Ocean",
+    "incoterm": "FOB",
+    "expected_qty": 10800,
+    "receiving_qty": 0,
+    "receiving_warehouse": "NRI CAN",
+    "etd": "2026-08-10",
+    "eta": "2026-09-15",
+    "booking_status": "Booking Approved",
+    "received_qty": 0,
+    "booked_qty": 0,
+    "actual_receive_date": "",
+    "line_items": [
+      {
+        "sku_code": "TEN7201-NVY-XS",
+        "description": "Organic Cotton Heavyweight Tee Navy",
+        "expected_qty": 117,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-NVY-S",
+        "description": "Organic Cotton Heavyweight Tee Navy",
+        "expected_qty": 233,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-NVY-M",
+        "description": "Organic Cotton Heavyweight Tee Navy",
+        "expected_qty": 350,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-NVY-L",
+        "description": "Organic Cotton Heavyweight Tee Navy",
+        "expected_qty": 350,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-NVY-XL",
+        "description": "Organic Cotton Heavyweight Tee Navy",
+        "expected_qty": 233,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-NVY-2X",
+        "description": "Organic Cotton Heavyweight Tee Navy",
+        "expected_qty": 117,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-BRG-XS",
+        "description": "Organic Cotton Heavyweight Tee Burgundy",
+        "expected_qty": 117,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-BRG-S",
+        "description": "Organic Cotton Heavyweight Tee Burgundy",
+        "expected_qty": 233,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-BRG-M",
+        "description": "Organic Cotton Heavyweight Tee Burgundy",
+        "expected_qty": 350,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-BRG-L",
+        "description": "Organic Cotton Heavyweight Tee Burgundy",
+        "expected_qty": 350,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-BRG-XL",
+        "description": "Organic Cotton Heavyweight Tee Burgundy",
+        "expected_qty": 233,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-BRG-2X",
+        "description": "Organic Cotton Heavyweight Tee Burgundy",
+        "expected_qty": 117,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-STN-XS",
+        "description": "Organic Cotton Heavyweight Tee Stone",
+        "expected_qty": 117,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-STN-S",
+        "description": "Organic Cotton Heavyweight Tee Stone",
+        "expected_qty": 233,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-STN-M",
+        "description": "Organic Cotton Heavyweight Tee Stone",
+        "expected_qty": 350,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-STN-L",
+        "description": "Organic Cotton Heavyweight Tee Stone",
+        "expected_qty": 350,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-STN-XL",
+        "description": "Organic Cotton Heavyweight Tee Stone",
+        "expected_qty": 233,
+        "shipped_qty": 0
+      },
+      {
+        "sku_code": "TEN7201-STN-2X",
+        "description": "Organic Cotton Heavyweight Tee Stone",
+        "expected_qty": 117,
+        "shipped_qty": 0
+      }
+    ],
+    "booking_number": "BKG-5077",
+    "vendor_name": "Pacific Stitch",
+    "tentree_po_number": "PO-FW26-002",
+    "number_of_cartons": "210",
+    "cargo_ready_date": "2026-08-10",
+    "courier": "",
+    "tracking_number": "",
+    "commercial_invoice": {
+      "invoice_number": "CI-S2-PARTIAL-002",
+      "invoice_date": "2026-04-15",
+      "total_value": 69300,
+      "po_summary": [
+        {
+          "po_number": "PO-FW26-002",
+          "shipped_qty": 4200,
+          "cartons": 210,
+          "weight_kg": 840,
+          "cbm": 10.5
+        }
+      ],
+      "status": "confirmed",
+      "confirmed_at": "2026-05-10T20:05:45.010Z",
+      "line_items": [
+        {
+          "sku_code": "TEN7101-FGN-XS",
+          "description": "FW26 Fleece Jacket - Forest Green XS",
+          "qty": 800,
+          "unit_price": 16.5,
+          "total": 13200,
+          "weight_kg": 160,
+          "cbm": 2,
+          "match_status": "unmatched",
+          "matched_po": null,
+          "po_expected_qty": null
+        },
+        {
+          "sku_code": "TEN7101-FGN-S",
+          "description": "FW26 Fleece Jacket - Forest Green S",
+          "qty": 1400,
+          "unit_price": 16.5,
+          "total": 23100,
+          "weight_kg": 280,
+          "cbm": 3.5,
+          "match_status": "unmatched",
+          "matched_po": null,
+          "po_expected_qty": null
+        },
+        {
+          "sku_code": "TEN7101-FGN-M",
+          "description": "FW26 Fleece Jacket - Forest Green M",
+          "qty": 2000,
+          "unit_price": 16.5,
+          "total": 33000,
+          "weight_kg": 400,
+          "cbm": 5,
+          "match_status": "unmatched",
+          "matched_po": null,
+          "po_expected_qty": null
+        }
+      ]
+    },
+    "submitted_at": "2026-05-10T20:05:48.454Z",
+    "approved_at": "2026-05-10T20:05:58.729Z",
+    "expected_quantity": 4200,
     "lot_number": 1,
     "status": "Delivered",
-    "received_qty": 0,
-    "booked_qty": 5000,
-    "actual_receive_date": "",
+    "ci_status": "confirmed",
     "destination_warehouse": "NRI CAN",
-    "received_quantity": "5000"
+    "received_quantity": 4200
   }
 ]

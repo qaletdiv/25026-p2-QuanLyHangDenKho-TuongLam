@@ -82,8 +82,7 @@ export default function SmsShipmentForm({ open, onClose, onSuccess, initialData 
       }
       if (onSuccess) onSuccess();
       onClose();
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error('Failed to save shipment');
     } finally {
       setIsLoading(false);

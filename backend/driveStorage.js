@@ -80,8 +80,19 @@ class GoogleDriveStorage {
 
     async writeData(filename, data) {
         if (!this.drive) {
-            // Fallback
-            fs.writeFileSync(path.join(this.localDataDir, filename), JSON.stringify(data, null, 2));
+            // Atomic local write: serialise to a temp file first, then rename over the target.
+            // This prevents data loss if the process is killed or throws mid-write — the
+            // original file is never partially overwritten.
+            const targetPath = path.join(this.localDataDir, filename);
+            const tmpPath    = targetPath + '.tmp';
+            try {
+                fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), 'utf8');
+                fs.renameSync(tmpPath, targetPath);
+            } catch (e) {
+                // Clean up the orphaned temp file if rename failed
+                try { fs.unlinkSync(tmpPath); } catch (_) {}
+                throw e;
+            }
             return;
         }
         
@@ -102,12 +113,15 @@ class GoogleDriveStorage {
             } else {
                 const res = await this.drive.files.create({
                     requestBody: { name: filename, parents: [this.folderId] },
-                    media
+                    media,
                 });
                 this.fileMap.set(filename, res.data.id);
             }
         } catch (e) {
+            // Re-throw so callers know the write failed — silently swallowing Drive
+            // errors could leave the app running on stale data with no indication.
             console.error(`Error writing ${filename} to Drive:`, e.message);
+            throw e;
         }
     }
 

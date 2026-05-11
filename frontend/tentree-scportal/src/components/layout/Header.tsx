@@ -18,12 +18,15 @@ export default function Header() {
 
   // Determine title based on pathname
   let title = 'Dashboard';
+  if (pathname.includes('/purchase-orders')) title = 'Purchase Orders';
   if (pathname.includes('/shipments')) title = 'Shipments';
   if (pathname.includes('/bookings')) title = 'Bookings';
-
+  if (pathname.includes('/reports')) title = 'Reports';
+  if (pathname.includes('/forecast')) title = 'Forecast';
   if (pathname.includes('/eom')) title = 'End of Month';
   if (pathname.includes('/contacts')) title = 'Contacts';
   if (pathname.includes('/history')) title = 'History';
+  if (pathname.includes('/settings')) title = 'Settings';
 
   return (
     <header className="h-16 flex items-center justify-between px-6 border-b border-border bg-background sticky top-0 z-10 shadow-sm">

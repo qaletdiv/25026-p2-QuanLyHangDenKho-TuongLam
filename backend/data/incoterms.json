@@ -2,5 +2,6 @@
   { "id": "i1", "name": "DDP" },
   { "id": "i2", "name": "FOB" },
   { "id": "i3", "name": "Ex-works" },
-  { "id": "i4", "name": "DAP" }
+  { "id": "i4", "name": "DAP" },
+  { "id": "i5", "name": "FCA" }
 ]

@@ -37,7 +37,9 @@ const ALL_COLUMNS = [
   { id: 'receiving_warehouse', label: 'Warehouse' },
   { id: 'etd', label: 'CRD' },
   { id: 'eta', label: 'Exp. Recv Date' },
-  { id: 'actual_receive_date', label: 'Actual Recv Date' }
+  { id: 'actual_receive_date', label: 'Actual Recv Date' },
+  { id: 'booking_status', label: 'Booking Status' },
+  { id: 'booking_number', label: 'Booking #' },
 ];
 
 export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[] }) {
@@ -54,7 +56,7 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
   const [couriers, setCouriers] = useState<any[]>([]);
   const [incoterms, setIncoterms] = useState<any[]>([]);
   const [statuses, setStatuses] = useState<any[]>([]);
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(['season', 'po_number', 'supplier', 'mode', 'incoterm', 'expected_qty', 'received_qty', 'etd', 'eta', 'actual_receive_date']);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(['season', 'po_number', 'supplier', 'mode', 'incoterm', 'expected_qty', 'received_qty', 'etd', 'eta', 'actual_receive_date', 'booking_status', 'booking_number']);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchPOs = async () => {
@@ -72,8 +74,8 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
       setCouriers(c || []);
       setIncoterms(i || []);
       setStatuses(st || []);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // silently degrade — existing data stays on screen
     } finally {
       setIsLoading(false);
     }
@@ -201,13 +203,17 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
           <Button variant="outline" onClick={handleExport}>
             <Download className="w-4 h-4 mr-1.5" /> Export
           </Button>
-          <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-            <Upload className="w-4 h-4 mr-1.5" /> Import CSV
-          </Button>
-          <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
-          <Button onClick={openAdd}>
-            <Plus className="w-4 h-4 mr-1.5" /> Add PO
-          </Button>
+          {user?.role !== 'Vendor' && (
+            <>
+              <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+                <Upload className="w-4 h-4 mr-1.5" /> Import CSV
+              </Button>
+              <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
+              <Button onClick={openAdd}>
+                <Plus className="w-4 h-4 mr-1.5" /> Add PO
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -304,6 +310,20 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
                   {visibleColumns.includes('actual_receive_date') && (
                     <TableCell className="text-sm font-bold text-emerald-600">
                       {p.actual_receive_date || '—'}
+                    </TableCell>
+                  )}
+                  {visibleColumns.includes('booking_status') && (
+                    <TableCell>
+                      {p.booking_status && p.booking_status !== 'No Booking' ? (
+                        <Badge variant="outline" className="text-[10px] font-semibold px-1.5">{p.booking_status}</Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                  )}
+                  {visibleColumns.includes('booking_number') && (
+                    <TableCell className="text-xs font-mono text-primary font-semibold">
+                      {p.booking_number || '—'}
                     </TableCell>
                   )}
                 </TableRow>

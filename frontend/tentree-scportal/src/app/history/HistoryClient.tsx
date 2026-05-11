@@ -75,7 +75,7 @@ export default function HistoryClient({ initialShipments }: { initialShipments: 
   const smsList = applyFilters(shipments.filter(s => s.mode === 'Courier'));
   const activeList = activeTab === 'mainline' ? mainlineList : smsList;
 
-  const sharedColumns = ['Season', 'PO Number', 'Lot', 'TRN No.', 'Mode', 'Courier', 'Supplier', 'Origin', 'Warehouse', 'Tracking No.', 'ETA', 'Status'];
+  const sharedColumns = ['Season', 'PO Number', 'Lot', 'TRN No.', 'Supplier', 'Mode', 'Courier', 'Origin', 'Warehouse', 'Tracking No.', 'ETA', 'Status'];
 
   return (
     <div className="p-6 space-y-4">

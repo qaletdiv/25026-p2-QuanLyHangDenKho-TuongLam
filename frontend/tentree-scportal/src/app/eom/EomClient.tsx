@@ -43,15 +43,15 @@ export default function EomClient({ initialTasks, currentMonth }: { initialTasks
         const allTasks: any[] = [];
         Object.entries(tasksByGroup).forEach(([group, items]: any) => {
           items.forEach((title: string, i: number) => {
-            allTasks.push({ month: currentMonth, group, title, status: 'Not Started', order_index: i });
+            allTasks.push({ month: currentMonth, group, title, status: 'Not Started', completed: false, order_index: i });
           });
         });
         await createEomTasks(allTasks);
         const newData = await getEomTasks(currentMonth);
         setTasks(newData || []);
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // tasks remain at last known state
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +62,7 @@ export default function EomClient({ initialTasks, currentMonth }: { initialTasks
   }, []);
 
   const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(t => t.status === 'Done').length;
+  const completedTasks = tasks.filter(t => t.completed || t.status === 'Done').length;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
   return (
@@ -99,16 +99,16 @@ export default function EomClient({ initialTasks, currentMonth }: { initialTasks
                   <div key={task.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
                     <button onClick={async () => {
                       const next = task.status === 'Not Started' ? 'In Progress' : task.status === 'In Progress' ? 'Done' : 'Not Started';
-                      await updateEomTask(task.id, { status: next });
+                      await updateEomTask(task.id, { status: next, completed: next === 'Done' });
                       fetchTasks();
                     }}>
                       {statusIcons[task.status]}
                     </button>
-                    <span className={`text-sm flex-1 ${task.status === 'Done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                    <span className={`text-sm flex-1 ${(task.completed || task.status === 'Done') ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                       {task.title}
                     </span>
                     <Select value={task.status} onValueChange={async (v: any) => {
-                      await updateEomTask(task.id, { status: v });
+                      await updateEomTask(task.id, { status: v, completed: v === 'Done' });
                       fetchTasks();
                     }}>
                       <SelectTrigger className="w-28 h-7 text-xs opacity-0 group-hover:opacity-100 transition-opacity">

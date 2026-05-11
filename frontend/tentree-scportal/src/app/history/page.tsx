@@ -5,8 +5,8 @@ export default async function HistoryPage() {
   let shipments = [];
   try {
     shipments = await getHistoryShipments() || [];
-  } catch (e) {
-    console.error('Failed to fetch history shipments:', e);
+  } catch {
+    // render with empty state
   }
 
   return <HistoryClient initialShipments={shipments || []} />;

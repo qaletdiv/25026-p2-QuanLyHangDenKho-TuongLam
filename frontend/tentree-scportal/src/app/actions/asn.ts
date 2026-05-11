@@ -26,7 +26,6 @@ export async function submitAsnWorkflow(formData: FormData) {
     // 1. Upload file if present
     let ciUrl = '';
     if (file && file.size > 0) {
-      console.log(`[UPLOAD] Uploading file: ${file.name} (${file.size} bytes)`);
       const { fetchApi } = await import('@/lib/api');
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
@@ -36,8 +35,6 @@ export async function submitAsnWorkflow(formData: FormData) {
       });
       if (uploadRes && uploadRes.url) {
         ciUrl = uploadRes.url;
-      } else {
-        console.error('Failed to get url from upload endpoint');
       }
     }
 
@@ -88,7 +85,6 @@ export async function submitAsnWorkflow(formData: FormData) {
           booking_number:           '',
         };
         await createShipment(lot2);
-        console.log(`[LOT SPLIT] Created Lot ${lot2.lot_number} for PO ${existing.po_number} with ${remainderUnits} units remaining.`);
       }
 
       await updateShipment(ids[0], update);
@@ -108,8 +104,7 @@ export async function submitAsnWorkflow(formData: FormData) {
 
     revalidatePath('/shipments');
     return { success: true, ciUrl };
-  } catch (error) {
-    console.error('Error in submitAsnWorkflow:', error);
-    return { error: 'Failed to process ASN workflow' };
+  } catch (error: any) {
+    return { error: error?.message || 'Failed to process ASN workflow' };
   }
 }

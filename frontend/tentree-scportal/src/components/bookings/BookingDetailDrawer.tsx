@@ -6,11 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, CheckCircle, XCircle, FileText, Calendar, Package, Truck, Building2, MapPin, Edit3, Trash2, Copy, Save, Layers, RefreshCw } from 'lucide-react';
+import { X, CheckCircle, XCircle, FileText, Calendar, Package, Truck, Building2, MapPin, Edit3, Trash2, Copy, Save, Layers, RefreshCw, Receipt, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react';
+import CiPreviewTable from './CiPreviewTable';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { updateBooking, deleteBooking, createBooking, getBookings } from '@/app/actions/bookings';
 import { getPurchaseOrders } from '@/app/actions/purchase-orders';
 import { getShipments, bulkUpdateShipmentStatus } from '@/app/actions/shipments';
+import { getBookingCommercialInvoice } from '@/app/actions/commercial-invoices';
+import { getMasterStatuses } from '@/app/actions/master-data';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -21,9 +25,13 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
   const [linkedShipments, setLinkedShipments] = useState<any[]>([]);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [showLotDialog, setShowLotDialog] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [dialogStep, setDialogStep] = useState<'choose' | 'lot'>('choose');
   const [lotFormData, setLotFormData] = useState<any>({});
   const [lotQtyInfo, setLotQtyInfo] = useState<any>(null);
+  const [ciData, setCiData] = useState<any>(null);
+  const [ciLoading, setCiLoading] = useState(false);
+  const [masterStatuses, setMasterStatuses] = useState<string[]>([]);
 
   useEffect(() => {
     if (booking && open) {
@@ -42,6 +50,27 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
           .then(all => setLinkedShipments(all.filter((s: any) => s.booking_number === booking.booking_number)))
           .catch(() => setLinkedShipments([]));
       }
+      // Fetch CI data for Admin and Logistics Coordinator roles
+      if (booking.id && (user?.role === 'Admin' || user?.role === 'Logistics Coordinator')) {
+        setCiLoading(true);
+        getBookingCommercialInvoice(booking.id)
+          .then(data => setCiData(data ?? null))
+          .catch(() => setCiData(null))
+          .finally(() => setCiLoading(false));
+      }
+      // Fetch master statuses for the bulk-update dropdown
+      const excludedStatuses = new Set(['No Booking', 'Booking Pending', 'Rejected', 'Cancelled']);
+      getMasterStatuses('statuses')
+        .then((data: any[]) =>
+          setMasterStatuses(
+            data
+              .map((s: any) => s.name)
+              .filter((name: string) => Boolean(name) && !excludedStatuses.has(name))
+          )
+        )
+        .catch(() =>
+          setMasterStatuses(['Booking Approved', 'Customs Clearance', 'In-Transit', 'ASN Sent', 'Delivered'])
+        );
     }
   }, [booking, open]);
 
@@ -60,7 +89,8 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      await updateBooking(formData.id, formData);
+      const result = await updateBooking(formData.id, formData);
+      if (result && result.error) throw new Error(result.error);
       toast.success(`Booking ${formData.booking_number} updated successfully.`);
       setIsEditing(false);
       if (onSuccess) onSuccess();
@@ -73,12 +103,14 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this booking? This will also delete the linked shipment.')) return;
+  const handleDelete = () => setShowDeleteConfirm(true);
 
+  const confirmDelete = async () => {
+    setShowDeleteConfirm(false);
     setIsLoading(true);
     try {
-      await deleteBooking(booking.id);
+      const result = await deleteBooking(booking.id);
+      if (result && result.error) throw new Error(result.error);
       toast.success('Booking deleted successfully');
       if (onSuccess) onSuccess();
       onClose();
@@ -563,7 +595,10 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
                     {isBulkUpdating ? 'Updating...' : 'Update All POs →'}
                   </SelectTrigger>
                   <SelectContent>
-                    {['Booking Approved', 'Customs Clearance', 'In-Transit', 'ASN Sent', 'Delivered'].map(s => (
+                    {(masterStatuses.length > 0
+                      ? masterStatuses
+                      : ['Booking Approved', 'Customs Clearance', 'In-Transit', 'ASN Sent', 'Delivered']
+                    ).map(s => (
                       <SelectItem key={s} value={s} className="text-xs font-medium">{s}</SelectItem>
                     ))}
                   </SelectContent>
@@ -594,6 +629,78 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
             </div>
           )}
 
+          {/* Commercial Invoice — visible to Admin and Logistics Coordinator */}
+          {(user?.role === 'Admin' || user?.role === 'Logistics Coordinator') && (
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+              <Receipt className="w-4 h-4" /> Commercial Invoice
+            </h4>
+            {ciLoading ? (
+              <div className="bg-muted/20 p-4 rounded-xl border border-border/50">
+                <p className="text-xs text-muted-foreground italic">Loading commercial invoice...</p>
+              </div>
+            ) : ciData ? (
+              <div className="space-y-4">
+                {/* CI header summary */}
+                <div className="bg-muted/20 p-4 rounded-xl border border-border/50 space-y-3">
+                  <div className="grid grid-cols-3 gap-4 text-xs">
+                    <div className="space-y-1">
+                      <p className="text-muted-foreground uppercase font-bold tracking-wider">Invoice #</p>
+                      <p className="font-semibold font-mono">{ciData.invoice_number || '—'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-muted-foreground uppercase font-bold tracking-wider">Date</p>
+                      <p className="font-semibold">{ciData.invoice_date || '—'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-muted-foreground uppercase font-bold tracking-wider">Total Value</p>
+                      <p className="font-bold text-primary">
+                        ${Number(ciData.total_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 pt-1 border-t border-border/30">
+                    {ciData.status === 'confirmed' ? (
+                      <span className="flex items-center gap-1.5 text-[11px] text-emerald-600 font-semibold">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Confirmed by vendor
+                        {ciData.confirmed_at
+                          ? ` · ${new Date(ciData.confirmed_at).toLocaleDateString()}`
+                          : ''}
+                        {ciData.unmatched_sku_count > 0 && (
+                          <span className="ml-2 text-amber-600 font-bold">
+                            ⚠ {ciData.unmatched_sku_count} unmatched SKU(s)
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1.5 text-[11px] text-amber-600 font-semibold">
+                        <AlertCircle className="w-3.5 h-3.5" /> {ciData.status || 'pending'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* SKU line items */}
+                {Array.isArray(ciData.line_items) && ciData.line_items.length > 0 && (
+                  <CiPreviewTable
+                    lineItems={ciData.line_items}
+                    summary={{
+                      total_items: ciData.line_items.length,
+                      matched: ciData.line_items.filter((i: any) => i.match_status === 'matched').length,
+                      unmatched: ciData.line_items.filter((i: any) => i.match_status === 'unmatched').length,
+                      total_qty: ciData.line_items.reduce((s: number, i: any) => s + (Number(i.qty) || 0), 0),
+                    }}
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="bg-muted/20 p-4 rounded-xl border border-border/50">
+                <p className="text-xs text-muted-foreground italic">No commercial invoice attached to this booking.</p>
+              </div>
+            )}
+          </div>
+          )}
+
         </div>
 
         {/* Actions */}
@@ -617,6 +724,30 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
+              Delete Booking
+            </DialogTitle>
+            <DialogDescription asChild>
+              <div className="text-sm text-muted-foreground">
+                <p>Are you sure you want to delete <span className="font-semibold text-foreground">{booking?.booking_number}</span>?</p>
+                <p className="mt-2">This will also delete all linked shipment rows. This action cannot be undone.</p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={isLoading}>
+              {isLoading ? 'Deleting…' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Split/Duplicate Dialog */}
       {showLotDialog && (

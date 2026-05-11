@@ -1,222 +1,218 @@
 [
   {
-    "id": "1777339760638",
-    "type": "mainline",
-    "vendor_name": "EcoTech Garments",
-    "tentree_po_number": "PO-SS26-001",
-    "receiving_warehouse": "NRI CAN",
-    "number_of_cartons": "100",
-    "cargo_ready_date": "2026-05-15",
-    "courier": "Ceva",
-    "tracking_number": "",
-    "mode": "Ocean",
-    "incoterm": "FOB",
-    "season": "SS26",
-    "trn_number": "TRN-1001",
-    "po_details": [
-      {
-        "po_number": "PO-SS26-001",
-        "units": "5000",
-        "cartons": "100",
-        "weight": "200",
-        "cbm": "6.0"
-      },
-      {
-        "po_number": "",
-        "cartons": "",
-        "units": "",
-        "cbm": "",
-        "weight": ""
-      },
-      {
-        "po_number": "",
-        "cartons": "",
-        "units": "",
-        "cbm": "",
-        "weight": ""
-      },
-      {
-        "po_number": "",
-        "cartons": "",
-        "units": "",
-        "cbm": "",
-        "weight": ""
-      },
-      {
-        "po_number": "",
-        "cartons": "",
-        "units": "",
-        "cbm": "",
-        "weight": ""
-      }
-    ],
-    "booking_number": "BKG-2873",
-    "booking_status": "Customs Clearance",
-    "submitted_at": "2026-04-28T01:29:20.616Z",
-    "freight_forwarder": "Ceva",
-    "approved_at": "2026-04-28T01:39:25.434Z",
-    "shipment_status": "Customs Clearance"
-  },
-  {
-    "id": "1777340557228",
+    "id": "1778466567317",
     "type": "mainline",
     "vendor_name": "Green Fabrics Ltd",
-    "tentree_po_number": "PO-FW26-003",
-    "receiving_warehouse": "NRI CAN",
-    "number_of_cartons": "6000",
-    "cargo_ready_date": "2026-07-01",
-    "courier": "Ceva",
-    "tracking_number": "SO4897",
-    "mode": "Ocean",
-    "incoterm": "FOB",
-    "season": "FW26",
-    "trn_number": "TRN-1003",
-    "po_details": [
-      {
-        "po_number": "PO-FW26-003",
-        "units": "12000",
-        "cartons": "6000",
-        "weight": "300",
-        "cbm": "15"
-      }
-    ],
-    "booking_number": "BKG-9135",
-    "booking_status": "Booking Approved",
-    "submitted_at": "2026-04-28T01:42:37.202Z",
-    "approved_at": "2026-04-28T01:42:49.352Z"
-  },
-  {
-    "id": "1777340791492",
-    "type": "mainline",
-    "vendor_name": "Pacific Stitch",
-    "tentree_po_number": "PO-SS26-006",
-    "receiving_warehouse": "NRI CAN",
-    "number_of_cartons": "200",
-    "cargo_ready_date": "2026-05-25",
-    "courier": "Ceva",
-    "tracking_number": "123456789",
-    "mode": "Ocean",
-    "incoterm": "Ex-works",
-    "season": "SS26",
-    "trn_number": "TRN-1006",
-    "po_details": [
-      {
-        "po_number": "PO-SS26-006",
-        "units": "4000",
-        "cartons": "200",
-        "weight": "100",
-        "cbm": "50"
-      }
-    ],
-    "booking_number": "BKG-5036",
-    "booking_status": "In-Transit",
-    "submitted_at": "2026-04-28T01:46:31.468Z",
-    "approved_at": "2026-04-28T01:46:48.933Z",
-    "shipment_status": "In-Transit"
-  },
-  {
-    "id": "1777340868831",
-    "type": "mainline",
-    "vendor_name": "Pacific Stitch",
-    "tentree_po_number": "PO-SS26-006",
-    "receiving_warehouse": "NRI CAN",
-    "number_of_cartons": "100",
-    "cargo_ready_date": "2026-05-25",
-    "courier": "Ceva",
-    "tracking_number": "hihihihi",
-    "mode": "Ocean",
-    "incoterm": "Ex-works",
-    "season": "SS26",
-    "trn_number": "TRN-1006",
-    "po_details": [
-      {
-        "po_number": "PO-SS26-006",
-        "units": "2000",
-        "cartons": "100",
-        "weight": "100",
-        "cbm": "25"
-      }
-    ],
-    "booking_number": "BKG-6988",
-    "booking_status": "Customs Clearance",
-    "submitted_at": "2026-04-28T01:47:48.805Z",
-    "approved_at": "2026-04-28T01:48:04.037Z",
-    "shipment_status": "Customs Clearance"
-  },
-  {
-    "id": "1777342375069",
-    "type": "mainline",
-    "vendor_name": "EcoTech Garments",
-    "tentree_po_number": "",
+    "tentree_po_number": "PO-FW26-005, PO-FW26-007",
     "receiving_warehouse": "NRI US",
-    "number_of_cartons": "450",
-    "cargo_ready_date": "",
-    "courier": "Ceva",
-    "tracking_number": "1234567890",
-    "mode": "Air",
-    "incoterm": "FOB",
-    "season": "FW26",
-    "trn_number": "TRN-1011",
-    "po_details": [],
-    "booking_number": "BKG-2249",
-    "booking_status": "Booking Pending",
-    "submitted_at": "2026-04-28T02:12:55.030Z"
-  },
-  {
-    "id": "1777344143131",
-    "type": "mainline",
-    "vendor_name": "Green Fabrics Ltd",
-    "tentree_po_number": "PO-FW26-004, PO-FW26-014",
-    "receiving_warehouse": "NRI US",
-    "number_of_cartons": "30",
-    "cargo_ready_date": "2026-07-10",
+    "number_of_cartons": "245",
+    "cargo_ready_date": "2026-05-11",
     "courier": "",
     "tracking_number": "",
-    "mode": "Air",
+    "mode": "Ocean",
     "incoterm": "FOB",
     "season": "FW26",
-    "trn_number": "TRN-1004",
+    "trn_number": "",
     "po_details": [
       {
-        "po_number": "PO-FW26-004",
-        "cartons": "15",
-        "units": "1500",
-        "cbm": "15",
-        "weight": "100"
+        "po_number": "PO-FW26-005",
+        "cartons": "120",
+        "units": "2400",
+        "cbm": "6",
+        "weight": "480"
       },
       {
-        "po_number": "PO-FW26-014",
-        "cartons": "15",
-        "units": "1500",
-        "cbm": "15",
-        "weight": "100"
-      },
-      {
-        "po_number": "",
-        "cartons": "",
-        "units": "",
-        "cbm": "",
-        "weight": ""
-      },
-      {
-        "po_number": "",
-        "cartons": "",
-        "units": "",
-        "cbm": "",
-        "weight": ""
-      },
-      {
-        "po_number": "",
-        "cartons": "",
-        "units": "",
-        "cbm": "",
-        "weight": ""
+        "po_number": "PO-FW26-007",
+        "cartons": "125",
+        "units": "2500",
+        "cbm": "7",
+        "weight": "550"
       }
     ],
-    "booking_number": "BKG-1601",
-    "booking_status": "Customs Clearance",
-    "submitted_at": "2026-04-28T02:42:23.097Z",
-    "approved_at": "2026-04-28T02:43:33.888Z",
-    "shipment_status": "Customs Clearance"
+    "commercial_invoice": {
+      "invoice_number": "CI-FW26-005-007",
+      "invoice_date": "2026-04-15",
+      "total_value": 126600,
+      "po_summary": [
+        {
+          "po_number": "PO-FW26-005",
+          "shipped_qty": 2400,
+          "cartons": 120,
+          "weight_kg": 480,
+          "cbm": 6
+        },
+        {
+          "po_number": "PO-FW26-007",
+          "shipped_qty": 2500,
+          "cartons": 125,
+          "weight_kg": 550,
+          "cbm": 7
+        }
+      ],
+      "status": "confirmed",
+      "confirmed_at": "2026-05-11T02:29:08.945Z",
+      "line_items": [
+        {
+          "sku_code": "TEN7501-OTM-S",
+          "description": "Merino Wool Crewneck Knit Oatmeal",
+          "qty": 300,
+          "unit_price": 34,
+          "total": 10200,
+          "weight_kg": 60,
+          "cbm": 0.75,
+          "match_status": "pending",
+          "matched_po": null,
+          "po_expected_qty": null
+        },
+        {
+          "sku_code": "TEN7501-OTM-M",
+          "description": "Merino Wool Crewneck Knit Oatmeal",
+          "qty": 500,
+          "unit_price": 34,
+          "total": 17000,
+          "weight_kg": 100,
+          "cbm": 1.25,
+          "match_status": "pending",
+          "matched_po": null,
+          "po_expected_qty": null
+        },
+        {
+          "sku_code": "TEN7501-OTM-L",
+          "description": "Merino Wool Crewneck Knit Oatmeal",
+          "qty": 500,
+          "unit_price": 34,
+          "total": 17000,
+          "weight_kg": 100,
+          "cbm": 1.25,
+          "match_status": "pending",
+          "matched_po": null,
+          "po_expected_qty": null
+        },
+        {
+          "sku_code": "TEN7501-OTM-XL",
+          "description": "Merino Wool Crewneck Knit Oatmeal",
+          "qty": 300,
+          "unit_price": 34,
+          "total": 10200,
+          "weight_kg": 60,
+          "cbm": 0.75,
+          "match_status": "pending",
+          "matched_po": null,
+          "po_expected_qty": null
+        },
+        {
+          "sku_code": "TEN7501-SLT-S",
+          "description": "Merino Wool Crewneck Knit Slate Blue",
+          "qty": 200,
+          "unit_price": 34,
+          "total": 6800,
+          "weight_kg": 40,
+          "cbm": 0.5,
+          "match_status": "pending",
+          "matched_po": null,
+          "po_expected_qty": null
+        },
+        {
+          "sku_code": "TEN7501-SLT-M",
+          "description": "Merino Wool Crewneck Knit Slate Blue",
+          "qty": 300,
+          "unit_price": 34,
+          "total": 10200,
+          "weight_kg": 60,
+          "cbm": 0.75,
+          "match_status": "pending",
+          "matched_po": null,
+          "po_expected_qty": null
+        },
+        {
+          "sku_code": "TEN7501-SLT-L",
+          "description": "Merino Wool Crewneck Knit Slate Blue",
+          "qty": 200,
+          "unit_price": 34,
+          "total": 6800,
+          "weight_kg": 40,
+          "cbm": 0.5,
+          "match_status": "pending",
+          "matched_po": null,
+          "po_expected_qty": null
+        },
+        {
+          "sku_code": "TEN7501-SLT-XL",
+          "description": "Merino Wool Crewneck Knit Slate Blue",
+          "qty": 100,
+          "unit_price": 34,
+          "total": 3400,
+          "weight_kg": 20,
+          "cbm": 0.25,
+          "match_status": "pending",
+          "matched_po": null,
+          "po_expected_qty": null
+        },
+        {
+          "sku_code": "TEN7601-NVY-S",
+          "description": "Recycled Fleece Hoodie Navy",
+          "qty": 500,
+          "unit_price": 18,
+          "total": 9000,
+          "weight_kg": 110,
+          "cbm": 1.4,
+          "match_status": "pending",
+          "matched_po": null,
+          "po_expected_qty": null
+        },
+        {
+          "sku_code": "TEN7601-NVY-M",
+          "description": "Recycled Fleece Hoodie Navy",
+          "qty": 800,
+          "unit_price": 18,
+          "total": 14400,
+          "weight_kg": 176,
+          "cbm": 2.24,
+          "match_status": "pending",
+          "matched_po": null,
+          "po_expected_qty": null
+        },
+        {
+          "sku_code": "TEN7601-NVY-L",
+          "description": "Recycled Fleece Hoodie Navy",
+          "qty": 700,
+          "unit_price": 18,
+          "total": 12600,
+          "weight_kg": 154,
+          "cbm": 1.96,
+          "match_status": "pending",
+          "matched_po": null,
+          "po_expected_qty": null
+        },
+        {
+          "sku_code": "TEN7601-NVY-XL",
+          "description": "Recycled Fleece Hoodie Navy",
+          "qty": 400,
+          "unit_price": 18,
+          "total": 7200,
+          "weight_kg": 88,
+          "cbm": 1.12,
+          "match_status": "pending",
+          "matched_po": null,
+          "po_expected_qty": null
+        },
+        {
+          "sku_code": "TEN7601-NVY-2X",
+          "description": "Recycled Fleece Hoodie Navy",
+          "qty": 100,
+          "unit_price": 18,
+          "total": 1800,
+          "weight_kg": 22,
+          "cbm": 0.28,
+          "match_status": "pending",
+          "matched_po": null,
+          "po_expected_qty": null
+        }
+      ]
+    },
+    "booking_number": "BKG-6986",
+    "booking_status": "Booking Approved",
+    "submitted_at": "2026-05-11T02:29:27.268Z",
+    "approved_at": "2026-05-11T02:29:37.907Z"
   }
 ]

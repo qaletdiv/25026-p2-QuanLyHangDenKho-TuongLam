@@ -1,12 +1,17 @@
 import PurchaseOrdersClient from './PurchaseOrdersClient';
 import { getPurchaseOrders } from '@/app/actions/purchase-orders';
+import { getSession } from '@/app/actions/auth';
 
 export default async function PurchaseOrdersPage() {
   let pos = [];
   try {
-    pos = await getPurchaseOrders() || [];
-  } catch (e) {
-    console.error('Failed to fetch purchase orders:', e);
+    const [allPOs, session] = await Promise.all([getPurchaseOrders(), getSession()]);
+    const isVendor = session?.role === 'Vendor';
+    pos = (allPOs || []).filter((p: any) =>
+      !isVendor || p.supplier === session.supplier
+    );
+  } catch {
+    // render with empty state
   }
 
   return <PurchaseOrdersClient initialPOs={pos} />;

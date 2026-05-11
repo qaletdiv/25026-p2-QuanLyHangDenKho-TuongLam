@@ -3,6 +3,7 @@
     "id": "1",
     "email": "admin@tentree.com",
     "password": "password123",
+    "_TODO_password": "WEAK DEFAULT — replace with bcrypt hash before any production or staging deployment",
     "name": "Admin User",
     "role": "Admin"
   },
@@ -10,6 +11,7 @@
     "id": "2",
     "email": "logistics@tentree.com",
     "password": "password123",
+    "_TODO_password": "WEAK DEFAULT — replace with bcrypt hash before any production or staging deployment",
     "name": "Logistics Coord",
     "role": "Logistics Coordinator"
   },
@@ -17,6 +19,7 @@
     "id": "3",
     "email": "production@tentree.com",
     "password": "password123",
+    "_TODO_password": "WEAK DEFAULT — replace with bcrypt hash before any production or staging deployment",
     "name": "Production Team",
     "role": "Production"
   },
@@ -24,6 +27,7 @@
     "id": "4",
     "email": "vendor@ecotech.com",
     "password": "password123",
+    "_TODO_password": "WEAK DEFAULT — replace with bcrypt hash before any production or staging deployment",
     "name": "EcoTech Factory",
     "role": "Vendor",
     "supplier": "EcoTech Garments"
@@ -32,6 +36,7 @@
     "id": "5",
     "email": "vendor@greenfabrics.com",
     "password": "password123",
+    "_TODO_password": "WEAK DEFAULT — replace with bcrypt hash before any production or staging deployment",
     "name": "Green Fabrics",
     "role": "Vendor",
     "supplier": "Green Fabrics Ltd"

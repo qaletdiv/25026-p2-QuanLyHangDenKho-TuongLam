@@ -26,15 +26,15 @@ export default async function EndOfMonthPage() {
       const allTasks: any[] = [];
       Object.entries(tasksByGroup).forEach(([group, items]: any) => {
         items.forEach((title: string, i: number) => {
-          allTasks.push({ month: currentMonth, group, title, status: 'Not Started', order_index: i });
+          allTasks.push({ month: currentMonth, group, title, status: 'Not Started', completed: false, order_index: i });
         });
       });
       await createEomTasks(allTasks);
       const newData = await getEomTasks(currentMonth);
       tasks = newData || [];
     }
-  } catch (e) {
-    console.error('Failed to fetch/initialize EOM tasks:', e);
+  } catch {
+    // render with empty tasks
   }
 
   return <EomClient initialTasks={tasks} currentMonth={currentMonth} />;

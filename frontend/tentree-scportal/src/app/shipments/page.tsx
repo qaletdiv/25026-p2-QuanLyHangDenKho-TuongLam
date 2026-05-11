@@ -72,8 +72,8 @@ export default async function ShipmentsPage() {
       }
     });
 
-  } catch (e) {
-    console.error('Failed to fetch shipments for page:', e);
+  } catch {
+    // render with empty state
   }
 
   return <ShipmentsClient initialShipments={merged} />;

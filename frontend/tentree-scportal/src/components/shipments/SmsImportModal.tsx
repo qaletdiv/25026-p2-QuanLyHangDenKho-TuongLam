@@ -44,8 +44,7 @@ export default function SmsImportModal({ open, onClose, onSuccess }: any) {
         setIsLoading(false);
         toast.success(`Parsed ${mappedData.length} shipments from file`);
       },
-      error: (error) => {
-        console.error(error);
+      error: () => {
         toast.error('Failed to parse CSV file');
         setIsLoading(false);
       }
@@ -68,8 +67,7 @@ export default function SmsImportModal({ open, onClose, onSuccess }: any) {
       toast.success(`Successfully imported ${successCount} shipments`);
       if (onSuccess) onSuccess();
       onClose();
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error('Error during bulk import. Some shipments may not have been saved.');
     } finally {
       setIsSaving(false);

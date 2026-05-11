@@ -88,7 +88,7 @@ export default function ContactsClient({ initialContacts }: { initialContacts: a
           {filtered.length === 0 && <div className="col-span-full py-12 text-center text-muted-foreground text-sm">No contacts found</div>}
         </div>
       </div>
-      <SopPanel title="Contacts SOP" sections={[]} isOpen={sopOpen} onToggle={() => setSopOpen(!sopOpen)} />
+      <SopPanel title="Contacts SOP" isOpen={sopOpen} onToggle={() => setSopOpen(!sopOpen)} />
     </div>
   );
 }

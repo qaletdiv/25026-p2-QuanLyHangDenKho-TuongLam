@@ -1,0 +1,9 @@
+[
+  { "id": "st1", "name": "No Booking",        "color": "#9CA3AF" },
+  { "id": "st2", "name": "Booking Pending",   "color": "#F59E0B" },
+  { "id": "st3", "name": "Booking Approved",  "color": "#3B82F6" },
+  { "id": "st4", "name": "In-Transit",        "color": "#8B5CF6" },
+  { "id": "st5", "name": "Delivered",         "color": "#10B981" },
+  { "id": "st6", "name": "Cancelled",         "color": "#EF4444" },
+  { "id": "st7", "name": "Rejected",          "color": "#DC2626" }
+]

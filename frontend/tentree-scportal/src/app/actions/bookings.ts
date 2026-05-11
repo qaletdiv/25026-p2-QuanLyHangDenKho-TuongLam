@@ -2,7 +2,6 @@
 
 import { fetchApi } from '@/lib/api';
 import { revalidatePath } from 'next/cache';
-import { getShipments, createShipment, deleteShipment, bulkUpdateShipmentStatus } from './shipments';
 
 export async function getBookings() {
   const data = await fetchApi('/bookings');
@@ -42,14 +41,8 @@ export async function updateBooking(id: string, data: any) {
 }
 
 export async function deleteBooking(id: string) {
-  // 1. Find the booking to get its booking_number
-  const bookings = await getBookings();
-  const bookingToDelete = bookings.find((b: any) => b.id === id);
-
-  // 2. Delete ALL linked PO shipment rows (fan-out) is now handled entirely by the backend
-  //    inside DELETE /bookings/:id
-
-  // 3. Delete the booking itself
+  // Delete ALL linked PO shipment rows (fan-out) is handled entirely by the backend
+  // inside DELETE /bookings/:id
   const result = await fetchApi(`/bookings/${id}`, {
     method: 'DELETE',
   });

@@ -10,7 +10,6 @@ const CLIENT_SECRET = process.env.FEDEX_CLIENT_SECRET || '';
  */
 async function getFedexToken() {
   if (!CLIENT_ID || !CLIENT_SECRET) {
-    console.warn('FEDEX_CLIENT_ID or FEDEX_CLIENT_SECRET is missing.');
     return null;
   }
 
@@ -29,15 +28,12 @@ async function getFedexToken() {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('FedEx OAuth Error:', errorText);
       return null;
     }
 
     const data = await response.json();
     return data.access_token;
-  } catch (error) {
-    console.error('FedEx OAuth Network Error:', error);
+  } catch {
     return null;
   }
 }
@@ -84,8 +80,6 @@ export async function trackFedexShipment(trackingNumber: string) {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('FedEx Tracking API Error:', errorText);
       return { error: 'FedEx Tracking API returned an error.' };
     }
 
@@ -112,8 +106,7 @@ export async function trackFedexShipment(trackingNumber: string) {
       eta: eta ? eta.split('T')[0] : null, // Return date part only
       raw: data,
     };
-  } catch (error) {
-    console.error('FedEx Tracking Network Error:', error);
+  } catch {
     return { error: 'Network error occurred while tracking.' };
   }
 }

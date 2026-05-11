@@ -11,8 +11,8 @@ import { useSession } from '@/components/providers/SessionProvider';
 const navItems = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Purchase Orders', href: '/purchase-orders', icon: ClipboardList },
-  { name: 'Shipments', href: '/shipments', icon: Package },
   { name: 'Bookings', href: '/bookings', icon: FileText },
+  { name: 'Shipments', href: '/shipments', icon: Package },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Forecast', href: '/forecast', icon: LineChart },
   { name: 'EoM Progress', href: '/eom', icon: CalendarCheck },
@@ -50,7 +50,7 @@ export default function Sidebar() {
 
   const filteredItems = navItems.filter(item => {
     if (!user) return true;
-    if (user.role === 'Vendor') return ['Bookings', 'Shipments'].includes(item.name);
+    if (user.role === 'Vendor') return ['Purchase Orders', 'Bookings', 'Shipments'].includes(item.name);
     if (user.role === 'Production') return ['Shipments', 'Dashboard', 'Reports', 'Forecast'].includes(item.name);
     return true;
   });

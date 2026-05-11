@@ -53,8 +53,7 @@ export default function ShipmentDetailDrawer({ open, onClose, onSuccess, onSendA
       setIsEditing(false);
       if (onSuccess) onSuccess();
       onClose();
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error('Failed to update shipment.');
     } finally {
       setIsLoading(false);
@@ -108,8 +107,7 @@ export default function ShipmentDetailDrawer({ open, onClose, onSuccess, onSendA
         toast.success('Shipment updated automatically');
         if (onSuccess) onSuccess();
       }
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error('Failed to track shipment.');
     } finally {
       setIsTracking(false);
@@ -132,8 +130,8 @@ export default function ShipmentDetailDrawer({ open, onClose, onSuccess, onSendA
       
       totalReceived = lots.reduce((sum: number, s: any) => sum + parseInt(s.received_quantity || '0', 10), 0);
       totalExpected = lots.reduce((sum: number, s: any) => sum + parseInt(s.expected_quantity || '0', 10), 0);
-    } catch (e) {
-      console.error('Failed to fetch PO/shipments data', e);
+    } catch {
+      // use defaults set above
     }
 
     const unassigned = Math.max(0, poTotal - totalExpected);
@@ -214,8 +212,7 @@ export default function ShipmentDetailDrawer({ open, onClose, onSuccess, onSendA
       toast.success('New shipment lot created successfully');
       if (onSuccess) onSuccess();
       onClose();
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error('Failed to create split lot');
     } finally {
       setIsLoading(false);
@@ -231,8 +228,7 @@ export default function ShipmentDetailDrawer({ open, onClose, onSuccess, onSendA
       toast.success('Shipment deleted successfully');
       if (onSuccess) onSuccess();
       onClose();
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error('Failed to delete shipment');
     } finally {
       setIsLoading(false);

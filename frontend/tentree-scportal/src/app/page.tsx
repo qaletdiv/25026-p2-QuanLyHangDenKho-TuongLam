@@ -22,13 +22,20 @@ const modeIcons: any = { Ocean: Ship, Air: Plane, Courier: Truck, DDP: Truck };
 
 export default async function Dashboard() {
   const currentMonth = format(new Date(), 'yyyy-MM');
-  
-  // Fetch data on the server
-  const [shipments, bookings, eomTasks] = await Promise.all([
-    getShipments(),
-    getBookings(),
-    getEomTasks(currentMonth)
-  ]);
+
+  // Fetch data on the server — gracefully degrade on backend failure
+  let shipments: any[] = [];
+  let bookings: any[] = [];
+  let eomTasks: any[] = [];
+  try {
+    [shipments, bookings, eomTasks] = await Promise.all([
+      getShipments(),
+      getBookings(),
+      getEomTasks(currentMonth)
+    ]);
+  } catch {
+    // Backend unreachable — render with empty data
+  }
 
   const activeShipments = shipments.filter((s: any) => s.status !== 'Received');
   const pendingBookings = bookings.filter((b: any) => b.decision === 'Pending');
@@ -75,7 +82,7 @@ export default async function Dashboard() {
             </CardContent>
           </Card>
         </Link>
-        <Link href="/asn">
+        <Link href="/shipments">
           <Card className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-emerald-500">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">

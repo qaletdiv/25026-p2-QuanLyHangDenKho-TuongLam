@@ -4,8 +4,12 @@ import { fetchApi } from '@/lib/api';
 import { revalidatePath } from 'next/cache';
 
 export async function getShipments() {
-  const data = await fetchApi('/shipments');
-  return data || [];
+  try {
+    const data = await fetchApi('/shipments');
+    return data || [];
+  } catch {
+    return [];
+  }
 }
 
 export async function createShipment(data: any) {
@@ -56,4 +60,9 @@ export async function bulkUpdateShipmentStatus(bookingNumber: string, status: st
   revalidatePath('/bookings');
   revalidatePath('/');
   return result;
+}
+
+export async function getShipmentLineItems(shipmentId: string) {
+  const data = await fetchApi(`/shipments/${shipmentId}/line-items`);
+  return data || [];
 }

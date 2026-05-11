@@ -58,3 +58,31 @@ export async function syncNetSuite() {
   revalidatePath('/purchase-orders');
   return data;
 }
+
+export async function replaceLineItems(poId: string, lineItems: any[]) {
+  const result = await fetchApi(`/purchase-orders/${poId}/line-items`, {
+    method: 'POST',
+    body: JSON.stringify({ line_items: lineItems }),
+  });
+  revalidatePath('/purchase-orders');
+  return result;
+}
+
+export async function updateLineItem(poId: string, skuCode: string, data: any) {
+  const result = await fetchApi(`/purchase-orders/${poId}/line-items/${encodeURIComponent(skuCode)}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+  revalidatePath('/purchase-orders');
+  return result;
+}
+
+export async function getFulfillment(poId: string) {
+  const data = await fetchApi(`/purchase-orders/${poId}/fulfillment`);
+  return data;
+}
+
+export async function getShipmentLots(poId: string) {
+  const data = await fetchApi(`/purchase-orders/${poId}/shipment-lots`);
+  return data;
+}

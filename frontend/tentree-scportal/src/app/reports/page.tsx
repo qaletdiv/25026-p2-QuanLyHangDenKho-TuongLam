@@ -5,8 +5,8 @@ export default async function ReportsPage() {
   let reports = [];
   try {
     reports = await getReports() || [];
-  } catch (e) {
-    console.error('Failed to fetch reports:', e);
+  } catch {
+    // render with empty state
   }
 
   return <ReportsClient initialReports={reports || []} />;
