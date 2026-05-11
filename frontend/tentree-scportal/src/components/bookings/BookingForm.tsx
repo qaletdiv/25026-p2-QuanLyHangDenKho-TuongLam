@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Calendar, PackageOpen, Building2, Anchor, Hash, Navigation, Printer, Download, Search, Truck } from 'lucide-react';
 import { getSession } from '@/app/actions/auth';
 import { getPurchaseOrders } from '@/app/actions/purchase-orders';
+import { getWarehouses, getModes, getIncoterms, getCouriers } from '@/app/actions/master-data';
 import { cn } from '@/lib/utils';
 import CiUploadSection from './CiUploadSection';
 const INITIAL_FORM_STATE = {
@@ -35,6 +36,10 @@ export default function BookingForm({ onSuccess, prefilledPO, onSwitchToMultiPO 
   const [vendorPOs, setVendorPOs] = useState<any[]>([]);
   const [formData, setFormData] = useState<any>(INITIAL_FORM_STATE);
   const [showSwitchConfirm, setShowSwitchConfirm] = useState(false);
+  const [warehouses, setWarehouses] = useState<any[]>([]);
+  const [modes, setModes] = useState<any[]>([]);
+  const [incoterms, setIncoterms] = useState<any[]>([]);
+  const [couriers, setCouriers] = useState<any[]>([]);
 
   React.useEffect(() => {
     async function init() {
@@ -43,8 +48,19 @@ export default function BookingForm({ onSuccess, prefilledPO, onSwitchToMultiPO 
       const isVendor = session?.role === 'Vendor';
       const isAdmin = session?.role === 'Admin' || session?.role === 'Logistics';
 
+      const [allPOs, wh, md, it, cr] = await Promise.all([
+        getPurchaseOrders(),
+        getWarehouses(),
+        getModes(),
+        getIncoterms(),
+        getCouriers(),
+      ]);
+      setWarehouses(Array.isArray(wh) ? wh : []);
+      setModes(Array.isArray(md) ? md : []);
+      setIncoterms(Array.isArray(it) ? it : []);
+      setCouriers(Array.isArray(cr) ? cr : []);
+
       if (isVendor || isAdmin) {
-        const allPOs = await getPurchaseOrders();
         const available = allPOs.filter((p: any) => {
           const isMatch = isAdmin || p.supplier === session.supplier;
           const remaining = (parseInt(p.expected_qty) || 0) - (parseInt(p.booked_qty) || 0);
@@ -540,10 +556,9 @@ export default function BookingForm({ onSuccess, prefilledPO, onSwitchToMultiPO 
                 >
                   <SelectTrigger className={formData.type === 'mainline' && !!prefilledPO ? "bg-muted/50" : ""}><SelectValue placeholder="Select warehouse" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="NRI US">NRI US</SelectItem>
-                    <SelectItem value="NRI CAN">NRI CAN</SelectItem>
-                    <SelectItem value="Direct US">Direct US</SelectItem>
-                    <SelectItem value="Direct CAN">Direct CAN</SelectItem>
+                    {warehouses.map((w: any) => (
+                      <SelectItem key={w.id} value={w.name}>{w.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -558,9 +573,9 @@ export default function BookingForm({ onSuccess, prefilledPO, onSwitchToMultiPO 
                 >
                   <SelectTrigger className={formData.type === 'mainline' && !!prefilledPO ? "bg-muted/50" : ""}><SelectValue placeholder="Select mode" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Ocean">Ocean</SelectItem>
-                    <SelectItem value="Air">Air</SelectItem>
-                    <SelectItem value="Courier">Courier</SelectItem>
+                    {modes.map((m: any) => (
+                      <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -575,25 +590,26 @@ export default function BookingForm({ onSuccess, prefilledPO, onSwitchToMultiPO 
                 >
                   <SelectTrigger className={formData.type === 'mainline' && !!prefilledPO ? "bg-muted/50" : ""}><SelectValue placeholder="Select incoterm" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="FOB">FOB</SelectItem>
-                    <SelectItem value="DDP">DDP</SelectItem>
-                    <SelectItem value="Ex-works">Ex-works</SelectItem>
-                    <SelectItem value="DAP">DAP</SelectItem>
+                    {incoterms.map((i: any) => (
+                      <SelectItem key={i.id} value={i.name}>{i.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             )}
             <div className="space-y-2 col-span-2">
               <Label>Courier / Freight Forwarder</Label>
-              <div className="relative">
-                <Truck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  placeholder="e.g. DHL, FedEx, UPS..." 
-                  className="pl-9"
-                  value={formData.courier} 
-                  onChange={(e) => updateField('courier', e.target.value)} 
-                />
-              </div>
+              <Select value={formData.courier} onValueChange={(val) => updateField('courier', val)}>
+                <SelectTrigger>
+                  <Truck className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
+                  <SelectValue placeholder="Select courier or forwarder" />
+                </SelectTrigger>
+                <SelectContent>
+                  {couriers.map((c: any) => (
+                    <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2 col-span-2 animate-in slide-in-from-top-2 duration-300">
               <Label className={formData.mode === 'Courier' ? "text-primary flex items-center gap-2" : "flex items-center gap-2"}>
