@@ -58,6 +58,7 @@ async function getAll(req, res) {
 
             return {
                 ...p,
+                line_items: Array.isArray(p.line_items) ? p.line_items : [],
                 received_qty: totalReceived,
                 booked_qty: totalBooked,
                 actual_receive_date: latestDate
@@ -118,7 +119,7 @@ async function getOne(req, res) {
     if (!po) {
         const err = new Error('Not found'); err.statusCode = 404; throw err;
     }
-    res.json(po);
+    res.json({ ...po, line_items: Array.isArray(po.line_items) ? po.line_items : [] });
 }
 
 async function update(req, res) {
@@ -158,6 +159,10 @@ async function getShipmentLots(req, res) {
     const history   = await HistoryModel.read().catch(() => []);
     const allShipments = [...shipments, ...history];
 
+    const bookings        = await BookingModel.read().catch(() => []);
+    const historyBookings = await HistoryBookingsModel.read().catch(() => []);
+    const allBookings     = [...bookings, ...historyBookings];
+
     const poShipments = allShipments.filter(s => s.po_number === po.po_number);
 
     // Sum booked qty from non-Cancelled shipments
@@ -167,14 +172,29 @@ async function getShipmentLots(req, res) {
 
     const remaining_qty = (parseInt(po.expected_qty) || 0) - totalBooked;
 
-    const lots = poShipments.map(s => ({
-        shipment_id: s.id,
-        booking_number: s.booking_number || null,
-        lot_number: s.lot_number ?? null,
-        booked_qty: parseInt(s.expected_quantity) || 0,
-        status: s.status || 'Unknown',
-        line_items: s.line_items || []
-    }));
+    const lots = poShipments.map(s => {
+        const booking = s.booking_number
+            ? allBookings.find(b => b.booking_number === s.booking_number)
+            : null;
+        const ci = booking?.commercial_invoice;
+
+        // Derive per-SKU shipped quantities from CI line_items (matched only)
+        const line_items = (ci?.status === 'confirmed' && Array.isArray(ci.line_items))
+            ? ci.line_items
+                .filter(li => li.match_status === 'matched' && li.matched_po === po.po_number)
+                .map(li => ({ sku_code: li.sku_code, description: li.description || '', shipped_qty: li.qty || 0 }))
+            : [];
+
+        return {
+            shipment_id: s.id,
+            booking_number: s.booking_number || null,
+            lot_number: s.lot_number ?? null,
+            booked_qty: parseInt(s.expected_quantity) || 0,
+            status: s.status || 'Unknown',
+            ci_status: ci?.status || null,
+            line_items
+        };
+    });
 
     res.json({ po_number: po.po_number, expected_qty: po.expected_qty, remaining_qty, lots });
 }
@@ -219,9 +239,11 @@ async function updateLineItem(req, res) {
 }
 
 // PO FULFILLMENT (computed: expected vs shipped per SKU)
+// Supports lookup by PO id or po_number (e.g. "PO-FW26-003")
 async function getFulfillment(req, res) {
     const pos = await PurchaseOrderModel.read().catch(() => []);
-    const po = pos.find(p => p.id === req.params.id);
+    const param = req.params.id;
+    const po = pos.find(p => p.id === param || p.po_number === param);
     if (!po) {
         const err = new Error('Not found'); err.statusCode = 404; throw err;
     }
@@ -229,9 +251,10 @@ async function getFulfillment(req, res) {
         return res.json({ line_items: [], message: 'No SKU line items on this PO' });
     }
 
-    // Sum shipped qty from confirmed bookings whose CI line_items match each SKU
-    const bookings = await BookingModel.read().catch(() => []);
-    const confirmedBookings = bookings.filter(b =>
+    // Sum shipped qty from confirmed bookings (active + history) whose CI line_items match each SKU
+    const bookings        = await BookingModel.read().catch(() => []);
+    const historyBookings = await HistoryBookingsModel.read().catch(() => []);
+    const confirmedBookings = [...bookings, ...historyBookings].filter(b =>
         b.commercial_invoice?.status === 'confirmed' &&
         Array.isArray(b.commercial_invoice?.line_items)
     );
