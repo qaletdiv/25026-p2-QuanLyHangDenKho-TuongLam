@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getBookings, getHistoryBookings, updateBooking, deleteBooking } from '../actions/bookings';
+import { getBookings, getHistoryBookings } from '../actions/bookings';
 import { getPurchaseOrders } from '../actions/purchase-orders';
 import { useSession } from '@/components/providers/SessionProvider';
 import { Badge } from '@/components/ui/badge';
@@ -11,16 +11,17 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Search, Download, Settings2, Check, Clock, ArrowRight } from 'lucide-react';
+import { Search, Download, Settings2, Check, Clock, ArrowRight, FileSpreadsheet, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import BookingForm from '@/components/bookings/BookingForm';
-import BookingDetailDrawer from '@/components/bookings/BookingDetailDrawer';
 import Papa from 'papaparse';
 
 // ─── Pending POs ────────────────────────────────────────────────────────────
+
+const PAGE_SIZE = 10;
 
 function PendingPOsList({ user, initialPendingPOs }: any) {
   const router = useRouter();
@@ -29,6 +30,7 @@ function PendingPOsList({ user, initialPendingPOs }: any) {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [confirmPO, setConfirmPO] = useState<any>(null);
+  const [page, setPage] = useState(1);
 
   const fetchPending = async () => {
     setIsLoading(true);
@@ -52,6 +54,8 @@ function PendingPOsList({ user, initialPendingPOs }: any) {
     fetchPending();
   }, [user]);
 
+  useEffect(() => { setPage(1); }, [search, filterStatus]);
+
   const filtered = pos.filter((p) => {
     const q = search.toLowerCase();
     const matchSearch = !q ||
@@ -64,6 +68,10 @@ function PendingPOsList({ user, initialPendingPOs }: any) {
     const matchVendor = !user || user.role !== 'Vendor' || p.supplier === user.supplier;
     return matchSearch && matchStatus && matchVendor;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   return (
     <>
@@ -119,7 +127,7 @@ function PendingPOsList({ user, initialPendingPOs }: any) {
               ) : filtered.length === 0 ? (
                 <TableRow><TableCell colSpan={user?.role !== 'Vendor' ? 14 : 13} className="text-center py-12 text-muted-foreground italic">{pos.length === 0 ? 'No pending POs found.' : 'No results match your search.'}</TableCell></TableRow>
               ) : (
-                filtered.map((p) => (
+                paginated.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell className="text-xs font-mono">{p.season || '—'}</TableCell>
                     <TableCell className="text-xs font-mono">{p.trn_number || '—'}</TableCell>
@@ -155,6 +163,45 @@ function PendingPOsList({ user, initialPendingPOs }: any) {
             </TableBody>
           </Table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-3 px-1">
+            <p className="text-xs text-muted-foreground">
+              {filtered.length} result{filtered.length !== 1 ? 's' : ''} · Page {safePage} of {totalPages}
+            </p>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage <= 1}>
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(n => n === 1 || n === totalPages || Math.abs(n - safePage) <= 1)
+                .reduce<(number | string)[]>((acc, n, idx, arr) => {
+                  if (idx > 0 && n - (arr[idx - 1] as number) > 1) acc.push('…');
+                  acc.push(n);
+                  return acc;
+                }, [])
+                .map((n, i) =>
+                  typeof n === 'string' ? (
+                    <span key={`ellipsis-${i}`} className="px-1 text-xs text-muted-foreground">…</span>
+                  ) : (
+                    <Button
+                      key={n}
+                      variant={safePage === n ? 'default' : 'ghost'}
+                      size="icon"
+                      className="h-8 w-8 text-xs"
+                      onClick={() => setPage(n)}
+                    >
+                      {n}
+                    </Button>
+                  )
+                )}
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage >= totalPages}>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Confirm single-PO dialog */}
@@ -216,23 +263,25 @@ const ALL_COLUMNS = [
   { id: 'cargo_ready_date', label: 'Cargo Ready' },
   { id: 'freight_forwarder', label: 'Forwarder' },
   { id: 'booking_status', label: 'Status' },
+  { id: 'commercial_invoice', label: 'CI File' },
   { id: 'submitted_at', label: 'Submitted' },
 ];
 
 // ─── Bookings List ───────────────────────────────────────────────────────────
 
 function BookingsList({ user, initialBookings, isHistory = false, initialBkg }: any) {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [bookings, setBookings] = useState<any[]>(initialBookings || []);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [visibleColumns, setVisibleColumns] = useState<string[]>(ALL_COLUMNS.map(c => c.id));
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     if (initialBkg && bookings.length > 0) {
       const match = bookings.find((b: any) => b.booking_number === initialBkg);
-      if (match) setSelectedBooking(match);
+      if (match) router.push(`/bookings/active/${match.id}`);
     }
   }, [initialBkg, bookings]);
 
@@ -253,27 +302,7 @@ function BookingsList({ user, initialBookings, isHistory = false, initialBkg }: 
     fetchBookings();
   }, [isHistory]);
 
-  const handleApprove = async (booking: any) => {
-    try {
-      await updateBooking(booking.id, { booking_status: 'Booking Approved', approved_at: new Date().toISOString() });
-      toast.success(`Booking ${booking.booking_number} approved.`);
-      fetchBookings();
-      setSelectedBooking(null);
-    } catch (e) {
-      toast.error('Failed to approve booking. Please try again.');
-    }
-  };
-
-  const handleDecline = async (booking: any, reason: string) => {
-    try {
-      await updateBooking(booking.id, { booking_status: 'Declined', decline_reason: reason });
-      toast.success(`Booking ${booking.booking_number} declined.`);
-      fetchBookings();
-      setSelectedBooking(null);
-    } catch (e) {
-      toast.error('Failed to decline booking. Please try again.');
-    }
-  };
+  useEffect(() => { setPage(1); }, [search, filterStatus]);
 
   const filtered = bookings.filter(b => {
     const q = search.toLowerCase();
@@ -289,6 +318,10 @@ function BookingsList({ user, initialBookings, isHistory = false, initialBkg }: 
     const matchVendor = !user || user.role !== 'Vendor' || b.vendor_name === user.supplier;
     return matchSearch && matchStatus && matchVendor;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const toggleColumn = (id: string) => {
     setVisibleColumns(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]);
@@ -393,8 +426,8 @@ function BookingsList({ user, initialBookings, isHistory = false, initialBkg }: 
             ) : filtered.length === 0 ? (
               <TableRow><TableCell colSpan={visibleColumns.length} className="text-center py-8 text-muted-foreground">No bookings found</TableCell></TableRow>
             ) : (
-              filtered.map(b => (
-                <TableRow key={b.id} className="cursor-pointer hover:bg-primary/10 transition-colors" onClick={() => setSelectedBooking(b)}>
+              paginated.map(b => (
+                <TableRow key={b.id} className="cursor-pointer hover:bg-primary/10 transition-colors" onClick={() => router.push((isHistory ? '/bookings/history/' : '/bookings/active/') + b.id)}>
                   {ALL_COLUMNS.filter(c => visibleColumns.includes(c.id)).map(col => {
                     if (col.id === 'booking_number') return <TableCell key={col.id} className="font-mono text-xs font-medium">{b.booking_number || '—'}</TableCell>;
                     if (col.id === 'vendor_name') return <TableCell key={col.id} className="text-sm">{b.vendor_name || '—'}</TableCell>;
@@ -414,11 +447,36 @@ function BookingsList({ user, initialBookings, isHistory = false, initialBkg }: 
                     if (col.id === 'freight_forwarder') return <TableCell key={col.id} className="text-sm">{b.freight_forwarder || b.courier || '—'}</TableCell>;
                     if (col.id === 'booking_status') return (
                       <TableCell key={col.id}>
-                        <Badge className={statusColors[b.booking_status] || 'bg-gray-100 text-gray-700'} variant="secondary">
-                          {b.booking_status || 'Draft'}
-                        </Badge>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <Badge className={statusColors[b.booking_status] || 'bg-gray-100 text-gray-700'} variant="secondary">
+                            {b.booking_status || 'Draft'}
+                          </Badge>
+                          {b.overbooked && (
+                            <Badge variant="outline" className="text-[10px] font-bold px-1.5 py-0 bg-amber-500/10 border-amber-500/40 text-amber-700">
+                              Overbooked
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                     );
+                    if (col.id === 'commercial_invoice') {
+                      const fileUrl = b.commercial_invoice?.file_url;
+                      if (!fileUrl) return <TableCell key={col.id} className="text-sm text-muted-foreground">—</TableCell>;
+                      const raw = fileUrl.split('/').pop() || '';
+                      const displayName = raw.replace(/^ci_\d+_/, '');
+                      return (
+                        <TableCell key={col.id}>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); router.push((isHistory ? '/bookings/history/' : '/bookings/active/') + b.id); }}
+                            className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium max-w-[160px] truncate"
+                            title={displayName}
+                          >
+                            <FileSpreadsheet className="w-3.5 h-3.5 shrink-0" />
+                            {displayName}
+                          </button>
+                        </TableCell>
+                      );
+                    }
                     if (col.id === 'submitted_at') return (
                       <TableCell key={col.id} className="text-sm text-muted-foreground">
                         {b.submitted_at ? format(new Date(b.submitted_at), 'MMM d') : '—'}
@@ -433,15 +491,44 @@ function BookingsList({ user, initialBookings, isHistory = false, initialBkg }: 
         </Table>
       </div>
 
-      <BookingDetailDrawer
-        booking={selectedBooking}
-        open={!!selectedBooking}
-        onClose={() => setSelectedBooking(null)}
-        onApprove={handleApprove}
-        onDecline={handleDecline}
-        user={user}
-        onSuccess={fetchBookings}
-      />
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-3 px-1">
+          <p className="text-xs text-muted-foreground">
+            {filtered.length} result{filtered.length !== 1 ? 's' : ''} · Page {safePage} of {totalPages}
+          </p>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage <= 1}>
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(n => n === 1 || n === totalPages || Math.abs(n - safePage) <= 1)
+              .reduce<(number | string)[]>((acc, n, idx, arr) => {
+                if (idx > 0 && n - (arr[idx - 1] as number) > 1) acc.push('…');
+                acc.push(n);
+                return acc;
+              }, [])
+              .map((n, i) =>
+                typeof n === 'string' ? (
+                  <span key={`ellipsis-${i}`} className="px-1 text-xs text-muted-foreground">…</span>
+                ) : (
+                  <Button
+                    key={n}
+                    variant={safePage === n ? 'default' : 'ghost'}
+                    size="icon"
+                    className="h-8 w-8 text-xs"
+                    onClick={() => setPage(n)}
+                  >
+                    {n}
+                  </Button>
+                )
+              )}
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage >= totalPages}>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -1,9 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Trash2 } from 'lucide-react';
+
+const PAGE_LIMIT = 10;
 
 export interface LineItem {
   id?: string;
@@ -22,6 +24,10 @@ interface LineItemsTableProps {
 }
 
 export default function LineItemsTable({ items, editable, onChange }: LineItemsTableProps) {
+  const [showAll, setShowAll] = useState(false);
+  const visibleItems = showAll || editable ? items : items.slice(0, PAGE_LIMIT);
+  const hiddenCount = items.length - PAGE_LIMIT;
+
   const handleChange = (idx: number, field: keyof LineItem, value: any) => {
     const updated = items.map((item, i) =>
       i === idx
@@ -50,10 +56,10 @@ export default function LineItemsTable({ items, editable, onChange }: LineItemsT
 
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto rounded-lg border border-border/50">
-        <table className="w-full text-xs min-w-[560px]">
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table className="w-full text-xs min-w-[560px] bg-card">
           <thead>
-            <tr className="border-b border-border/50 bg-muted/30">
+            <tr className="border-b border-border bg-card/80">
               <th className="text-left font-semibold text-muted-foreground px-3 py-2 uppercase tracking-wider">SKU Code</th>
               <th className="text-left font-semibold text-muted-foreground px-3 py-2 uppercase tracking-wider">Description</th>
               <th className="text-left font-semibold text-muted-foreground px-3 py-2 uppercase tracking-wider">Color</th>
@@ -64,8 +70,8 @@ export default function LineItemsTable({ items, editable, onChange }: LineItemsT
             </tr>
           </thead>
           <tbody>
-            {items.map((item, idx) => (
-              <tr key={item.id || idx} className="border-b border-border/30 last:border-0 hover:bg-muted/10 transition-colors">
+            {visibleItems.map((item, idx) => (
+              <tr key={item.id || idx} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                 {editable ? (
                   <>
                     <td className="px-2 py-1.5">
@@ -148,7 +154,7 @@ export default function LineItemsTable({ items, editable, onChange }: LineItemsT
             ))}
           </tbody>
           <tfoot>
-            <tr className="border-t border-border/50 bg-muted/20">
+            <tr className="border-t border-border bg-card/80">
               <td colSpan={4} className="px-3 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Total ({items.length} SKU{items.length !== 1 ? 's' : ''})
               </td>
@@ -161,6 +167,18 @@ export default function LineItemsTable({ items, editable, onChange }: LineItemsT
           </tfoot>
         </table>
       </div>
+
+      {!editable && hiddenCount > 0 && (
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" type="button" onClick={() => setShowAll(true)} className="h-7 text-xs text-muted-foreground hover:text-foreground">
+            View {hiddenCount} more SKU{hiddenCount !== 1 ? 's' : ''}
+          </Button>
+          <span className="text-muted-foreground/40 text-xs">·</span>
+          <Button variant="ghost" size="sm" type="button" onClick={() => setShowAll(false)} disabled={!showAll} className="h-7 text-xs text-muted-foreground hover:text-foreground disabled:opacity-30">
+            Collapse
+          </Button>
+        </div>
+      )}
 
       {editable && (
         <Button variant="outline" size="sm" type="button" onClick={handleAdd} className="h-7 gap-1.5 text-xs">

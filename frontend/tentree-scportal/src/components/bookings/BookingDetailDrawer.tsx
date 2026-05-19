@@ -6,10 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, CheckCircle, XCircle, FileText, Calendar, Package, Truck, Building2, MapPin, Edit3, Trash2, Copy, Save, Layers, RefreshCw, Receipt, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react';
+import { X, CheckCircle, XCircle, FileText, Calendar, Package, Truck, Building2, MapPin, Edit3, Trash2, Copy, Save, Layers, RefreshCw, Receipt, CheckCircle2, AlertCircle, AlertTriangle, Download } from 'lucide-react';
 import CiPreviewTable from './CiPreviewTable';
+import CiUploadSection from './CiUploadSection';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { format } from 'date-fns';
+import { BACKEND_URL } from '@/lib/api';
 import { updateBooking, deleteBooking, createBooking, getBookings } from '@/app/actions/bookings';
 import { getPurchaseOrders } from '@/app/actions/purchase-orders';
 import { getShipments, bulkUpdateShipmentStatus } from '@/app/actions/shipments';
@@ -18,7 +20,7 @@ import { getMasterStatuses } from '@/app/actions/master-data';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-export default function BookingDetailDrawer({ booking, open, onClose, onApprove, onDecline, user, onSuccess }: any) {
+export default function BookingDetailDrawer({ booking, open, onClose, onApprove, onDecline, user, onSuccess, autoOpenCi, onCiDialogOpened }: any) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<any>({});
@@ -31,6 +33,17 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
   const [lotQtyInfo, setLotQtyInfo] = useState<any>(null);
   const [ciData, setCiData] = useState<any>(null);
   const [ciLoading, setCiLoading] = useState(false);
+  const [ciDialogOpen, setCiDialogOpen] = useState(false);
+  const [isReplacingCi, setIsReplacingCi] = useState(false);
+  const [showReplaceConfirm, setShowReplaceConfirm] = useState(false);
+
+  // Auto-open CI preview dialog when triggered from the bookings table
+  useEffect(() => {
+    if (autoOpenCi && ciData) {
+      setCiDialogOpen(true);
+      onCiDialogOpened?.();
+    }
+  }, [autoOpenCi, ciData]);
   const [masterStatuses, setMasterStatuses] = useState<string[]>([]);
 
   useEffect(() => {
@@ -44,14 +57,15 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
       }
       setFormData(data);
       setIsEditing(false);
+      setIsReplacingCi(false);
       // Fetch live per-PO status from Shipments
       if (booking.booking_number) {
         getShipments()
           .then(all => setLinkedShipments(all.filter((s: any) => s.booking_number === booking.booking_number)))
           .catch(() => setLinkedShipments([]));
       }
-      // Fetch CI data for Admin and Logistics Coordinator roles
-      if (booking.id && (user?.role === 'Admin' || user?.role === 'Logistics Coordinator')) {
+      // Fetch CI data for Admin, Logistics Coordinator, and Vendor roles
+      if (booking.id && (user?.role === 'Admin' || user?.role === 'Logistics Coordinator' || user?.role === 'Vendor')) {
         setCiLoading(true);
         getBookingCommercialInvoice(booking.id)
           .then(data => setCiData(data ?? null))
@@ -629,8 +643,8 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
             </div>
           )}
 
-          {/* Commercial Invoice — visible to Admin and Logistics Coordinator */}
-          {(user?.role === 'Admin' || user?.role === 'Logistics Coordinator') && (
+          {/* Commercial Invoice — visible to Admin, Logistics Coordinator, and Vendor */}
+          {(user?.role === 'Admin' || user?.role === 'Logistics Coordinator' || user?.role === 'Vendor') && (
           <div className="space-y-4">
             <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
               <Receipt className="w-4 h-4" /> Commercial Invoice
@@ -639,7 +653,7 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
               <div className="bg-muted/20 p-4 rounded-xl border border-border/50">
                 <p className="text-xs text-muted-foreground italic">Loading commercial invoice...</p>
               </div>
-            ) : ciData ? (
+            ) : ciData && !isReplacingCi ? (
               <div className="space-y-4">
                 {/* CI header summary */}
                 <div className="bg-muted/20 p-4 rounded-xl border border-border/50 space-y-3">
@@ -659,7 +673,8 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 pt-1 border-t border-border/30">
+                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/30">
+                    <div>
                     {ciData.status === 'confirmed' ? (
                       <span className="flex items-center gap-1.5 text-[11px] text-emerald-600 font-semibold">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Confirmed by vendor
@@ -677,25 +692,68 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
                         <AlertCircle className="w-3.5 h-3.5" /> {ciData.status || 'pending'}
                       </span>
                     )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowReplaceConfirm(true)}
+                    >
+                      Replace
+                    </Button>
                   </div>
                 </div>
 
-                {/* SKU line items */}
+                {/* View CI dialog trigger */}
                 {Array.isArray(ciData.line_items) && ciData.line_items.length > 0 && (
-                  <CiPreviewTable
-                    lineItems={ciData.line_items}
-                    summary={{
-                      total_items: ciData.line_items.length,
-                      matched: ciData.line_items.filter((i: any) => i.match_status === 'matched').length,
-                      unmatched: ciData.line_items.filter((i: any) => i.match_status === 'unmatched').length,
-                      total_qty: ciData.line_items.reduce((s: number, i: any) => s + (Number(i.qty) || 0), 0),
-                    }}
-                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2 text-xs"
+                    onClick={() => setCiDialogOpen(true)}
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    View Line Items ({ciData.line_items.length} SKUs)
+                  </Button>
                 )}
               </div>
             ) : (
-              <div className="bg-muted/20 p-4 rounded-xl border border-border/50">
-                <p className="text-xs text-muted-foreground italic">No commercial invoice attached to this booking.</p>
+              <div className="space-y-2">
+                {isReplacingCi && (
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">Upload a replacement CI — this will overwrite the existing one.</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                      onClick={() => setIsReplacingCi(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+                <CiUploadSection
+                  key={`${booking.id}-${isReplacingCi}`}
+                  poNumbers={
+                    Array.isArray(booking?.po_details)
+                      ? booking.po_details.map((p: any) => p.po_number).filter(Boolean)
+                      : booking?.tentree_po_number
+                        ? booking.tentree_po_number.split(',').map((s: string) => s.trim()).filter(Boolean)
+                        : []
+                  }
+                  onConfirm={async (ci: any) => {
+                    try {
+                      const result = await updateBooking(booking.id, { commercial_invoice: ci });
+                      if (result?.error) throw new Error(result.error);
+                      setCiData(ci);
+                      setIsReplacingCi(false);
+                      toast.success(isReplacingCi ? 'Commercial invoice updated.' : 'Commercial invoice saved.');
+                    } catch (e: any) {
+                      toast.error(e.message || 'Failed to save commercial invoice.');
+                      throw e;
+                    }
+                  }}
+                />
               </div>
             )}
           </div>
@@ -746,6 +804,68 @@ export default function BookingDetailDrawer({ booking, open, onClose, onApprove,
               {isLoading ? 'Deleting…' : 'Delete'}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Replace CI Confirmation */}
+      <Dialog open={showReplaceConfirm} onOpenChange={setShowReplaceConfirm}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+              Replace Commercial Invoice?
+            </DialogTitle>
+            <DialogDescription asChild>
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p>Are you sure you want to replace the existing commercial invoice?</p>
+                <p>The current CI will be permanently overwritten once you confirm the new upload.</p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowReplaceConfirm(false)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => { setShowReplaceConfirm(false); setIsReplacingCi(true); }}
+            >
+              Yes, Replace
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* CI Line Items Dialog */}
+      <Dialog open={ciDialogOpen} onOpenChange={setCiDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-2">
+                <Receipt className="w-4 h-4" />
+                Commercial Invoice — {ciData?.invoice_number || '—'}
+              </DialogTitle>
+              {ciData?.file_url && (
+                <a
+                  href={`${BACKEND_URL}${ciData.file_url}`}
+                  download
+                  className="flex items-center gap-1.5 text-xs text-primary hover:underline font-medium mr-8"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  {ciData.file_url.split('/').pop()?.replace(/^ci_\d+_/, '') || 'Download Excel'}
+                </a>
+              )}
+            </div>
+          </DialogHeader>
+          {ciData && Array.isArray(ciData.line_items) && (
+            <CiPreviewTable
+              lineItems={ciData.line_items}
+              summary={{
+                total_items: ciData.line_items.length,
+                matched: ciData.line_items.filter((i: any) => i.match_status === 'matched').length,
+                unmatched: ciData.line_items.filter((i: any) => i.match_status === 'unmatched').length,
+                total_qty: ciData.line_items.reduce((s: number, i: any) => s + (Number(i.qty) || 0), 0),
+              }}
+            />
+          )}
         </DialogContent>
       </Dialog>
 

@@ -115,8 +115,8 @@
   --accent: oklch(0.35 0.15 20);
   --accent-foreground: oklch(0.95 0.02 20);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.32 0.1 20);
-  --input: oklch(0.32 0.1 20);
+  --border: oklch(0.48 0.08 20);
+  --input: oklch(0.48 0.08 20);
   --ring: oklch(0.6 0.23 25);
   --radius: 0.625rem;
   /* Chart palette — reds (original) */
@@ -146,8 +146,8 @@
   --accent: oklch(0.58 0.15 148);
   --accent-foreground: oklch(0.99 0.005 148);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.86 0.04 88);
-  --input: oklch(0.86 0.04 88);
+  --border: oklch(0.72 0.06 88);
+  --input: oklch(0.72 0.06 88);
   --ring: oklch(0.75 0.17 88);
   --radius: 0.625rem;
   /* Chart palette — summer */

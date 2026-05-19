@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Calendar, PackageOpen, Building2, Anchor, Hash, Navigation, Printer, Download, Search, Truck } from 'lucide-react';
+import { Calendar, PackageOpen, Building2, Anchor, Hash, Navigation, Printer, Download, Search, Truck, AlertTriangle } from 'lucide-react';
 import { getSession } from '@/app/actions/auth';
 import { getPurchaseOrders } from '@/app/actions/purchase-orders';
 import { getWarehouses, getModes, getIncoterms, getCouriers } from '@/app/actions/master-data';
@@ -40,6 +40,8 @@ export default function BookingForm({ onSuccess, prefilledPO, onSwitchToMultiPO 
   const [modes, setModes] = useState<any[]>([]);
   const [incoterms, setIncoterms] = useState<any[]>([]);
   const [couriers, setCouriers] = useState<any[]>([]);
+  const [overbookWarning, setOverbookWarning] = useState<any>(null);
+  const [pendingPayload, setPendingPayload] = useState<any>(null);
 
   React.useEffect(() => {
     async function init() {
@@ -158,64 +160,73 @@ export default function BookingForm({ onSuccess, prefilledPO, onSwitchToMultiPO 
     }, 1000);
   };
 
+  const buildPayload = () => {
+    const randomId = Math.floor(1000 + Math.random() * 9000);
+    const bookingNumber = `BKG-${randomId}`;
+    return {
+      ...formData,
+      booking_number: bookingNumber,
+      booking_status: formData.type === 'sms' ? 'No Booking' : 'Booking Pending',
+      season: formData.season,
+      po_details: formData.po_details.filter((p: any) => p.po_number),
+      submitted_at: new Date().toISOString(),
+    };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Basic validation
     if (!formData.vendor_name || !formData.receiving_warehouse || !formData.mode) {
       toast.error('Please fill in all required fields.');
       return;
     }
-
-    // F2 — Overbooking guard
-    const filledPODetails = formData.po_details.filter((p: any) => p.po_number);
-    for (const pod of filledPODetails) {
-      const selected = vendorPOs.find((p: any) => p.po_number === pod.po_number);
-      if (selected) {
-        const remaining = (parseInt(selected.expected_qty) || 0) - (parseInt(selected.booked_qty) || 0);
-        if (parseInt(pod.units) > remaining) {
-          toast.error(
-            `Booked qty for ${pod.po_number} (${pod.units}) exceeds remaining (${remaining}). Please reduce.`
-          );
-          return;
-        }
-      }
-    }
-
     setIsLoading(true);
-
     try {
-      // 1. Generate Booking Number & Payload
-      const randomId = Math.floor(1000 + Math.random() * 9000);
-      const bookingNumber = `BKG-${randomId}`;
-      const bookingPayload = {
-        ...formData,
-        booking_number: bookingNumber,
-        booking_status: formData.type === 'sms' ? 'No Booking' : 'Booking Pending',
-        season: formData.season,
-        po_details: formData.po_details.filter((p: any) => p.po_number),
-        submitted_at: new Date().toISOString(),
-      };
+      const payload = buildPayload();
+      const result = await createBooking(payload);
 
-      // 2. Create the Booking entry (Backend handles split lot logic and SMS routing)
-      const result = await createBooking(bookingPayload);
-      
-      if (!result || result.error) {
-        throw new Error(result?.error || 'Failed to create booking on the server. Backend rejected the request.');
+      // Backend returned a soft overbooking warning — show confirmation dialog
+      if (result?.overbook_warning) {
+        setPendingPayload(payload);
+        setOverbookWarning(result);
+        return;
       }
 
-      toast.success(formData.type === 'sms' 
+      if (!result || result.error) {
+        throw new Error(result?.error || 'Failed to create booking on the server.');
+      }
+
+      toast.success(formData.type === 'sms'
         ? `Shipment created directly for ${formData.tentree_po_number}`
-        : `Booking ${bookingNumber} submitted for approval!`
+        : `Booking ${payload.booking_number} submitted for approval!`
       );
-      
-      // Reset form
       setFormData(INITIAL_FORM_STATE);
-
       if (onSuccess) onSuccess();
-
     } catch (error: any) {
       console.error(error);
+      toast.error(error.message || 'Failed to submit booking. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForceSubmit = async () => {
+    if (!pendingPayload) return;
+    setIsLoading(true);
+    setOverbookWarning(null);
+    try {
+      const result = await createBooking({ ...pendingPayload, force_overbook: true });
+      if (!result || result.error) {
+        throw new Error(result?.error || 'Failed to create booking on the server.');
+      }
+      toast.success(
+        formData.type === 'sms'
+          ? `Shipment created directly for ${formData.tentree_po_number}`
+          : `Booking ${pendingPayload.booking_number} submitted — pending coordinator review.`
+      );
+      setFormData(INITIAL_FORM_STATE);
+      setPendingPayload(null);
+      if (onSuccess) onSuccess();
+    } catch (error: any) {
       toast.error(error.message || 'Failed to submit booking. Please try again.');
     } finally {
       setIsLoading(false);
@@ -704,6 +715,49 @@ export default function BookingForm({ onSuccess, prefilledPO, onSwitchToMultiPO 
           </div>
         </div>
       </form>
+
+      {/* Overbooking warning dialog */}
+      <Dialog open={!!overbookWarning} onOpenChange={(open) => { if (!open) setOverbookWarning(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <AlertTriangle className="w-5 h-5" /> Overbooking Warning
+            </DialogTitle>
+            <DialogDescription asChild>
+              <div className="text-sm text-muted-foreground mt-1">
+                This booking exceeds the PO expected quantity. The logistics coordinator will need to review and decide — they may need to discuss with production why the SKU quantities don't match what was booked.
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 my-2">
+            {overbookWarning?.warnings?.map((w: any) => (
+              <div key={w.po_number} className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
+                <div className="font-mono font-semibold text-sm">{w.po_number}</div>
+                <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                  <div><span className="font-medium text-foreground">Expected</span><br />{w.expected_qty.toLocaleString()}</div>
+                  <div><span className="font-medium text-foreground">Already booked</span><br />{w.already_booked.toLocaleString()}</div>
+                  <div><span className="font-medium text-foreground">Requesting</span><br />{w.requested.toLocaleString()}</div>
+                </div>
+                <div className="text-xs font-semibold text-red-600 pt-0.5">
+                  Over by {w.overage.toLocaleString()} units
+                </div>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setOverbookWarning(null); setPendingPayload(null); }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleForceSubmit}
+              disabled={isLoading}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              {isLoading ? 'Submitting...' : 'Submit for Review'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showSwitchConfirm} onOpenChange={setShowSwitchConfirm}>
         <DialogContent className="max-w-md">

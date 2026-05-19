@@ -12,6 +12,12 @@ export async function getShipments() {
   }
 }
 
+export async function getShipment(id: string) {
+  const data = await fetchApi(`/shipments/${id}`);
+  if (!data || data.error) return null;
+  return data;
+}
+
 export async function createShipment(data: any) {
   // Lot number is now calculated in the backend.
 
@@ -62,7 +68,3 @@ export async function bulkUpdateShipmentStatus(bookingNumber: string, status: st
   return result;
 }
 
-export async function getShipmentLineItems(shipmentId: string) {
-  const data = await fetchApi(`/shipments/${shipmentId}/line-items`);
-  return data || [];
-}

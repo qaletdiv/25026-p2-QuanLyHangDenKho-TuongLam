@@ -1,5 +1,7 @@
+const stream = require('stream');
 const ciParser = require('../services/ciParser');
 const PurchaseOrderModel = require('../models/PurchaseOrderModel');
+const driveStorage = require('../driveStorage');
 
 async function parse(req, res) {
     if (!req.file) {
@@ -78,7 +80,22 @@ async function parse(req, res) {
         total_qty:   enriched.reduce((s, i) => s + i.qty, 0),
     };
 
-    res.json({ header, poSummary: recalculatedPoSummary, lineItems: enriched, summary });
+    // Save the original Excel file so it can be downloaded later
+    let file_url = null;
+    try {
+        const timestamp = Date.now();
+        const safeName = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const filename = `ci_${timestamp}_${safeName}`;
+        const bufferStream = new stream.PassThrough();
+        bufferStream.end(req.file.buffer);
+        const uploaded = await driveStorage.uploadFile(filename, bufferStream, req.file.mimetype);
+        file_url = uploaded.url;
+    } catch (e) {
+        // Non-fatal — parsed data is still returned; file just won't be downloadable
+        console.error('CI file upload failed (non-fatal):', e.message);
+    }
+
+    res.json({ header, poSummary: recalculatedPoSummary, lineItems: enriched, summary, file_url });
 }
 
 module.exports = { parse };

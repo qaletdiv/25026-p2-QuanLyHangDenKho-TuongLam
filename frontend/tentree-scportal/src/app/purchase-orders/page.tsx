@@ -1,4 +1,4 @@
-import PurchaseOrdersClient from './PurchaseOrdersClient';
+import OrdersTable from './OrdersTable';
 import { getPurchaseOrders } from '@/app/actions/purchase-orders';
 import { getSession } from '@/app/actions/auth';
 
@@ -14,5 +14,5 @@ export default async function PurchaseOrdersPage() {
     // render with empty state
   }
 
-  return <PurchaseOrdersClient initialPOs={pos} />;
+  return <OrdersTable initialPOs={pos} />;
 }

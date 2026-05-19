@@ -31,6 +31,9 @@ app.use('/forecast',           require('./routes/forecast'));
 app.use('/documents',          require('./routes/documents'));
 app.use('/commercial-invoices', require('./routes/commercialInvoices'));
 app.use('/integrations',       require('./routes/integrations'));
+app.use('/users',              require('./routes/users'));
+app.use('/roles',              require('./routes/roles'));
+app.use('/freights',           require('./routes/freights'));
 
 // Global Error Handler must be last!
 app.use(errorHandler);

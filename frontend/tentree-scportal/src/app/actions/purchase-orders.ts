@@ -12,6 +12,15 @@ export async function getPurchaseOrders() {
   }
 }
 
+export async function getPurchaseOrder(id: string) {
+  try {
+    const data = await fetchApi(`/purchase-orders/${id}`);
+    return data || null;
+  } catch {
+    return null;
+  }
+}
+
 export async function createPurchaseOrder(data: any) {
   const result = await fetchApi('/purchase-orders', {
     method: 'POST',
@@ -53,8 +62,9 @@ export async function duplicatePurchaseOrder(po: any) {
   return createPurchaseOrder({ ...rest });
 }
 
-export async function syncNetSuite() {
-  const data = await fetchApi('/integrations/netsuite/pos');
+export async function syncNetSuite(limit?: number) {
+  const qs = limit ? `?limit=${limit}` : '';
+  const data = await fetchApi(`/integrations/netsuite/pos${qs}`);
   revalidatePath('/purchase-orders');
   return data;
 }

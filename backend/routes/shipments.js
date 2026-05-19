@@ -7,9 +7,9 @@ const shipmentSchemas = require('../validators/shipment');
 const shipmentController = require('../controllers/shipmentController');
 
 router.get('/',                                                                              asyncWrap(shipmentController.getAll));
+router.get('/:id',                                                                           asyncWrap(shipmentController.getOne));
 router.post('/bulk-status', requireAuth, validate(shipmentSchemas.bulkStatus),               asyncWrap(shipmentController.bulkStatus));
 router.post('/',            requireAuth, validate(shipmentSchemas.create),                   asyncWrap(shipmentController.create));
-router.get('/:id/line-items',                                                                asyncWrap(shipmentController.getLineItems));
 router.put('/:id',          requireAuth, validate(shipmentSchemas.update),                   asyncWrap(shipmentController.update));
 router.delete('/:id',       requireAuth,                                                     asyncWrap(shipmentController.remove));
 

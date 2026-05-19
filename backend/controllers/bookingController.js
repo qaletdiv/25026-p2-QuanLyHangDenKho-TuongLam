@@ -1,13 +1,32 @@
 const BookingModel       = require('../models/BookingModel');
+const { historyBookings: HistoryBookingModel } = require('../models/HistoryModel');
 const ShipmentModel      = require('../models/ShipmentModel');
 const PurchaseOrderModel = require('../models/PurchaseOrderModel');
-const { enrichBookings, syncPoStatus, syncCiToShipments } = require('../services/bookingService');
+const { enrichBookings, syncPoStatus } = require('../services/bookingService');
 const lotService = require('../services/lotService');
+
+async function nextBookingId() {
+    const [active, history] = await Promise.all([
+        BookingModel.read().catch(() => []),
+        HistoryBookingModel.read().catch(() => []),
+    ]);
+    const all = [...active, ...history];
+    const maxId = all.reduce((max, b) => Math.max(max, parseInt(b.id) || 0), 0);
+    return String(maxId + 1);
+}
 
 async function getAll(req, res) {
     const bookings = await BookingModel.read();
     const enriched = await enrichBookings(bookings);
     res.json(enriched);
+}
+
+async function getOne(req, res) {
+    const [active, history] = await Promise.all([BookingModel.read(), HistoryBookingModel.read()]);
+    const booking = [...active, ...history].find(b => b.id === req.params.id);
+    if (!booking) return res.status(404).json({ error: 'Booking not found' });
+    const enriched = await enrichBookings([booking]);
+    res.json(enriched[0]);
 }
 
 async function create(req, res) {
@@ -33,20 +52,19 @@ async function create(req, res) {
         const shipmentsData = await ShipmentModel.read();
         const pos = await PurchaseOrderModel.read().catch(() => []);
 
-        // Fix #6 — G2 overbooking guard for SMS bookings
-        // SMS bookings live in shipments (not bookings table), so we check shipments directly.
-        if (po_details && Array.isArray(po_details)) {
+        // G2 — Soft overbooking guard for SMS bookings
+        // Returns 409 overbook_warning instead of hard-blocking; force_overbook bypasses.
+        if (po_details && Array.isArray(po_details) && !rest.force_overbook) {
+            const mainlineBookings = await BookingModel.read().catch(() => []);
+            const warnings = [];
             for (const pod of po_details) {
                 if (!pod.po_number) continue;
                 const po = pos.find(p => p.po_number === pod.po_number);
                 if (!po) continue;
                 const expected_qty = parseInt(po.expected_qty) || 0;
-                // Sum all non-cancelled existing shipments for this PO (SMS + mainline)
                 const alreadyShipped = shipmentsData
                     .filter(s => s.po_number === pod.po_number && s.status !== 'Cancelled')
                     .reduce((sum, s) => sum + (parseInt(s.expected_quantity) || 0), 0);
-                // Also sum from active mainline bookings
-                const mainlineBookings = await BookingModel.read().catch(() => []);
                 const mainlineBooked = mainlineBookings
                     .filter(b => !['Cancelled', 'Rejected'].includes(b.booking_status))
                     .reduce((sum, b) => {
@@ -57,12 +75,17 @@ async function create(req, res) {
                 const requested = parseInt(pod.units) || 0;
                 const totalAlreadyBooked = alreadyShipped + mainlineBooked;
                 if (totalAlreadyBooked + requested > expected_qty) {
-                    const err = new Error(
-                        `SMS booking for PO ${pod.po_number} would exceed expected quantity (${expected_qty}). Already booked: ${totalAlreadyBooked}, requested: ${requested}`
-                    );
-                    err.statusCode = 400;
-                    throw err;
+                    warnings.push({
+                        po_number: pod.po_number,
+                        already_booked: totalAlreadyBooked,
+                        expected_qty,
+                        requested,
+                        overage: (totalAlreadyBooked + requested) - expected_qty,
+                    });
                 }
+            }
+            if (warnings.length > 0) {
+                return res.status(409).json({ overbook_warning: true, warnings });
             }
         }
 
@@ -75,17 +98,6 @@ async function create(req, res) {
                 const lot = await lotService.calculateLotNumber(pod.po_number, units);
                 const po = pos.find(p => p.po_number === pod.po_number) || {};
 
-                // Build SKU-level line_items with proportional expected_qty
-                const poExpectedQty = parseInt(po.expected_qty) || 0;
-                const shipLineItems = (po.line_items || []).map(li => ({
-                    sku_code: li.sku_code,
-                    description: li.description,
-                    expected_qty: poExpectedQty > 0
-                        ? Math.round(li.expected_qty * (units / poExpectedQty))
-                        : 0,
-                    shipped_qty: 0
-                }));
-
                 const newShipment = {
                     ...po,
                     ...rest,
@@ -93,15 +105,15 @@ async function create(req, res) {
                     po_number: pod.po_number,
                     expected_quantity: units,
                     lot_number: lot,
-                    line_items: shipLineItems,
                     status: 'Ready to Ship',
                     booking_status: 'No Booking',
                     type: 'sms',
-                    // Map specific fields for shipment tracker visibility
                     etd: rest.cargo_ready_date || po.etd || '',
                     supplier: rest.vendor_name || po.supplier || '',
                     destination_warehouse: rest.receiving_warehouse || po.receiving_warehouse || ''
                 };
+                // line_items from PO spread should not be on the shipment
+                delete newShipment.line_items;
                 shipmentsData.push(newShipment);
                 createdShipments.push(newShipment);
             }
@@ -124,9 +136,11 @@ async function create(req, res) {
     // Mainline Logic: Create Active Booking
     const data = await BookingModel.read();
 
-    // G2 — Overbooking guard
-    if (po_details && Array.isArray(po_details)) {
+    // G2 — Soft overbooking guard
+    // Returns 409 overbook_warning instead of hard-blocking; force_overbook bypasses.
+    if (po_details && Array.isArray(po_details) && !rest.force_overbook) {
         const pos = await PurchaseOrderModel.read().catch(() => []);
+        const warnings = [];
         for (const pod of po_details) {
             if (!pod.po_number) continue;
             const po = pos.find(p => p.po_number === pod.po_number);
@@ -141,20 +155,27 @@ async function create(req, res) {
                 }, 0);
             const requested = parseInt(pod.units) || 0;
             if (booked_units_so_far + requested > expected_qty) {
-                const err = new Error(
-                    `Booking for PO ${pod.po_number} would exceed expected quantity (${expected_qty}). Already booked: ${booked_units_so_far}, requested: ${requested}`
-                );
-                err.statusCode = 400;
-                throw err;
+                warnings.push({
+                    po_number: pod.po_number,
+                    already_booked: booked_units_so_far,
+                    expected_qty,
+                    requested,
+                    overage: (booked_units_so_far + requested) - expected_qty,
+                });
             }
+        }
+        if (warnings.length > 0) {
+            return res.status(409).json({ overbook_warning: true, warnings });
         }
     }
 
+    const { force_overbook, ...bookingBody } = req.body;
     const newBooking = {
-        id: Date.now().toString(),
+        id: await nextBookingId(),
         type: 'mainline',
-        ...req.body,
-        booking_status: req.body.booking_status || 'Booking Pending'
+        ...bookingBody,
+        booking_status: bookingBody.booking_status || 'Booking Pending',
+        ...(force_overbook ? { overbooked: true } : {}),
     };
     data.push(newBooking);
     await BookingModel.write(data);
@@ -230,17 +251,6 @@ async function update(req, res) {
                     const lot = await lotService.calculateLotNumber(pod.po_number, units);
                     const po = pos.find(p => p.po_number === pod.po_number) || {};
 
-                    // Build SKU-level line_items with proportional expected_qty
-                    const poExpectedQty = parseInt(po.expected_qty) || 0;
-                    const shipLineItems = (po.line_items || []).map(li => ({
-                        sku_code: li.sku_code,
-                        description: li.description,
-                        expected_qty: poExpectedQty > 0
-                            ? Math.round(li.expected_qty * (units / poExpectedQty))
-                            : 0,
-                        shipped_qty: 0
-                    }));
-
                     const newShipment = {
                         ...po,
                         ...booking,
@@ -248,13 +258,13 @@ async function update(req, res) {
                         po_number: pod.po_number,
                         expected_quantity: units,
                         lot_number: lot,
-                        line_items: shipLineItems,
                         status: 'Booking Approved',
                         booking_status: 'Booking Approved',
                         type: booking.type || 'mainline'
                     };
-                    // Remove po_details from individual shipment record to avoid clutter
+                    // Remove po_details and line_items from individual shipment record
                     delete newShipment.po_details;
+                    delete newShipment.line_items;
                     shipmentsData.push(newShipment);
                 }
                 await ShipmentModel.write(shipmentsData);
@@ -264,12 +274,6 @@ async function update(req, res) {
         // Sync status to POs if it changed
         if (newStatus) {
             await syncPoStatus(data[idx].booking_number, newStatus, data[idx].trn_number);
-        }
-
-        // Sync CI received quantities to shipments whenever a confirmed CI is present
-        const ci = data[idx].commercial_invoice;
-        if (ci?.status === 'confirmed' && Array.isArray(ci.line_items)) {
-            await syncCiToShipments(data[idx].booking_number, ci.line_items);
         }
 
         res.json(data[idx]);
@@ -358,18 +362,20 @@ async function confirmCI(req, res) {
 
     await BookingModel.write(data);
 
-    // Sync CI received quantities to shipments
-    const ci = data[idx].commercial_invoice;
-    if (Array.isArray(ci.line_items)) {
-        await syncCiToShipments(data[idx].booking_number, ci.line_items);
-    }
-
     res.json(data[idx]);
 }
 
 async function getCI(req, res) {
     const data = await BookingModel.read();
-    const booking = data.find(b => b.id === req.params.id);
+    let booking = data.find(b => b.id === req.params.id || b.booking_number === req.params.id);
+
+    // Also check history-bookings when not found in active bookings
+    if (!booking) {
+        const { historyBookings } = require('../models/HistoryModel');
+        const historyData = await historyBookings.read();
+        booking = historyData.find(b => b.id === req.params.id || b.booking_number === req.params.id);
+    }
+
     if (!booking) {
         const err = new Error('Booking not found'); err.statusCode = 404; throw err;
     }
@@ -379,4 +385,35 @@ async function getCI(req, res) {
     res.json(booking.commercial_invoice);
 }
 
-module.exports = { getAll, create, update, remove, confirmCI, getCI };
+/**
+ * GET /bookings/lookup?number=BKG-6021
+ *
+ * Look up a booking by its booking_number (human-readable).
+ * Returns the booking id, booking_number, and commercial_invoice status
+ * so the frontend can resolve a booking_number to an internal id.
+ */
+async function lookupByNumber(req, res) {
+    const { number } = req.query;
+    if (!number) {
+        const err = new Error("Query parameter 'number' is required");
+        err.statusCode = 400;
+        throw err;
+    }
+    const data = await BookingModel.read();
+    const booking = data.find(b => b.booking_number === number);
+    if (!booking) {
+        const err = new Error(`No booking found with booking_number '${number}'`);
+        err.statusCode = 404;
+        throw err;
+    }
+    // Return lightweight response — just enough for the frontend to navigate/act
+    res.json({
+        id:             booking.id,
+        booking_number: booking.booking_number,
+        booking_status: booking.booking_status,
+        vendor_name:    booking.vendor_name,
+        ci_status:      booking.commercial_invoice?.status ?? null,
+    });
+}
+
+module.exports = { getAll, getOne, create, update, remove, confirmCI, getCI, lookupByNumber };

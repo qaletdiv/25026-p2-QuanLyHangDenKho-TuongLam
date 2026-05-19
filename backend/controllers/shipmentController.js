@@ -1,6 +1,13 @@
 const ShipmentModel = require('../models/ShipmentModel');
+const { history: HistoryShipmentModel } = require('../models/HistoryModel');
 const { enrichShipments } = require('../services/shipmentService');
 const { recalcBookingStatus } = require('../services/bookingService');
+
+async function nextShipmentId() {
+    const data = await ShipmentModel.read().catch(() => []);
+    const maxId = data.reduce((max, s) => Math.max(max, parseInt(s.id) || 0), 0);
+    return String(maxId + 1);
+}
 
 async function getAll(req, res) {
     const shipments = await ShipmentModel.read();
@@ -8,9 +15,24 @@ async function getAll(req, res) {
     res.json(enriched);
 }
 
+async function getOne(req, res) {
+    const [active, history] = await Promise.all([
+        ShipmentModel.read().catch(() => []),
+        HistoryShipmentModel.read().catch(() => []),
+    ]);
+    const shipment = [...active, ...history].find(s => s.id === req.params.id);
+    if (!shipment) {
+        const err = new Error('Shipment not found');
+        err.statusCode = 404;
+        throw err;
+    }
+    const enriched = await enrichShipments([shipment]);
+    res.json(enriched[0]);
+}
+
 async function create(req, res) {
     const data = await ShipmentModel.read();
-    const newShipment = { id: Date.now().toString(), ...req.body };
+    const newShipment = { id: await nextShipmentId(), ...req.body };
     data.push(newShipment);
     await ShipmentModel.write(data);
     res.status(201).json(newShipment);
@@ -45,15 +67,6 @@ async function remove(req, res) {
     res.status(204).send();
 }
 
-async function getLineItems(req, res) {
-    const shipments = await ShipmentModel.read();
-    const shipment = shipments.find(s => s.id === req.params.id);
-    if (!shipment) {
-        const err = new Error('Shipment not found'); err.statusCode = 404; throw err;
-    }
-    res.json(shipment.line_items || []);
-}
-
 // BULK STATUS — update all PO rows in a booking at once, then recalc aggregate
 async function bulkStatus(req, res) {
     const { booking_number, status } = req.body;
@@ -76,4 +89,4 @@ async function bulkStatus(req, res) {
     res.json({ updated: updatedCount, booking_number, status });
 }
 
-module.exports = { getAll, create, update, remove, getLineItems, bulkStatus };
+module.exports = { getAll, getOne, create, update, remove, bulkStatus };

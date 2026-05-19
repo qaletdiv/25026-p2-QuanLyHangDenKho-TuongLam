@@ -38,11 +38,11 @@ export async function login(formData: any) {
       });
     }
 
-    // Store user session — include token so getAuthToken() has a fallback
+    // Store user session — maxAge matches JWT expiry (24h) so session and token expire together
     cookieStore.set('session', JSON.stringify({ ...user, token: token ?? null }), {
       httpOnly: true, // Server-only, accessed via SessionProvider
       secure: false, // Local dev friendly
-      maxAge: 60 * 60 * 24 * 7, // 1 week
+      maxAge: 86400, // 24 hours — matches JWT expiry in authController
       path: '/',
       sameSite: 'lax'
     });

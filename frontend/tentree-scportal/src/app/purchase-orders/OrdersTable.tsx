@@ -1,85 +1,41 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { getPurchaseOrders, createPurchaseOrder, updatePurchaseOrder, deletePurchaseOrder, bulkCreatePurchaseOrders, duplicatePurchaseOrder } from '@/app/actions/purchase-orders';
+import { useRouter } from 'next/navigation';
+import { getPurchaseOrders, bulkCreatePurchaseOrders, syncNetSuite } from '@/app/actions/purchase-orders';
 import { useSession } from '@/components/providers/SessionProvider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Search, Plus, Upload, Download, Trash2, Edit3, X, Settings2, Check } from 'lucide-react';
+import { Search, Plus, Upload, Download, Settings2, Check, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import PoDetailDrawer from '@/components/purchase-orders/PoDetailDrawer';
 import { toast } from 'sonner';
-import { format, parse } from 'date-fns';
-import { getSuppliers, getCouriers, getIncoterms, getStatuses, getWarehouses, getModes } from '@/app/actions/master-data';
+import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { COLUMNS, DEFAULT_VISIBLE_COLUMNS } from '@/components/purchase-orders/columns';
+import type { Order } from '@/types/order';
 
-const EMPTY_PO = {
-  season: '', trn_number: '', po_number: '', supplier: '',
-  mode: '', expected_qty: '', receiving_warehouse: '', etd: '',
-  type: 'mainline', incoterm: 'FOB',
-};
-
-const ALL_COLUMNS = [
-  { id: 'season', label: 'Season' },
-  { id: 'trn_number', label: 'TRN No.' },
-  { id: 'type', label: 'Type' },
-  { id: 'po_number', label: 'PO#' },
-  { id: 'supplier', label: 'Supplier' },
-  { id: 'mode', label: 'Mode' },
-  { id: 'incoterm', label: 'Incoterm' },
-  { id: 'expected_qty', label: 'Exp. Qty' },
-  { id: 'received_qty', label: 'Rcv. Qty' },
-  { id: 'receiving_warehouse', label: 'Warehouse' },
-  { id: 'etd', label: 'CRD' },
-  { id: 'eta', label: 'Exp. Recv Date' },
-  { id: 'actual_receive_date', label: 'Actual Recv Date' },
-  { id: 'booking_status', label: 'Booking Status' },
-  { id: 'booking_number', label: 'Booking #' },
-];
-
-export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[] }) {
-  const [pos, setPos] = useState<any[]>(initialPOs);
+export default function OrdersTable({ initialPOs }: { initialPOs: Order[] }) {
+  const router = useRouter();
+  const [pos, setPos] = useState<Order[]>(initialPOs);
   const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState('');
-  const [filterStatus, setFilterStatus] = useState('All');
   const [filterSeason, setFilterSeason] = useState('All');
   const [filterType, setFilterType] = useState('All');
-  const [selectedPO, setSelectedPO] = useState<any>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const { user } = useSession();
-  const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [couriers, setCouriers] = useState<any[]>([]);
-  const [incoterms, setIncoterms] = useState<any[]>([]);
-  const [statuses, setStatuses] = useState<any[]>([]);
-  const [warehouses, setWarehouses] = useState<any[]>([]);
-  const [modes, setModes] = useState<any[]>([]);
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(['season', 'po_number', 'supplier', 'mode', 'incoterm', 'expected_qty', 'received_qty', 'etd', 'eta', 'actual_receive_date', 'booking_status', 'booking_number']);
+  const [visibleColumns, setVisibleColumns] = useState<Array<keyof Order>>(DEFAULT_VISIBLE_COLUMNS);
+  const [page, setPage] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useSession();
+
+  const PAGE_SIZE = 10;
 
   const fetchPOs = async () => {
     setIsLoading(true);
     try {
-      const [data, s, c, i, st, wh, md] = await Promise.all([
-        getPurchaseOrders(),
-        getSuppliers(),
-        getCouriers(),
-        getIncoterms(),
-        getStatuses(),
-        getWarehouses(),
-        getModes(),
-      ]);
+      const data = await getPurchaseOrders();
       setPos(data || []);
-      setSuppliers(s || []);
-      setCouriers(c || []);
-      setIncoterms(i || []);
-      setStatuses(st || []);
-      setWarehouses(Array.isArray(wh) ? wh : []);
-      setModes(Array.isArray(md) ? md : []);
     } catch {
       // silently degrade — existing data stays on screen
     } finally {
@@ -88,63 +44,24 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
   };
 
   useEffect(() => { fetchPOs(); }, []);
+  useEffect(() => { setPage(1); }, [search, filterSeason, filterType]);
 
-  const seasons = [...new Set(pos.map((p: any) => p.season).filter(Boolean))];
+  const seasons = [...new Set(pos.map(p => p.season).filter(Boolean))];
 
-  const filtered = pos.filter((p: any) => {
+  const filtered = pos.filter(p => {
     const matchSearch = !search ||
       p.po_number?.toLowerCase().includes(search.toLowerCase()) ||
       p.supplier?.toLowerCase().includes(search.toLowerCase()) ||
       p.trn_number?.toLowerCase().includes(search.toLowerCase());
     const matchSeason = filterSeason === 'All' || p.season === filterSeason;
     const matchType = filterType === 'All' || p.type === filterType;
-    
-    // Vendor isolation
     const matchVendor = !user || user.role !== 'Vendor' || p.supplier === user.supplier;
-    
     return matchSearch && matchSeason && matchType && matchVendor;
   });
 
-  const openAdd = () => { setSelectedPO(true); };
-  const openEdit = (po: any) => { setSelectedPO(po); };
-
-  const handleSave = async (data: any) => {
-    setIsSaving(true);
-    try {
-      if (data.id) {
-        await updatePurchaseOrder(data.id, data);
-        toast.success(`PO ${data.po_number} updated.`);
-      } else {
-        await createPurchaseOrder(data);
-        toast.success(`PO ${data.po_number} added.`);
-      }
-      fetchPOs();
-    } catch (e) {
-      toast.error('Failed to save PO.');
-      throw e;
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDelete = async (po: any) => {
-    if (!window.confirm(`Delete PO ${po.po_number}?`)) return;
-    await deletePurchaseOrder(po.id);
-    toast.success(`PO ${po.po_number} deleted.`);
-    fetchPOs();
-    setSelectedPO(null);
-  };
-
-  const handleDuplicate = async (po: any) => {
-    try {
-      await duplicatePurchaseOrder(po);
-      toast.success(`PO ${po.po_number} duplicated.`);
-      fetchPOs();
-      setSelectedPO(null);
-    } catch (e) {
-      toast.error('Failed to duplicate PO.');
-    }
-  };
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const handleExport = () => {
     if (filtered.length === 0) { toast.error('No data to export'); return; }
@@ -153,9 +70,7 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
       Season: p.season, 'TRN No.': p.trn_number, 'Type': p.type || 'mainline', 'PO#': p.po_number,
       Supplier: p.supplier, Mode: p.mode, Incoterm: p.incoterm || '',
       'Expected Qty': p.expected_qty, 'Receiving Qty': p.received_qty, 'Warehouse': p.receiving_warehouse,
-      'CRD': p.etd,
-      'Exp. Recv Date': p.eta,
-      'Actual Recv Date': p.actual_receive_date || ''
+      'CRD': p.etd, 'Exp. Recv Date': p.eta, 'Actual Recv Date': p.actual_receive_date || '',
     })));
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -185,17 +100,29 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
           receiving_warehouse: r['Warehouse'] || r['receiving_warehouse'] || '',
           etd: r['ETD'] || r['etd'] || '',
           eta: r['Exp. Recv Date'] || r['eta'] || '',
-          actual_receive_date: r['Actual Recv Date'] || r['actual_receive_date'] || ''
+          actual_receive_date: r['Actual Recv Date'] || r['actual_receive_date'] || '',
         })).filter((r: any) => r.po_number);
         if (rows.length === 0) { toast.error('No valid PO rows found in file.'); return; }
         try {
-          const result = await bulkCreatePurchaseOrders(rows);
-          toast.success(`Import success: ${result.added} new POs added, ${result.updated} existing POs updated.`);
+          const res = await bulkCreatePurchaseOrders(rows);
+          toast.success(`Import success: ${res.added} new POs added, ${res.updated} existing POs updated.`);
           fetchPOs();
-        } catch (e) { toast.error('Import failed.'); }
+        } catch { toast.error('Import failed.'); }
       },
     });
     e.target.value = '';
+  };
+
+  const handleSyncNetSuite = async () => {
+    toast.loading('Syncing with NetSuite...', { id: 'netsuite' });
+    try {
+      const result = await syncNetSuite(10);
+      if (result?.error) throw new Error(result.error);
+      toast.success(`NetSuite sync complete — ${result.added} added, ${result.updated} updated`, { id: 'netsuite' });
+      fetchPOs();
+    } catch (e: any) {
+      toast.error(`NetSuite sync failed: ${e?.message || 'Unknown error'}`, { id: 'netsuite' });
+    }
   };
 
   return (
@@ -211,11 +138,14 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
           </Button>
           {user?.role !== 'Vendor' && (
             <>
+              <Button variant="outline" onClick={handleSyncNetSuite}>
+                <RefreshCw className="w-4 h-4 mr-1.5" /> NetSuite Sync
+              </Button>
               <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
                 <Upload className="w-4 h-4 mr-1.5" /> Import CSV
               </Button>
               <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
-              <Button onClick={openAdd}>
+              <Button onClick={() => router.push('/purchase-orders/newPOs')}>
                 <Plus className="w-4 h-4 mr-1.5" /> Add PO
               </Button>
             </>
@@ -255,11 +185,11 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
               <div className="space-y-1">
                 <h4 className="text-xs font-bold px-2 py-1.5 uppercase text-muted-foreground tracking-wider">Display Fields</h4>
                 <div className="max-h-[300px] overflow-y-auto">
-                  {ALL_COLUMNS.map(col => (
+                  {COLUMNS.map(col => (
                     <div key={col.id} className="flex items-center gap-2 px-2 py-1.5 hover:bg-muted rounded-md cursor-pointer" onClick={() => {
                       setVisibleColumns(prev => prev.includes(col.id) ? prev.filter(c => c !== col.id) : [...prev, col.id]);
                     }}>
-                      <div className={cn("w-4 h-4 rounded border border-primary flex items-center justify-center transition-colors", visibleColumns.includes(col.id) ? "bg-primary" : "bg-transparent border-input")}>
+                      <div className={cn('w-4 h-4 rounded border border-primary flex items-center justify-center transition-colors', visibleColumns.includes(col.id) ? 'bg-primary' : 'bg-transparent border-input')}>
                         {visibleColumns.includes(col.id) && <Check className="w-3 h-3 text-white" />}
                       </div>
                       <span className="text-sm font-medium">{col.label}</span>
@@ -280,8 +210,8 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              {ALL_COLUMNS.filter(c => visibleColumns.includes(c.id)).map(col => (
-                <TableHead key={col.id} className={cn("font-semibold", (col.id === 'expected_qty' || col.id === 'received_qty') && "text-right")}>
+              {COLUMNS.filter(c => visibleColumns.includes(c.id)).map(col => (
+                <TableHead key={col.id} className={cn('font-semibold', col.align === 'right' && 'text-right')}>
                   {col.label}
                 </TableHead>
               ))}
@@ -299,8 +229,8 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((p: any) => (
-                <TableRow key={p.id} className="cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => openEdit(p)}>
+              paginated.map(p => (
+                <TableRow key={p.id} className="cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => router.push(`/purchase-orders/${p.id}`)}>
                   {visibleColumns.includes('season') && <TableCell className="text-xs font-mono">{p.season || '—'}</TableCell>}
                   {visibleColumns.includes('trn_number') && <TableCell className="text-xs font-mono">{p.trn_number || '—'}</TableCell>}
                   {visibleColumns.includes('type') && <TableCell className="text-xs font-mono capitalize">{p.type || 'mainline'}</TableCell>}
@@ -314,9 +244,7 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
                   {visibleColumns.includes('etd') && <TableCell className="text-sm">{p.etd || '—'}</TableCell>}
                   {visibleColumns.includes('eta') && <TableCell className="text-sm">{p.eta || '—'}</TableCell>}
                   {visibleColumns.includes('actual_receive_date') && (
-                    <TableCell className="text-sm font-bold text-emerald-600">
-                      {p.actual_receive_date || '—'}
-                    </TableCell>
+                    <TableCell className="text-sm font-bold text-emerald-600">{p.actual_receive_date || '—'}</TableCell>
                   )}
                   {visibleColumns.includes('booking_status') && (
                     <TableCell>
@@ -328,9 +256,7 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
                     </TableCell>
                   )}
                   {visibleColumns.includes('booking_number') && (
-                    <TableCell className="text-xs font-mono text-primary font-semibold">
-                      {p.booking_number || '—'}
-                    </TableCell>
+                    <TableCell className="text-xs font-mono text-primary font-semibold">{p.booking_number || '—'}</TableCell>
                   )}
                 </TableRow>
               ))
@@ -339,19 +265,43 @@ export default function PurchaseOrdersClient({ initialPOs }: { initialPOs: any[]
         </Table>
       </div>
 
-      <PoDetailDrawer
-        open={selectedPO}
-        onClose={() => setSelectedPO(null)}
-        onSave={handleSave}
-        onDelete={handleDelete}
-        onDuplicate={handleDuplicate}
-        suppliers={suppliers}
-        incoterms={incoterms}
-        warehouses={warehouses}
-        modes={modes}
-        isLoading={isSaving}
-        user={user}
-      />
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-xs text-muted-foreground">
+            {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length}
+          </span>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline" size="icon"
+              className="h-8 w-8"
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+              <Button
+                key={p}
+                variant={p === safePage ? 'default' : 'outline'}
+                size="icon"
+                className="h-8 w-8 text-xs"
+                onClick={() => setPage(p)}
+              >
+                {p}
+              </Button>
+            ))}
+            <Button
+              variant="outline" size="icon"
+              className="h-8 w-8"
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

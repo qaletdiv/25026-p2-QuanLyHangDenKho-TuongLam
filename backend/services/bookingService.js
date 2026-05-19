@@ -60,78 +60,6 @@ async function syncPoStatus(bookingNumber, status, trnNumber) {
 }
 
 /**
- * When a confirmed CI is attached to a booking, write per-PO received_quantity
- * back onto the linked shipment rows so that GET /purchase-orders can sum them.
- *
- * CI line items carry a `matched_po` field from the parse step — we group by
- * that and sum `qty` to get the received units per PO.
- */
-async function syncCiToShipments(bookingNumber, ciLineItems) {
-    if (!bookingNumber || !Array.isArray(ciLineItems)) return;
-    try {
-        const shipments = await ShipmentModel.read();
-
-        // Build { po_number → received qty } from matched CI line items
-        const poQtyMap = {};
-        // Build { po_number → { sku_code → shipped_qty } } for SKU-level sync
-        const poSkuQtyMap = {};
-        for (const item of ciLineItems) {
-            const poNum = item.matched_po;
-            if (!poNum) continue;
-            poQtyMap[poNum] = (poQtyMap[poNum] || 0) + (parseInt(item.qty) || 0);
-            if (!poSkuQtyMap[poNum]) poSkuQtyMap[poNum] = {};
-            const sku = item.sku_code;
-            if (sku) {
-                poSkuQtyMap[poNum][sku] = (poSkuQtyMap[poNum][sku] || 0) + (parseInt(item.qty) || 0);
-            }
-        }
-
-        let changed = false;
-        const updated = shipments.map(s => {
-            if (s.booking_number !== bookingNumber) return s;
-            const ciQty  = poQtyMap[s.po_number];
-            const skuMap = poSkuQtyMap[s.po_number];
-            let sChanged = false;
-            const newS = { ...s };
-
-            // Update aggregate received_quantity
-            if (ciQty != null && newS.received_quantity !== ciQty) {
-                newS.received_quantity = ciQty;
-                sChanged = true;
-            }
-
-            // Update per-SKU shipped_qty on shipment line_items
-            if (skuMap && Array.isArray(newS.line_items)) {
-                newS.line_items = newS.line_items.map(li => {
-                    const shippedQty = skuMap[li.sku_code] || 0;
-                    if (li.shipped_qty !== shippedQty) {
-                        sChanged = true;
-                        return { ...li, shipped_qty: shippedQty };
-                    }
-                    return li;
-                });
-            }
-
-            // Set ci_status on shipment
-            if (newS.ci_status !== 'confirmed') {
-                newS.ci_status = 'confirmed';
-                sChanged = true;
-            }
-
-            if (sChanged) {
-                changed = true;
-                return newS;
-            }
-            return s;
-        });
-
-        if (changed) await ShipmentModel.write(updated);
-    } catch (e) {
-        console.error('[syncCiToShipments] error:', e);
-    }
-}
-
-/**
  * Recalculates and writes back the aggregate booking_status for a booking
  * based on the current status of all its linked PO rows in shipments.
  * Rule: the booking status = the lowest (bottleneck) status among all PO rows.
@@ -208,4 +136,4 @@ async function enrichBookings(bookings) {
     });
 }
 
-module.exports = { syncPoStatus, syncCiToShipments, recalcBookingStatus, enrichBookings };
+module.exports = { syncPoStatus, recalcBookingStatus, enrichBookings };

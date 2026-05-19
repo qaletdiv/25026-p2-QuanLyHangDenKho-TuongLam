@@ -15,7 +15,7 @@ interface CiUploadSectionProps {
   /** PO numbers selected in the booking form — used for SKU auto-matching */
   poNumbers: string[];
   /** Called when the vendor clicks "Confirm CI" with the confirmed CI data object */
-  onConfirm: (ci: any) => void;
+  onConfirm: (ci: any) => void | Promise<void>;
   /** Pass an existing CI when editing a booking that already has one */
   existingCI?: any;
 }
@@ -83,7 +83,7 @@ export default function CiUploadSection({ poNumbers, onConfirm, existingCI }: Ci
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!parseResult) return;
     const ci = {
       invoice_number: parseResult.header.invoice_number,
@@ -93,11 +93,16 @@ export default function CiUploadSection({ poNumbers, onConfirm, existingCI }: Ci
       status: 'confirmed',
       confirmed_at: new Date().toISOString(),
       line_items: parseResult.lineItems,
+      file_url: (parseResult as any).file_url || null,
     };
-    setConfirmedCI(ci);
-    onConfirm(ci);
-    setState('confirmed');
-    toast.success('Commercial Invoice confirmed.');
+    try {
+      await onConfirm(ci);
+      setConfirmedCI(ci);
+      setState('confirmed');
+      toast.success('Commercial Invoice confirmed.');
+    } catch {
+      // Stay on preview so the user can retry; caller handles its own error toast
+    }
   };
 
   const handleReupload = () => {

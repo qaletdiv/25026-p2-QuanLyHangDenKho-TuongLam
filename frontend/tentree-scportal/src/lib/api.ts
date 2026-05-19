@@ -1,6 +1,6 @@
 import { getAuthToken } from '@/app/actions/auth';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
+export const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
 
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const url = `${BACKEND_URL}${endpoint}`;
@@ -43,6 +43,8 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
 
     return response.json();
   } catch (err: any) {
+    // Re-throw Next.js internals (redirect, not-found) — they must propagate, not be swallowed
+    if (err?.digest) throw err;
     console.error('fetchApi error:', err);
     return { error: err.message || 'Unknown network error' };
   }

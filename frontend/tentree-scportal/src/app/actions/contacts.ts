@@ -4,5 +4,5 @@ import { fetchApi } from '@/lib/api';
 
 export async function getContacts() {
   const data = await fetchApi('/contacts');
-  return data || [];
+  return Array.isArray(data) ? data : [];
 }

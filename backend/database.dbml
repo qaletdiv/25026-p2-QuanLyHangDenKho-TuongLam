@@ -1,0 +1,204 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table users {
+  id varchar [primary key]
+  email varchar [unique]
+  password varchar
+  name varchar
+  role varchar
+  factory_id varchar
+}
+
+Table purchase_orders {
+  id varchar [primary key]
+  po_number varchar [unique]
+  season varchar
+  trn_number varchar
+  type varchar
+  supplier varchar
+  mode varchar
+  incoterm varchar
+  expected_qty integer
+  receiving_qty integer
+  receiving_warehouse varchar
+  etd date
+  eta date
+  booking_status varchar
+  booking_number varchar
+  received_qty integer
+  booked_qty integer
+  actual_receive_date date
+}
+
+Table po_line_items {
+  po_id varchar [ref: > purchase_orders.id]
+  sku_code varchar
+  description varchar
+  expected_qty integer
+}
+
+Table bookings {
+  id varchar [primary key]
+  booking_number varchar [unique]
+  type varchar
+  vendor_name varchar
+  supplier varchar
+  tentree_po_number varchar
+  number_of_cartons varchar
+  cargo_ready_date date
+  receiving_warehouse varchar
+  mode varchar
+  incoterm varchar
+  season varchar
+  trn_number varchar
+  courier varchar
+  tracking_number varchar
+  booking_status varchar
+  submitted_at timestamp
+  approved_at timestamp
+}
+
+Table booking_po_details {
+  booking_id varchar [ref: > bookings.id]
+  po_number varchar [ref: > purchase_orders.po_number]
+  units integer
+}
+
+Table commercial_invoices {
+  booking_id varchar [primary key, ref: - bookings.id]
+  invoice_number varchar
+  invoice_date date
+  total_value decimal
+  status varchar
+  confirmed_at timestamp
+  unmatched_sku_count integer
+  total_matched_qty integer
+  total_unmatched_qty integer
+}
+
+Table ci_po_summaries {
+  booking_id varchar [ref: > commercial_invoices.booking_id]
+  po_number varchar
+  shipped_qty integer
+  cartons integer
+  weight_kg decimal
+  cbm decimal
+}
+
+Table ci_line_items {
+  booking_id varchar [ref: > commercial_invoices.booking_id]
+  sku_code varchar
+  description varchar
+  qty integer
+  unit_price decimal
+  total decimal
+  weight_kg decimal
+  cbm decimal
+  match_status varchar
+  matched_po varchar
+  po_expected_qty integer
+}
+
+Table shipments {
+  id varchar [primary key]
+  po_number varchar [ref: > purchase_orders.po_number]
+  booking_number varchar [ref: > bookings.booking_number]
+  season varchar
+  trn_number varchar
+  type varchar
+  supplier varchar
+  mode varchar
+  incoterm varchar
+  expected_quantity integer
+  receiving_qty integer
+  receiving_warehouse varchar
+  destination_warehouse varchar
+  etd date
+  eta date
+  booking_status varchar
+  received_quantity integer
+  booked_qty integer
+  actual_receive_date date
+  vendor_name varchar
+  number_of_cartons varchar
+  cargo_ready_date date
+  courier varchar
+  tracking_number varchar
+  submitted_at timestamp
+  approved_at timestamp
+  lot_number varchar
+  status varchar
+  ci_status varchar
+  invoice_value decimal
+  duty decimal
+  freight decimal
+}
+
+Table shipment_line_items {
+  shipment_id varchar [ref: > shipments.id]
+  sku_code varchar
+  description varchar
+  expected_qty integer
+  shipped_qty integer
+}
+
+Table contacts {
+  id varchar [primary key]
+  name varchar
+  role varchar
+  email varchar
+  phone varchar
+  department varchar
+  location varchar
+  avatar varchar
+}
+
+Table eom_tasks {
+  id varchar [primary key]
+  title varchar
+  description text
+  assignee varchar
+  dueDate date
+  status varchar
+  priority varchar
+  month varchar
+}
+
+Table master_data_suppliers {
+  id varchar [primary key]
+  name varchar [unique]
+  region varchar
+  tier varchar
+  rating integer
+}
+
+Table master_data_couriers {
+  id varchar [primary key]
+  name varchar [unique]
+  type varchar
+  tracking_url_template varchar
+}
+
+Table master_data_incoterms {
+  id varchar [primary key]
+  code varchar [unique]
+  description text
+  category varchar
+}
+
+Table master_data_statuses {
+  id varchar [primary key]
+  name varchar [unique]
+  category varchar
+  color varchar
+  order integer
+}
+
+Table warehouses {
+  id varchar [primary key]
+  code varchar [unique]
+  name varchar
+  location varchar
+  type varchar
+}

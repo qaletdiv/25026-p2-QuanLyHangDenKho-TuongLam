@@ -2,21 +2,22 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, FileText, CalendarCheck, Users, Settings, LogOut, BarChart3, LineChart, ClipboardList, Truck, FileCode, Palette, Sun, Flame, Warehouse, Ship } from 'lucide-react';
+import { LayoutDashboard, Package, FileText, CalendarCheck, Users, Settings, LogOut, BarChart3, LineChart, ClipboardList, Truck, FileCode, Palette, Sun, Flame, Warehouse, Ship, UserCog, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { logout } from '@/app/actions/auth';
 import { useSession } from '@/components/providers/SessionProvider';
 
 const navItems = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Purchase Orders', href: '/purchase-orders', icon: ClipboardList },
-  { name: 'Bookings', href: '/bookings/pending', icon: FileText, matchPrefix: '/bookings' },
-  { name: 'Shipments', href: '/shipments/mainline', icon: Package, matchPrefix: '/shipments' },
-  { name: 'Reports', href: '/reports', icon: BarChart3 },
-  { name: 'Forecast', href: '/forecast', icon: LineChart },
-  { name: 'EoM Progress', href: '/eom', icon: CalendarCheck },
-  { name: 'Contacts', href: '/contacts', icon: Users },
+  { name: 'Dashboard',       href: '/',                   icon: LayoutDashboard, permission: 'dashboard' },
+  { name: 'Purchase Orders', href: '/purchase-orders',    icon: ClipboardList,   permission: 'purchase_orders' },
+  { name: 'Bookings',        href: '/bookings/pending',   icon: FileText,        permission: 'bookings',   matchPrefix: '/bookings' },
+  { name: 'Shipments',       href: '/shipments/mainline', icon: Package,         permission: 'shipments',  matchPrefix: '/shipments' },
+  { name: 'Reports',         href: '/reports',            icon: BarChart3,       permission: 'reports' },
+  { name: 'Forecast',        href: '/forecast',           icon: LineChart,       permission: 'forecast' },
+  { name: 'EoM Progress',    href: '/eom',                icon: CalendarCheck,   permission: 'eom' },
+  { name: 'Contacts',        href: '/contacts',           icon: Users,           permission: 'contacts' },
+  { name: 'Freight Rates',   href: '/freights',           icon: Globe,           permission: 'freight' },
 ];
 
 const masterDataItems = [
@@ -26,6 +27,8 @@ const masterDataItems = [
   { name: 'Statuses', href: '/settings/statuses', icon: Palette },
   { name: 'Warehouses', href: '/settings/warehouses', icon: Warehouse },
   { name: 'Transport Modes', href: '/settings/modes', icon: Ship },
+  { name: 'Roles', href: '/settings/roles', icon: Settings, adminOnly: true },
+  { name: 'Users', href: '/settings/users', icon: UserCog, adminOnly: true },
 ];
 
 export default function Sidebar() {
@@ -50,14 +53,14 @@ export default function Sidebar() {
 
   if (pathname === '/login') return null;
 
-  const filteredItems = navItems.filter(item => {
-    if (!user) return true;
-    if (user.role === 'Vendor') return ['Purchase Orders', 'Bookings', 'Shipments'].includes(item.name);
-    if (user.role === 'Production') return ['Shipments', 'Dashboard', 'Reports', 'Forecast'].includes(item.name);
-    return true;
-  });
+  const can = (permission: string) => {
+    if (!user) return true; // unauthenticated: let server guard redirect
+    if (!user.permissions) return user.role === 'Admin'; // legacy session: admin sees all
+    return user.permissions.includes(permission);
+  };
 
-  const showMasterData = !user || ['Admin', 'Logistics Coordinator'].includes(user.role);
+  const filteredItems = navItems.filter(item => can(item.permission));
+  const showMasterData = can('settings');
 
   const NavLink = ({ item }: { item: any }) => {
     const isActive =
@@ -112,7 +115,9 @@ export default function Sidebar() {
           <div>
             <h3 className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 mb-2">Master Data</h3>
             <nav className="space-y-1">
-              {masterDataItems.map((item) => <NavLink key={item.name} item={item} />)}
+              {masterDataItems
+                .filter(item => !item.adminOnly || can('user_manage'))
+                .map((item) => <NavLink key={item.name} item={item} />)}
             </nav>
           </div>
         )}

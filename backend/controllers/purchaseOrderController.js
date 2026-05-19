@@ -71,7 +71,8 @@ async function getAll(req, res) {
 
 async function create(req, res) {
     const data = await PurchaseOrderModel.read().catch(() => []);
-    const newPO = { id: Date.now().toString(), booking_status: 'No Booking', booking_number: null, ...req.body };
+    const maxId = data.reduce((m, p) => Math.max(m, parseInt(p.id) || 0), 0);
+    const newPO = { id: String(maxId + 1), booking_status: 'No Booking', booking_number: null, ...req.body };
     data.push(newPO);
     await PurchaseOrderModel.write(data);
     res.status(201).json(newPO);
@@ -99,8 +100,9 @@ async function bulkCreate(req, res) {
             updatedCount++;
         } else {
             // Add new
+            const maxId = combined.reduce((m, p) => Math.max(m, parseInt(p.id) || 0), 0);
             combined.push({
-                id: Date.now().toString() + Math.random(),
+                id: String(maxId + 1),
                 booking_status: 'No Booking',
                 booking_number: null,
                 ...newPO

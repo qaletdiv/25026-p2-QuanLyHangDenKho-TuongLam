@@ -21,12 +21,16 @@ Bookings and Shipments use **nested route layouts**, not client-side tabs.
 /bookings                → redirects to /bookings/pending
 /bookings/pending        → RSC fetches pending POs → BookingsClient tab="pending"
 /bookings/active         → RSC fetches active bookings → BookingsClient tab="list"
+/bookings/active/[id]    → RSC fetches booking by id → BookingDetail (isHistory=false)
 /bookings/history        → RSC fetches history bookings → BookingsClient tab="history"
+/bookings/history/[id]   → RSC fetches booking by id → BookingDetail (isHistory=true)
 /bookings/submit         → RSC reads ?po= param, fetches PO → BookingsClient tab="submit"
 
 /shipments               → redirects to /shipments/mainline
 /shipments/mainline      → RSC merges shipments+POs → ShipmentsClient activeTab="mainline"
+/shipments/mainline/[id] → RSC fetches shipment by id → ShipmentDetail (mainline)
 /shipments/sms           → RSC merges shipments+POs → ShipmentsClient activeTab="sms"
+/shipments/sms/[id]      → RSC fetches shipment by id → SmsShipmentDetail
 /shipments/history       → no RSC fetch (lazy in client) → ShipmentsClient activeTab="history"
 ```
 
@@ -57,7 +61,7 @@ All routes validated with `backend/middleware/validate.js` factory:
 
 ## Master Data — Form Dropdowns
 
-All form dropdowns (BookingForm, ShipmentForm, SmsShipmentForm, PoDetailDrawer) are wired to backend master data via `src/app/actions/master-data.ts`. Always use `Array.isArray(data) ? data : []` guard after fetching — `fetchApi` returns `{ error: '...' }` on failure, not `[]`.
+All form dropdowns (BookingForm, ShipmentForm, SmsShipmentForm, OrderDetail) are wired to backend master data via `src/app/actions/master-data.ts`. Always use `Array.isArray(data) ? data : []` guard after fetching — `fetchApi` returns `{ error: '...' }` on failure, not `[]`.
 
 Master data endpoints: `/master-data/warehouses`, `/master-data/modes`, `/master-data/suppliers`, `/master-data/couriers`, `/master-data/incoterms`, `/master-data/statuses`
 
@@ -69,19 +73,19 @@ Full plan: `frontend/tentree-scportal/SKU_EXPANSION_PLAN.md`
 
 Build order (JSON stack phase — current priority):
 
-1. **line_items on POs** — `line_items[]` array on POs, CRUD routes, LineItemsTable in PoDetailDrawer
+1. **line_items on POs** — `line_items[]` array on POs, CRUD routes, LineItemsTable in OrderDetail ✅
 2. **CI parser service** — already exists at `backend/services/ciParser.js`
 3. **CI upload flow on Booking** — upload, parse preview, vendor confirm → `booking.commercial_invoice`
 4. **Fulfillment view** — computed: expected vs shipped per SKU via `/purchase-orders/:id/fulfillment`
 
 **Do not build:** warehouse receiving, S3, PostgreSQL, multi-currency — deferred.
 
-## Current State (as of 2026-05-15)
+## Current State (as of 2026-05-19)
 
 ### Already implemented
 - `backend/services/ciParser.js` ✅
 - `POST /commercial-invoices/parse` route ✅ — saves original Excel to `backend/data/uploads/`, returns `file_url`
-- `frontend/.../LineItemsTable.tsx` ✅ — wired into PoDetailDrawer as collapsible section ✅
+- `frontend/.../LineItemsTable.tsx` ✅ — wired into OrderDetail as collapsible section, shows 10 rows by default with expand/collapse ✅
 - `frontend/.../CiPreviewTable.tsx` ✅
 - `frontend/.../CiUploadSection.tsx` ✅ — stores `file_url` in confirmed CI object
 - Joi validation layer on all routes ✅
@@ -95,10 +99,65 @@ Build order (JSON stack phase — current priority):
 - CI file persistence — Excel saved to `backend/data/uploads/`, download link in BookingDetailDrawer ✅
 - CI view in BookingDetailDrawer — compact card + "View Line Items" button opens Dialog ✅
 - NetSuite line items sync — `fetchNetSuiteLineItems()` pulls SKU-level rows from NS and attaches to POs on sync ✅
+- Purchase Orders detail page — dedicated `/purchase-orders/[id]` route replacing the old drawer ✅
+- Purchase Orders list — client-side pagination (10 per page) ✅
+- PO IDs — sequential integers starting from 1 (not timestamps) ✅
+- Bookings detail pages — dedicated `/bookings/active/[id]` and `/bookings/history/[id]` routes replacing `BookingDetailDrawer` ✅
+- Bookings lists — client-side pagination (10 per page) on both active and history ✅
+- Booking IDs — sequential integers across active + history (no timestamp IDs) ✅
+- `GET /bookings/:id` backend route — looks up active + history, returns enriched booking ✅
+- `src/types/booking.ts` — Booking, PODetail, CILineItem, CommercialInvoice types ✅
+- `src/components/bookings/columns.ts` — typed COLUMNS and DEFAULT_VISIBLE_COLUMNS ✅
+- loading.tsx + not-found.tsx for all booking sub-routes ✅
+- Shipments detail pages — `/shipments/mainline/[id]` → ShipmentDetail, `/shipments/sms/[id]` → SmsShipmentDetail ✅
+- ShipmentsClient row clicks navigate to detail pages (virtual `po-*` rows remain non-clickable) ✅
+- Multi-PO group row navigates to booking detail `/bookings/active/[booking.id]` ✅
+- Shipments list — client-side pagination (10 per page) ✅
+- Shipment IDs — sequential integers (new creates use Math.max + 1) ✅
+- `GET /shipments/:id` backend route — finds by id, enriches with PO data ✅
+- `src/types/shipment.ts` — Shipment, ShipmentType, MainlineStatus, SmsStatus types ✅
+- `src/components/shipments/columns.ts` — ALL_COLUMNS, NON_SORTABLE, DEFAULT_VISIBLE_COLUMNS ✅
+- loading.tsx + not-found.tsx for mainline/[id] and sms/[id] sub-routes ✅
+- loading.tsx for mainline/, sms/, and history/ list routes ✅
 
 ### Still needed
 - Add `received_qty` column to fulfillment view (placeholder for NetSuite/3PL)
-- Component-level permission checks (ShipmentsClient, BookingDetailDrawer still use hardcoded role names — future refactor)
+- Component-level permission checks (ShipmentDetail, SmsShipmentDetail, BookingDetail still use hardcoded role names — future refactor)
+
+## Shipments Architecture
+
+### Route structure
+- `/shipments/mainline` — list of mainline shipments (merged PO+shipment rows)
+- `/shipments/mainline/[id]` — full page for a real mainline shipment row
+- `/shipments/sms` — list of SMS/courier shipments
+- `/shipments/sms/[id]` — full page for a real SMS shipment row
+- `/shipments/history` — lazy-loaded history (no RSC fetch)
+
+### Key files
+- `src/components/shipments/ShipmentDetail.tsx` — full-page mainline detail (adapted from old ShipmentDetailDrawer)
+- `src/components/shipments/SmsShipmentDetail.tsx` — full-page SMS detail (adapted from old SmsDetailDrawer)
+- `src/types/shipment.ts` — Shipment, ShipmentType, MainlineStatus, SmsStatus
+- `src/components/shipments/columns.ts` — ALL_COLUMNS (18 columns), NON_SORTABLE set, DEFAULT_VISIBLE_COLUMNS
+
+### Navigation rules
+- Virtual rows (id starts with `po-`) are non-clickable — no detail page
+- Single mainline row click → `router.push('/shipments/mainline/[id]')`
+- SMS row click → `router.push('/shipments/sms/[id]')`
+- Multi-PO group click → finds booking in `allBookings` by `booking_number` → `router.push('/bookings/active/[booking.id]')`
+- History row type determines route: `type === 'sms'` → `/shipments/sms/[id]`, else → `/shipments/mainline/[id]`
+
+### Backend — `GET /shipments/:id`
+
+Searches both `ShipmentModel` (active, `shipments.json`) and `HistoryShipmentModel` (`history.json`) so a single route serves both active and history detail pages. Import: `const { history: HistoryShipmentModel } = require('../models/HistoryModel')` — HistoryModel exports `{ history, historyBookings }`.
+
+### ID strategy
+- New shipments: `Math.max(...existing ids) + 1` (stored as string)
+- `shipments.json` starts empty; IDs will be sequential from 1
+- `history.json` may still have old timestamp-based IDs — these route correctly since `getOne` searches both files
+
+### Dead code (can be deleted when ready)
+- `src/components/shipments/ShipmentDetailDrawer.tsx` — no longer used in ShipmentsClient
+- `src/components/shipments/SmsDetailDrawer.tsx` — no longer used in ShipmentsClient
 
 ## CI File Persistence
 
@@ -300,7 +359,83 @@ Portal-managed fields never touched: `booking_status`, `booking_number`.
 
 ### Route
 
-`GET /integrations/netsuite/pos` — `requireAdmin` guard. Frontend button: **NetSuite Sync** in `PurchaseOrdersClient`.
+`GET /integrations/netsuite/pos` — `requireAdmin` guard. Frontend button: **NetSuite Sync** in `OrdersTable`.
+
+## Purchase Orders Architecture
+
+### Route structure
+
+```
+/purchase-orders             → RSC page.tsx → OrdersTable (client, paginated list)
+/purchase-orders/[id]        → RSC page.tsx → OrderDetail (full-page detail)
+/purchase-orders/[id]/loading.tsx  → animated skeleton
+/purchase-orders/[id]/not-found.tsx → 404 triggered by notFound()
+/purchase-orders/newPOs      → RSC page.tsx → OrderDetail with po=null (create mode)
+```
+
+### Key files
+
+- `src/app/purchase-orders/OrdersTable.tsx` — client component; 10-per-page pagination; search/season/type filters reset page on change; rows navigate to `/purchase-orders/[id]`
+- `src/app/purchase-orders/[id]/page.tsx` — RSC; `params` is `Promise<{id}>` (Next.js 15 — must `await`); fetches PO + master data in parallel; calls `notFound()` if missing
+- `src/components/purchase-orders/OrderDetail.tsx` — full-page detail/create/edit component; uses `OrderHeader` for the header block
+- `src/components/purchase-orders/OrderHeader.tsx` — extracted header: breadcrumb, action buttons (edit/save/delete/duplicate), hero row (icon + PO# + badges)
+- `src/components/purchase-orders/LineItemsTable.tsx` — shows first 10 SKUs in read mode; "View N more / Collapse" toggle; always shows all in edit mode
+- `src/components/purchase-orders/columns.ts` — `COLUMNS: ColumnDef[]` and `DEFAULT_VISIBLE_COLUMNS` typed as `Array<keyof Order>`
+- `src/types/order.ts` — `Order`, `LineItem`, `OrderStatus`, `OrderType` types
+- `src/app/actions/purchase-orders.ts` — includes `getPurchaseOrder(id)` for RSC detail fetch
+
+### PO IDs
+
+Sequential integers stored as strings (`"1"`, `"2"`, …). Controller uses `Math.max(...existing ids) + 1` for both `create` and `bulkCreate`. Never use timestamps for IDs.
+
+### Fulfillment table in OrderDetail
+
+Shows first 10 SKU rows by default; single "View N more / Collapse" toggle below the table. Data is fetched client-side via `getFulfillment(po.id)` and `getShipmentLots(po.id)` on mount.
+
+### Styling rules for tables
+
+- Table element: `bg-card` — gives rows a solid white background in summer theme (never rely on transparent row backgrounds)
+- Header/footer rows: `bg-card/80`
+- Body row borders: `border-border` (no opacity fraction — opacity makes borders invisible on light themes)
+- Body row hover: `hover:bg-muted/30`
+- Overbooking rows: `bg-amber-500/10 hover:bg-amber-500/20`
+
+## Bookings Architecture
+
+### Route structure
+
+```
+/bookings/active           → BookingsList (active, 10/page, rows → /bookings/active/[id])
+/bookings/active/[id]      → RSC → BookingDetail (isHistory=false, back → /bookings/active)
+/bookings/active/[id]/loading.tsx
+/bookings/active/[id]/not-found.tsx
+/bookings/history          → BookingsList (history, 10/page, rows → /bookings/history/[id])
+/bookings/history/[id]     → RSC → BookingDetail (isHistory=true, back → /bookings/history)
+/bookings/history/[id]/loading.tsx
+/bookings/history/[id]/not-found.tsx
+/bookings/pending          → PendingPOsList (10/page)
+/bookings/submit           → BookingForm
+```
+
+### Key files
+
+- `src/app/bookings/BookingsClient.tsx` — orchestrator; `BookingsList` and `PendingPOsList` inner components, each with 10/page pagination; row click navigates to `active/[id]` or `history/[id]` based on `isHistory` prop
+- `src/components/bookings/BookingDetail.tsx` — full-page detail/edit component (adapted from BookingDetailDrawer); `isHistory` prop controls backUrl and back label; all business logic preserved: split, duplicate, CI upload, approve/decline, live shipment status
+- `src/components/bookings/columns.ts` — `COLUMNS: ColumnDef[]` and `DEFAULT_VISIBLE_COLUMNS`
+- `src/types/booking.ts` — `Booking`, `PODetail`, `CILineItem`, `CommercialInvoice`, `BookingStatus` types
+- `src/app/actions/bookings.ts` — includes `getBooking(id)` for RSC detail fetch
+
+### Booking IDs
+
+Sequential integers stored as strings (`"1"`, `"2"`, …) across both `bookings.json` and `history-bookings.json`. Controller uses `nextBookingId()` which reads max across both files and adds 1. Never use timestamps for IDs.
+
+### Backend — `GET /bookings/:id`
+
+Searches both `BookingModel` (active) and `HistoryBookingModel` (`history-bookings.json`) so a single route serves both active and history detail pages. History model: `const { historyBookings: HistoryBookingModel } = require('../models/HistoryModel')` — HistoryModel exports `{ history, historyBookings }`, not a class with `.read()` directly.
+
+### BookingDetailDrawer
+
+The old `BookingDetailDrawer.tsx` still exists but is no longer used in `BookingsClient`. It can be deleted once confirmed stable. Do not add new features to it.
 
 ## Agent File Ownership
 

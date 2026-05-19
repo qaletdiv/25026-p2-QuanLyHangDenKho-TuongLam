@@ -2,6 +2,40 @@
 
 import { updateShipment } from './shipments';
 import { revalidatePath } from 'next/cache';
+import { fetchApi } from '@/lib/api';
+
+export interface AsnRecord {
+  id: string;
+  booking_id: string;
+  booking_number: string;
+  file_url: string;
+  generated_at: string;
+}
+
+/**
+ * Fetch the ASN (packing list) record for a booking.
+ * Returns null if no ASN exists yet (404) or on any network/auth error.
+ */
+export async function getBookingAsn(bookingId: string): Promise<AsnRecord | null> {
+  const data = await fetchApi(`/bookings/${bookingId}/asn`);
+  if (!data || (data as any).error) return null;
+  return data as AsnRecord;
+}
+
+/**
+ * Trigger ASN (packing list) generation for a booking.
+ * Returns the newly created AsnRecord on success.
+ * Throws if the backend returns an error.
+ */
+export async function generateBookingAsn(bookingId: string): Promise<AsnRecord> {
+  const result = await fetchApi(`/bookings/${bookingId}/asn`, {
+    method: 'POST',
+  });
+  if (!result || (result as any).error) {
+    throw new Error((result as any)?.error || 'Failed to generate ASN');
+  }
+  return result as AsnRecord;
+}
 
 export async function submitAsnWorkflow(formData: FormData) {
   // Accept either shipmentIds (JSON array) or legacy single shipmentId

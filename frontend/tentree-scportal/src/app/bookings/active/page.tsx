@@ -6,9 +6,11 @@ import { getSession } from '@/app/actions/auth';
 export default async function ActiveBookingsPage({
   searchParams,
 }: {
-  searchParams: { bkg?: string };
+  searchParams: Promise<{ bkg?: string }>;
 }) {
   let activeBookings: any[] = [];
+  const params = await searchParams;
+
   try {
     const [data, session] = await Promise.all([getBookings(), getSession()]);
     const isVendor = session?.role === 'Vendor';
@@ -21,7 +23,7 @@ export default async function ActiveBookingsPage({
 
   return (
     <Suspense>
-      <BookingsClient tab="list" initialActive={activeBookings} initialBkg={searchParams.bkg} />
+      <BookingsClient tab="list" initialActive={activeBookings} initialBkg={params.bkg} />
     </Suspense>
   );
 }

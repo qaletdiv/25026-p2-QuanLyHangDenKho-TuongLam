@@ -5,13 +5,15 @@ import { getPurchaseOrders } from '@/app/actions/purchase-orders';
 export default async function SubmitBookingPage({
   searchParams,
 }: {
-  searchParams: { po?: string };
+  // Next.js 15+ passes searchParams as a Promise
+  searchParams: Promise<{ po?: string }>;
 }) {
+  const resolvedParams = await searchParams;
   let prefilledPO: any = null;
-  if (searchParams.po) {
+  if (resolvedParams.po) {
     try {
       const allPOs = await getPurchaseOrders();
-      prefilledPO = (allPOs || []).find((p: any) => p.po_number === searchParams.po) ?? null;
+      prefilledPO = (allPOs || []).find((p: any) => p.po_number === resolvedParams.po) ?? null;
     } catch (e) {
       console.error('Failed to fetch PO for prefill:', e);
     }

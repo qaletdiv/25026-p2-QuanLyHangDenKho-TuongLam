@@ -1,6 +1,6 @@
 [
   {
-    "id": "po_fw26_001",
+    "id": "1",
     "po_number": "PO-FW26-001",
     "season": "FW26",
     "trn_number": "TRN-2001",
@@ -13,7 +13,7 @@
     "receiving_warehouse": "NRI CAN",
     "etd": "2026-07-20",
     "eta": "2026-08-25",
-    "booking_status": "No Booking",
+    "booking_status": "Booking Pending",
     "received_qty": 0,
     "booked_qty": 0,
     "actual_receive_date": "",
@@ -127,10 +127,10 @@
         "unit_price": 16.5
       }
     ],
-    "booking_number": null
+    "booking_number": "BKG-3091"
   },
   {
-    "id": "po_fw26_002",
+    "id": "2",
     "po_number": "PO-FW26-002",
     "season": "FW26",
     "trn_number": "TRN-2002",
@@ -314,7 +314,7 @@
     ]
   },
   {
-    "id": "po_fw26_003",
+    "id": "3",
     "po_number": "PO-FW26-003",
     "season": "FW26",
     "trn_number": "TRN-2003",
@@ -444,7 +444,7 @@
     "booking_number": null
   },
   {
-    "id": "po_fw26_004",
+    "id": "4",
     "po_number": "PO-FW26-004",
     "season": "FW26",
     "trn_number": "TRN-2004",
@@ -574,7 +574,7 @@
     "booking_number": "BKG-7062"
   },
   {
-    "id": "po_fw26_005",
+    "id": "5",
     "po_number": "PO-FW26-005",
     "season": "FW26",
     "trn_number": "TRN-2005",
@@ -668,7 +668,7 @@
     ]
   },
   {
-    "id": "po_ss27_sms_001",
+    "id": "6",
     "po_number": "PO-SS27-SMS-001",
     "season": "SS27",
     "trn_number": "TRN-2006",
@@ -735,7 +735,7 @@
     ]
   },
   {
-    "id": "po_ss27_sms_002",
+    "id": "7",
     "po_number": "PO-SS27-SMS-002",
     "season": "SS27",
     "trn_number": "TRN-2007",
@@ -802,7 +802,7 @@
     ]
   },
   {
-    "id": "po_ss27_sms_003",
+    "id": "8",
     "po_number": "PO-SS27-SMS-003",
     "season": "SS27",
     "trn_number": "TRN-2008",
@@ -869,7 +869,7 @@
     ]
   },
   {
-    "id": "po_ss27_sms_004",
+    "id": "9",
     "po_number": "PO-SS27-SMS-004",
     "season": "SS27",
     "trn_number": "TRN-2009",
@@ -936,7 +936,7 @@
     ]
   },
   {
-    "id": "po_ss27_sms_005",
+    "id": "10",
     "po_number": "PO-SS27-SMS-005",
     "season": "SS27",
     "trn_number": "TRN-2010",
@@ -1003,7 +1003,7 @@
     ]
   },
   {
-    "id": "17788825822770.525102615393695",
+    "id": "11",
     "po_number": "PO03521",
     "supplier": "We Are Wado S. L.",
     "etd": "2022-08-11",
@@ -1352,7 +1352,7 @@
     ]
   },
   {
-    "id": "17788825822770.6562732277866572",
+    "id": "12",
     "po_number": "PO03789",
     "supplier": "Shanghai Pucci Textile Co., LTD",
     "etd": "2023-01-11",
@@ -1391,7 +1391,7 @@
     ]
   },
   {
-    "id": "17788825822770.8179866071061732",
+    "id": "13",
     "po_number": "PO04609",
     "supplier": "Best Star Fashions Co., Ltd.",
     "etd": "2025-07-17",
@@ -8760,7 +8760,7 @@
     ]
   },
   {
-    "id": "17788825822770.7945600385107928",
+    "id": "14",
     "po_number": "PO04610",
     "supplier": "MerryTrade Ltd.",
     "etd": "2025-07-17",
@@ -9679,7 +9679,7 @@
     ]
   },
   {
-    "id": "17788825822770.7618936118753944",
+    "id": "15",
     "po_number": "PO04611",
     "supplier": "MerryTrade Ltd.",
     "etd": "2025-07-17",
@@ -11408,7 +11408,7 @@
     ]
   },
   {
-    "id": "17788825822770.0349179508982248",
+    "id": "16",
     "po_number": "PO04612",
     "supplier": "Eastern Warmth Inc",
     "etd": "2025-07-17",
@@ -16777,7 +16777,7 @@
     ]
   },
   {
-    "id": "17788825822770.23941564126498083",
+    "id": "17",
     "po_number": "PO04613",
     "supplier": "Shanghai Pucci Textile Co., LTD",
     "etd": "2025-07-17",
@@ -20416,7 +20416,7 @@
     ]
   },
   {
-    "id": "17788825822770.6855595830038086",
+    "id": "18",
     "po_number": "PO04614",
     "supplier": "Shanghai Pucci Textile Co., LTD",
     "etd": "2025-07-17",
@@ -20665,7 +20665,7 @@
     ]
   },
   {
-    "id": "17788825822770.17899963217519788",
+    "id": "19",
     "po_number": "PO04615",
     "supplier": "Pratibha Syntex Limited",
     "etd": "2025-07-17",
@@ -21184,7 +21184,7 @@
     ]
   },
   {
-    "id": "17788825822770.9435178580899727",
+    "id": "20",
     "po_number": "PO04617",
     "supplier": "Tah Hsin Industrial Corp.",
     "etd": "2025-07-17",

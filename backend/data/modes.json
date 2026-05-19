@@ -1,5 +1,14 @@
 [
-  { "id": "m1", "name": "Ocean" },
-  { "id": "m2", "name": "Air" },
-  { "id": "m3", "name": "Courier" }
+  {
+    "id": "m1",
+    "name": "Sea"
+  },
+  {
+    "id": "m2",
+    "name": "Air"
+  },
+  {
+    "id": "m3",
+    "name": "Courier"
+  }
 ]

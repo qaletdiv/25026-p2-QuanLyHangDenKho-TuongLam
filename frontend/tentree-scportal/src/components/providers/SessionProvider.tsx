@@ -8,6 +8,8 @@ type UserSession = {
   email: string;
   role: string;
   supplier?: string;
+  /** Permission keys for this role — injected at login from roles.json */
+  permissions?: string[];
 } | null;
 
 type SessionContextType = {

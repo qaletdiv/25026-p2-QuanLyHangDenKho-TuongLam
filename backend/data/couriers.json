@@ -1,7 +1,26 @@
 [
-  { "id": "c1", "name": "FedEx" },
-  { "id": "c2", "name": "DHL" },
-  { "id": "c3", "name": "Ceva" },
-  { "id": "c4", "name": "Maersk" },
-  { "id": "c5", "name": "UPS" }
+  {
+    "id": "c1",
+    "name": "FedEx"
+  },
+  {
+    "id": "c2",
+    "name": "DHL"
+  },
+  {
+    "id": "c3",
+    "name": "Ceva"
+  },
+  {
+    "id": "c4",
+    "name": "Maersk"
+  },
+  {
+    "id": "c5",
+    "name": "UPS"
+  },
+  {
+    "id": "a5ydqgwj8",
+    "name": "USPS"
+  }
 ]
