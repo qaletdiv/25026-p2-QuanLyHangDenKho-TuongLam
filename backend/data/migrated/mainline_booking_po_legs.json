@@ -1,1 +1,29 @@
-[]
+[
+  {
+    "id": "bpl_1_50",
+    "booking_id": "1",
+    "leg_id": "50",
+    "units": 147,
+    "cartons": 7,
+    "weight_kg": 126.26,
+    "cbm": 0.62
+  },
+  {
+    "id": "bpl_2_31",
+    "booking_id": "2",
+    "leg_id": "31",
+    "units": 861,
+    "cartons": null,
+    "weight_kg": null,
+    "cbm": null
+  },
+  {
+    "id": "bpl_2_5",
+    "booking_id": "2",
+    "leg_id": "5",
+    "units": 694,
+    "cartons": null,
+    "weight_kg": null,
+    "cbm": null
+  }
+]

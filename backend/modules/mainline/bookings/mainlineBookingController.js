@@ -111,13 +111,19 @@ async function create(req, res) {
     if (warnings.length) return res.status(409).json({ overbook_warning: true, warnings });
   }
 
+  // Seed Cargo Ready from the WIP leg CRD (latest across the booked legs) so a new
+  // booking carries a real date out of the box; the vendor can override it later
+  // via update while the booking is still pending.
+  const legCrds = po_legs.map((p) => legById.get(p.leg_id)?.crd).filter(Boolean);
+  const seededCrd = legCrds.length ? legCrds.reduce((a, c) => (c > a ? c : a)) : null;
+
   const id = nextId(ctx.bookings);
   const booking = {
     id,
     booking_number: req.body.booking_number || nextBookingNumber(ctx.bookings),
     supplier_id,
     incoterm_id: req.body.incoterm_id || null,
-    cargo_ready_date: req.body.cargo_ready_date || null,
+    cargo_ready_date: req.body.cargo_ready_date || seededCrd,
     booking_status_id: await status.idForName('Booking Pending'),
     // booking date — user-settable (existing column, no schema change); defaults to now
     submitted_at: req.body.booking_date ? new Date(req.body.booking_date).toISOString() : new Date().toISOString(),
@@ -225,7 +231,17 @@ async function update(req, res) {
   const oldStatusName = await status.nameForId(booking.booking_status_id);
 
   if (newStatusName) booking.booking_status_id = await status.idForName(newStatusName);
-  if (req.body.cargo_ready_date !== undefined) booking.cargo_ready_date = req.body.cargo_ready_date;
+  // Cargo Ready is vendor-editable only while the booking is still pending — once
+  // approved it has spawned shipments (which own the logistics dates) and is locked.
+  // Admin / Logistics may override it even after approval (won't retro-change the
+  // shipment dates already created).
+  if (req.body.cargo_ready_date !== undefined) {
+    const privileged = ['Admin', 'Logistics Coordinator'].includes(req.user?.role);
+    if (oldStatusName !== 'Booking Pending' && !privileged) {
+      err('Cargo Ready can only be edited while the booking is pending (not yet approved)', 409);
+    }
+    booking.cargo_ready_date = req.body.cargo_ready_date || null;
+  }
   if (req.body.incoterm_id !== undefined) booking.incoterm_id = req.body.incoterm_id;
 
   let createdShipments = [];

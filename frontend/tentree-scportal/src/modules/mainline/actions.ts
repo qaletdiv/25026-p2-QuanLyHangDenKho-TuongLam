@@ -8,7 +8,7 @@ import { fetchApi } from '@/lib/api';
 import { revalidatePath } from 'next/cache';
 import type {
   PoMasterSummary, PoMasterDetail, PoLegDetail, OrderIntent, PoLegRow,
-  MainlineBooking, MainlineShipment, CommercialInvoice, Fulfillment, PackingSummary, PackingByPo,
+  MainlineBooking, MainlineShipment, CommercialInvoice, Fulfillment, PoReconcile, PackingSummary, PackingByPo,
   PortOption, ContainerTypeOption, MainlineReportRow, TransitTimesReport,
 } from './types';
 
@@ -196,6 +196,13 @@ export async function getMainlinePacking(bookingId: string): Promise<{ booking_i
 
 export async function getMainlineFulfillment(trn: string): Promise<Fulfillment | null> {
   const data = await fetchApi(`/mainline/fulfillment/${encodeURIComponent(trn)}`);
+  if (!data || data.error) return null;
+  return data;
+}
+
+// Component-PO reconcile (ordered/shipped/received/remaining/variance per SKU).
+export async function getMainlinePoReconcile(poNumber: string): Promise<PoReconcile | null> {
+  const data = await fetchApi(`/mainline/fulfillment/po/${encodeURIComponent(poNumber)}`);
   if (!data || data.error) return null;
   return data;
 }

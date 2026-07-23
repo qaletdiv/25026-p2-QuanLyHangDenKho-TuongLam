@@ -15,6 +15,7 @@ const LegReadModel  = require('./LegReadModel');
 const { loadResolvers } = require('./resolvers');
 const BaseModel = require('../../models/BaseModel');
 const integrationService = require('../../services/integrationService');
+const ItemReceiptModel = require('../mainline/receipts/MainlineItemReceiptModel');
 
 // ---- pure core: fold NS POs into the three grains, honoring R1 -------------
 // existing = { masters, orders, orderLines }
@@ -65,6 +66,11 @@ function buildUpserts(pos, existing, ctx) {
       ...prev,                             // preserve fields this sync doesn't own
       po_number:             po.po_number,
       trn_number:            po.trn_number || prev.trn_number || null,
+      // NS PO internal id at the COMPONENT-PO grain — Item Receipts attach here
+      // (createdfrom = this id), so received qty is scoped by it. (po_masters also
+      // carries one, but that's lossy when a TRN spans several POs — this is the
+      // authoritative per-po_number id.)
+      netsuite_id:           po.netsuite_id ?? prev.netsuite_id ?? null,
       // destination/channel/COO: NS fills them when it can resolve, but NEVER nulls
       // out a value already set (e.g. one the WIP import resolved) — so sync order
       // doesn't matter. WIP is the reliable source for these planning attributes.
@@ -110,6 +116,32 @@ async function computeLocked() {
 }
 
 // ---- IO entrypoint ----------------------------------------------------------
+// Fold NetSuite Item Receipts into mainline_item_receipts/_lines. Keyed on
+// netsuite_ir_id (idempotent); read-only from NS (no portal-owned fields).
+// A receipt attaches to its source po_number; received qty is derived from the lines.
+function foldReceipts(nsReceipts, existingReceipts, existingLines) {
+  const byIr = new Map(existingReceipts.filter((r) => r.netsuite_ir_id).map((r) => [r.netsuite_ir_id, r]));
+  let irSeq = existingReceipts.reduce((mx, r) => Math.max(mx, +String(r.id).replace(/\D/g, '') || 0), 0);
+  const outReceipts = [...existingReceipts];
+  let outLines = [...existingLines];
+  for (const ir of nsReceipts) {
+    if (!ir.po_number) continue;
+    let r = byIr.get(ir.ir_id);
+    if (!r) {
+      r = { id: `mir_${++irSeq}`, netsuite_ir_id: ir.ir_id, netsuite_ir_tranid: ir.ir_tranid || null,
+        po_number: ir.po_number, receipt_date: ir.receipt_date || null, source: 'netsuite' };
+      outReceipts.push(r); byIr.set(ir.ir_id, r);
+    } else {
+      r.po_number = ir.po_number;
+      r.netsuite_ir_tranid = ir.ir_tranid || r.netsuite_ir_tranid;
+      r.receipt_date = ir.receipt_date || r.receipt_date;
+    }
+    outLines = outLines.filter((l) => l.receipt_id !== r.id);
+    (ir.lines || []).forEach((l, i) => outLines.push({ id: `mirl_${r.id.replace(/\D/g, '')}_${i + 1}`, receipt_id: r.id, sku_code: l.sku_code, qty: l.qty }));
+  }
+  return { receipts: outReceipts, receiptLines: outLines };
+}
+
 async function sync({ fetchPos } = {}) {
   const fetch = fetchPos || (() => integrationService.fetchNetSuitePOs({ type: 'mainline' }));
 
@@ -130,12 +162,43 @@ async function sync({ fetchPos } = {}) {
 
   const result = buildUpserts(pos, { masters, orders, orderLines }, { resolvers, lockedPoNumbers, lockedTrns });
 
+  // Backfill NS internal ids for po_orders the active pull didn't return (received/
+  // closed POs, D..H) by resolving their tranid → id. Lets received qty work for
+  // those WITHOUT widening the PO pull (no new POs enter the list). Best-effort.
+  try {
+    const missing = result.orders.filter((o) => o.po_number && !o.netsuite_id).map((o) => o.po_number);
+    if (missing.length) {
+      const idByTranid = await integrationService.fetchPoIdsByTranid(missing);
+      result.orders.forEach((o) => { if (!o.netsuite_id && idByTranid[o.po_number]) o.netsuite_id = idByTranid[o.po_number]; });
+    }
+  } catch (e) {
+    console.error('[PO sync] netsuite_id backfill failed:', e.message);
+  }
+
   await Promise.all([
     PoMasterModel.write(result.masters),
     PoOrderModel.writeOrders(result.orders),
     PoOrderModel.writeOrderLines(result.orderLines),
   ]);
-  return { ...result.stats, warnings: [...new Set(resolvers.warnings)], fetched: pos.length };
+
+  // Item Receipts (received qty) — read-only, scoped to the mainline POs we hold
+  // internal ids for. A PO keeps its netsuite_id after it leaves the active window,
+  // so its later receipts keep syncing. Never fails the PO sync (degrades to skip).
+  let receipts_upserted = 0;
+  try {
+    const poIds = result.orders.map((o) => o.netsuite_id).filter(Boolean);
+    if (poIds.length) {
+      const nsReceipts = await integrationService.fetchNetSuiteItemReceipts(poIds);
+      const [exR, exL] = await Promise.all([ItemReceiptModel.readReceipts(), ItemReceiptModel.readReceiptLines()]);
+      const folded = foldReceipts(nsReceipts, exR, exL);
+      await Promise.all([ItemReceiptModel.writeReceipts(folded.receipts), ItemReceiptModel.writeReceiptLines(folded.receiptLines)]);
+      receipts_upserted = nsReceipts.length;
+    }
+  } catch (e) {
+    console.error('[PO sync] item-receipt fetch failed — received qty skipped:', e.message);
+  }
+
+  return { ...result.stats, receipts_upserted, warnings: [...new Set(resolvers.warnings)], fetched: pos.length };
 }
 
 module.exports = { sync, buildUpserts, computeLocked };

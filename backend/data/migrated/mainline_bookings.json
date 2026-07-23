@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "id": "1",
+    "booking_number": "BKG-1",
+    "supplier_id": "18",
+    "incoterm_id": null,
+    "cargo_ready_date": null,
+    "booking_status_id": "bk_approved",
+    "submitted_at": "2026-07-23T00:00:00.000Z",
+    "approved_at": "2026-07-23T20:14:09.137Z"
+  },
+  {
+    "id": "2",
+    "booking_number": "BKG-2",
+    "supplier_id": "9",
+    "incoterm_id": null,
+    "cargo_ready_date": null,
+    "booking_status_id": "bk_approved",
+    "submitted_at": "2026-07-23T00:00:00.000Z",
+    "approved_at": "2026-07-23T20:34:45.595Z"
+  }
+]

@@ -3,6 +3,14 @@
 const Joi = require('joi');
 const { MAINLINE_BOOKING_STATUSES } = require('../statuses');
 
+// ISO calendar date (YYYY-MM-DD); the custom check rejects impossible dates.
+const isoDate = Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/)
+  .custom((v, helpers) => (isNaN(new Date(v).getTime()) ? helpers.error('any.invalid') : v))
+  .allow(null, '').messages({
+    'string.pattern.base': 'Cargo Ready must be YYYY-MM-DD',
+    'any.invalid': 'Not a valid calendar date',
+  });
+
 // Booking is keyed on LEGS (leg_id), not po_number — enforces the leg-only rule
 // at the shape level. supplier_id identifies the vendor; the controller verifies
 // every leg belongs to that supplier (G1).
@@ -27,6 +35,7 @@ const update = Joi.object({
   booking_status: Joi.string().valid(...MAINLINE_BOOKING_STATUSES).allow('', null).messages({
     'any.only': `'booking_status' must be one of: ${MAINLINE_BOOKING_STATUSES.join(', ')}`,
   }),
+  cargo_ready_date: isoDate,
   po_legs: Joi.array().items(legRef).allow(null),
 }).unknown(true);
 

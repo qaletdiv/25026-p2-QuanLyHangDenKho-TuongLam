@@ -4,14 +4,16 @@ import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ArrowLeft, Check, Download, Upload } from 'lucide-react';
+import { ArrowLeft, Check, Download, Pencil, Save, Upload, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { BACKEND_URL } from '@/lib/api';
-import { approveMainlineBooking, confirmMainlineCi, uploadShipmentData } from '@/modules/mainline/actions';
+import { approveMainlineBooking, confirmMainlineCi, updateMainlineBooking, uploadShipmentData } from '@/modules/mainline/actions';
+import { useSession } from '@/components/providers/SessionProvider';
 import ConfirmDialog from './ConfirmDialog';
 import type { MainlineBooking, CommercialInvoice, PackingSummary, PackingByPo, MainlineDocument } from '@/modules/mainline/types';
 
@@ -47,6 +49,25 @@ export default function BookingDetail({
   const [busy, setBusy] = useState(false);
   const [confirmApprove, setConfirmApprove] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  // Cargo Ready is seeded from the WIP leg CRD; the vendor can adjust it while the
+  // booking is still pending (locked once approved — the shipment owns dates then).
+  // Admin / Logistics may override it even after approval.
+  const { user } = useSession();
+  const isPending = booking.booking_status === 'Booking Pending';
+  const isPrivileged = ['Admin', 'Logistics Coordinator'].includes(user?.role ?? '');
+  const canEditCrd = isPending || isPrivileged;
+  const [editingCrd, setEditingCrd] = useState(false);
+  const [crd, setCrd] = useState(booking.cargo_ready_date ?? '');
+
+  async function saveCrd() {
+    setBusy(true);
+    const res = await updateMainlineBooking(booking.id, { cargo_ready_date: crd || null });
+    setBusy(false);
+    if (res?.error) { toast.error(res.error); return; }
+    setEditingCrd(false);
+    toast.success('Cargo Ready updated');
+    router.refresh();
+  }
 
   async function run(fn: () => Promise<{ error?: string }>, ok: string) {
     setBusy(true);
@@ -128,8 +149,23 @@ export default function BookingDetail({
           {/* line 2 — booking facts */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Cell label="Supplier">{booking.supplier_name ?? booking.supplier_id ?? DASH}</Cell>
-            <Cell label="Mode" hint="Air / Sea — for the freight forwarder">{booking.mode ?? DASH}</Cell>
-            <Cell label="Cargo Ready">{booking.cargo_ready_date ?? DASH}</Cell>
+            <Cell label="Mode">{booking.mode ?? DASH}</Cell>
+            <Cell label="Cargo Ready" hint={isPending ? 'From WIP CRD — editable until approved' : undefined}>
+              {editingCrd ? (
+                <div className="flex items-center gap-1.5">
+                  <Input type="date" value={crd} onChange={(e) => setCrd(e.target.value)} className="h-8 w-[9.5rem]" disabled={busy} />
+                  <Button size="sm" variant="ghost" className="h-8 px-2" disabled={busy} onClick={saveCrd}><Save className="h-4 w-4" /></Button>
+                  <Button size="sm" variant="ghost" className="h-8 px-2" disabled={busy} onClick={() => { setEditingCrd(false); setCrd(booking.cargo_ready_date ?? ''); }}><X className="h-4 w-4" /></Button>
+                </div>
+              ) : (
+                <span className="inline-flex items-center gap-1.5">
+                  {booking.cargo_ready_date ?? DASH}
+                  {canEditCrd && (
+                    <Button size="sm" variant="ghost" className="h-6 px-1.5 text-muted-foreground" title="Edit Cargo Ready" onClick={() => setEditingCrd(true)}><Pencil className="h-3.5 w-3.5" /></Button>
+                  )}
+                </span>
+              )}
+            </Cell>
             <Cell label="Booked">{booking.submitted_at ? booking.submitted_at.slice(0, 10) : DASH}</Cell>
           </div>
         </Card>

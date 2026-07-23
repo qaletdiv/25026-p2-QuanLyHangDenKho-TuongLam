@@ -51,6 +51,7 @@ export interface MainlineLeg {
 export interface PoOrderDetail {
   po_number: string;
   trn_number: string | null;
+  netsuite_id: string | null;             // NetSuite PO internal id (component grain)
   facility_id: string | null;
   allocation_channel_id: string | null;
   destination_facility: string | null;   // physical facility name (NRI US, …)
@@ -71,9 +72,17 @@ export interface PoLegLineItem {
   description: string | null;
   unit_price: number | null;
 }
+export interface PoReconcile {
+  po_number: string;
+  sku_count: number;
+  totals: { ordered_qty: number; allocated_qty: number; shipped_qty: number; received_qty: number };
+  fulfillment: FulfillmentRow[];
+}
+
 export interface PoLegDetail {
   id: string;
   po_number: string;
+  netsuite_id: string | null;            // component-PO NetSuite internal id
   trn_number: string | null;
   supplier_id: string | null;
   supplier: string | null;

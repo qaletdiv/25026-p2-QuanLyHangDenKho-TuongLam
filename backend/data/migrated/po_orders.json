@@ -4,454 +4,519 @@
     "trn_number": "TRN_4073",
     "facility_id": null,
     "allocation_channel_id": "ch_first",
-    "coo_country": null
+    "coo_country": null,
+    "netsuite_id": "18581569"
   },
   {
     "po_number": "PO03789",
     "trn_number": "TRN_1163",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "netsuite_id": "20508637"
   },
   {
     "po_number": "PO04722",
     "trn_number": "TRN_2099",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "31604610"
   },
   {
     "po_number": "PO04725",
     "trn_number": "TRN_2097",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "31604613"
   },
   {
     "po_number": "PO04728",
     "trn_number": "TRN_1267",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "India"
+    "coo_country": "India",
+    "netsuite_id": "31604616"
   },
   {
     "po_number": "PO04729",
     "trn_number": "TRN_1256",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "31604617"
   },
   {
     "po_number": "PO04730",
     "trn_number": "TRN_1257",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "31604618"
   },
   {
     "po_number": "PO04731",
     "trn_number": "TRN_1259",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "India"
+    "coo_country": "India",
+    "netsuite_id": "31604619"
   },
   {
     "po_number": "PO04732",
     "trn_number": "TRN_1262",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "Taiwan, Province of China"
+    "coo_country": "Taiwan, Province of China",
+    "netsuite_id": "31604620"
   },
   {
     "po_number": "PO04733",
     "trn_number": "TRN_1260",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "Indonesia"
+    "coo_country": "Indonesia",
+    "netsuite_id": "31604621"
   },
   {
     "po_number": "PO04735",
     "trn_number": "TRN_1261",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "31604623"
   },
   {
     "po_number": "PO04737",
     "trn_number": "TRN_1258",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "31604625"
   },
   {
     "po_number": "PO04738",
     "trn_number": "TRN_1263",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "31604626"
   },
   {
     "po_number": "PO04742",
     "trn_number": "TRN_5050",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32132862"
   },
   {
     "po_number": "PO04745",
     "trn_number": "TRN_2100",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32262015"
   },
   {
     "po_number": "PO04746",
     "trn_number": "TRN_2102",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "India"
+    "coo_country": "India",
+    "netsuite_id": "32262016"
   },
   {
     "po_number": "PO04747",
     "trn_number": "TRN_5051",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32262017"
   },
   {
     "po_number": "PO04749",
     "trn_number": "TRN_5053",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "Indonesia"
+    "coo_country": "Indonesia",
+    "netsuite_id": "32262019"
   },
   {
     "po_number": "PO04751",
     "trn_number": "TRN_5055",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32326557"
   },
   {
     "po_number": "PO04755",
     "trn_number": "TRN_1258",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399772"
   },
   {
     "po_number": "PO04756",
     "trn_number": "TRN_1267",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "India"
+    "coo_country": "India",
+    "netsuite_id": "32399773"
   },
   {
     "po_number": "PO04757",
     "trn_number": "TRN_1263",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399774"
   },
   {
     "po_number": "PO04758",
     "trn_number": "TRN_1256",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399775"
   },
   {
     "po_number": "PO04759",
     "trn_number": "TRN_1259",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "India"
+    "coo_country": "India",
+    "netsuite_id": "32399776"
   },
   {
     "po_number": "PO04763",
     "trn_number": "TRN_1261",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399780"
   },
   {
     "po_number": "PO04764",
     "trn_number": "TRN_1255",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399781"
   },
   {
     "po_number": "PO04767",
     "trn_number": "TRN_1258",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399784"
   },
   {
     "po_number": "PO04770",
     "trn_number": "TRN_1256",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399787"
   },
   {
     "po_number": "PO04771",
     "trn_number": "TRN_1257",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399788"
   },
   {
     "po_number": "PO04772",
     "trn_number": "TRN_1259",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
-    "coo_country": "India"
+    "coo_country": "India",
+    "netsuite_id": "32399789"
   },
   {
     "po_number": "PO04773",
     "trn_number": "TRN_1262",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
-    "coo_country": "Taiwan, Province of China"
+    "coo_country": "Taiwan, Province of China",
+    "netsuite_id": "32399790"
   },
   {
     "po_number": "PO04774",
     "trn_number": "TRN_1260",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
-    "coo_country": "Indonesia"
+    "coo_country": "Indonesia",
+    "netsuite_id": "32399791"
   },
   {
     "po_number": "PO04776",
     "trn_number": "TRN_1261",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399793"
   },
   {
     "po_number": "PO04777",
     "trn_number": "TRN_1255",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399794"
   },
   {
     "po_number": "PO04783",
     "trn_number": "TRN_1256",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399800"
   },
   {
     "po_number": "PO04784",
     "trn_number": "TRN_1259",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "India"
+    "coo_country": "India",
+    "netsuite_id": "32399801"
   },
   {
     "po_number": "PO04788",
     "trn_number": "TRN_1261",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399805"
   },
   {
     "po_number": "PO04825",
     "trn_number": "TRN_2103",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "33092088"
   },
   {
     "po_number": "PO04786",
     "trn_number": "TRN_1260",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "Indonesia"
+    "coo_country": "Indonesia",
+    "netsuite_id": "32399803"
   },
   {
     "po_number": "PO04761",
     "trn_number": "TRN_1260",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "Indonesia"
+    "coo_country": "Indonesia",
+    "netsuite_id": "32399778"
   },
   {
     "po_number": "PO04785",
     "trn_number": "TRN_1262",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "Taiwan, Province of China"
+    "coo_country": "Taiwan, Province of China",
+    "netsuite_id": "32399802"
   },
   {
     "po_number": "PO04787",
     "trn_number": "TRN_1266",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "Indonesia"
+    "coo_country": "Indonesia",
+    "netsuite_id": "32399804"
   },
   {
     "po_number": "PO04779",
     "trn_number": "TRN_1265",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "Vietnam"
+    "coo_country": "Vietnam",
+    "netsuite_id": "32399796"
   },
   {
     "po_number": "PO04780",
     "trn_number": "TRN_1258",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399797"
   },
   {
     "po_number": "PO04781",
     "trn_number": "TRN_1267",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "India"
+    "coo_country": "India",
+    "netsuite_id": "32399798"
   },
   {
     "po_number": "PO04782",
     "trn_number": "TRN_1263",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399799"
   },
   {
     "po_number": "PO04775",
     "trn_number": "TRN_1266",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
-    "coo_country": "Indonesia"
+    "coo_country": "Indonesia",
+    "netsuite_id": "32399792"
   },
   {
     "po_number": "PO04778",
     "trn_number": "TRN_1264",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399795"
   },
   {
     "po_number": "PO04769",
     "trn_number": "TRN_1263",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399786"
   },
   {
     "po_number": "PO04765",
     "trn_number": "TRN_1264",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399782"
   },
   {
     "po_number": "PO04766",
     "trn_number": "TRN_1265",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
-    "coo_country": "Vietnam"
+    "coo_country": "Vietnam",
+    "netsuite_id": "32399783"
   },
   {
     "po_number": "PO04768",
     "trn_number": "TRN_1267",
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
-    "coo_country": "India"
+    "coo_country": "India",
+    "netsuite_id": "32399785"
   },
   {
     "po_number": "PO04760",
     "trn_number": "TRN_1262",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "Taiwan, Province of China"
+    "coo_country": "Taiwan, Province of China",
+    "netsuite_id": "32399777"
   },
   {
     "po_number": "PO04762",
     "trn_number": "TRN_1266",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "Indonesia"
+    "coo_country": "Indonesia",
+    "netsuite_id": "32399779"
   },
   {
     "po_number": "PO04754",
     "trn_number": "TRN_1265",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "Vietnam"
+    "coo_country": "Vietnam",
+    "netsuite_id": "32399771"
   },
   {
     "po_number": "PO04752",
     "trn_number": "TRN_1255",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399769"
   },
   {
     "po_number": "PO04753",
     "trn_number": "TRN_1264",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32399770"
   },
   {
     "po_number": "PO04744",
     "trn_number": "TRN_2101",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32262014"
   },
   {
     "po_number": "PO04748",
     "trn_number": "TRN_5052",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "32262018"
   },
   {
     "po_number": "PO04736",
     "trn_number": "TRN_1265",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "Vietnam"
+    "coo_country": "Vietnam",
+    "netsuite_id": "31604624"
   },
   {
     "po_number": "PO04734",
     "trn_number": "TRN_1266",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "Indonesia"
+    "coo_country": "Indonesia",
+    "netsuite_id": "31604622"
   },
   {
     "po_number": "PO04727",
     "trn_number": "TRN_1264",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "31604615"
   },
   {
     "po_number": "PO04726",
     "trn_number": "TRN_1255",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "31604614"
   },
   {
     "po_number": "PO04723",
     "trn_number": "TRN_2097",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "China"
+    "coo_country": "China",
+    "netsuite_id": "31604611"
   },
   {
     "po_number": "PO04724",
     "trn_number": "TRN_2098",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
-    "coo_country": "Vietnam"
+    "coo_country": "Vietnam",
+    "netsuite_id": "31604612"
   }
 ]

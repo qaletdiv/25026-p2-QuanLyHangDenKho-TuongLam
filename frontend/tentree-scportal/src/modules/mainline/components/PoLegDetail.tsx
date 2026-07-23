@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import type { PoLegDetail as PoLegDetailT } from '@/modules/mainline/types';
+import { cn } from '@/lib/utils';
+import type { PoLegDetail as PoLegDetailT, PoReconcile } from '@/modules/mainline/types';
 
 function Meta({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -19,10 +20,23 @@ function Meta({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-// One PO leg (air/sea split) and the exact SKUs + quantities the vendor must produce.
-export default function PoLegDetail({ leg }: { leg: PoLegDetailT }) {
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <Card className="p-3">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-lg font-semibold tabular-nums">{value.toLocaleString()}</div>
+    </Card>
+  );
+}
+
+// One PO leg (air/sea split): the SKUs the vendor must produce + the component-PO
+// reconcile (ordered vs shipped vs received, from NetSuite Item Receipts).
+export default function PoLegDetail({ leg, reconcile }: { leg: PoLegDetailT; reconcile: PoReconcile | null }) {
   const router = useRouter();
   const [showAll, setShowAll] = useState(false);
+  const itemBySku = new Map(leg.line_items.map((li) => [li.sku_code, li]));
+  const recRows = reconcile?.fulfillment ?? [];
+  const shownRec = showAll ? recRows : recRows.slice(0, 15);
   const shown = showAll ? leg.line_items : leg.line_items.slice(0, 15);
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
@@ -53,6 +67,7 @@ export default function PoLegDetail({ leg }: { leg: PoLegDetailT }) {
 
       <Card className="p-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Meta label="NetSuite ID" value={leg.netsuite_id} />
           <Meta label="Season" value={leg.season} />
           <Meta label="Mode" value={leg.mode} />
           <Meta label="Destination" value={leg.destination_facility} />
@@ -64,6 +79,59 @@ export default function PoLegDetail({ leg }: { leg: PoLegDetailT }) {
         </div>
       </Card>
 
+      {recRows.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-sm font-medium text-muted-foreground">{leg.po_number} — ordered vs shipped vs received</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Stat label="Ordered" value={reconcile!.totals.ordered_qty} />
+            <Stat label="Shipped" value={reconcile!.totals.shipped_qty} />
+            <Stat label="Received" value={reconcile!.totals.received_qty} />
+            <Stat label="Remaining" value={reconcile!.totals.ordered_qty - reconcile!.totals.shipped_qty} />
+          </div>
+          <Card className="overflow-x-auto">
+            <Table className="bg-card">
+              <TableHeader>
+                <TableRow className="bg-card/80 hover:bg-card/80">
+                  <TableHead>SKU</TableHead>
+                  <TableHead>Item</TableHead>
+                  <TableHead className="text-right">Ordered</TableHead>
+                  <TableHead className="text-right">Shipped</TableHead>
+                  <TableHead className="text-right">Received</TableHead>
+                  <TableHead className="text-right">Variance</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {shownRec.map((r) => (
+                  <TableRow key={r.sku_code} className="border-border hover:bg-muted/30">
+                    <TableCell className="font-mono text-xs">{r.sku_code}</TableCell>
+                    <TableCell>{itemBySku.get(r.sku_code)?.item_name ?? '—'}</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.ordered_qty.toLocaleString()}</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.shipped_qty ? r.shipped_qty.toLocaleString() : '—'}</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.received_qty.toLocaleString()}</TableCell>
+                    <TableCell className={cn('text-right tabular-nums', r.variance !== 0 && r.received_qty > 0 && 'text-amber-600 font-medium')}>
+                      {r.variance === 0 ? '—' : r.variance.toLocaleString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="bg-card/80 font-medium">
+                  <TableCell colSpan={2}>Total ({recRows.length} SKUs)</TableCell>
+                  <TableCell className="text-right tabular-nums">{reconcile!.totals.ordered_qty.toLocaleString()}</TableCell>
+                  <TableCell className="text-right tabular-nums">{reconcile!.totals.shipped_qty.toLocaleString()}</TableCell>
+                  <TableCell className="text-right tabular-nums">{reconcile!.totals.received_qty.toLocaleString()}</TableCell>
+                  <TableCell />
+                </TableRow>
+              </TableBody>
+            </Table>
+          </Card>
+          {recRows.length > 15 && (
+            <button onClick={() => setShowAll((v) => !v)} className="text-xs font-semibold text-primary hover:underline">
+              {showAll ? 'Show top 15' : `Show all ${recRows.length} SKUs`}
+            </button>
+          )}
+        </section>
+      )}
+
+      {recRows.length === 0 && (
       <section className="space-y-2">
         <h2 className="text-sm font-medium text-muted-foreground">Line items to produce</h2>
         <Card className="overflow-x-auto">
@@ -106,6 +174,7 @@ export default function PoLegDetail({ leg }: { leg: PoLegDetailT }) {
           </button>
         )}
       </section>
+      )}
     </div>
   );
 }

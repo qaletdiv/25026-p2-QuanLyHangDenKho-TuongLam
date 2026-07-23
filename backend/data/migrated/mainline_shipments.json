@@ -1,1 +1,44 @@
-[]
+[
+  {
+    "id": "1",
+    "shipment_number": "SHP-1",
+    "booking_id": "1",
+    "facility_id": "fac_nri_ca",
+    "mode_id": "m2",
+    "status_id": "sms_delivered",
+    "container_type_id": null,
+    "pol_port_id": null,
+    "pod_port_id": null,
+    "bl_no": null,
+    "etd_pol": null,
+    "eta_pod": null,
+    "e_del": "2026-09-02",
+    "cargo_received_date": null,
+    "ata": null,
+    "netsuite_id": null,
+    "invoice_value": null,
+    "duty": null,
+    "freight": null
+  },
+  {
+    "id": "2",
+    "shipment_number": "SHP-2",
+    "booking_id": "2",
+    "facility_id": "fac_nri_us",
+    "mode_id": "m1",
+    "status_id": "sms_delivered",
+    "container_type_id": null,
+    "pol_port_id": null,
+    "pod_port_id": null,
+    "bl_no": null,
+    "etd_pol": null,
+    "eta_pod": null,
+    "e_del": "2026-07-08",
+    "cargo_received_date": null,
+    "ata": null,
+    "netsuite_id": null,
+    "invoice_value": null,
+    "duty": null,
+    "freight": null
+  }
+]

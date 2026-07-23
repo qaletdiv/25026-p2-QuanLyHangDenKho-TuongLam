@@ -107,12 +107,17 @@ function enrichBookings(bookings, { bookingLegs, legs, suppliers, modes = [], or
       return { ...bl, po_number: leg.po_number || null, mode: modeName.get(leg.mode_id) || null };
     });
     const seasonSet = [...new Set(myLegs.map(seasonOfLeg).filter(Boolean))];
+    // Cargo Ready falls back to the WIP leg CRD (latest across the booked legs) when
+    // unset — covers bookings created before it was seeded; a stored value wins.
+    const crds = myLegs.map((l) => l.crd).filter(Boolean);
+    const legCrd = crds.length ? crds.reduce((a, c) => (c > a ? c : a)) : null;
     return {
       ...b,
       supplier_name: supName.get(b.supplier_id) || null,
       booking_status: idToStatusName.get(b.booking_status_id) || null,
       mode: [...new Set(po_legs.map((l) => l.mode).filter(Boolean))].join(', ') || null,
       season: seasonSet.join(', ') || null,
+      cargo_ready_date: b.cargo_ready_date ?? legCrd,
       po_legs,
     };
   });

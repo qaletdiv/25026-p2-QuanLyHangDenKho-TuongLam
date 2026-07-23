@@ -545,6 +545,27 @@ class IntegrationService {
     }
 
     /**
+     * Resolve PO internal ids from their document numbers (tranids, e.g. "PO04749").
+     * Used to backfill po_orders.netsuite_id for POs outside the active sync window
+     * (received/closed), so their Item Receipts can still be fetched. Returns a
+     * { tranid: internal_id } map. Batched to stay under the IN-list limit.
+     */
+    async fetchPoIdsByTranid(tranids = []) {
+        if (!process.env.NETSUITE_ACCOUNT_ID || !process.env.NETSUITE_CONSUMER_KEY) return {};
+        const clean = [...new Set((tranids || []).map((t) => String(t).replace(/[^A-Za-z0-9-]/g, '')).filter(Boolean))];
+        const out = {};
+        for (let i = 0; i < clean.length; i += 900) {
+            const batch = clean.slice(i, i + 900);
+            const list = batch.map((t) => `'${t}'`).join(', ');
+            const rows = await this._suiteqlFetchAll(
+                `SELECT id, tranid FROM transaction WHERE type = 'PurchOrd' AND tranid IN (${list})`,
+            ).catch(() => []);
+            for (const r of rows) out[r.tranid] = String(r.id);
+        }
+        return out;
+    }
+
+    /**
      * Resolve ONE Item Receipt by its document number (tranid, e.g. "IR65377") to
      * its internal id + date — used for a MANUAL landed-cost match when the
      * auto-matcher found no receipt. Returns { ir_id, ir_tranid, receipt_date } or null.

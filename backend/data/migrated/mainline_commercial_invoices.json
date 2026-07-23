@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "id": "ci_2",
+    "booking_id": "2",
+    "invoice_number": "INV-2",
+    "invoice_date": "2026-07-23",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmed_at": "2026-07-23T20:34:30.109Z"
+  }
+]

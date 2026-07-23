@@ -292,6 +292,7 @@ async function getLeg(req, res) {
   res.json({
     id:                   leg.id,
     po_number:            leg.po_number,
+    netsuite_id:          order.netsuite_id || null,   // component-PO NS internal id
     trn_number:           order.trn_number || null,
     supplier_id:          master.supplier_id || null,
     supplier:             supName.get(master.supplier_id) || null,

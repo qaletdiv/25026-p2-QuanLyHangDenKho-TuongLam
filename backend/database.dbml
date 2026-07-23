@@ -211,6 +211,9 @@ Table po_masters {                      // STEP 1 — NetSuite master PO. PK is 
 Table po_orders {                       // STEP 2 — warehouse split. One per (TRN, warehouse).
   po_number     varchar [pk]            // unique at this grain (repeats only in legs)
   trn_number    varchar [ref: > po_masters.trn_number]
+  netsuite_id   varchar                 // NS PO internal id at the COMPONENT grain —
+                                        // Item Receipts attach here (createdfrom). The
+                                        // po_masters copy is lossy when a TRN spans POs.
   // conflated warehouse decomposed into two independent facts (3NF):
   facility_id           varchar [ref: > warehouse_facilities.id]   // physical destination
   allocation_channel_id varchar [ref: > allocation_channels.id]    // Reserved/First (nullable)
@@ -385,6 +388,28 @@ Table mainline_shipment_legs {
   expected_quantity integer                            // this leg's booking allocation
   indexes {
     (shipment_id, leg_id) [unique]
+  }
+}
+
+// NetSuite Item Receipts for MAINLINE POs — synced read-only alongside the PO sync
+// (fetchNetSuiteItemReceipts scoped by po_orders.netsuite_id). Attach to the
+// component po_number. Received qty is DERIVED at read from the lines (three-way
+// match). Separate from sms_item_receipts (no shared transactional tables).
+Table mainline_item_receipts {
+  id                 varchar [pk]
+  netsuite_ir_id     varchar [unique]     // internal id
+  netsuite_ir_tranid varchar              // IR document number (e.g. IR65377)
+  po_number          varchar [not null, ref: > po_orders.po_number]   // the receipt's source PO
+  receipt_date       date
+  source             varchar              // 'netsuite'
+}
+Table mainline_item_receipt_lines {      // per-SKU received qty (from the NS IR lines)
+  id         varchar [pk]
+  receipt_id varchar [not null, ref: > mainline_item_receipts.id]
+  sku_code   varchar [ref: > product_skus.sku_code]
+  qty        integer [not null]
+  indexes {
+    (receipt_id, sku_code) [unique]
   }
 }
 

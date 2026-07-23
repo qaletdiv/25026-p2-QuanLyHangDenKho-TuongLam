@@ -49,7 +49,9 @@ router.get('/bookings/:id/packing',              asyncWrap(packingController.get
 router.post('/shipments/:id/asn', requireAuth,   asyncWrap(asnController.generateAsn));
 router.get('/shipments/:id/asn',                 asyncWrap(asnController.getAsn));
 
-// Fulfillment (three-way match, per TRN master)
+// Fulfillment (three-way match). Component-PO reconcile registered BEFORE /:trn
+// so "/fulfillment/po/<poNumber>" isn't captured as a TRN.
+router.get('/fulfillment/po/:poNumber',          asyncWrap(fulfillmentController.getPoReconcile));
 router.get('/fulfillment/:trn',                  asyncWrap(fulfillmentController.getFulfillment));
 
 // Shipments

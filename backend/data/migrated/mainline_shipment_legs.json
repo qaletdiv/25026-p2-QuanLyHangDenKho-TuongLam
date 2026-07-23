@@ -1,1 +1,23 @@
-[]
+[
+  {
+    "id": "spl_1_50",
+    "shipment_id": "1",
+    "leg_id": "50",
+    "lot_number": 1,
+    "expected_quantity": 147
+  },
+  {
+    "id": "spl_2_31",
+    "shipment_id": "2",
+    "leg_id": "31",
+    "lot_number": 1,
+    "expected_quantity": 861
+  },
+  {
+    "id": "spl_2_5",
+    "shipment_id": "2",
+    "leg_id": "5",
+    "lot_number": 1,
+    "expected_quantity": 694
+  }
+]

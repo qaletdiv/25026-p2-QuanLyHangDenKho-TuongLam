@@ -103,6 +103,7 @@ export default function PoMasterDetail({
             <TableHeader>
               <TableRow className="bg-card/80 hover:bg-card/80">
                 <TableHead>PO</TableHead>
+                <TableHead>NetSuite ID</TableHead>
                 <TableHead>Destination</TableHead>
                 <TableHead>Channel</TableHead>
                 <TableHead>Mode</TableHead>
@@ -121,6 +122,7 @@ export default function PoMasterDetail({
                         onClick={() => router.push(`/mainline/purchase-orders/${encodeURIComponent(master.trn_number)}/${leg.id}`)}
                       >
                         <TableCell className="font-medium">{o.po_number}</TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">{o.netsuite_id ?? DASH}</TableCell>
                         <TableCell className="text-muted-foreground">{o.destination_facility ?? DASH}</TableCell>
                         <TableCell className="text-muted-foreground">{o.allocation_channel ?? DASH}</TableCell>
                         <TableCell>{leg.mode || modeMap[leg.mode_id || ''] || leg.mode_id || DASH}</TableCell>
@@ -132,6 +134,7 @@ export default function PoMasterDetail({
                   : [
                       <TableRow key={o.po_number} className="border-border hover:bg-muted/30">
                         <TableCell className="font-medium">{o.po_number}</TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">{o.netsuite_id ?? DASH}</TableCell>
                         <TableCell className="text-muted-foreground">{o.destination_facility ?? DASH}</TableCell>
                         <TableCell className="text-muted-foreground">{o.allocation_channel ?? DASH}</TableCell>
                         <TableCell colSpan={4} className="italic text-muted-foreground">forecast — not split into air/sea yet ({o.order_lines.length} SKU line{o.order_lines.length === 1 ? '' : 's'})</TableCell>
