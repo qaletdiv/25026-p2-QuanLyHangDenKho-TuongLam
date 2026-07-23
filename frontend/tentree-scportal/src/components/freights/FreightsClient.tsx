@@ -240,7 +240,7 @@ export default function FreightsClient({ initialRecords = [] }: { initialRecords
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
+    <div className="p-4 md:p-6 space-y-6 max-w-[1400px] mx-auto">
 
       {/* Page header */}
       <div className="flex items-center justify-between">
@@ -259,7 +259,7 @@ export default function FreightsClient({ initialRecords = [] }: { initialRecords
         <div className="space-y-4">
 
           {/* Metadata row */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             <div className="space-y-1">
               <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Forwarder</Label>
               <Input placeholder="e.g. CEVA" value={forwarder} onChange={e => setForwarder(e.target.value)} className="h-9" />
@@ -289,7 +289,7 @@ export default function FreightsClient({ initialRecords = [] }: { initialRecords
             onDrop={handleDrop}
             onClick={() => inputRef.current?.click()}
             className={cn(
-              'flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-xl px-8 py-14',
+              'flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-xl px-4 py-10 sm:px-8 sm:py-14',
               'cursor-pointer transition-all duration-200 select-none',
               isDragging
                 ? 'border-primary bg-primary/5 scale-[1.01]'

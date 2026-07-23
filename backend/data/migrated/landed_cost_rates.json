@@ -1,0 +1,8 @@
+[
+  {
+    "id": "lcr_sms",
+    "module": "sms",
+    "freight_pct": 40,
+    "duty_pct": 25
+  }
+]

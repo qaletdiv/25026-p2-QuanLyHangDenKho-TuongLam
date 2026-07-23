@@ -1,0 +1,74 @@
+[
+  {
+    "id": "doc_2_ALL_ci",
+    "booking_id": "2",
+    "leg_id": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1782415699440_2_ALL.xlsx",
+    "invoice_number": "INV-2-ALL-260625",
+    "generated_at": "2026-06-25T19:28:19.475Z"
+  },
+  {
+    "id": "doc_2_ALL_pl",
+    "booking_id": "2",
+    "leg_id": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1782415699440_2_ALL.xlsx",
+    "invoice_number": "INV-2-ALL-260625",
+    "generated_at": "2026-06-25T19:28:19.475Z"
+  },
+  {
+    "id": "doc_1_ALL_ci",
+    "booking_id": "1",
+    "leg_id": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1782686938554_5289_ALL.xlsx",
+    "invoice_number": "INV-5289-ALL-260628",
+    "generated_at": "2026-06-28T22:48:58.616Z"
+  },
+  {
+    "id": "doc_1_ALL_pl",
+    "booking_id": "1",
+    "leg_id": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1782686938554_5289_ALL.xlsx",
+    "invoice_number": "INV-5289-ALL-260628",
+    "generated_at": "2026-06-28T22:48:58.616Z"
+  },
+  {
+    "id": "doc_1_PO04772_ci",
+    "booking_id": "1",
+    "leg_id": "24",
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1782686938554_5289_PO04772.xlsx",
+    "invoice_number": "INV-5289-PO04772-260628",
+    "generated_at": "2026-06-28T22:48:58.633Z"
+  },
+  {
+    "id": "doc_1_PO04772_pl",
+    "booking_id": "1",
+    "leg_id": "24",
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1782686938554_5289_PO04772.xlsx",
+    "invoice_number": "INV-5289-PO04772-260628",
+    "generated_at": "2026-06-28T22:48:58.633Z"
+  },
+  {
+    "id": "doc_1_PO04784_ci",
+    "booking_id": "1",
+    "leg_id": "5",
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1782686938554_5289_PO04784.xlsx",
+    "invoice_number": "INV-5289-PO04784-260628",
+    "generated_at": "2026-06-28T22:48:58.652Z"
+  },
+  {
+    "id": "doc_1_PO04784_pl",
+    "booking_id": "1",
+    "leg_id": "5",
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1782686938554_5289_PO04784.xlsx",
+    "invoice_number": "INV-5289-PO04784-260628",
+    "generated_at": "2026-06-28T22:48:58.652Z"
+  }
+]

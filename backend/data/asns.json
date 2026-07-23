@@ -1,1 +1,28 @@
-[]
+[
+  {
+    "id": "c05670f3-b533-4809-b6ab-b36e615f7834",
+    "booking_id": "1",
+    "booking_number": "BKG-TEST-04786",
+    "tentree_po_number": "PO04786",
+    "po_numbers": [
+      "PO04786"
+    ],
+    "supplier": "Continent Eight PTE LTD PT Pan Brothers TBK",
+    "file_url": "/uploads/asn_1781806130200_BKG-TEST-04786.xlsx",
+    "generated_at": "2026-06-18T18:08:50.211Z",
+    "status": "sent"
+  },
+  {
+    "id": "2aeb9df9-737a-43f8-ab3e-0fca5bbcf12b",
+    "booking_id": "4",
+    "booking_number": "BKG-3906",
+    "tentree_po_number": "PO04786",
+    "po_numbers": [
+      "PO04786"
+    ],
+    "supplier": "Continent Eight PTE LTD PT Pan Brothers TBK",
+    "file_url": "/uploads/asn_1781822686691_BKG-3906.xlsx",
+    "generated_at": "2026-06-18T22:44:46.697Z",
+    "status": "sent"
+  }
+]

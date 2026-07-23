@@ -5,7 +5,7 @@ import { UserSettings } from '@/components/settings/UserSettings';
 
 export default function UsersPage() {
   return (
-    <div className="p-8 max-w-4xl mx-auto pb-20">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto pb-20">
       <SettingsHeader
         title="User Management"
         description="Create accounts and manage role-based access for your team."

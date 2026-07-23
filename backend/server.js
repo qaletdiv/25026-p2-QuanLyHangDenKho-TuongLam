@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -12,28 +12,30 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'data', 'uploads')));
+app.use('/templates', express.static(path.join(__dirname, 'data', 'templates')));
 
 // Health check
 app.get('/health', (req, res) => res.status(200).json({ message: 'initial running' }));
 
 // Mount routes
+// Legacy transactional stack (/shipments, /bookings, /purchase-orders, /history,
+// /history-bookings, /commercial-invoices, /documents, /integrations, /wip-import)
+// was REMOVED at the SMS cutover (2026-07-03) — mainline lives under /po +
+// /mainline, SMS under /sms. See backend/SMS_MODULE_PLAN.md phase 7.
 app.use('/login',              require('./routes/auth'));
-app.use('/shipments',          require('./routes/shipments'));
-app.use('/bookings',           require('./routes/bookings'));
-app.use('/purchase-orders',    require('./routes/purchaseOrders'));
+app.use('/po',                 require('./modules/po/poRoutes'));        // normalized PO hierarchy (mainline)
+app.use('/mainline',           require('./modules/mainline/mainlineRoutes')); // mainline module
+app.use('/sms',                require('./modules/sms/smsRoutes'));      // SMS module — separate dataset (sms_* tables); see SMS_MODULE_PLAN.md
+app.use('/landed-costs',       require('./modules/landedcosts/landedCostRoutes')); // freight & duty (Phase 1: SMS estimates) — additive, own tables
 app.use('/master-data',        require('./routes/masterData'));
 app.use('/contacts',           require('./routes/contacts'));
 app.use('/eom-tasks',          require('./routes/eomTasks'));
-app.use('/history',            require('./routes/history'));
-app.use('/history-bookings',   require('./routes/historyBookings'));
 app.use('/reports',            require('./routes/reports'));
 app.use('/forecast',           require('./routes/forecast'));
-app.use('/documents',          require('./routes/documents'));
-app.use('/commercial-invoices', require('./routes/commercialInvoices'));
-app.use('/integrations',       require('./routes/integrations'));
 app.use('/users',              require('./routes/users'));
 app.use('/roles',              require('./routes/roles'));
 app.use('/freights',           require('./routes/freights'));
+app.use('/notifications',      require('./routes/notifications')); // derived, role-scoped alerts
 
 // Global Error Handler must be last!
 app.use(errorHandler);

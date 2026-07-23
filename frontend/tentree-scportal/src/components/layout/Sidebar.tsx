@@ -2,22 +2,30 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, FileText, CalendarCheck, Users, Settings, LogOut, BarChart3, LineChart, ClipboardList, Truck, FileCode, Palette, Sun, Flame, Warehouse, Ship, UserCog, Globe } from 'lucide-react';
+import { Package, FileText, Users, Settings, LogOut, BarChart3, LineChart, ClipboardList, Truck, FileCode, Palette, Sun, Flame, Warehouse, Ship, UserCog, Globe, CalendarClock, Coins, Percent } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { logout } from '@/app/actions/auth';
 import { useSession } from '@/components/providers/SessionProvider';
 
 const navItems = [
-  { name: 'Dashboard',       href: '/',                   icon: LayoutDashboard, permission: 'dashboard' },
-  { name: 'Purchase Orders', href: '/purchase-orders',    icon: ClipboardList,   permission: 'purchase_orders' },
-  { name: 'Bookings',        href: '/bookings/pending',   icon: FileText,        permission: 'bookings',   matchPrefix: '/bookings' },
-  { name: 'Shipments',       href: '/shipments/mainline', icon: Package,         permission: 'shipments',  matchPrefix: '/shipments' },
-  { name: 'Reports',         href: '/reports',            icon: BarChart3,       permission: 'reports' },
+  // Mainline is now served by the normalized module (/mainline + /po). Legacy
+  // /purchase-orders, /bookings, /shipments remain mounted ONLY for SMS until the
+  // SMS module is migrated (Phase 6 = promote mainline, keep legacy for SMS).
+  { name: 'Purchase Orders', href: '/mainline/purchase-orders', icon: ClipboardList, permission: 'purchase_orders', matchPrefix: ['/mainline/purchase-orders', '/sms/purchase-orders'] },
+  { name: 'Bookings',        href: '/mainline/bookings',        icon: FileText,        permission: 'bookings',   matchPrefix: '/mainline/bookings' },
+  { name: 'Shipments',       href: '/mainline/shipments',       icon: Package,         permission: 'shipments',  matchPrefix: ['/mainline/shipments', '/sms/shipments'] },
+  // SMS shares the Purchase Orders / Shipments entries above via a Mainline | SMS
+  // tab strip on each list page (ModuleTabs) — the two modules are separate
+  // datasets, unified in navigation only. SMS has no bookings (vendors ship
+  // directly via courier), so Bookings stays mainline-only. Receiving screen
+  // removed 2026-07-03 — receipts sync from NetSuite into the PO reconciliation.
+  { name: 'Reports',         href: '/reports/mainline',   icon: BarChart3,       permission: 'reports', matchPrefix: '/reports' },
   { name: 'Forecast',        href: '/forecast',           icon: LineChart,       permission: 'forecast' },
-  { name: 'EoM Progress',    href: '/eom',                icon: CalendarCheck,   permission: 'eom' },
+
   { name: 'Contacts',        href: '/contacts',           icon: Users,           permission: 'contacts' },
   { name: 'Freight Rates',   href: '/freights',           icon: Globe,           permission: 'freight' },
+  { name: 'Landed Costs',    href: '/landed-costs/sms',   icon: Coins,           permission: 'landed_costs', matchPrefix: '/landed-costs' },
 ];
 
 const masterDataItems = [
@@ -27,11 +35,13 @@ const masterDataItems = [
   { name: 'Statuses', href: '/settings/statuses', icon: Palette },
   { name: 'Warehouses', href: '/settings/warehouses', icon: Warehouse },
   { name: 'Transport Modes', href: '/settings/modes', icon: Ship },
+  { name: 'Production Schedule', href: '/settings/production-schedules', icon: CalendarClock },
+  { name: 'Landed Cost Rates', href: '/settings/landed-costs', icon: Percent },
   { name: 'Roles', href: '/settings/roles', icon: Settings, adminOnly: true },
   { name: 'Users', href: '/settings/users', icon: UserCog, adminOnly: true },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean; onClose?: () => void } = {}) {
   const pathname = usePathname();
   const { user } = useSession();
   const [isSummer, setIsSummer] = useState(false);
@@ -63,13 +73,19 @@ export default function Sidebar() {
   const showMasterData = can('settings');
 
   const NavLink = ({ item }: { item: any }) => {
+    const prefixes = Array.isArray(item.matchPrefix)
+      ? item.matchPrefix
+      : item.matchPrefix ? [item.matchPrefix] : [];
     const isActive =
       pathname === item.href ||
-      (item.matchPrefix ? pathname.startsWith(item.matchPrefix) : (item.href !== '/' && pathname.startsWith(item.href)));
+      (prefixes.length
+        ? prefixes.some((p: string) => pathname.startsWith(p))
+        : (item.href !== '/' && pathname.startsWith(item.href)));
     const Icon = item.icon;
     return (
       <Link
         href={item.href}
+        onClick={() => onClose?.()}
         className={cn(
           "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group",
           isActive
@@ -84,10 +100,27 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="flex flex-col w-64 h-screen bg-card border-r border-border text-card-foreground shadow-sm z-10 sticky top-0">
+    <>
+      {/* Mobile backdrop */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-black/40 z-40 lg:hidden transition-opacity",
+          mobileOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => onClose?.()}
+        aria-hidden="true"
+      />
+      <div
+        className={cn(
+          "flex flex-col w-64 h-screen bg-card border-r border-border text-card-foreground shadow-sm",
+          // Desktop: static in-flow sidebar. Mobile: off-canvas drawer.
+          "fixed inset-y-0 left-0 z-50 transition-transform duration-300 lg:static lg:z-10 lg:translate-x-0",
+          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        )}
+      >
       {/* Logo Area */}
       <div className="h-16 flex items-center px-6 border-b border-border bg-card transition-colors duration-300">
-        <Link href="/" className="flex items-center gap-3 group">
+        <Link href="/mainline/purchase-orders" className="flex items-center gap-3 group">
           <img
             src={isSummer ? "/tentree_black.png" : "/tentree_white.png"}
             alt="Tentree Logo"
@@ -148,6 +181,7 @@ export default function Sidebar() {
           </p>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

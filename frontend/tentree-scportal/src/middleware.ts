@@ -12,7 +12,7 @@ export function middleware(request: NextRequest) {
 
   // 2. If session exists and trying to access login page
   if (session && pathname === '/login') {
-    return NextResponse.redirect(new URL('/shipments', request.url));
+    return NextResponse.redirect(new URL('/mainline/shipments', request.url));
   }
 
   return NextResponse.next();
@@ -25,8 +25,9 @@ export const config = {
      * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
+     * - favicon.ico / icon.png / apple-icon.png (app icon files — must load
+     *   without a session so the browser tab shows the logo on the login page)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|icon.png|apple-icon.png).*)',
   ],
 };

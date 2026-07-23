@@ -1,6 +1,14 @@
-const ShipmentModel      = require('../models/ShipmentModel');
-const PurchaseOrderModel = require('../models/PurchaseOrderModel');
-const { history: HistoryModel } = require('../models/HistoryModel');
+// LEGACY-DATA CONSUMER (kept for /forecast only). The legacy transactional stack
+// was deleted at the SMS cutover (2026-07-03); purchase-orders.json is a FROZEN
+// snapshot and the other files no longer exist (reads degrade to []). The
+// forecast page needs a rebuild on the mainline (migrated/*) + SMS (sms_*)
+// datasets — until then it charts the frozen PO snapshot only.
+const BaseModel = require('../models/BaseModel');
+const ShipmentModel        = new BaseModel('shipments.json');
+const PurchaseOrderModel   = new BaseModel('purchase-orders.json');
+const BookingModel         = new BaseModel('bookings.json');
+const HistoryModel         = new BaseModel('history.json');
+const HistoryBookingModel  = new BaseModel('history-bookings.json');
 
 async function getReports(req, res) {
     const activeShipments   = await ShipmentModel.read().catch(() => []);
@@ -9,7 +17,7 @@ async function getReports(req, res) {
     const pos = await PurchaseOrderModel.read().catch(() => []);
 
     const reports = shipments.map(s => {
-        const po = pos.find(p => p.po_number === s.po_number) || {};
+        const po = (s.po_id ? pos.find(p => p.id === s.po_id) : pos.find(p => p.po_number === s.po_number)) || {};
         const expected = parseInt(s.expected_quantity || po.expected_qty || '0', 10);
         // Fix #13 — field is received_quantity everywhere else; received_units was a typo
         const received = parseInt(s.received_quantity || s.received_units || '0', 10);
@@ -33,7 +41,7 @@ async function getReports(req, res) {
             total_cost: parseFloat(s.invoice_value || '0') + parseFloat(s.duty || '0') + parseFloat(s.freight || '0'),
             status: s.status,
             etd: s.etd || po.etd || '',
-            eta: s.eta || po.eta || '',
+            eta: s.etd_pol || po.etd_pol || '',
             lot_number: s.lot_number || null
         };
     });
@@ -43,6 +51,28 @@ async function getReports(req, res) {
 async function getForecast(req, res) {
     const activeShipments = await ShipmentModel.read().catch(() => []);
     const pos             = await PurchaseOrderModel.read().catch(() => []);
+
+    // CONFIRMED cartons come only from the uploaded packing list (booking.shipment_data),
+    // counted as distinct cartons per PO — NOT from the booking/shipment estimate field.
+    // Map: booking_number -> { po_number -> confirmed carton count }.
+    const bookings        = await BookingModel.read().catch(() => []);
+    const historyBookings = await HistoryBookingModel.read().catch(() => []);
+    const confirmedCartons = {};
+    for (const b of [...bookings, ...historyBookings]) {
+        const rows = b.shipment_data?.rows;
+        if (!b.booking_number || !Array.isArray(rows)) continue;
+        const perPo = {};
+        for (const r of rows) {
+            if (!r.po_number) continue;
+            (perPo[r.po_number] = perPo[r.po_number] || new Set()).add(r.ctn_number);
+        }
+        confirmedCartons[b.booking_number] = Object.fromEntries(
+            Object.entries(perPo).map(([po, set]) => [po, set.size])
+        );
+    }
+    // A (booking, po) packing list is assigned to one shipment row only, so splitting
+    // a PO into lots doesn't multiply its confirmed cartons.
+    const cartonsAssigned = new Set();
 
     // Helper for ISO week number
     const getWeekNumber = (d) => {
@@ -55,7 +85,7 @@ async function getForecast(req, res) {
     const processItem = (acc, item, isPO = false) => {
         if (!isPO && item.status === 'Delivered') return acc;
 
-        const date = new Date(item.eta);
+        const date = new Date(item.etd_pol || item.e_del || '');
         if (isNaN(date.getTime())) return acc;
 
         const weekNum = getWeekNumber(date);
@@ -67,14 +97,27 @@ async function getForecast(req, res) {
         const units = parseInt(isPO ? item.expected_qty : (item.expected_quantity || item.expected_qty || '0'), 10);
         if (units <= 0) return acc;
 
-        const cartons = parseInt(item.number_of_cartons || item.cartons || Math.ceil(units / 20).toString(), 10);
+        // Cartons are CONFIRMED only by the uploaded packing list. An unbooked PO
+        // line has none; a shipment row uses its packing-list count (0 until one is
+        // uploaded). The shipment/booking number_of_cartons (an estimate) is ignored.
+        let cartons = 0;
+        if (!isPO) {
+            const key = `${item.booking_number}|${item.po_number}`;
+            const conf = confirmedCartons[item.booking_number]?.[item.po_number];
+            if (conf != null && !cartonsAssigned.has(key)) {
+                cartons = conf;
+                cartonsAssigned.add(key);
+            }
+        }
         const wh = item.destination_warehouse || item.receiving_warehouse || 'Unknown';
 
         acc[weekKey].cartons += cartons;
         acc[weekKey].units   += units;
 
-        if (!acc[weekKey].warehouses[wh]) acc[weekKey].warehouses[wh] = 0;
-        acc[weekKey].warehouses[wh] += units;
+        // Per-warehouse breakdown carries BOTH units and cartons (dynamic set of warehouses)
+        if (!acc[weekKey].warehouses[wh]) acc[weekKey].warehouses[wh] = { units: 0, cartons: 0 };
+        acc[weekKey].warehouses[wh].units   += units;
+        acc[weekKey].warehouses[wh].cartons += cartons;
 
         return acc;
     };
@@ -83,7 +126,9 @@ async function getForecast(req, res) {
 
     // Add unassigned POs
     pos.forEach(po => {
-        const linked = activeShipments.filter(s => s.po_number === po.po_number);
+        const linked = activeShipments.filter(s =>
+            s.po_id === po.id || (!s.po_id && s.po_number === po.po_number)
+        );
         const totalExpectedInLots = linked.reduce((sum, s) => sum + parseInt(s.expected_quantity || '0', 10), 0);
         const poExpected = parseInt(po.expected_qty || '0', 10);
 

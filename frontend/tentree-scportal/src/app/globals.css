@@ -159,3 +159,11 @@
   --chart-6: oklch(0.82 0.12 90);
   --chart-7: oklch(0.52 0.12 230);
 }
+/* Hide scrollbars on horizontally-scrollable nav strips (still scrollable) */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

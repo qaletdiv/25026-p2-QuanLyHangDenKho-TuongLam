@@ -1,0 +1,42 @@
+[
+  {
+    "id": "fac_nri_us",
+    "name": "NRI US",
+    "country": "United States",
+    "city": "Los Angeles",
+    "port_of_discharge": "",
+    "address": ""
+  },
+  {
+    "id": "fac_nri_ca",
+    "name": "NRI CA",
+    "country": "Canada",
+    "city": "Vancouver",
+    "port_of_discharge": "",
+    "address": ""
+  },
+  {
+    "id": "fac_direct_us",
+    "name": "Direct US",
+    "country": "United States",
+    "city": "New York",
+    "port_of_discharge": "",
+    "address": ""
+  },
+  {
+    "id": "fac_direct_can",
+    "name": "Direct CAN",
+    "country": "Canada",
+    "city": "Toronto",
+    "port_of_discharge": "",
+    "address": ""
+  },
+  {
+    "id": "fac_direct_tentree",
+    "name": "Direct tentree",
+    "country": null,
+    "city": null,
+    "port_of_discharge": "",
+    "address": ""
+  }
+]

@@ -1,0 +1,177 @@
+[
+  {
+    "trn_number": "TRN_1260",
+    "supplier_id": "2",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_1259",
+    "supplier_id": "9",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_1262",
+    "supplier_id": "12",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_1266",
+    "supplier_id": "8",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_1261",
+    "supplier_id": null,
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_1265",
+    "supplier_id": "6",
+    "season_id": "season_1",
+    "main_shoulder": "Main + Shoulder",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_1258",
+    "supplier_id": "5",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_1267",
+    "supplier_id": "3",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_1263",
+    "supplier_id": "10",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_1256",
+    "supplier_id": "11",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_1255",
+    "supplier_id": "1",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_1264",
+    "supplier_id": "7",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_1257",
+    "supplier_id": "11",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_5053",
+    "supplier_id": "2",
+    "season_id": "season_1",
+    "main_shoulder": null,
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_5055",
+    "supplier_id": "5",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_2100",
+    "supplier_id": "11",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_2102",
+    "supplier_id": "3",
+    "season_id": "season_1",
+    "main_shoulder": "Shoulder",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_5051",
+    "supplier_id": "4",
+    "season_id": "season_1",
+    "main_shoulder": null,
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_5052",
+    "supplier_id": "1",
+    "season_id": "season_1",
+    "main_shoulder": "Main + Shoulder",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_5050",
+    "supplier_id": "10",
+    "season_id": "season_1",
+    "main_shoulder": "Main + Shoulder",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_2097",
+    "supplier_id": "1",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_2099",
+    "supplier_id": "11",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_2098",
+    "supplier_id": "6",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_2101",
+    "supplier_id": "1",
+    "season_id": "season_1",
+    "main_shoulder": "Main",
+    "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_2103",
+    "supplier_id": "1",
+    "season_id": "season_1",
+    "main_shoulder": "-",
+    "netsuite_id": null
+  }
+]

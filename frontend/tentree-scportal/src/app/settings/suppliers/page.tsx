@@ -6,7 +6,7 @@ import { SupplierSettings } from '@/components/settings/SupplierSettings';
 
 export default function SuppliersPage() {
   return (
-    <div className="p-8 max-w-4xl mx-auto pb-20">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto pb-20">
       <SettingsHeader 
         title="Supplier Management" 
         description="Configure your global list of factories and suppliers."

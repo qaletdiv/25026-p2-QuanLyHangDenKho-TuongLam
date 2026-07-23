@@ -6,7 +6,7 @@ import { ModeSettings } from '@/components/settings/ModeSettings';
 
 export default function ModesPage() {
   return (
-    <div className="p-8 max-w-4xl mx-auto pb-20">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto pb-20">
       <SettingsHeader
         title="Transport Mode Management"
         description="Configure transport modes available for bookings and shipments."

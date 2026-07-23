@@ -1,13 +1,7 @@
-import ReportsClient from './ReportsClient';
-import { getReports } from '@/app/actions/reports';
+import { redirect } from 'next/navigation';
 
-export default async function ReportsPage() {
-  let reports = [];
-  try {
-    reports = await getReports() || [];
-  } catch {
-    // render with empty state
-  }
-
-  return <ReportsClient initialReports={reports || []} />;
+// The legacy report overview was removed with the legacy stack (2026-07-03);
+// the season KPI report is the reports landing page. SMS reports come later.
+export default function ReportsPage() {
+  redirect('/reports/mainline');
 }

@@ -15,7 +15,15 @@
       "Bash(node -e ':*)",
       "Bash(curl -s -w \"\\\\nHTTP:%{http_code}\" \"http://localhost:5000/shipments/1778433156017ugdyk/line-items\")",
       "Bash(curl -s -X PUT http://localhost:5000/shipments/1778433156017ugdyk -H \"Content-Type: application/json\" -d '{\"status\":\"test\"}' -w \"\\\\nHTTP:%{http_code}\")",
-      "Bash(netstat -ano)"
+      "Bash(netstat -ano)",
+      "Bash(grep -n \"\\\\.eta\\\\|\\\\\"eta\\\\\"\\\\|'eta'\" \"C:\\\\Users\\\\lam.le_tentree\\\\Downloads\\\\25026-p2-QuanLyHangDenKho-TuongLam-main/backend/controllers\"/*.js)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(node -e \"require\\('./server'\\)\")",
+      "Bash(npx next:*)",
+      "Bash(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('data/bookings.json','utf8'\\)\\); const b=d[0]; console.log\\('CI source:', b.commercial_invoice?.source\\); console.log\\('CI status:', b.commercial_invoice?.status\\); console.log\\('CI line_items count:', b.commercial_invoice?.line_items?.length\\); console.log\\('CI line_items is array:', Array.isArray\\(b.commercial_invoice?.line_items\\)\\); console.log\\('First line item:', JSON.stringify\\(b.commercial_invoice?.line_items?.[0]\\)\\);\")",
+      "Bash(tasklist /FI \"IMAGENAME eq node.exe\")",
+      "Bash(node -e \"const pkg=JSON.parse\\(require\\('fs'\\).readFileSync\\('package.json','utf8'\\)\\); console.log\\('start script:', pkg.scripts?.start\\); console.log\\('dev script:', pkg.scripts?.dev\\);\")"
     ]
   }
 }

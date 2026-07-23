@@ -1,0 +1,434 @@
+[
+  {
+    "id": "sdoc_1_ALL_ci",
+    "shipment_id": "1",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1783889603860_002C8S2607FW27_ALL.xlsx",
+    "invoice_number": "INV-002C8S2607FW27-ALL-260712",
+    "generated_at": "2026-07-12T20:53:23.976Z"
+  },
+  {
+    "id": "sdoc_1_ALL_pl",
+    "shipment_id": "1",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1783889603860_002C8S2607FW27_ALL.xlsx",
+    "invoice_number": "INV-002C8S2607FW27-ALL-260712",
+    "generated_at": "2026-07-12T20:53:23.976Z"
+  },
+  {
+    "id": "sdoc_2_ALL_ci",
+    "shipment_id": "2",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1783935956970_874152823989_ALL.xlsx",
+    "invoice_number": "INV-874152823989-ALL-260713",
+    "generated_at": "2026-07-13T09:45:57.037Z"
+  },
+  {
+    "id": "sdoc_2_ALL_pl",
+    "shipment_id": "2",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1783935956970_874152823989_ALL.xlsx",
+    "invoice_number": "INV-874152823989-ALL-260713",
+    "generated_at": "2026-07-13T09:45:57.037Z"
+  },
+  {
+    "id": "sdoc_3_ALL_ci",
+    "shipment_id": "3",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784031691510_874287092252_ALL.xlsx",
+    "invoice_number": "INV-874287092252-ALL-260714",
+    "generated_at": "2026-07-14T12:21:31.882Z"
+  },
+  {
+    "id": "sdoc_3_ALL_pl",
+    "shipment_id": "3",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784031691510_874287092252_ALL.xlsx",
+    "invoice_number": "INV-874287092252-ALL-260714",
+    "generated_at": "2026-07-14T12:21:31.882Z"
+  },
+  {
+    "id": "sdoc_4_ALL_ci",
+    "shipment_id": "4",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784031711943_874287641111_ALL.xlsx",
+    "invoice_number": "INV-874287641111-ALL-260714",
+    "generated_at": "2026-07-14T12:21:51.986Z"
+  },
+  {
+    "id": "sdoc_4_ALL_pl",
+    "shipment_id": "4",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784031711943_874287641111_ALL.xlsx",
+    "invoice_number": "INV-874287641111-ALL-260714",
+    "generated_at": "2026-07-14T12:21:51.986Z"
+  },
+  {
+    "id": "sdoc_5_ALL_ci",
+    "shipment_id": "5",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784031740219_874288224342_ALL.xlsx",
+    "invoice_number": "INV-874288224342-ALL-260714",
+    "generated_at": "2026-07-14T12:22:20.301Z"
+  },
+  {
+    "id": "sdoc_5_ALL_pl",
+    "shipment_id": "5",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784031740219_874288224342_ALL.xlsx",
+    "invoice_number": "INV-874288224342-ALL-260714",
+    "generated_at": "2026-07-14T12:22:20.301Z"
+  },
+  {
+    "id": "sdoc_6_ALL_ci",
+    "shipment_id": "6",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784108070735_4568577156_ALL.xlsx",
+    "invoice_number": "INV-4568577156-ALL-260715",
+    "generated_at": "2026-07-15T09:34:30.777Z"
+  },
+  {
+    "id": "sdoc_6_ALL_pl",
+    "shipment_id": "6",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784108070735_4568577156_ALL.xlsx",
+    "invoice_number": "INV-4568577156-ALL-260715",
+    "generated_at": "2026-07-15T09:34:30.777Z"
+  },
+  {
+    "id": "sdoc_7_ALL_ci",
+    "shipment_id": "7",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784108070877_3824594830_ALL.xlsx",
+    "invoice_number": "INV-3824594830-ALL-260715",
+    "generated_at": "2026-07-15T09:34:30.891Z"
+  },
+  {
+    "id": "sdoc_7_ALL_pl",
+    "shipment_id": "7",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784108070877_3824594830_ALL.xlsx",
+    "invoice_number": "INV-3824594830-ALL-260715",
+    "generated_at": "2026-07-15T09:34:30.891Z"
+  },
+  {
+    "id": "sdoc_8_ALL_ci",
+    "shipment_id": "8",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784108071016_3824580060_ALL.xlsx",
+    "invoice_number": "INV-3824580060-ALL-260715",
+    "generated_at": "2026-07-15T09:34:31.026Z"
+  },
+  {
+    "id": "sdoc_8_ALL_pl",
+    "shipment_id": "8",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784108071016_3824580060_ALL.xlsx",
+    "invoice_number": "INV-3824580060-ALL-260715",
+    "generated_at": "2026-07-15T09:34:31.026Z"
+  },
+  {
+    "id": "sdoc_9_ALL_ci",
+    "shipment_id": "9",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784108071181_874151350630_ALL.xlsx",
+    "invoice_number": "INV-874151350630-ALL-260715",
+    "generated_at": "2026-07-15T09:34:31.193Z"
+  },
+  {
+    "id": "sdoc_9_ALL_pl",
+    "shipment_id": "9",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784108071181_874151350630_ALL.xlsx",
+    "invoice_number": "INV-874151350630-ALL-260715",
+    "generated_at": "2026-07-15T09:34:31.193Z"
+  },
+  {
+    "id": "sdoc_16_ALL_ci",
+    "shipment_id": "16",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784666480868_16_ALL.xlsx",
+    "invoice_number": "INV-16-ALL-260721",
+    "generated_at": "2026-07-21T20:41:21.029Z"
+  },
+  {
+    "id": "sdoc_16_ALL_pl",
+    "shipment_id": "16",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784666480868_16_ALL.xlsx",
+    "invoice_number": "INV-16-ALL-260721",
+    "generated_at": "2026-07-21T20:41:21.029Z"
+  },
+  {
+    "id": "sdoc_17_ALL_ci",
+    "shipment_id": "17",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784666701115_874408320304_ALL.xlsx",
+    "invoice_number": "INV-874408320304-ALL-260721",
+    "generated_at": "2026-07-21T20:45:01.163Z"
+  },
+  {
+    "id": "sdoc_17_ALL_pl",
+    "shipment_id": "17",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784666701115_874408320304_ALL.xlsx",
+    "invoice_number": "INV-874408320304-ALL-260721",
+    "generated_at": "2026-07-21T20:45:01.163Z"
+  },
+  {
+    "id": "sdoc_18_ALL_ci",
+    "shipment_id": "18",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784666834398_874498533089_ALL.xlsx",
+    "invoice_number": "INV-874498533089-ALL-260721",
+    "generated_at": "2026-07-21T20:47:14.464Z"
+  },
+  {
+    "id": "sdoc_18_ALL_pl",
+    "shipment_id": "18",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784666834398_874498533089_ALL.xlsx",
+    "invoice_number": "INV-874498533089-ALL-260721",
+    "generated_at": "2026-07-21T20:47:14.464Z"
+  },
+  {
+    "id": "sdoc_19_ALL_ci",
+    "shipment_id": "19",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784667807887_19_ALL.xlsx",
+    "invoice_number": "INV-19-ALL-260721",
+    "generated_at": "2026-07-21T21:03:27.917Z"
+  },
+  {
+    "id": "sdoc_19_ALL_pl",
+    "shipment_id": "19",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784667807887_19_ALL.xlsx",
+    "invoice_number": "INV-19-ALL-260721",
+    "generated_at": "2026-07-21T21:03:27.917Z"
+  },
+  {
+    "id": "sdoc_20_ALL_ci",
+    "shipment_id": "20",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784667913929_20_ALL.xlsx",
+    "invoice_number": "INV-20-ALL-260721",
+    "generated_at": "2026-07-21T21:05:13.997Z"
+  },
+  {
+    "id": "sdoc_20_ALL_pl",
+    "shipment_id": "20",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784667913929_20_ALL.xlsx",
+    "invoice_number": "INV-20-ALL-260721",
+    "generated_at": "2026-07-21T21:05:13.997Z"
+  },
+  {
+    "id": "sdoc_21_ALL_ci",
+    "shipment_id": "21",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784667986287_21_ALL.xlsx",
+    "invoice_number": "INV-21-ALL-260721",
+    "generated_at": "2026-07-21T21:06:26.329Z"
+  },
+  {
+    "id": "sdoc_21_ALL_pl",
+    "shipment_id": "21",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784667986287_21_ALL.xlsx",
+    "invoice_number": "INV-21-ALL-260721",
+    "generated_at": "2026-07-21T21:06:26.329Z"
+  },
+  {
+    "id": "sdoc_22_ALL_ci",
+    "shipment_id": "22",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784710517771_22_ALL.xlsx",
+    "invoice_number": "INV-22-ALL-260722",
+    "generated_at": "2026-07-22T08:55:17.870Z"
+  },
+  {
+    "id": "sdoc_22_ALL_pl",
+    "shipment_id": "22",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784710517771_22_ALL.xlsx",
+    "invoice_number": "INV-22-ALL-260722",
+    "generated_at": "2026-07-22T08:55:17.870Z"
+  },
+  {
+    "id": "sdoc_23_ALL_ci",
+    "shipment_id": "23",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784712599984_874593077782_ALL.xlsx",
+    "invoice_number": "INV-874593077782-ALL-260722",
+    "generated_at": "2026-07-22T09:30:00.083Z"
+  },
+  {
+    "id": "sdoc_23_ALL_pl",
+    "shipment_id": "23",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784712599984_874593077782_ALL.xlsx",
+    "invoice_number": "INV-874593077782-ALL-260722",
+    "generated_at": "2026-07-22T09:30:00.083Z"
+  },
+  {
+    "id": "sdoc_24_ALL_ci",
+    "shipment_id": "24",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784712671936_874596716182_ALL.xlsx",
+    "invoice_number": "INV-874596716182-ALL-260722",
+    "generated_at": "2026-07-22T09:31:11.995Z"
+  },
+  {
+    "id": "sdoc_24_ALL_pl",
+    "shipment_id": "24",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784712671936_874596716182_ALL.xlsx",
+    "invoice_number": "INV-874596716182-ALL-260722",
+    "generated_at": "2026-07-22T09:31:11.995Z"
+  },
+  {
+    "id": "sdoc_25_ALL_ci",
+    "shipment_id": "25",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784742148924_874202114126_ALL.xlsx",
+    "invoice_number": "INV-874202114126-ALL-260722",
+    "generated_at": "2026-07-22T17:42:28.994Z"
+  },
+  {
+    "id": "sdoc_25_ALL_pl",
+    "shipment_id": "25",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784742148924_874202114126_ALL.xlsx",
+    "invoice_number": "INV-874202114126-ALL-260722",
+    "generated_at": "2026-07-22T17:42:28.994Z"
+  },
+  {
+    "id": "sdoc_27_ALL_ci",
+    "shipment_id": "27",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784742297679_874201793241_ALL.xlsx",
+    "invoice_number": "INV-874201793241-ALL-260722",
+    "generated_at": "2026-07-22T17:44:57.705Z"
+  },
+  {
+    "id": "sdoc_27_ALL_pl",
+    "shipment_id": "27",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784742297679_874201793241_ALL.xlsx",
+    "invoice_number": "INV-874201793241-ALL-260722",
+    "generated_at": "2026-07-22T17:44:57.705Z"
+  },
+  {
+    "id": "sdoc_26_ALL_ci",
+    "shipment_id": "26",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784746245232_874201930996_ALL.xlsx",
+    "invoice_number": "INV-874201930996-ALL-260722",
+    "generated_at": "2026-07-22T18:50:45.310Z"
+  },
+  {
+    "id": "sdoc_26_ALL_pl",
+    "shipment_id": "26",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784746245232_874201930996_ALL.xlsx",
+    "invoice_number": "INV-874201930996-ALL-260722",
+    "generated_at": "2026-07-22T18:50:45.310Z"
+  },
+  {
+    "id": "sdoc_10_ALL_ci",
+    "shipment_id": "10",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784746533177_874655513294_ALL.xlsx",
+    "invoice_number": "INV-874655513294-ALL-260722",
+    "generated_at": "2026-07-22T18:55:33.203Z"
+  },
+  {
+    "id": "sdoc_10_ALL_pl",
+    "shipment_id": "10",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784746533177_874655513294_ALL.xlsx",
+    "invoice_number": "INV-874655513294-ALL-260722",
+    "generated_at": "2026-07-22T18:55:33.203Z"
+  },
+  {
+    "id": "sdoc_12_ALL_ci",
+    "shipment_id": "12",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784746551418_874655803692_ALL.xlsx",
+    "invoice_number": "INV-874655803692-ALL-260722",
+    "generated_at": "2026-07-22T18:55:51.441Z"
+  },
+  {
+    "id": "sdoc_12_ALL_pl",
+    "shipment_id": "12",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784746551418_874655803692_ALL.xlsx",
+    "invoice_number": "INV-874655803692-ALL-260722",
+    "generated_at": "2026-07-22T18:55:51.441Z"
+  },
+  {
+    "id": "sdoc_14_ALL_ci",
+    "shipment_id": "14",
+    "po_number": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/sms_ci_1784746573686_874656276562_ALL.xlsx",
+    "invoice_number": "INV-874656276562-ALL-260722",
+    "generated_at": "2026-07-22T18:56:13.710Z"
+  },
+  {
+    "id": "sdoc_14_ALL_pl",
+    "shipment_id": "14",
+    "po_number": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/sms_pl_1784746573686_874656276562_ALL.xlsx",
+    "invoice_number": "INV-874656276562-ALL-260722",
+    "generated_at": "2026-07-22T18:56:13.710Z"
+  }
+]

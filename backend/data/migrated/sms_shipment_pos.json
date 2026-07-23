@@ -1,0 +1,218 @@
+[
+  {
+    "id": "spo_1_PO04808",
+    "shipment_id": "1",
+    "po_number": "PO04808",
+    "lot_number": 1,
+    "units": 20,
+    "cartons": 1
+  },
+  {
+    "id": "spo_2_PO04809",
+    "shipment_id": "2",
+    "po_number": "PO04809",
+    "lot_number": 1,
+    "units": 20,
+    "cartons": 1
+  },
+  {
+    "id": "spo_3_PO04802",
+    "shipment_id": "3",
+    "po_number": "PO04802",
+    "lot_number": 1,
+    "units": 16,
+    "cartons": 2
+  },
+  {
+    "id": "spo_4_PO04803",
+    "shipment_id": "4",
+    "po_number": "PO04803",
+    "lot_number": 1,
+    "units": 4,
+    "cartons": 1
+  },
+  {
+    "id": "spo_5_PO04804",
+    "shipment_id": "5",
+    "po_number": "PO04804",
+    "lot_number": 1,
+    "units": 10,
+    "cartons": 1
+  },
+  {
+    "id": "spo_6_PO04789",
+    "shipment_id": "6",
+    "po_number": "PO04789",
+    "lot_number": 1,
+    "units": 6,
+    "cartons": 1
+  },
+  {
+    "id": "spo_7_PO04790",
+    "shipment_id": "7",
+    "po_number": "PO04790",
+    "lot_number": 1,
+    "units": 8,
+    "cartons": 1
+  },
+  {
+    "id": "spo_8_PO04791",
+    "shipment_id": "8",
+    "po_number": "PO04791",
+    "lot_number": 1,
+    "units": 14,
+    "cartons": 1
+  },
+  {
+    "id": "spo_9_PO04810",
+    "shipment_id": "9",
+    "po_number": "PO04810",
+    "lot_number": 1,
+    "units": 35,
+    "cartons": 1
+  },
+  {
+    "id": "spo_10_PO04811",
+    "shipment_id": "10",
+    "po_number": "PO04811",
+    "lot_number": 1,
+    "units": 16,
+    "cartons": 1
+  },
+  {
+    "id": "spo_11_PO04811",
+    "shipment_id": "11",
+    "po_number": "PO04811",
+    "lot_number": 2,
+    "units": 8,
+    "cartons": 1
+  },
+  {
+    "id": "spo_12_PO04812",
+    "shipment_id": "12",
+    "po_number": "PO04812",
+    "lot_number": 1,
+    "units": 12,
+    "cartons": 1
+  },
+  {
+    "id": "spo_13_PO04812",
+    "shipment_id": "13",
+    "po_number": "PO04812",
+    "lot_number": 2,
+    "units": 12,
+    "cartons": 1
+  },
+  {
+    "id": "spo_14_PO04813",
+    "shipment_id": "14",
+    "po_number": "PO04813",
+    "lot_number": 1,
+    "units": 21,
+    "cartons": 1
+  },
+  {
+    "id": "spo_15_PO04813",
+    "shipment_id": "15",
+    "po_number": "PO04813",
+    "lot_number": 2,
+    "units": 22,
+    "cartons": 1
+  },
+  {
+    "id": "spo_16_PO04793",
+    "shipment_id": "16",
+    "po_number": "PO04793",
+    "lot_number": 1,
+    "units": 104,
+    "cartons": null
+  },
+  {
+    "id": "spo_17_PO04794",
+    "shipment_id": "17",
+    "po_number": "PO04794",
+    "lot_number": 1,
+    "units": 88,
+    "cartons": null
+  },
+  {
+    "id": "spo_18_PO04795",
+    "shipment_id": "18",
+    "po_number": "PO04795",
+    "lot_number": 1,
+    "units": 169,
+    "cartons": null
+  },
+  {
+    "id": "spo_19_PO04796",
+    "shipment_id": "19",
+    "po_number": "PO04796",
+    "lot_number": 1,
+    "units": 10,
+    "cartons": null
+  },
+  {
+    "id": "spo_20_PO04797",
+    "shipment_id": "20",
+    "po_number": "PO04797",
+    "lot_number": 1,
+    "units": 9,
+    "cartons": null
+  },
+  {
+    "id": "spo_21_PO04798",
+    "shipment_id": "21",
+    "po_number": "PO04798",
+    "lot_number": 1,
+    "units": 15,
+    "cartons": null
+  },
+  {
+    "id": "spo_22_PO04805",
+    "shipment_id": "22",
+    "po_number": "PO04805",
+    "lot_number": 1,
+    "units": 84,
+    "cartons": null
+  },
+  {
+    "id": "spo_23_PO04806",
+    "shipment_id": "23",
+    "po_number": "PO04806",
+    "lot_number": 1,
+    "units": 84,
+    "cartons": null
+  },
+  {
+    "id": "spo_24_PO04807",
+    "shipment_id": "24",
+    "po_number": "PO04807",
+    "lot_number": 1,
+    "units": 164,
+    "cartons": null
+  },
+  {
+    "id": "spo_25_PO04820",
+    "shipment_id": "25",
+    "po_number": "PO04820",
+    "lot_number": 1,
+    "units": 18,
+    "cartons": null
+  },
+  {
+    "id": "spo_26_PO04821",
+    "shipment_id": "26",
+    "po_number": "PO04821",
+    "lot_number": 1,
+    "units": 16,
+    "cartons": null
+  },
+  {
+    "id": "spo_27_PO04822",
+    "shipment_id": "27",
+    "po_number": "PO04822",
+    "lot_number": 1,
+    "units": 30,
+    "cartons": null
+  }
+]

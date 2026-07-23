@@ -22,23 +22,5 @@
     "_TODO_password": "WEAK DEFAULT — replace with bcrypt hash before any production or staging deployment",
     "name": "Production Team",
     "role": "Production"
-  },
-  {
-    "id": "4",
-    "email": "vendor@ecotech.com",
-    "password": "password123",
-    "_TODO_password": "WEAK DEFAULT — replace with bcrypt hash before any production or staging deployment",
-    "name": "EcoTech Factory",
-    "role": "Vendor",
-    "supplier": "EcoTech Garments"
-  },
-  {
-    "id": "5",
-    "email": "vendor@greenfabrics.com",
-    "password": "password123",
-    "_TODO_password": "WEAK DEFAULT — replace with bcrypt hash before any production or staging deployment",
-    "name": "Green Fabrics",
-    "role": "Vendor",
-    "supplier": "Green Fabrics Ltd"
   }
 ]

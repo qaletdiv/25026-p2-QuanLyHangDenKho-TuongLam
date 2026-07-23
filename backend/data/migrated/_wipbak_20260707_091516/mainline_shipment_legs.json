@@ -1,0 +1,30 @@
+[
+  {
+    "id": "spl_1_24",
+    "shipment_id": "1",
+    "leg_id": "24",
+    "lot_number": 1,
+    "expected_quantity": 861
+  },
+  {
+    "id": "spl_1_5",
+    "shipment_id": "1",
+    "leg_id": "5",
+    "lot_number": 1,
+    "expected_quantity": 694
+  },
+  {
+    "id": "spl_2_1",
+    "shipment_id": "2",
+    "leg_id": "1",
+    "lot_number": null,
+    "expected_quantity": 92
+  },
+  {
+    "id": "spl_3_2",
+    "shipment_id": "3",
+    "leg_id": "2",
+    "lot_number": null,
+    "expected_quantity": 139
+  }
+]

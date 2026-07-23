@@ -5,7 +5,7 @@
     "description": "Full system access",
     "protected": true,
     "permissions": [
-      "dashboard", "purchase_orders", "bookings", "shipments", "reports", "forecast", "eom", "contacts", "settings", "freight",
+      "purchase_orders", "bookings", "shipments", "reports", "forecast", "eom", "contacts", "settings", "freight", "landed_costs",
       "booking_create_mainline", "booking_create_sms", "booking_approve", "booking_delete",
       "shipment_update_status", "shipment_delete", "shipment_import_export",
       "po_edit", "settings_edit", "user_manage"
@@ -17,7 +17,7 @@
     "description": "Manage shipments, bookings, and master data",
     "protected": false,
     "permissions": [
-      "dashboard", "purchase_orders", "bookings", "shipments", "reports", "forecast", "eom", "contacts", "settings", "freight",
+      "purchase_orders", "bookings", "shipments", "reports", "forecast", "eom", "contacts", "settings", "freight", "landed_costs",
       "booking_create_mainline", "booking_create_sms", "booking_approve", "booking_delete",
       "shipment_update_status", "shipment_delete", "shipment_import_export",
       "po_edit", "settings_edit"
@@ -29,7 +29,7 @@
     "description": "View shipments and update statuses",
     "protected": false,
     "permissions": [
-      "dashboard", "shipments", "reports", "forecast",
+      "shipments", "reports", "forecast",
       "booking_create_sms", "shipment_update_status"
     ]
   },
@@ -49,7 +49,7 @@
     "description": "View and manage shipment logistics",
     "protected": false,
     "permissions": [
-      "dashboard", "shipments", "bookings",
+      "shipments", "bookings",
       "shipment_update_status", "shipment_import_export"
     ]
   }

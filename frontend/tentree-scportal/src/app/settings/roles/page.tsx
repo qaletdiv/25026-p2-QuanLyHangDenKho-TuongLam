@@ -5,7 +5,7 @@ import { RoleSettings } from '@/components/settings/RoleSettings';
 
 export default function RolesPage() {
   return (
-    <div className="p-8 max-w-6xl mx-auto pb-20">
+    <div className="p-4 md:p-8 max-w-6xl mx-auto pb-20">
       <SettingsHeader
         title="Role Management"
         description="Define what each role can access. Changes take effect on the user's next login."

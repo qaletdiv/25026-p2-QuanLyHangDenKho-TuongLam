@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Mail, Copy, User } from 'lucide-react';
 import { toast } from 'sonner';
-import SopPanel from '@/components/layout/SopPanel';
+
 
 const groupColors: any = {
   'Suppliers': 'bg-blue-100 text-blue-800',
@@ -24,7 +24,7 @@ const allGroups = ['All', 'Suppliers', 'FedEx', 'NRI USA', 'NRI Canada', 'CEVA L
 export default function ContactsClient({ initialContacts }: { initialContacts: any[] }) {
   const [search, setSearch] = useState('');
   const [activeGroup, setActiveGroup] = useState('All');
-  const [sopOpen, setSopOpen] = useState(true);
+
   const [contacts] = useState<any[]>(initialContacts);
 
   const filtered = contacts.filter(c => {
@@ -44,7 +44,7 @@ export default function ContactsClient({ initialContacts }: { initialContacts: a
 
   return (
     <div className="flex h-full">
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
         <div className="flex flex-col gap-3">
           <div className="relative max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -88,7 +88,7 @@ export default function ContactsClient({ initialContacts }: { initialContacts: a
           {filtered.length === 0 && <div className="col-span-full py-12 text-center text-muted-foreground text-sm">No contacts found</div>}
         </div>
       </div>
-      <SopPanel title="Contacts SOP" isOpen={sopOpen} onToggle={() => setSopOpen(!sopOpen)} />
+
     </div>
   );
 }

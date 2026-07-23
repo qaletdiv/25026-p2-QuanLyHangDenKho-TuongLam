@@ -1,15 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { usePathname } from 'next/navigation';
-import { Bell, Search, User, LogOut, ChevronDown } from 'lucide-react';
+import { Search, User, LogOut, ChevronDown, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { logout } from '@/app/actions/auth';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useSession } from '@/components/providers/SessionProvider';
+import NotificationBell from './NotificationBell';
 
-export default function Header() {
+export default function Header({ onMenuClick }: { onMenuClick?: () => void } = {}) {
   const pathname = usePathname();
   const { user } = useSession();
 
@@ -17,25 +18,34 @@ export default function Header() {
   if (pathname === '/login') return null;
 
   // Determine title based on pathname
-  let title = 'Dashboard';
+  let title = 'Portal';
   if (pathname.includes('/purchase-orders')) title = 'Purchase Orders';
   if (pathname.includes('/shipments')) title = 'Shipments';
   if (pathname.includes('/bookings')) title = 'Bookings';
   if (pathname.includes('/reports')) title = 'Reports';
   if (pathname.includes('/forecast')) title = 'Forecast';
-  if (pathname.includes('/eom')) title = 'End of Month';
+
   if (pathname.includes('/contacts')) title = 'Contacts';
   if (pathname.includes('/history')) title = 'History';
   if (pathname.includes('/settings')) title = 'Settings';
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 border-b border-border bg-background sticky top-0 z-10 shadow-sm">
-      <div className="flex items-center gap-4">
-        <h1 className="text-xl font-bold text-foreground tracking-tight">{title}</h1>
+    <header className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-border bg-background sticky top-0 z-10 shadow-sm">
+      <div className="flex items-center gap-2 md:gap-4 min-w-0">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden text-muted-foreground hover:bg-muted/50 -ml-1 flex-shrink-0"
+          onClick={() => onMenuClick?.()}
+          aria-label="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </Button>
+        <h1 className="text-lg md:text-xl font-bold text-foreground tracking-tight truncate">{title}</h1>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="relative hidden md:flex w-64">
+      <div className="flex items-center gap-2 md:gap-4">
+        <div className="relative hidden md:flex w-48 lg:w-64">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
             type="search" 
@@ -44,10 +54,7 @@ export default function Header() {
           />
         </div>
 
-        <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:bg-muted/50 rounded-full">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-2 right-2.5 w-2 h-2 bg-destructive rounded-full border-2 border-background"></span>
-        </Button>
+        <NotificationBell />
 
         {user && (
           <Popover>

@@ -27,7 +27,7 @@ export default function LoginPage() {
       setIsLoading(false);
     } else {
       toast.success('Welcome back!');
-      router.push('/shipments');
+      router.push('/mainline/shipments');
       router.refresh();
     }
   };

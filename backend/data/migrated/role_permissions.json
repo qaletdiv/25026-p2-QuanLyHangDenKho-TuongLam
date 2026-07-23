@@ -1,0 +1,202 @@
+[
+  {
+    "role_id": "admin",
+    "permission": "purchase_orders"
+  },
+  {
+    "role_id": "admin",
+    "permission": "bookings"
+  },
+  {
+    "role_id": "admin",
+    "permission": "shipments"
+  },
+  {
+    "role_id": "admin",
+    "permission": "reports"
+  },
+  {
+    "role_id": "admin",
+    "permission": "forecast"
+  },
+  {
+    "role_id": "admin",
+    "permission": "eom"
+  },
+  {
+    "role_id": "admin",
+    "permission": "contacts"
+  },
+  {
+    "role_id": "admin",
+    "permission": "settings"
+  },
+  {
+    "role_id": "admin",
+    "permission": "freight"
+  },
+  {
+    "role_id": "admin",
+    "permission": "booking_create_mainline"
+  },
+  {
+    "role_id": "admin",
+    "permission": "booking_create_sms"
+  },
+  {
+    "role_id": "admin",
+    "permission": "booking_approve"
+  },
+  {
+    "role_id": "admin",
+    "permission": "booking_delete"
+  },
+  {
+    "role_id": "admin",
+    "permission": "shipment_update_status"
+  },
+  {
+    "role_id": "admin",
+    "permission": "shipment_delete"
+  },
+  {
+    "role_id": "admin",
+    "permission": "shipment_import_export"
+  },
+  {
+    "role_id": "admin",
+    "permission": "po_edit"
+  },
+  {
+    "role_id": "admin",
+    "permission": "settings_edit"
+  },
+  {
+    "role_id": "admin",
+    "permission": "user_manage"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "purchase_orders"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "bookings"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "shipments"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "reports"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "forecast"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "eom"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "contacts"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "settings"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "freight"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "booking_create_mainline"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "booking_create_sms"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "booking_approve"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "booking_delete"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "shipment_update_status"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "shipment_delete"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "shipment_import_export"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "po_edit"
+  },
+  {
+    "role_id": "logistics",
+    "permission": "settings_edit"
+  },
+  {
+    "role_id": "production",
+    "permission": "shipments"
+  },
+  {
+    "role_id": "production",
+    "permission": "reports"
+  },
+  {
+    "role_id": "production",
+    "permission": "forecast"
+  },
+  {
+    "role_id": "production",
+    "permission": "booking_create_sms"
+  },
+  {
+    "role_id": "production",
+    "permission": "shipment_update_status"
+  },
+  {
+    "role_id": "vendor",
+    "permission": "purchase_orders"
+  },
+  {
+    "role_id": "vendor",
+    "permission": "bookings"
+  },
+  {
+    "role_id": "vendor",
+    "permission": "shipments"
+  },
+  {
+    "role_id": "vendor",
+    "permission": "booking_create_mainline"
+  },
+  {
+    "role_id": "freight_forwarder",
+    "permission": "shipments"
+  },
+  {
+    "role_id": "freight_forwarder",
+    "permission": "bookings"
+  },
+  {
+    "role_id": "freight_forwarder",
+    "permission": "shipment_update_status"
+  },
+  {
+    "role_id": "freight_forwarder",
+    "permission": "shipment_import_export"
+  }
+]

@@ -1,204 +1,671 @@
 // Use DBML to define your database structure
 // Docs: https://dbml.dbdiagram.io/docs
+//
+// ============================================================================
+//  tentree Supply Chain Portal — 3NF redesign (JSON → Aurora PostgreSQL target)
+//  Full audit + rationale: backend/SCHEMA_REDESIGN.md
+// ============================================================================
+//
+// SCOPE: MAINLINE + SMS — two fully separate datasets in one schema file.
+// Mainline and SMS share NO transactional tables (not even the PO hierarchy:
+// SMS has its own sms_pos/sms_po_lines — decision 2026-07-02). The old
+// `type: "sms" | "mainline"` discriminator column is GONE — table membership
+// replaces it. Shared = reference/master data ONLY (suppliers, seasons,
+// warehouse_facilities, allocation_channels, statuses, couriers, product_skus).
+// Sources of truth: mainline POs ← WIP import (NS sync future); SMS POs ←
+// NetSuite sync (custbody_tt_po_type='smm').
+//
+// ----------------------------------------------------------------------------
+//  PO IDENTITY — three nested grains (the lifecycle of a mainline PO)
+// ----------------------------------------------------------------------------
+//  Step 1  NetSuite  master PO          → po_masters     PK = trn_number (TRN)
+//          The TRN is the master PO number. It is assigned once and NEVER
+//          changes through any split, so it is the stable header identity.
+//  Step 2  NetSuite  warehouse split    → po_orders      PK = po_number
+//          One TRN fans out to many po_numbers, one per receiving warehouse.
+//          po_number is unique at THIS grain.
+//  Step 3  WIP upload air/sea split     → *_po_legs      PK = surrogate id,
+//                                                          NK = (po_number, mode, crd)
+//          A po_number splits into Air + Sea legs (same po_number, different
+//          mode), optionally into CRD waves. This is the only grain where
+//          po_number repeats. Verified on live data (82 legs):
+//            28 TRNs → 67 po_numbers → 82 legs
+//            (po_number, mode, crd) is UNIQUE — 0 collisions.
+//
+//  Bookings / CI / shipments attach at the LEG grain and key on the leg's
+//  surrogate id (kept purely as a convenient FK target; the real key is the NK).
+//
+// ----------------------------------------------------------------------------
+//  TWO WRITE PATHS — clean field ownership, no preserve-hack
+// ----------------------------------------------------------------------------
+//  NetSuite sync  →  writes po_masters, po_orders, po_order_lines  (never legs)
+//                    [FUTURE for mainline — today NS sync serves SMS only; the
+//                     WIP import bootstraps missing masters/orders meanwhile]
+//  WIP import     →  writes *_po_legs, *_po_leg_lines              (never master/order)
+//  Because they write different tables, a re-sync cannot clobber WIP legs and a
+//  WIP import cannot clobber NetSuite headers — the legacy "preserve portal
+//  fields / Mixed-row splice" logic disappears.
+//
+//  Ingestion business rules (backend policy — recorded here, enforced in code):
+//    R1. NetSuite re-sync MAY overwrite a po_orders/po_masters row only when NO
+//        booking or shipment references its legs (e.g. qty 10→20 is fine while
+//        unbooked). If a linked booking/shipment exists, protect the row.
+//    R2. If a NetSuite total conflicts with the sum of WIP leg allocations,
+//        FLAG FOR REVIEW (do not auto-resolve).
+//    R3. WIP import always overwrites/updates legs — the importer is the source
+//        of truth for the air/sea split.
+//
+//  DERIVED DATA IS NEVER STORED — PO lifecycle state, master/warehouse totals,
+//  logistics-date rollups and fulfillment are computed via the views at the end.
+// ============================================================================
+
+
+// ===========================================================================
+//  SHARED REFERENCE / MASTER DATA  (used by BOTH modules)
+// ===========================================================================
+
+Table suppliers {                       // resolves supplier-fact duplication (PO.coo, vendor_name)
+  id            varchar [pk]
+  name          varchar [unique, not null]
+  country       varchar                 // source of truth for old PO.coo
+  address       varchar
+  port_of_loading varchar
+}
+
+// LEGACY warehouses — retained for SMS. Conflates two facts in `name`
+// ("NRI US Reserved" = facility + channel). The normalized mainline module
+// decomposes it into warehouse_facilities + allocation_channels (below).
+Table warehouses {
+  id            varchar [pk]
+  name          varchar [unique, not null]
+  country       varchar
+  city          varchar
+  email         varchar
+  address       varchar
+  port_of_discharge varchar
+}
+
+// Physical destination — the only thing the freight forwarder ships to
+// (NRI US, NRI CA, Direct US, Direct CAN). Data: migrated/warehouse_facilities.json.
+Table warehouse_facilities {
+  id            varchar [pk]
+  name          varchar [unique, not null]
+  country       varchar
+  city          varchar
+  port_of_discharge varchar
+  address       varchar
+}
+
+// Internal inventory bucket — orthogonal to where cargo physically goes
+// (Reserved / First). An attribute of the PO order, NOT the shipment.
+Table allocation_channels {
+  id   varchar [pk]
+  name varchar [unique, not null]
+}
+
+// Ocean ports (POL/POD) and container type — small lookups for the shipment header.
+Table ports {
+  id      varchar [pk]
+  code    varchar [unique]   // UN/LOCODE: CNSHA, USLAX…
+  name    varchar
+  country varchar
+}
+Table container_types {
+  id   varchar [pk]
+  name varchar [unique, not null]   // FCL / LCL
+}
+
+Table couriers {                        // SMS-leaning but shared lookup
+  id   varchar [pk]
+  name varchar [unique, not null]
+}
+
+Table modes {                           // Sea FCL / Air / Courier
+  id   varchar [pk]
+  name varchar [unique, not null]
+}
+
+Table incoterms {                       // FOB / DDP / DAP …
+  id   varchar [pk]
+  name varchar [unique, not null]
+}
+
+Table statuses {                        // gains module + category to split diverging vocab
+  id        varchar [pk]
+  name      varchar [not null]
+  module    varchar [note: 'mainline | sms | both']
+  category  varchar [note: 'booking | shipment']
+  color     varchar
+  sort_order integer
+
+  indexes {
+    (module, name) [unique]
+  }
+}
+
+Table seasons {                         // was free-text season strings (FW26, SS27)
+  id   varchar [pk]
+  code varchar [unique]
+}
+
+// Per-season delivery KPI gates. A shipment's E-DEL ≤ ontime_by → On Time;
+// ≤ atrisk_by → At Risk; later → Late. The timeliness axis is DERIVED from these
+// at read-time (reports module), never stored on the shipment. One row per season.
+Table production_schedules {
+  season_id varchar [pk, ref: > seasons.id]
+  ontime_by date
+  atrisk_by date
+}
+
+// Standard lead time per (mode, journey segment) in days — the planning yardstick.
+// Segments partition the door-to-received journey: production_handover (CRD →
+// cargo received), origin_dwell (received → ETD POL), port_to_port (ETD → ETA),
+// destination_leg (ETA POD → E-DEL), receiving (E-DEL → ATA, the +5 rule as data).
+// Used by reports to (a) project an E-DEL for unbooked legs (CRD + Σ segments),
+// (b) name the slipped segment when a shipment runs late. Actual durations are
+// DERIVED from shipment dates at read-time and never stored.
+Table transit_time_standards {
+  id      varchar [pk]
+  mode_id varchar [not null, ref: > modes.id]
+  segment varchar [not null]             // production_handover | origin_dwell | port_to_port | destination_leg | receiving
+  days    integer [not null]
+
+  indexes {
+    (mode_id, segment) [unique]
+  }
+}
+
+// ---- SKU master (shared product catalogue; both modules + CI reference it) ----
+Table product_skus {                    // one atomic SKU row, deduped from PO/CI/WIP data
+  sku_code     varchar [pk]
+  style_color  varchar
+  item_name    varchar
+  description  varchar
+  colorway     varchar
+  size         varchar
+  hts_code     varchar
+  unit_price   decimal                  // list price; line-level overrides allowed
+  upc          varchar                  // NS standard item field (upccode)
+  gender       varchar                  // NS custom item fields (custitem_*, env-mapped);
+  category     varchar                  //   CI/packing-list fallback when the vendor's
+  composition  varchar                  //   uploaded sheet omits the column
+  knit_woven   varchar
+}
+
+
+// ===========================================================================
+//  PURCHASE ORDERS — shared upstream hierarchy (NetSuite-owned)
+//  po_masters (TRN) → po_orders (po_number) → order lines
+//  Mainline legs (air/sea) modeled below. SMS legs are out of scope for now.
+// ===========================================================================
+
+Table po_masters {                      // STEP 1 — NetSuite master PO. PK is the stable TRN.
+  trn_number    varchar [pk]            // Tentree Internal PO # — never changes through splits
+  supplier_id   varchar [ref: > suppliers.id]
+  season_id     varchar [ref: > seasons.id]
+  main_shoulder varchar                 // Main / Shoulder
+  netsuite_id   varchar
+  // total order qty per SKU = SUM of child po_order_lines → DERIVED (view), not stored
+}
+
+Table po_orders {                       // STEP 2 — warehouse split. One per (TRN, warehouse).
+  po_number     varchar [pk]            // unique at this grain (repeats only in legs)
+  trn_number    varchar [ref: > po_masters.trn_number]
+  // conflated warehouse decomposed into two independent facts (3NF):
+  facility_id           varchar [ref: > warehouse_facilities.id]   // physical destination
+  allocation_channel_id varchar [ref: > allocation_channels.id]    // Reserved/First (nullable)
+  coo_country           varchar                                    // country of origin (the goods)
+  // mode is 'Sea' by default here; the real Air/Sea split happens at the leg grain
+  // NOTE: this hierarchy is MAINLINE-ONLY (WIP-import-sourced today; a mainline
+  // NetSuite sync may come later). SMS POs live in their own sms_pos table —
+  // the two datasets share NO transactional tables (decision 2026-07-02).
+}
+
+Table po_order_lines {                  // NetSuite-owned per-SKU ordered qty (warehouse grain)
+  id            varchar [pk]
+  po_number     varchar [ref: > po_orders.po_number]
+  sku_code      varchar [ref: > product_skus.sku_code]
+  ordered_qty   integer
+  unit_price    decimal
+
+  indexes {
+    (po_number, sku_code) [unique]
+  }
+}
+
+
+// ===========================================================================
+//  MAINLINE MODULE  (ocean/air freight — POL/POD, lots, packing lists)
+//  Legs (air/sea) are WIP-owned. NO shared transactional tables with SMS.
+// ===========================================================================
+
+Table mainline_po_legs {                // STEP 3 — air/sea split (WIP). po_number repeats by mode.
+  id            varchar [pk]            // convenience FK target; NK is (po_number, mode_id, crd)
+  po_number     varchar [ref: > po_orders.po_number]
+  mode_id       varchar [ref: > modes.id]          // Sea FCL / Air
+  incoterm_id   varchar [ref: > incoterms.id]
+  crd           date                                // cargo ready date (WIP)
+  // planned logistics dates from WIP; actuals live on the shipment and override at read-time:
+  etd_pol       date
+  e_del         date
+
+  indexes {
+    (po_number, mode_id, crd) [unique, note: 'the real natural key — verified 0 collisions']
+  }
+}
+
+Table mainline_po_leg_lines {           // WIP-owned per-SKU allocation to this air/sea leg
+  id            varchar [pk]
+  leg_id        varchar [ref: > mainline_po_legs.id]
+  sku_code      varchar [ref: > product_skus.sku_code]
+  allocated_qty integer
+
+  indexes {
+    (leg_id, sku_code) [unique]
+  }
+  // R2: SUM(allocated_qty per sku across a po_number's legs) vs po_order_lines.ordered_qty
+  //     → reconciliation view; mismatch is flagged for review, never auto-resolved.
+}
+
+Table mainline_bookings {               // no copied supplier/po labels — all via FK
+  id            varchar [pk]
+  booking_number varchar [unique, not null]
+  supplier_id   varchar [ref: > suppliers.id]          // single source (was vendor_name + supplier)
+  incoterm_id   varchar [ref: > incoterms.id]
+  cargo_ready_date date
+  booking_status_id varchar [ref: > statuses.id]
+  submitted_at  timestamp
+  approved_at   timestamp
+}
+
+// Junction (M:N booking ↔ leg). Keys on the leg surrogate id, not po_number.
+// BOOKABLE GRAIN = LEG ONLY. A PO is bookable only after step 3 (air/sea split
+// into legs); a forecast/warehouse-only PO with no legs cannot be booked. The
+// FK to mainline_po_legs (never to po_orders/po_masters) enforces this.
+Table mainline_booking_po_legs {
+  id            varchar [pk]
+  booking_id    varchar [ref: > mainline_bookings.id]
+  leg_id        varchar [ref: > mainline_po_legs.id]
+  units         integer
+  cartons       integer
+  weight_kg     decimal
+  cbm           decimal
+
+  indexes {
+    (booking_id, leg_id) [unique]
+  }
+}
+
+Table mainline_commercial_invoices {    // 1:1 with booking; line items flattened out
+  id            varchar [pk]
+  booking_id    varchar [ref: - mainline_bookings.id, unique]
+  invoice_number varchar
+  invoice_date  date
+  source        varchar                  // 'shipment_data' | 'upload'
+  status        varchar                  // 'confirmed' | 'draft'
+  confirmed_at  timestamp                // event fact (when confirmed); null while draft
+  file_url      varchar
+  // NOT stored (derived from ci_line_items at read-time): unmatched_sku_count,
+  // total_matched_qty, total_unmatched_qty — every CI response computes them.
+}
+
+// DERIVED, NOT STORED (folded 2026-07-07 — see modules/mainline/ci/ciLines.js).
+// CI line items are computed at read-time from mainline_packing_cartons, grouped
+// by (booking, sku): qty = Σ pcs_per_ctn, weight = Σ net_weight_kgs, cbm = Σ from
+// measure_cm, matched_leg_id = the carton's leg. Shape kept here for reference /
+// the read-time projection; there is no mainline_ci_line_items.json table anymore.
+// (SMS derives its CI lines the same way — this brings mainline in line.)
+Table mainline_ci_line_items {          // one row per SKU (was nested ci.line_items[])
+  id            varchar [pk]
+  invoice_id    varchar [ref: > mainline_commercial_invoices.id]
+  sku_code      varchar [ref: > product_skus.sku_code]
+  matched_leg_id varchar [ref: > mainline_po_legs.id, note: 'key on leg id, not po_number']
+  qty           integer
+  weight_kg     decimal
+  cbm           decimal
+  match_status  varchar
+}
+
+// Packing list — extracted from booking.shipment_data.rows[] into its own table.
+Table mainline_packing_cartons {
+  id            varchar [pk]
+  booking_id    varchar [ref: > mainline_bookings.id]
+  ctn_number    integer
+  leg_id        varchar [ref: > mainline_po_legs.id]
+  sku_code      varchar [ref: > product_skus.sku_code]
+  pcs_per_ctn   integer
+  unit_price    decimal
+  total_usd     decimal
+  net_weight_kgs decimal
+  gross_weight_kgs decimal
+  measure_cm    varchar
+  // summary{} is a VIEW (SUM over these rows), never a stored table.
+}
+
+// A shipment is ONE physical movement = one conveyance, grained on
+// (booking, facility, mode). Legs sharing all three — incl. different allocation
+// channels (NRI US "Reserved" + "First") — collapse into one shipment so the
+// forwarder edits the shared logistics facts ONCE; an Air leg and a Sea leg to the
+// same facility stay SEPARATE shipments. Booking guard G3 enforces a booking's legs
+// share one (supplier, facility, mode) up front. Header carries only shipment-owned
+// fields; the PO legs it carries are in the junction. COO/CRD are per-leg (joined).
+Table mainline_shipments {
+  id            varchar [pk]
+  shipment_number varchar [unique, not null]            // own sequence (SHP-N), not the booking #
+  booking_id    varchar [ref: > mainline_bookings.id]   // booking 1 : N shipments (one per facility+mode)
+  facility_id   varchar [ref: > warehouse_facilities.id]  // physical destination (grouping key)
+  mode_id       varchar [ref: > modes.id]                 // conveyance (grouping key)
+  status_id     varchar [ref: > statuses.id]
+  container_type_id varchar [ref: > container_types.id]   // FCL/LCL (Sea); null for Air
+  pol_port_id   varchar [ref: > ports.id]                 // Departure Port
+  pod_port_id   varchar [ref: > ports.id]                 // Arrival Port
+  bl_no         varchar                                   // ocean bill of lading number
+  // SHARED ocean logistics dates — edited once for the whole consignment:
+  etd_pol       date
+  eta_pod       date
+  e_del         date
+  cargo_received_date date                                // "received at port"
+  ata                 date                                // ACTUAL receipt date ("received in system");
+                                                          // manual now / NetSuite item-receipt later. Nullable.
+                                                          // Expected ATA = e_del + 5 is DERIVED (view), never stored.
+  netsuite_id   varchar
+  // shipment-level financials (one customs entry per physical shipment):
+  invoice_value decimal
+  duty          decimal
+  freight       decimal
+}
+
+// Junction (shipment ↔ PO leg). Per-leg facts (lot, allocated qty) live here; the
+// leg's allocation channel is derived via leg → po_order → allocation_channels.
+Table mainline_shipment_legs {
+  id            varchar [pk]
+  shipment_id   varchar [ref: > mainline_shipments.id]
+  leg_id        varchar [ref: > mainline_po_legs.id]
+  lot_number    integer
+  expected_quantity integer                            // this leg's booking allocation
+  indexes {
+    (shipment_id, leg_id) [unique]
+  }
+}
+
+// ASN = Advance Shipping Notice — the receiver's arrival notice for a PHYSICAL
+// shipment, so it keys on the shipment, NOT the booking. Contents derive from the
+// CI lines of ALL legs in the shipment; gate is the shipment's own e_del.
+Table mainline_asns {
+  id            varchar [pk]
+  shipment_id   varchar [ref: > mainline_shipments.id]
+  file_url      varchar
+  status        varchar
+  generated_at  timestamp
+}
+
+
+// ===========================================================================
+//  SMS MODULE  (courier shipments — FedEx/DHL on tentree's account)
+//
+//  FULLY SEPARATE DATASET (decision 2026-07-02): SMS has its OWN PO tables
+//  (sms_pos / sms_po_lines) — it shares NO transactional tables with mainline,
+//  so no diagram edge can ever connect an SMS row to mainline legs/bookings/
+//  shipments. Shared = reference/master data ONLY (suppliers, seasons,
+//  warehouse_facilities, statuses, couriers, product_skus). The UI may show
+//  mainline|sms sub-tabs in one section, but each tab is backed by its own
+//  module + dataset.
+//
+//  Source of truth: NetSuite sync is SMS-ONLY for now (custbody_tt_po_type
+//  ='smm'); mainline POs come from WIP import (mainline NS sync = future).
+//
+//  Workflow: NO booking step — the VENDOR enters each shipment (per-PO qty +
+//  cartons, one tracking number + courier per consignment); one PO ships as
+//  2–3 lots; status = courier tracking state; receiving reconciles against
+//  NetSuite Item Receipts. Plan: SMS_MODULE_PLAN.md.
+// ===========================================================================
+
+Table sms_pos {                         // SMS purchase order (one NetSuite PO, courier-fulfilled)
+  po_number     varchar [pk]            // tranid
+  trn_number    varchar                 // custbody_tentree_po — attribute here, NOT a shared
+                                        // po_masters ref; 1:1 with po_number in SMS practice
+                                        // (if a TRN ever fans out, promote to sms_po_masters)
+  supplier_id   varchar [ref: > suppliers.id]              // entity
+  season_id     varchar [ref: > seasons.id]                // custbody7
+  hod           date                    // custbody8 — handover date (the SMS "CRD")
+  expected_received_date date           // t.duedate (NS "Due Date", labelled Expected Receive Date
+                                        // for SMS) — the forecast's arrival anchor; incoming qty is
+                                        // bucketed by ISO week of this date
+  ship_method   varchar                 // custbody16 (raw NS value; courier resolved per shipment)
+  approval_status varchar               // approvalstatus (synced as-is; badge in UI)
+  facility_id           varchar [ref: > warehouse_facilities.id]   // location → physical facility
+  allocation_channel_id varchar [ref: > allocation_channels.id]    // location → Reserved/First (nullable, e.g. Direct tentree)
+  netsuite_id   varchar [unique]
+}
+
+Table sms_po_lines {                    // NetSuite-owned per-SKU ordered qty
+  id            varchar [pk]
+  po_number     varchar [not null, ref: > sms_pos.po_number]
+  sku_code      varchar [ref: > product_skus.sku_code]
+  ordered_qty   integer
+  unit_price    decimal
+
+  indexes {
+    (po_number, sku_code) [unique]
+  }
+}
+
+Table sms_shipments {                   // ONE physical consignment = one tracking number
+  id              varchar [pk]
+  courier_id      varchar [not null]    // → couriers master data (FedEx / DHL / …)
+  tracking_number varchar [unique]      // the courier's key; tracking poll joins on it
+  ship_date       date
+  facility_id     varchar [ref: > warehouse_facilities.id]   // destination
+  manual_status_id varchar [ref: > statuses.id]  // vendor/logistics fallback while the
+                                        // courier API is not connected; the DISPLAYED
+                                        // status is DERIVED from sms_tracking_events
+                                        // (latest event via courier_status_map) and
+                                        // wins over this whenever events exist
+  created_by      varchar               // user id (vendor login that entered it)
+  created_at      timestamp
+  // NO cartons/units here — those are per-PO facts on sms_shipment_pos;
+  // consignment totals are DERIVED (Σ junction), never stored.
+}
+
+Table sms_shipment_pos {                // junction: which PO-lots the consignment carries.
+  id          varchar [pk]              // a FedEx shipment MAY carry multiple POs (confirmed);
+  shipment_id varchar [not null, ref: > sms_shipments.id]      // lot_number counts per PO,
+  po_number   varchar [not null, ref: > sms_pos.po_number]     // so it lives here: PO04686
+  lot_number  integer [not null]        // lot 2 can ride with PO04690 lot 1 in one box.
+  units       integer [not null]        // vendor-entered shipped qty for this PO in this box
+  cartons     integer                   // vendor-entered carton count for this PO
+
+  indexes {
+    (po_number, lot_number) [unique]    // a lot ships exactly once
+    (shipment_id, po_number) [unique]   // a PO appears once per consignment
+  }
+  // NO per-SKU shipment lines: vendors enter PO totals (confirmed workflow).
+  // SKU grain exists on both sides of the reconciliation anyway
+  // (sms_po_lines = ordered, sms_item_receipt_lines = received).
+}
+
+Table sms_tracking_events {             // courier integration APPENDS; rows are immutable
+  id           varchar [pk]
+  shipment_id  varchar [not null, ref: > sms_shipments.id]
+  event_time   timestamp [not null]
+  courier_code varchar [not null]       // raw carrier scan code (e.g. FedEx 'DL')
+  description  varchar
+  location     varchar
+}
+
+Table courier_status_map {              // carrier scan code → portal status vocabulary
+  id           varchar [pk]             // (statuses rows with module='sms'); data, not code —
+  courier_id   varchar [not null]       // new carrier codes are a row insert, not a deploy
+  courier_code varchar [not null]
+  status_id    varchar [not null, ref: > statuses.id]
+
+  indexes {
+    (courier_id, courier_code) [unique]
+  }
+}
+
+Table sms_item_receipts {               // NetSuite Item Receipts (warehouse-side truth)
+  id             varchar [pk]
+  netsuite_ir_id varchar [unique]       // internal id — the REST push target
+  netsuite_ir_tranid varchar            // IR document number (e.g. IR65377) — display/reconcile
+  po_number      varchar [not null, ref: > sms_pos.po_number]
+  receipt_date   date
+  source         varchar                // 'netsuite' | 'manual'
+  // logistics' CONFIRMED IR ↔ consignment link. The auto-guess suggestion
+  // (qty match → date proximity → lot sequence) is DERIVED at read-time;
+  // only the human confirmation is stored (an entered fact):
+  matched_shipment_id varchar [ref: > sms_shipments.id]   // nullable until confirmed
+  confirmed_by   varchar                // user id
+  confirmed_at   timestamp
+}
+
+Table sms_item_receipt_lines {          // per-SKU received qty (from the NS IR lines)
+  id         varchar [pk]
+  receipt_id varchar [not null, ref: > sms_item_receipts.id]
+  sku_code   varchar [ref: > product_skus.sku_code]
+  qty        integer [not null]
+
+  indexes {
+    (receipt_id, sku_code) [unique]
+  }
+}
+
+Table sms_packing_cartons {             // SHIPPING DATA — carton × SKU detail the
+  id            varchar [pk]            // vendor uploads (one Excel per consignment).
+  shipment_id   varchar [not null, ref: > sms_shipments.id]   // Source of shipped-per-SKU,
+  po_number     varchar [not null, ref: > sms_pos.po_number]  // the CI and the packing list.
+  ctn_number    integer
+  sku_code      varchar [ref: > product_skus.sku_code]
+  pcs_per_ctn   integer
+  unit_price    decimal                 // snapshot; defaults from sms_po_lines.unit_price
+  net_weight_kgs   decimal              // carton-level (counted once per ctn_number)
+  gross_weight_kgs decimal
+  measure_cm    varchar                 // "L x W x H"
+  indexes { (shipment_id, ctn_number, sku_code) [unique] }
+  // DERIVED, never stored: total_usd (= pcs_per_ctn × unit_price), shipped-per-SKU
+  // (Σ pcs by po×sku), packing summary (pcs/cartons/weights/cbm/value). Unlike
+  // mainline (which redundantly stores mainline_ci_line_items), SMS derives the
+  // CI line items from these cartons at read-time.
+}
+
+Table sms_documents {                   // generated CI + packing-list artifacts
+  id            varchar [pk]            // (mirror mainline_documents)
+  shipment_id   varchar [not null, ref: > sms_shipments.id]
+  po_number     varchar [ref: > sms_pos.po_number]   // null = combined (all POs in the box)
+  doc_type      varchar                 // 'commercial_invoice' | 'packing_list'
+  file_url      varchar
+  invoice_number varchar
+  generated_at  timestamp
+}
+
+// DERIVED, never stored (same rule as mainline): shipment status (latest
+// tracking event via courier_status_map, fallback manual_status_id), courier
+// ETA (estimatedDeliveryTimeWindow from the poll), consignment totals
+// (Σ junction units/cartons), per-PO fulfillment ("2 of 3 lots shipped"),
+// reconciliation ordered (sms_po_lines) vs shipped (Σ sms_shipment_pos.units)
+// vs received (Σ sms_item_receipt_lines) + variance, timeliness vs sms_pos.hod.
+// New statuses rows: module='sms', category='shipment' — Label Created, Picked
+// Up, In Transit, Out for Delivery, Delivered, Exception.
+
+
+// ===========================================================================
+//  IDENTITY / ACCESS  (shared)
+// ===========================================================================
+
+Table roles {
+  id          varchar [pk]
+  name        varchar [unique, not null]
+  description varchar
+  protected   boolean
+}
+
+Table role_permissions {                // resolves roles.permissions[] repeating group (1NF)
+  role_id     varchar [ref: > roles.id]
+  permission  varchar
+
+  indexes {
+    (role_id, permission) [pk]
+  }
+}
 
 Table users {
-  id varchar [primary key]
-  email varchar [unique]
-  password varchar
-  name varchar
-  role varchar
-  factory_id varchar
-}
-
-Table purchase_orders {
-  id varchar [primary key]
-  po_number varchar [unique]
-  season varchar
-  trn_number varchar
-  type varchar
-  supplier varchar
-  mode varchar
-  incoterm varchar
-  expected_qty integer
-  receiving_qty integer
-  receiving_warehouse varchar
-  etd date
-  eta date
-  booking_status varchar
-  booking_number varchar
-  received_qty integer
-  booked_qty integer
-  actual_receive_date date
-}
-
-Table po_line_items {
-  po_id varchar [ref: > purchase_orders.id]
-  sku_code varchar
-  description varchar
-  expected_qty integer
-}
-
-Table bookings {
-  id varchar [primary key]
-  booking_number varchar [unique]
-  type varchar
-  vendor_name varchar
-  supplier varchar
-  tentree_po_number varchar
-  number_of_cartons varchar
-  cargo_ready_date date
-  receiving_warehouse varchar
-  mode varchar
-  incoterm varchar
-  season varchar
-  trn_number varchar
-  courier varchar
-  tracking_number varchar
-  booking_status varchar
-  submitted_at timestamp
-  approved_at timestamp
-}
-
-Table booking_po_details {
-  booking_id varchar [ref: > bookings.id]
-  po_number varchar [ref: > purchase_orders.po_number]
-  units integer
-}
-
-Table commercial_invoices {
-  booking_id varchar [primary key, ref: - bookings.id]
-  invoice_number varchar
-  invoice_date date
-  total_value decimal
-  status varchar
-  confirmed_at timestamp
-  unmatched_sku_count integer
-  total_matched_qty integer
-  total_unmatched_qty integer
-}
-
-Table ci_po_summaries {
-  booking_id varchar [ref: > commercial_invoices.booking_id]
-  po_number varchar
-  shipped_qty integer
-  cartons integer
-  weight_kg decimal
-  cbm decimal
-}
-
-Table ci_line_items {
-  booking_id varchar [ref: > commercial_invoices.booking_id]
-  sku_code varchar
-  description varchar
-  qty integer
-  unit_price decimal
-  total decimal
-  weight_kg decimal
-  cbm decimal
-  match_status varchar
-  matched_po varchar
-  po_expected_qty integer
-}
-
-Table shipments {
-  id varchar [primary key]
-  po_number varchar [ref: > purchase_orders.po_number]
-  booking_number varchar [ref: > bookings.booking_number]
-  season varchar
-  trn_number varchar
-  type varchar
-  supplier varchar
-  mode varchar
-  incoterm varchar
-  expected_quantity integer
-  receiving_qty integer
-  receiving_warehouse varchar
-  destination_warehouse varchar
-  etd date
-  eta date
-  booking_status varchar
-  received_quantity integer
-  booked_qty integer
-  actual_receive_date date
-  vendor_name varchar
-  number_of_cartons varchar
-  cargo_ready_date date
-  courier varchar
-  tracking_number varchar
-  submitted_at timestamp
-  approved_at timestamp
-  lot_number varchar
-  status varchar
-  ci_status varchar
-  invoice_value decimal
-  duty decimal
-  freight decimal
-}
-
-Table shipment_line_items {
-  shipment_id varchar [ref: > shipments.id]
-  sku_code varchar
-  description varchar
-  expected_qty integer
-  shipped_qty integer
+  id          varchar [pk]
+  email       varchar [unique, not null]
+  password    varchar                    // scrypt:<salt>:<hash>
+  name        varchar
+  role_id     varchar [ref: > roles.id]  // was free-text role string
+  supplier_id varchar [ref: > suppliers.id, note: 'vendor accounts only']
+  must_change_password boolean
 }
 
 Table contacts {
-  id varchar [primary key]
-  name varchar
-  role varchar
-  email varchar
-  phone varchar
-  department varchar
-  location varchar
-  avatar varchar
+  id          varchar [pk]
+  name        varchar
+  email       varchar
+  phone       varchar
+  company     varchar
+  role        varchar
+  group       varchar
 }
 
-Table eom_tasks {
-  id varchar [primary key]
-  title varchar
-  description text
-  assignee varchar
-  dueDate date
-  status varchar
-  priority varchar
-  month varchar
+// ===========================================================================
+//  LANDED COSTS MODULE  (freight & duty — Phase 1: SMS estimates)
+// ===========================================================================
+//  Additive module (modules/landedcosts, routes /landed-costs). Reads the SMS
+//  dataset READ-ONLY; writes ONLY these two tables. Nothing on sms_*/mainline_*
+//  shipment rows changes. Freight/duty are DERIVED (CI value × rate) and shown
+//  live; POSTING snapshots the estimate into landed_costs (estimate is final —
+//  a later courier bill does not change it). Per-PO split is derived at read
+//  (CI-value share, largest-remainder to cents), never stored.
+
+// Editable rate per module (Settings → Landed Cost Rates). 3NF: pure master data.
+Table landed_cost_rates {
+  id          varchar [pk]
+  module      varchar                                 // 'sms' | 'mainline' (unique per module)
+  freight_pct decimal                                 // % of CI value
+  duty_pct    decimal                                 // % of CI value
 }
 
-Table master_data_suppliers {
-  id varchar [primary key]
-  name varchar [unique]
-  region varchar
-  tier varchar
-  rating integer
+// Posted snapshot — one per (module, shipment). Absence = not yet posted.
+// invoice_value + freight_pct/duty_pct + freight/duty are the POINT-IN-TIME
+// posted facts (not recomputed after rates change). shipment_id is a soft ref
+// into the module's own shipment table (sms_shipments for module='sms').
+Table landed_costs {
+  id            varchar [pk]
+  module        varchar                               // 'sms' | 'mainline'
+  shipment_id   varchar                               // → sms_shipments.id (module='sms')
+  invoice_value decimal                               // CI value basis at posting
+  freight_pct   decimal                               // rate snapshot
+  duty_pct      decimal
+  freight       decimal                               // posted $ (final)
+  duty          decimal
+  posted_by     varchar [ref: > users.id]
+  posted_at     timestamp
+  netsuite_pushed_at timestamp                       // when pushed to the IR (null = posted, not pushed)
+  // NOTE: the pushed IR per PO is DERIVED at read from sms_item_receipts
+  // (matched_shipment_id = shipment_id) — never stored here (no repeating group).
+  indexes {
+    (module, shipment_id) [unique]
+  }
 }
 
-Table master_data_couriers {
-  id varchar [primary key]
-  name varchar [unique]
-  type varchar
-  tracking_url_template varchar
-}
-
-Table master_data_incoterms {
-  id varchar [primary key]
-  code varchar [unique]
-  description text
-  category varchar
-}
-
-Table master_data_statuses {
-  id varchar [primary key]
-  name varchar [unique]
-  category varchar
-  color varchar
-  order integer
-}
-
-Table warehouses {
-  id varchar [primary key]
-  code varchar [unique]
-  name varchar
-  location varchar
-  type varchar
-}
+// ===========================================================================
+//  DERIVED DATA — VIEWS ONLY (never stored, per the "never store derived" rule)
+// ===========================================================================
+//  po_master_totals    = SUM(po_order_lines.ordered_qty) per TRN & per SKU
+//                        → the season-start "how much we'll order" ORDER INTENT.
+//                        Distinct from the existing /forecast page (which is a
+//                        shipment-arrival-by-week report). Surface this on the
+//                        Purchase Orders module as the forecast-state view.
+//  po_lifecycle_state  = forecast (no legs) | split (has legs) — derived from
+//                        presence of *_po_legs rows, NOT a stored column.
+//                        BOOKABLE iff state = split (legs exist).
+//  leg_reconciliation  = per (po_number, sku): ordered_qty vs Σ allocated_qty
+//                        → drives R2 "flag for review" on mismatch
+//  mainline_packing_summary = SUM(pcs, total_usd, weights, cbm) per booking
+//                        → replaces shipment_data.summary{}
+//  po_fulfillment      = ordered_qty − Σ confirmed CI qty per SKU
+//                        (the /fulfillment endpoint; mainline CIs only for now)
+//  po_logistics_dates  = earliest/latest ACTUAL shipment dates per leg
+//                        → overrides the WIP planned dates at read-time
+// ===========================================================================

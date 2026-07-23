@@ -1,0 +1,50 @@
+[
+  {
+    "id": "port_cnsha",
+    "code": "CNSHA",
+    "name": "Shanghai",
+    "country": "China"
+  },
+  {
+    "id": "port_inccu",
+    "code": "INCCU",
+    "name": "Kolkata",
+    "country": "India"
+  },
+  {
+    "id": "port_innsa",
+    "code": "INNSA",
+    "name": "Nhava Sheva",
+    "country": "India"
+  },
+  {
+    "id": "port_cntao",
+    "code": "CNTAO",
+    "name": "Qingdao",
+    "country": "China"
+  },
+  {
+    "id": "port_vnsgn",
+    "code": "VNSGN",
+    "name": "Ho Chi Minh",
+    "country": "Vietnam"
+  },
+  {
+    "id": "port_cnszx",
+    "code": "CNSZX",
+    "name": "Shenzhen",
+    "country": "China"
+  },
+  {
+    "id": "port_idjkt",
+    "code": "IDJKT",
+    "name": "Jakarta",
+    "country": "Indonesia"
+  },
+  {
+    "id": "port_vndad",
+    "code": "VNDAD",
+    "name": "Da Nang",
+    "country": "Vietnam"
+  }
+]

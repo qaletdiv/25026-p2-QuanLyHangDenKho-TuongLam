@@ -28,7 +28,12 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`${response.statusText || response.status}: ${text}`);
+      // Return a structured error instead of throwing. HTTP errors (e.g. a 404
+      // that a page turns into notFound()) are an expected outcome handled by
+      // callers via `result.error`. Throwing here — only to catch it below and
+      // console.error it — made Next.js dev surface a noisy error overlay for
+      // 404s that were already handled gracefully.
+      return { error: `${response.statusText || response.status}: ${text}`, status: response.status };
     }
 
     // Handle 204 No Content (e.g. DELETE responses)

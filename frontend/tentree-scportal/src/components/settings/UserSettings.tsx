@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Trash2, Save, UserCog, KeyRound, Eye, EyeOff } from 'lucide-react';
+import { Plus, Trash2, Save, UserCog, KeyRound, Eye, EyeOff, Pencil, Check } from 'lucide-react';
 
 const roleBadgeClass: Record<string, string> = {
   'Admin':                 'bg-destructive/10 border-destructive/30 text-destructive',
@@ -30,6 +30,16 @@ export function UserSettings() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [roleOptions, setRoleOptions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editing, setEditing] = useState(false);   // screen is read-only until Edit
+
+  // The Add-User dialog is Radix; the role/supplier Selects are Base UI (portaled
+  // to <body>). Without this, Radix's focus trap yanks focus back the instant the
+  // Select popup opens → the list flashes shut. Keep the dialog open when the
+  // interaction/focus target is inside a Select popup.
+  const keepOpenForSelect = (e: { detail: { originalEvent: Event }; preventDefault: () => void }) => {
+    const t = e.detail.originalEvent.target as HTMLElement | null;
+    if (t?.closest?.('[data-slot="select-content"],[data-slot="select-trigger"]')) e.preventDefault();
+  };
 
   // Inline pending edits keyed by user id
   const [edits, setEdits] = useState<Record<string, any>>({});
@@ -66,6 +76,9 @@ export function UserSettings() {
     setEdits(prev => ({ ...prev, [id]: { ...(prev[id] || {}), [key]: value } }));
 
   const isDirty = (id: string) => !!edits[id] && Object.keys(edits[id]).length > 0;
+
+  // Done: re-lock and drop any unsaved inline edits (rows are saved individually).
+  const handleDone = () => { setEdits({}); setEditing(false); };
 
   const handleSave = async (user: any) => {
     if (!isDirty(user.id)) return;
@@ -151,19 +164,31 @@ export function UserSettings() {
   if (isLoading) return <div className="p-4 text-sm text-muted-foreground italic">Loading users...</div>;
 
   return (
-    <div className="space-y-4 bg-card p-6 rounded-xl border shadow-sm">
+    <div className="space-y-4 bg-card p-4 sm:p-6 rounded-xl border shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <UserCog className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-semibold">User Accounts</h2>
           <span className="text-xs text-muted-foreground ml-1">({users.length} users)</span>
         </div>
-        <Button size="sm" onClick={() => setDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-1" /> Add User
-        </Button>
+        <div className="flex gap-2">
+          {/* Add User is always available — creating a user isn't an "edit" of the list */}
+          <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-1" /> Add User
+          </Button>
+          {editing ? (
+            <Button size="sm" onClick={handleDone}>
+              <Check className="w-4 h-4 mr-1" /> Done
+            </Button>
+          ) : (
+            <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
+              <Pencil className="w-4 h-4 mr-1" /> Edit
+            </Button>
+          )}
+        </div>
       </div>
 
-      <div className="border rounded-md overflow-hidden">
+      <fieldset disabled={!editing} className="m-0 p-0 min-w-0 border rounded-md overflow-hidden [&_input:disabled]:opacity-100 [&_input:disabled]:cursor-default [&_input:disabled]:border-transparent [&_input:disabled]:bg-transparent [&_input:disabled]:shadow-none">
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
@@ -233,49 +258,57 @@ export function UserSettings() {
                     )}
                   </TableCell>
                   <TableCell className="p-2">
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-primary"
-                        title="Reset password"
-                        onClick={() => { setResetTarget(u); setNewPassword(''); }}
-                      >
-                        <KeyRound className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-primary"
-                        title="Save changes"
-                        disabled={!isDirty(u.id) || savingId === u.id}
-                        onClick={() => handleSave(u)}
-                      >
-                        <Save className="w-3.5 h-3.5" />
-                      </Button>
-                      {!isSelf && (
+                    {editing ? (
+                      <div className="flex items-center gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-destructive"
-                          title="Delete user"
-                          onClick={() => handleDelete(u)}
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          title="Reset password"
+                          onClick={() => { setResetTarget(u); setNewPassword(''); }}
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <KeyRound className="w-3.5 h-3.5" />
                         </Button>
-                      )}
-                    </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-primary"
+                          title="Save changes"
+                          disabled={!isDirty(u.id) || savingId === u.id}
+                          onClick={() => handleSave(u)}
+                        >
+                          <Save className="w-3.5 h-3.5" />
+                        </Button>
+                        {!isSelf && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive"
+                            title="Delete user"
+                            onClick={() => handleDelete(u)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                 </TableRow>
               );
             })}
           </TableBody>
         </Table>
-      </div>
+      </fieldset>
 
       {/* ── Add User dialog ── */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+      {/* modal={false}: the Base-UI Selects portal to <body>, outside Radix's focus
+          trap — with a modal dialog the trap refocuses on open and the list flashes
+          shut. Non-modal drops the trap (overlay still dims/blocks); the guards below
+          keep the dialog open when a Select option is clicked. */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen} modal={false}>
+        <DialogContent className="max-w-md" onInteractOutside={keepOpenForSelect} onFocusOutside={keepOpenForSelect} onPointerDownOutside={keepOpenForSelect}>
           <DialogHeader>
             <DialogTitle>Add New User</DialogTitle>
           </DialogHeader>
@@ -320,7 +353,7 @@ export function UserSettings() {
             <div className="space-y-1">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Role</label>
               <Select value={form.role} onValueChange={v => setForm(f => ({ ...f, role: v ?? f.role, supplier: '' }))}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -332,7 +365,7 @@ export function UserSettings() {
               <div className="space-y-1">
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Supplier</label>
                 <Select value={form.supplier} onValueChange={v => setForm(f => ({ ...f, supplier: v }))}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select supplier" />
                   </SelectTrigger>
                   <SelectContent>

@@ -6,7 +6,7 @@ import { IncotermSettings } from '@/components/settings/IncotermSettings';
 
 export default function IncotermsPage() {
   return (
-    <div className="p-8 max-w-4xl mx-auto pb-20">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto pb-20">
       <SettingsHeader 
         title="Incoterm Management" 
         description="Configure commercial trade terms (DDP, FOB, etc)."

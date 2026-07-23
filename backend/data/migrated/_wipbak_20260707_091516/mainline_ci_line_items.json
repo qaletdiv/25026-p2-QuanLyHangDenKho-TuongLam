@@ -1,0 +1,412 @@
+[
+  {
+    "id": "cil_2_1",
+    "invoice_id": "ci_2",
+    "sku_code": "TCW6649-6303-4",
+    "matched_leg_id": "1",
+    "qty": 2,
+    "weight_kg": 7.58,
+    "cbm": 0.088,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_2",
+    "invoice_id": "ci_2",
+    "sku_code": "TCW6649-6303-6",
+    "matched_leg_id": "1",
+    "qty": 3,
+    "weight_kg": 7.58,
+    "cbm": 0.088,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_3",
+    "invoice_id": "ci_2",
+    "sku_code": "TCW6649-6303-8",
+    "matched_leg_id": "1",
+    "qty": 3,
+    "weight_kg": 7.58,
+    "cbm": 0.088,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_4",
+    "invoice_id": "ci_2",
+    "sku_code": "TCW6649-6303-10",
+    "matched_leg_id": "1",
+    "qty": 2,
+    "weight_kg": 7.58,
+    "cbm": 0.088,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_5",
+    "invoice_id": "ci_2",
+    "sku_code": "TCW6649-6303-12",
+    "matched_leg_id": "1",
+    "qty": 2,
+    "weight_kg": 7.58,
+    "cbm": 0.088,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_6",
+    "invoice_id": "ci_2",
+    "sku_code": "TCW6649-6303-14",
+    "matched_leg_id": "1",
+    "qty": 1,
+    "weight_kg": 7.58,
+    "cbm": 0.088,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_7",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6684-6303-32",
+    "matched_leg_id": "1",
+    "qty": 5,
+    "weight_kg": 10.9,
+    "cbm": 0.088,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_8",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6684-6303-34",
+    "matched_leg_id": "1",
+    "qty": 6,
+    "weight_kg": 10.9,
+    "cbm": 0.088,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_9",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6684-6303-36",
+    "matched_leg_id": "1",
+    "qty": 4,
+    "weight_kg": 10.9,
+    "cbm": 0.088,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_10",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6684-6303-38",
+    "matched_leg_id": "1",
+    "qty": 3,
+    "weight_kg": 10.9,
+    "cbm": 0.088,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_11",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6685-6289-32",
+    "matched_leg_id": "1",
+    "qty": 1,
+    "weight_kg": 0.94,
+    "cbm": 0.088,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_12",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6685-6289-34",
+    "matched_leg_id": "1",
+    "qty": 1,
+    "weight_kg": 0.94,
+    "cbm": 0.088,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_13",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6685-6289-36",
+    "matched_leg_id": "1",
+    "qty": 1,
+    "weight_kg": 0.94,
+    "cbm": 0.088,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_14",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6685-6289-38",
+    "matched_leg_id": "1",
+    "qty": 1,
+    "weight_kg": 0.94,
+    "cbm": 0.088,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_15",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6797-6289-L",
+    "matched_leg_id": "1",
+    "qty": 4,
+    "weight_kg": 6.72,
+    "cbm": 0.053,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_16",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6797-6289-M",
+    "matched_leg_id": "1",
+    "qty": 4,
+    "weight_kg": 6.72,
+    "cbm": 0.053,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_17",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6797-6289-S",
+    "matched_leg_id": "1",
+    "qty": 2,
+    "weight_kg": 6.72,
+    "cbm": 0.053,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_18",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6797-6289-XL",
+    "matched_leg_id": "1",
+    "qty": 4,
+    "weight_kg": 6.72,
+    "cbm": 0.053,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_19",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6797-6289-XXL",
+    "matched_leg_id": "1",
+    "qty": 2,
+    "weight_kg": 6.72,
+    "cbm": 0.053,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_20",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6797-0164-L",
+    "matched_leg_id": "1",
+    "qty": 7,
+    "weight_kg": 10.1,
+    "cbm": 0.053,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_21",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6797-0164-M",
+    "matched_leg_id": "1",
+    "qty": 6,
+    "weight_kg": 10.1,
+    "cbm": 0.053,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_22",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6797-0164-S",
+    "matched_leg_id": "1",
+    "qty": 2,
+    "weight_kg": 10.1,
+    "cbm": 0.053,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_23",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6797-0164-XL",
+    "matched_leg_id": "1",
+    "qty": 7,
+    "weight_kg": 10.1,
+    "cbm": 0.053,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_24",
+    "invoice_id": "ci_2",
+    "sku_code": "TCM6797-0164-XXL",
+    "matched_leg_id": "1",
+    "qty": 2,
+    "weight_kg": 10.1,
+    "cbm": 0.053,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_25",
+    "invoice_id": "ci_2",
+    "sku_code": "TCW5674-6391-XS",
+    "matched_leg_id": "1",
+    "qty": 3,
+    "weight_kg": 3.11,
+    "cbm": 0.053,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_26",
+    "invoice_id": "ci_2",
+    "sku_code": "TCW5674-6391-S",
+    "matched_leg_id": "1",
+    "qty": 5,
+    "weight_kg": 3.11,
+    "cbm": 0.053,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_27",
+    "invoice_id": "ci_2",
+    "sku_code": "TCW5674-6391-M",
+    "matched_leg_id": "1",
+    "qty": 5,
+    "weight_kg": 3.11,
+    "cbm": 0.053,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_28",
+    "invoice_id": "ci_2",
+    "sku_code": "TCW5674-6391-L",
+    "matched_leg_id": "1",
+    "qty": 3,
+    "weight_kg": 3.11,
+    "cbm": 0.053,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_2_29",
+    "invoice_id": "ci_2",
+    "sku_code": "TCW5674-6391-XL",
+    "matched_leg_id": "1",
+    "qty": 1,
+    "weight_kg": 3.11,
+    "cbm": 0.053,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_1_1",
+    "invoice_id": "ci_1",
+    "sku_code": "TCM5552-0164",
+    "matched_leg_id": "24",
+    "qty": 122,
+    "weight_kg": 24.53,
+    "cbm": 0.144,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_1_2",
+    "invoice_id": "ci_1",
+    "sku_code": "TCM5552-6299",
+    "matched_leg_id": "24",
+    "qty": 123,
+    "weight_kg": 30.06,
+    "cbm": 0.144,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_1_3",
+    "invoice_id": "ci_1",
+    "sku_code": "TCM5552-6304",
+    "matched_leg_id": "24",
+    "qty": 131,
+    "weight_kg": 26.67,
+    "cbm": 0.144,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_1_4",
+    "invoice_id": "ci_1",
+    "sku_code": "TCM6664-0164",
+    "matched_leg_id": "24",
+    "qty": 98,
+    "weight_kg": 25.86,
+    "cbm": 0.144,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_1_5",
+    "invoice_id": "ci_1",
+    "sku_code": "TCM6664-2053",
+    "matched_leg_id": "24",
+    "qty": 169,
+    "weight_kg": 34.03,
+    "cbm": 0.144,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_1_6",
+    "invoice_id": "ci_1",
+    "sku_code": "TCM6664-6304",
+    "matched_leg_id": "24",
+    "qty": 83,
+    "weight_kg": 13.04,
+    "cbm": 0.144,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_1_7",
+    "invoice_id": "ci_1",
+    "sku_code": "TCW5563-2053",
+    "matched_leg_id": "24",
+    "qty": 113,
+    "weight_kg": 17.76,
+    "cbm": 0.144,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_1_8",
+    "invoice_id": "ci_1",
+    "sku_code": "TCW5563-6295",
+    "matched_leg_id": "24",
+    "qty": 90,
+    "weight_kg": 14.57,
+    "cbm": 0.144,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_1_9",
+    "invoice_id": "ci_1",
+    "sku_code": "TCW5939-2053",
+    "matched_leg_id": "24",
+    "qty": 137,
+    "weight_kg": 26.49,
+    "cbm": 0.144,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_1_10",
+    "invoice_id": "ci_1",
+    "sku_code": "TCW5939-6295",
+    "matched_leg_id": "24",
+    "qty": 97,
+    "weight_kg": 22.34,
+    "cbm": 0.144,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_1_11",
+    "invoice_id": "ci_1",
+    "sku_code": "TCW6248-6299",
+    "matched_leg_id": "24",
+    "qty": 78,
+    "weight_kg": 20.36,
+    "cbm": 0.144,
+    "match_status": "matched"
+  },
+  {
+    "id": "cil_1_12",
+    "invoice_id": "ci_1",
+    "sku_code": "TCW6453-0164",
+    "matched_leg_id": "24",
+    "qty": 314,
+    "weight_kg": 78.85,
+    "cbm": 0.144,
+    "match_status": "matched"
+  }
+]

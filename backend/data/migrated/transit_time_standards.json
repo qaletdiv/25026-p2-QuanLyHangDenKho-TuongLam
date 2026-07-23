@@ -1,0 +1,12 @@
+[
+  { "id": "tts_m1_production_handover", "mode_id": "m1", "segment": "production_handover", "days": 7 },
+  { "id": "tts_m1_origin_dwell",        "mode_id": "m1", "segment": "origin_dwell",        "days": 7 },
+  { "id": "tts_m1_port_to_port",        "mode_id": "m1", "segment": "port_to_port",        "days": 30 },
+  { "id": "tts_m1_destination_leg",     "mode_id": "m1", "segment": "destination_leg",     "days": 7 },
+  { "id": "tts_m1_receiving",           "mode_id": "m1", "segment": "receiving",           "days": 5 },
+  { "id": "tts_m2_production_handover", "mode_id": "m2", "segment": "production_handover", "days": 7 },
+  { "id": "tts_m2_origin_dwell",        "mode_id": "m2", "segment": "origin_dwell",        "days": 3 },
+  { "id": "tts_m2_port_to_port",        "mode_id": "m2", "segment": "port_to_port",        "days": 7 },
+  { "id": "tts_m2_destination_leg",     "mode_id": "m2", "segment": "destination_leg",     "days": 3 },
+  { "id": "tts_m2_receiving",           "mode_id": "m2", "segment": "receiving",           "days": 5 }
+]

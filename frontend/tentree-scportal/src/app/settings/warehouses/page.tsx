@@ -6,7 +6,7 @@ import { WarehouseSettings } from '@/components/settings/WarehouseSettings';
 
 export default function WarehousesPage() {
   return (
-    <div className="p-8 max-w-4xl mx-auto pb-20">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto pb-20">
       <SettingsHeader
         title="Warehouse Management"
         description="Configure receiving warehouses available for bookings and shipments."

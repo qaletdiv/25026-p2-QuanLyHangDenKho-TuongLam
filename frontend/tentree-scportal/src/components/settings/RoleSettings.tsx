@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Trash2, Save, ShieldCheck, Lock } from 'lucide-react';
+import { Plus, Trash2, Save, ShieldCheck, Lock, Pencil, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function RoleSettings() {
@@ -18,6 +18,7 @@ export function RoleSettings() {
   const [roles, setRoles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);   // matrix is read-only until Edit
 
   // Track dirty permissions per role: { [roleId]: Set<string> | null (= no changes) }
   const [dirtyPerms, setDirtyPerms] = useState<Record<string, Set<string>>>({});
@@ -63,6 +64,14 @@ export function RoleSettings() {
     if (original.size !== current.size) return true;
     for (const p of current) if (!original.has(p)) return true;
     return false;
+  };
+
+  // Done: re-lock and revert any unsaved permission toggles to the saved sets.
+  const handleDone = () => {
+    const reset: Record<string, Set<string>> = {};
+    roles.forEach((r: any) => { reset[r.id] = new Set(r.permissions || []); });
+    setDirtyPerms(reset);
+    setEditing(false);
   };
 
   const handleSave = async (role: any) => {
@@ -120,15 +129,26 @@ export function RoleSettings() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="bg-card p-6 rounded-xl border shadow-sm">
-        <div className="flex items-center justify-between mb-1">
+      <div className="bg-card p-4 sm:p-6 rounded-xl border shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-semibold">Role Permissions</h2>
           </div>
-          <Button size="sm" onClick={() => setDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-1" /> Add Role
-          </Button>
+          {editing ? (
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-1" /> Add Role
+              </Button>
+              <Button size="sm" onClick={handleDone}>
+                <Check className="w-4 h-4 mr-1" /> Done
+              </Button>
+            </div>
+          ) : (
+            <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
+              <Pencil className="w-4 h-4 mr-1" /> Edit
+            </Button>
+          )}
         </div>
         <p className="text-xs text-muted-foreground">
           Changes take effect on the user's next login.
@@ -136,8 +156,8 @@ export function RoleSettings() {
         </p>
       </div>
 
-      {/* Permission Matrix */}
-      <div className="bg-card rounded-xl border shadow-sm overflow-x-auto">
+      {/* Permission Matrix — read-only until Edit (checkboxes stay readable) */}
+      <fieldset disabled={!editing} className="m-0 p-0 min-w-0 bg-card rounded-xl border shadow-sm overflow-x-auto [&_button:disabled]:opacity-100 [&_button:disabled]:cursor-default">
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-border bg-muted/40">
@@ -153,30 +173,32 @@ export function RoleSettings() {
                     {role.description && (
                       <span className="text-[10px] text-muted-foreground font-normal leading-tight max-w-[120px] text-center">{role.description}</span>
                     )}
-                    <div className="flex gap-1 mt-0.5">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-6 px-2 text-[10px]"
-                        disabled={!isDirty(role.id) || savingId === role.id}
-                        onClick={() => handleSave(role)}
-                      >
-                        <Save className="w-3 h-3 mr-0.5" />
-                        {savingId === role.id ? 'Saving…' : 'Save'}
-                      </Button>
-                      {!role.protected && (
+                    {editing && (
+                      <div className="flex gap-1 mt-0.5">
                         <Button
                           size="sm"
-                          variant="ghost"
-                          className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDelete(role)}
-                          title={`Delete ${role.name}`}
+                          variant="outline"
+                          className="h-6 px-2 text-[10px]"
+                          disabled={!isDirty(role.id) || savingId === role.id}
+                          onClick={() => handleSave(role)}
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Save className="w-3 h-3 mr-0.5" />
+                          {savingId === role.id ? 'Saving…' : 'Save'}
                         </Button>
-                      )}
-                    </div>
-                    {isDirty(role.id) && (
+                        {!role.protected && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDelete(role)}
+                            title={`Delete ${role.name}`}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                    {editing && isDirty(role.id) && (
                       <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-amber-500/10 border-amber-400/40 text-amber-600">unsaved</Badge>
                     )}
                   </div>
@@ -220,7 +242,7 @@ export function RoleSettings() {
             ))}
           </tbody>
         </table>
-      </div>
+      </fieldset>
 
       {/* Add Role dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

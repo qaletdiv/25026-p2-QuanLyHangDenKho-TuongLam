@@ -1,0 +1,17 @@
+[
+  {
+    "name": "frontend",
+    "description": "Next.js RSC frontend agent. Owns all files under frontend/tentree-scportal/src/. Implements UI components using shadcn/ui and Tailwind. Never touches backend/. Read SKU_EXPANSION_PLAN.md before writing any component.",
+    "model": "claude-sonnet-4-6"
+  },
+  {
+    "name": "backend",
+    "description": "Express backend agent. Owns backend/server.js, backend/services/, backend/data/. Adds routes, business logic, and data mutations. Never touches frontend/. Read SKU_EXPANSION_PLAN.md before writing any route.",
+    "model": "claude-sonnet-4-6"
+  },
+  {
+    "name": "qa",
+    "description": "QA/review agent. Read-only — never modifies files. Checks that frontend TypeScript types match backend JSON response shapes. Verifies routes in server.js match what frontend actions call. Reports mismatches as a numbered list.",
+    "model": "claude-sonnet-4-6"
+  }
+]

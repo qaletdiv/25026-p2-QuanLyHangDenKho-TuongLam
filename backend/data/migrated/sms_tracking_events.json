@@ -1,0 +1,2466 @@
+[
+  {
+    "id": "ste_1",
+    "shipment_id": "1",
+    "event_time": "2026-07-13T13:02:00-08:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_2",
+    "shipment_id": "1",
+    "event_time": "2026-07-13T22:28:00+09:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "INCHEON-SI, KR"
+  },
+  {
+    "id": "ste_3",
+    "shipment_id": "1",
+    "event_time": "2026-07-13T06:12:00+08:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_4",
+    "shipment_id": "1",
+    "event_time": "2026-07-13T06:05:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_5",
+    "shipment_id": "1",
+    "event_time": "2026-07-13T03:45:00+08:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_6",
+    "shipment_id": "1",
+    "event_time": "2026-07-12T23:45:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SINGAPORE, SG"
+  },
+  {
+    "id": "ste_7",
+    "shipment_id": "1",
+    "event_time": "2026-07-11T23:06:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_8",
+    "shipment_id": "1",
+    "event_time": "2026-07-11T04:11:00+07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_9",
+    "shipment_id": "1",
+    "event_time": "2026-07-11T02:16:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_10",
+    "shipment_id": "1",
+    "event_time": "2026-07-11T02:13:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_11",
+    "shipment_id": "1",
+    "event_time": "2026-07-10T22:19:00+07:00",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "BANDUNG, ID"
+  },
+  {
+    "id": "ste_12",
+    "shipment_id": "1",
+    "event_time": "2026-07-10T19:12:00+07:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "BANDUNG, ID"
+  },
+  {
+    "id": "ste_13",
+    "shipment_id": "1",
+    "event_time": "2026-07-09T04:45:38-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_14",
+    "shipment_id": "2",
+    "event_time": "2026-07-13T13:02:00-08:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_15",
+    "shipment_id": "2",
+    "event_time": "2026-07-13T22:28:00+09:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "INCHEON-SI, KR"
+  },
+  {
+    "id": "ste_16",
+    "shipment_id": "2",
+    "event_time": "2026-07-13T06:12:00+08:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_17",
+    "shipment_id": "2",
+    "event_time": "2026-07-13T06:05:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_18",
+    "shipment_id": "2",
+    "event_time": "2026-07-13T03:45:00+08:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_19",
+    "shipment_id": "2",
+    "event_time": "2026-07-12T23:45:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SINGAPORE, SG"
+  },
+  {
+    "id": "ste_20",
+    "shipment_id": "2",
+    "event_time": "2026-07-11T23:06:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_21",
+    "shipment_id": "2",
+    "event_time": "2026-07-11T04:14:00+07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_22",
+    "shipment_id": "2",
+    "event_time": "2026-07-11T02:16:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_23",
+    "shipment_id": "2",
+    "event_time": "2026-07-11T02:13:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_24",
+    "shipment_id": "2",
+    "event_time": "2026-07-10T22:19:00+07:00",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "BANDUNG, ID"
+  },
+  {
+    "id": "ste_25",
+    "shipment_id": "2",
+    "event_time": "2026-07-10T19:12:00+07:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "BANDUNG, ID"
+  },
+  {
+    "id": "ste_26",
+    "shipment_id": "2",
+    "event_time": "2026-07-09T05:37:43-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_27",
+    "shipment_id": "1",
+    "event_time": "2026-07-14T01:35:00-08:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_28",
+    "shipment_id": "1",
+    "event_time": "2026-07-13T16:46:00-08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_29",
+    "shipment_id": "1",
+    "event_time": "2026-07-13T16:45:00-08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_30",
+    "shipment_id": "2",
+    "event_time": "2026-07-14T01:35:00-08:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_31",
+    "shipment_id": "2",
+    "event_time": "2026-07-13T16:46:00-08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_32",
+    "shipment_id": "2",
+    "event_time": "2026-07-13T16:45:00-08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_33",
+    "shipment_id": "3",
+    "event_time": "2026-07-14T12:41:00+08:00",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "TAICHUNG CITY, TW"
+  },
+  {
+    "id": "ste_34",
+    "shipment_id": "3",
+    "event_time": "2026-07-14T12:01:00+08:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "TAICHUNG CITY, TW"
+  },
+  {
+    "id": "ste_35",
+    "shipment_id": "3",
+    "event_time": "2026-07-13T03:11:22-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_36",
+    "shipment_id": "4",
+    "event_time": "2026-07-14T12:41:00+08:00",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "TAICHUNG CITY, TW"
+  },
+  {
+    "id": "ste_37",
+    "shipment_id": "4",
+    "event_time": "2026-07-14T12:00:00+08:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "TAICHUNG CITY, TW"
+  },
+  {
+    "id": "ste_38",
+    "shipment_id": "4",
+    "event_time": "2026-07-13T03:21:43-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_39",
+    "shipment_id": "5",
+    "event_time": "2026-07-14T12:42:00+08:00",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "TAICHUNG CITY, TW"
+  },
+  {
+    "id": "ste_40",
+    "shipment_id": "5",
+    "event_time": "2026-07-14T11:59:00+08:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "TAICHUNG CITY, TW"
+  },
+  {
+    "id": "ste_41",
+    "shipment_id": "5",
+    "event_time": "2026-07-13T03:38:04-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_42",
+    "shipment_id": "1",
+    "event_time": "2026-07-14T10:26:00-05:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_43",
+    "shipment_id": "2",
+    "event_time": "2026-07-14T10:26:00-05:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_44",
+    "shipment_id": "3",
+    "event_time": "2026-07-15T00:28:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "TA YUAN DISTRICT, TW"
+  },
+  {
+    "id": "ste_45",
+    "shipment_id": "4",
+    "event_time": "2026-07-15T00:28:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "TA YUAN DISTRICT, TW"
+  },
+  {
+    "id": "ste_46",
+    "shipment_id": "5",
+    "event_time": "2026-07-15T00:28:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "TA YUAN DISTRICT, TW"
+  },
+  {
+    "id": "ste_47",
+    "shipment_id": "1",
+    "event_time": "2026-07-14T14:41:00-05:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_48",
+    "shipment_id": "2",
+    "event_time": "2026-07-14T16:56:00-05:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_49",
+    "shipment_id": "1",
+    "event_time": "2026-07-15T01:32:00-07:00",
+    "courier_code": "AR",
+    "description": "At destination sort facility",
+    "location": "VANCOUVER, BC, CA"
+  },
+  {
+    "id": "ste_50",
+    "shipment_id": "1",
+    "event_time": "2026-07-14T21:58:00-07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SEATTLE, WA, US"
+  },
+  {
+    "id": "ste_51",
+    "shipment_id": "2",
+    "event_time": "2026-07-15T00:45:00-07:00",
+    "courier_code": "AR",
+    "description": "At destination sort facility",
+    "location": "VANCOUVER, BC, CA"
+  },
+  {
+    "id": "ste_52",
+    "shipment_id": "2",
+    "event_time": "2026-07-14T20:45:00-07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SEATTLE, WA, US"
+  },
+  {
+    "id": "ste_53",
+    "shipment_id": "5",
+    "event_time": "2026-07-15T16:24:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TA YUAN DISTRICT, TW"
+  },
+  {
+    "id": "ste_54",
+    "shipment_id": "9",
+    "event_time": "2026-07-15T17:43:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SINGAPORE, SG"
+  },
+  {
+    "id": "ste_55",
+    "shipment_id": "9",
+    "event_time": "2026-07-15T03:04:00+07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_56",
+    "shipment_id": "9",
+    "event_time": "2026-07-15T03:02:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_57",
+    "shipment_id": "9",
+    "event_time": "2026-07-14T22:16:00+07:00",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "BANDUNG, ID"
+  },
+  {
+    "id": "ste_58",
+    "shipment_id": "9",
+    "event_time": "2026-07-14T18:28:00+07:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "BANDUNG, ID"
+  },
+  {
+    "id": "ste_59",
+    "shipment_id": "9",
+    "event_time": "2026-07-09T04:41:03-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_60",
+    "shipment_id": "1",
+    "event_time": "2026-07-15T09:56:41-07:00",
+    "courier_code": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "DELTA, BC, CA"
+  },
+  {
+    "id": "ste_61",
+    "shipment_id": "1",
+    "event_time": "2026-07-15T09:54:41-07:00",
+    "courier_code": "AR",
+    "description": "At local FedEx facility",
+    "location": "BURNABY, BC, CA"
+  },
+  {
+    "id": "ste_62",
+    "shipment_id": "1",
+    "event_time": "2026-07-15T07:25:00-07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Import",
+    "location": "RICHMOND, BC, CA"
+  },
+  {
+    "id": "ste_63",
+    "shipment_id": "2",
+    "event_time": "2026-07-15T07:17:00-07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Import",
+    "location": "RICHMOND, BC, CA"
+  },
+  {
+    "id": "ste_64",
+    "shipment_id": "3",
+    "event_time": "2026-07-16T00:06:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "TA YUAN DISTRICT, TW"
+  },
+  {
+    "id": "ste_65",
+    "shipment_id": "4",
+    "event_time": "2026-07-16T00:06:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "TA YUAN DISTRICT, TW"
+  },
+  {
+    "id": "ste_66",
+    "shipment_id": "5",
+    "event_time": "2026-07-15T21:11:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TA YUAN DISTRICT, TW"
+  },
+  {
+    "id": "ste_67",
+    "shipment_id": "1",
+    "event_time": "2026-07-15T12:46:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "VANCOUVER, BC, CA"
+  },
+  {
+    "id": "ste_68",
+    "shipment_id": "2",
+    "event_time": "2026-07-15T13:56:00-07:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "DELTA, BC, CA"
+  },
+  {
+    "id": "ste_69",
+    "shipment_id": "9",
+    "event_time": "2026-07-15T14:39:00-08:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_70",
+    "shipment_id": "2",
+    "event_time": "2026-07-16T07:19:40-07:00",
+    "courier_code": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_71",
+    "shipment_id": "2",
+    "event_time": "2026-07-16T07:13:25-07:00",
+    "courier_code": "AR",
+    "description": "At local FedEx facility",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_72",
+    "shipment_id": "2",
+    "event_time": "2026-07-15T20:22:00-07:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "DELTA, BC, CA"
+  },
+  {
+    "id": "ste_73",
+    "shipment_id": "3",
+    "event_time": "2026-07-16T12:55:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TA YUAN DISTRICT, TW"
+  },
+  {
+    "id": "ste_74",
+    "shipment_id": "4",
+    "event_time": "2026-07-16T12:55:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TA YUAN DISTRICT, TW"
+  },
+  {
+    "id": "ste_75",
+    "shipment_id": "5",
+    "event_time": "2026-07-16T08:37:00+09:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SENNAN-SHI, JP"
+  },
+  {
+    "id": "ste_76",
+    "shipment_id": "9",
+    "event_time": "2026-07-16T04:36:00-05:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_77",
+    "shipment_id": "9",
+    "event_time": "2026-07-16T03:34:00-05:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Import",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_78",
+    "shipment_id": "9",
+    "event_time": "2026-07-16T00:59:00-05:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_79",
+    "shipment_id": "9",
+    "event_time": "2026-07-15T15:59:00-08:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_80",
+    "shipment_id": "2",
+    "event_time": "2026-07-16T08:48:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_81",
+    "shipment_id": "3",
+    "event_time": "2026-07-17T10:00:00+09:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "INCHEON-SI, KR"
+  },
+  {
+    "id": "ste_82",
+    "shipment_id": "4",
+    "event_time": "2026-07-17T10:00:00+09:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "INCHEON-SI, KR"
+  },
+  {
+    "id": "ste_83",
+    "shipment_id": "5",
+    "event_time": "2026-07-16T17:27:00-07:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "LOS ANGELES, CA, US"
+  },
+  {
+    "id": "ste_84",
+    "shipment_id": "5",
+    "event_time": "2026-07-16T16:58:00-07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "LOS ANGELES, CA, US"
+  },
+  {
+    "id": "ste_85",
+    "shipment_id": "9",
+    "event_time": "2026-07-16T16:04:00-07:00",
+    "courier_code": "AR",
+    "description": "At destination sort facility",
+    "location": "ONTARIO, CA, US"
+  },
+  {
+    "id": "ste_86",
+    "shipment_id": "9",
+    "event_time": "2026-07-16T14:44:00-05:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_87",
+    "shipment_id": "5",
+    "event_time": "2026-07-17T10:24:00-07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "LOS ANGELES, CA, US"
+  },
+  {
+    "id": "ste_88",
+    "shipment_id": "5",
+    "event_time": "2026-07-17T00:54:00-07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Import",
+    "location": "LOS ANGELES, CA, US"
+  },
+  {
+    "id": "ste_89",
+    "shipment_id": "9",
+    "event_time": "2026-07-17T11:24:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "FONTANA, CA, US"
+  },
+  {
+    "id": "ste_90",
+    "shipment_id": "9",
+    "event_time": "2026-07-17T07:23:36-07:00",
+    "courier_code": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "ONTARIO, CA, US"
+  },
+  {
+    "id": "ste_91",
+    "shipment_id": "9",
+    "event_time": "2026-07-17T07:13:54-07:00",
+    "courier_code": "AR",
+    "description": "At local FedEx facility",
+    "location": "ONTARIO, CA, US"
+  },
+  {
+    "id": "ste_92",
+    "shipment_id": "3",
+    "event_time": "2026-07-17T23:09:00-05:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "DALLAS, TX, US"
+  },
+  {
+    "id": "ste_93",
+    "shipment_id": "3",
+    "event_time": "2026-07-17T23:09:00-05:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "DALLAS, TX, US"
+  },
+  {
+    "id": "ste_94",
+    "shipment_id": "4",
+    "event_time": "2026-07-17T23:09:00-05:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "DALLAS, TX, US"
+  },
+  {
+    "id": "ste_95",
+    "shipment_id": "4",
+    "event_time": "2026-07-17T23:09:00-05:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "DALLAS, TX, US"
+  },
+  {
+    "id": "ste_96",
+    "shipment_id": "5",
+    "event_time": "2026-07-20T03:22:20-07:00",
+    "courier_code": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "BLOOMINGTON, CA, US"
+  },
+  {
+    "id": "ste_97",
+    "shipment_id": "5",
+    "event_time": "2026-07-20T02:23:14-07:00",
+    "courier_code": "AR",
+    "description": "At local FedEx facility",
+    "location": "BLOOMINGTON, CA, US"
+  },
+  {
+    "id": "ste_98",
+    "shipment_id": "5",
+    "event_time": "2026-07-19T06:41:29-07:00",
+    "courier_code": "AR",
+    "description": "At local FedEx facility",
+    "location": "BLOOMINGTON, CA, US"
+  },
+  {
+    "id": "ste_99",
+    "shipment_id": "5",
+    "event_time": "2026-07-18T09:28:00-07:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "BLOOMINGTON, CA, US"
+  },
+  {
+    "id": "ste_100",
+    "shipment_id": "5",
+    "event_time": "2026-07-17T21:48:00-07:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "CARSON, CA, US"
+  },
+  {
+    "id": "ste_101",
+    "shipment_id": "5",
+    "event_time": "2026-07-17T15:20:00-07:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "CARSON, CA, US"
+  },
+  {
+    "id": "ste_102",
+    "shipment_id": "5",
+    "event_time": "2026-07-20T17:00:00-07:00",
+    "courier_code": "DE",
+    "description": "Delivery exception",
+    "location": "BLOOMINGTON, CA, US"
+  },
+  {
+    "id": "ste_103",
+    "shipment_id": "4",
+    "event_time": "2026-07-21T00:53:00-05:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "FORT WORTH, TX, US"
+  },
+  {
+    "id": "ste_104",
+    "shipment_id": "4",
+    "event_time": "2026-07-21T00:30:00-05:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "FORT WORTH, TX, US"
+  },
+  {
+    "id": "ste_105",
+    "shipment_id": "4",
+    "event_time": "2026-07-20T23:59:00-05:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "DALLAS, TX, US"
+  },
+  {
+    "id": "ste_106",
+    "shipment_id": "5",
+    "event_time": "2026-07-21T04:19:40-07:00",
+    "courier_code": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "BLOOMINGTON, CA, US"
+  },
+  {
+    "id": "ste_107",
+    "shipment_id": "5",
+    "event_time": "2026-07-21T03:25:04-07:00",
+    "courier_code": "AR",
+    "description": "At local FedEx facility",
+    "location": "BLOOMINGTON, CA, US"
+  },
+  {
+    "id": "ste_108",
+    "shipment_id": "4",
+    "event_time": "2026-07-21T10:46:00-05:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_109",
+    "shipment_id": "4",
+    "event_time": "2026-07-21T15:52:00-05:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_110",
+    "shipment_id": "5",
+    "event_time": "2026-07-21T11:38:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "FONTANA, CA, US"
+  },
+  {
+    "id": "ste_111",
+    "shipment_id": "16",
+    "event_time": "2026-07-21T19:09:00-10:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "HONOLULU, HI, US"
+  },
+  {
+    "id": "ste_112",
+    "shipment_id": "16",
+    "event_time": "2026-07-21T03:36:00+08:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_113",
+    "shipment_id": "16",
+    "event_time": "2026-07-21T00:49:00+08:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_114",
+    "shipment_id": "16",
+    "event_time": "2026-07-20T21:35:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "HO CHI MINH CITY, VN"
+  },
+  {
+    "id": "ste_115",
+    "shipment_id": "16",
+    "event_time": "2026-07-20T18:47:00+07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "HO CHI MINH CITY, VN"
+  },
+  {
+    "id": "ste_116",
+    "shipment_id": "16",
+    "event_time": "2026-07-20T10:16:00+07:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "DANANG CITY, VN"
+  },
+  {
+    "id": "ste_117",
+    "shipment_id": "16",
+    "event_time": "2026-07-15T03:25:28-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_118",
+    "shipment_id": "17",
+    "event_time": "2026-07-21T19:09:00-10:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "HONOLULU, HI, US"
+  },
+  {
+    "id": "ste_119",
+    "shipment_id": "17",
+    "event_time": "2026-07-21T03:36:00+08:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_120",
+    "shipment_id": "17",
+    "event_time": "2026-07-21T00:49:00+08:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_121",
+    "shipment_id": "17",
+    "event_time": "2026-07-20T21:35:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "HO CHI MINH CITY, VN"
+  },
+  {
+    "id": "ste_122",
+    "shipment_id": "17",
+    "event_time": "2026-07-20T18:46:00+07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "HO CHI MINH CITY, VN"
+  },
+  {
+    "id": "ste_123",
+    "shipment_id": "17",
+    "event_time": "2026-07-20T10:16:00+07:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "DANANG CITY, VN"
+  },
+  {
+    "id": "ste_124",
+    "shipment_id": "17",
+    "event_time": "2026-07-15T03:32:47-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_125",
+    "shipment_id": "19",
+    "event_time": "2026-07-21T23:07:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_126",
+    "shipment_id": "19",
+    "event_time": "2026-07-21T23:05:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_127",
+    "shipment_id": "19",
+    "event_time": "2026-07-20T23:06:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_128",
+    "shipment_id": "19",
+    "event_time": "2026-07-20T23:03:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_129",
+    "shipment_id": "19",
+    "event_time": "2026-07-20T21:46:00+08:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_130",
+    "shipment_id": "19",
+    "event_time": "2026-07-20T21:46:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_131",
+    "shipment_id": "19",
+    "event_time": "2026-07-20T19:34:00+08:00",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_132",
+    "shipment_id": "19",
+    "event_time": "2026-07-20T12:40:00+08:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_133",
+    "shipment_id": "19",
+    "event_time": "2026-07-19T23:14:08-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_134",
+    "shipment_id": "20",
+    "event_time": "2026-07-21T23:07:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_135",
+    "shipment_id": "20",
+    "event_time": "2026-07-21T23:05:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_136",
+    "shipment_id": "20",
+    "event_time": "2026-07-20T23:06:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_137",
+    "shipment_id": "20",
+    "event_time": "2026-07-20T23:03:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_138",
+    "shipment_id": "20",
+    "event_time": "2026-07-20T21:46:00+08:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_139",
+    "shipment_id": "20",
+    "event_time": "2026-07-20T21:46:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_140",
+    "shipment_id": "20",
+    "event_time": "2026-07-20T19:34:00+08:00",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_141",
+    "shipment_id": "20",
+    "event_time": "2026-07-20T12:39:00+08:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_142",
+    "shipment_id": "20",
+    "event_time": "2026-07-19T23:03:18-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_143",
+    "shipment_id": "21",
+    "event_time": "2026-07-22T03:08:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_144",
+    "shipment_id": "21",
+    "event_time": "2026-07-22T03:04:00+08:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_145",
+    "shipment_id": "21",
+    "event_time": "2026-07-21T23:07:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_146",
+    "shipment_id": "21",
+    "event_time": "2026-07-21T23:05:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_147",
+    "shipment_id": "21",
+    "event_time": "2026-07-20T23:06:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_148",
+    "shipment_id": "21",
+    "event_time": "2026-07-20T23:03:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_149",
+    "shipment_id": "21",
+    "event_time": "2026-07-20T21:46:00+08:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_150",
+    "shipment_id": "21",
+    "event_time": "2026-07-20T21:46:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_151",
+    "shipment_id": "21",
+    "event_time": "2026-07-20T19:34:00+08:00",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_152",
+    "shipment_id": "21",
+    "event_time": "2026-07-20T12:41:00+08:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_153",
+    "shipment_id": "21",
+    "event_time": "2026-07-19T23:16:49-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_154",
+    "shipment_id": "3",
+    "event_time": "2026-07-21T21:25:00-07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SEATTLE, WA, US"
+  },
+  {
+    "id": "ste_155",
+    "shipment_id": "3",
+    "event_time": "2026-07-21T17:15:00-05:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_156",
+    "shipment_id": "16",
+    "event_time": "2026-07-21T19:02:00-10:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "HONOLULU, HI, US"
+  },
+  {
+    "id": "ste_157",
+    "shipment_id": "16",
+    "event_time": "2026-07-21T09:55:00-10:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "HONOLULU, HI, US"
+  },
+  {
+    "id": "ste_158",
+    "shipment_id": "17",
+    "event_time": "2026-07-21T19:02:00-10:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "HONOLULU, HI, US"
+  },
+  {
+    "id": "ste_159",
+    "shipment_id": "17",
+    "event_time": "2026-07-21T09:55:00-10:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "HONOLULU, HI, US"
+  },
+  {
+    "id": "ste_160",
+    "shipment_id": "21",
+    "event_time": "2026-07-22T06:00:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_161",
+    "shipment_id": "3",
+    "event_time": "2026-07-22T09:37:00-07:00",
+    "courier_code": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "DELTA, BC, CA"
+  },
+  {
+    "id": "ste_162",
+    "shipment_id": "3",
+    "event_time": "2026-07-22T09:34:48-07:00",
+    "courier_code": "AR",
+    "description": "At local FedEx facility",
+    "location": "BURNABY, BC, CA"
+  },
+  {
+    "id": "ste_163",
+    "shipment_id": "3",
+    "event_time": "2026-07-22T07:04:00-07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Import",
+    "location": "RICHMOND, BC, CA"
+  },
+  {
+    "id": "ste_164",
+    "shipment_id": "3",
+    "event_time": "2026-07-22T02:50:00-07:00",
+    "courier_code": "AR",
+    "description": "At destination sort facility",
+    "location": "VANCOUVER, BC, CA"
+  },
+  {
+    "id": "ste_165",
+    "shipment_id": "4",
+    "event_time": "2026-07-22T08:16:00-07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Import",
+    "location": "RICHMOND, BC, CA"
+  },
+  {
+    "id": "ste_166",
+    "shipment_id": "4",
+    "event_time": "2026-07-22T07:30:00-07:00",
+    "courier_code": "AR",
+    "description": "At destination sort facility",
+    "location": "VANCOUVER, BC, CA"
+  },
+  {
+    "id": "ste_167",
+    "shipment_id": "4",
+    "event_time": "2026-07-22T06:33:00-07:00",
+    "courier_code": "DY",
+    "description": "Delivery updated",
+    "location": "VANCOUVER, BC, CA"
+  },
+  {
+    "id": "ste_168",
+    "shipment_id": "4",
+    "event_time": "2026-07-22T05:32:00-05:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_169",
+    "shipment_id": "4",
+    "event_time": "2026-07-22T05:09:00-05:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_170",
+    "shipment_id": "16",
+    "event_time": "2026-07-22T11:42:00+09:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "NARITA-SHI, JP"
+  },
+  {
+    "id": "ste_171",
+    "shipment_id": "17",
+    "event_time": "2026-07-22T11:42:00+09:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "NARITA-SHI, JP"
+  },
+  {
+    "id": "ste_172",
+    "shipment_id": "19",
+    "event_time": "2026-07-22T22:00:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_173",
+    "shipment_id": "19",
+    "event_time": "2026-07-22T20:21:00+08:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_174",
+    "shipment_id": "20",
+    "event_time": "2026-07-22T22:00:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_175",
+    "shipment_id": "20",
+    "event_time": "2026-07-22T20:21:00+08:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_176",
+    "shipment_id": "21",
+    "event_time": "2026-07-22T08:32:00-05:00",
+    "courier_code": "CD",
+    "description": "Clearance delay - Import",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_177",
+    "shipment_id": "21",
+    "event_time": "2026-07-22T08:24:00-05:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_178",
+    "shipment_id": "21",
+    "event_time": "2026-07-22T06:19:00-05:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_179",
+    "shipment_id": "22",
+    "event_time": "2026-07-23T00:20:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_180",
+    "shipment_id": "22",
+    "event_time": "2026-07-23T00:05:00+08:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_181",
+    "shipment_id": "22",
+    "event_time": "2026-07-22T00:37:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_182",
+    "shipment_id": "22",
+    "event_time": "2026-07-21T21:11:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_183",
+    "shipment_id": "22",
+    "event_time": "2026-07-21T21:11:00+08:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_184",
+    "shipment_id": "22",
+    "event_time": "2026-07-21T19:47:00+08:00",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_185",
+    "shipment_id": "22",
+    "event_time": "2026-07-21T16:43:00+08:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_186",
+    "shipment_id": "22",
+    "event_time": "2026-07-21T02:58:03-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_187",
+    "shipment_id": "23",
+    "event_time": "2026-07-22T06:19:00-05:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_188",
+    "shipment_id": "23",
+    "event_time": "2026-07-22T06:00:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_189",
+    "shipment_id": "23",
+    "event_time": "2026-07-22T03:04:00+08:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_190",
+    "shipment_id": "23",
+    "event_time": "2026-07-21T23:07:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_191",
+    "shipment_id": "23",
+    "event_time": "2026-07-21T23:05:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_192",
+    "shipment_id": "23",
+    "event_time": "2026-07-20T23:06:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_193",
+    "shipment_id": "23",
+    "event_time": "2026-07-20T23:03:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_194",
+    "shipment_id": "23",
+    "event_time": "2026-07-20T21:42:00+08:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_195",
+    "shipment_id": "23",
+    "event_time": "2026-07-20T21:42:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_196",
+    "shipment_id": "23",
+    "event_time": "2026-07-20T19:34:00+08:00",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_197",
+    "shipment_id": "23",
+    "event_time": "2026-07-20T16:21:00+08:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_198",
+    "shipment_id": "23",
+    "event_time": "2026-07-20T02:08:41-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_199",
+    "shipment_id": "24",
+    "event_time": "2026-07-22T12:55:00-05:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Import",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_200",
+    "shipment_id": "24",
+    "event_time": "2026-07-22T06:19:00-05:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_201",
+    "shipment_id": "24",
+    "event_time": "2026-07-22T06:00:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_202",
+    "shipment_id": "24",
+    "event_time": "2026-07-22T03:04:00+08:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_203",
+    "shipment_id": "24",
+    "event_time": "2026-07-21T23:07:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_204",
+    "shipment_id": "24",
+    "event_time": "2026-07-21T23:05:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_205",
+    "shipment_id": "24",
+    "event_time": "2026-07-20T23:06:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_206",
+    "shipment_id": "24",
+    "event_time": "2026-07-20T23:03:00+08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_207",
+    "shipment_id": "24",
+    "event_time": "2026-07-20T21:45:00+08:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_208",
+    "shipment_id": "24",
+    "event_time": "2026-07-20T21:45:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_209",
+    "shipment_id": "24",
+    "event_time": "2026-07-20T19:34:00+08:00",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_210",
+    "shipment_id": "24",
+    "event_time": "2026-07-20T17:03:00+08:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_211",
+    "shipment_id": "24",
+    "event_time": "2026-07-20T03:59:43-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_212",
+    "shipment_id": "25",
+    "event_time": "2026-07-16T09:34:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "ONTARIO, CA, US"
+  },
+  {
+    "id": "ste_213",
+    "shipment_id": "25",
+    "event_time": "2026-07-16T08:23:06-07:00",
+    "courier_code": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "ONTARIO, CA, US"
+  },
+  {
+    "id": "ste_214",
+    "shipment_id": "25",
+    "event_time": "2026-07-16T07:57:30-07:00",
+    "courier_code": "AR",
+    "description": "At local FedEx facility",
+    "location": "ONTARIO, CA, US"
+  },
+  {
+    "id": "ste_215",
+    "shipment_id": "25",
+    "event_time": "2026-07-15T16:48:00-07:00",
+    "courier_code": "AR",
+    "description": "At destination sort facility",
+    "location": "ONTARIO, CA, US"
+  },
+  {
+    "id": "ste_216",
+    "shipment_id": "25",
+    "event_time": "2026-07-15T15:43:00-05:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_217",
+    "shipment_id": "25",
+    "event_time": "2026-07-15T10:50:00-05:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Import",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_218",
+    "shipment_id": "25",
+    "event_time": "2026-07-15T05:20:00-05:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_219",
+    "shipment_id": "25",
+    "event_time": "2026-07-14T23:24:00-05:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_220",
+    "shipment_id": "25",
+    "event_time": "2026-07-14T22:07:00+02:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "LONATE POZZOLO, VA, IT"
+  },
+  {
+    "id": "ste_221",
+    "shipment_id": "25",
+    "event_time": "2026-07-14T06:30:00+05:30",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "MUMBAI, MH, IN"
+  },
+  {
+    "id": "ste_222",
+    "shipment_id": "25",
+    "event_time": "2026-07-14T06:28:00+05:30",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "MUMBAI, MH, IN"
+  },
+  {
+    "id": "ste_223",
+    "shipment_id": "25",
+    "event_time": "2026-07-12T04:56:00+05:30",
+    "courier_code": "SE",
+    "description": "Shipment exception",
+    "location": "MUMBAI, MH, IN"
+  },
+  {
+    "id": "ste_224",
+    "shipment_id": "25",
+    "event_time": "2026-07-12T03:32:00+05:30",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "THANE, MH, IN"
+  },
+  {
+    "id": "ste_225",
+    "shipment_id": "25",
+    "event_time": "2026-07-11T17:38:00+05:30",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "INDORE, MP, IN"
+  },
+  {
+    "id": "ste_226",
+    "shipment_id": "25",
+    "event_time": "2026-07-10T19:54:00+05:30",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "INDORE, MP, IN"
+  },
+  {
+    "id": "ste_227",
+    "shipment_id": "25",
+    "event_time": "2026-07-10T19:47:00+05:30",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "INDORE, MP, IN"
+  },
+  {
+    "id": "ste_228",
+    "shipment_id": "25",
+    "event_time": "2026-07-10T19:44:00+05:30",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "INDORE, MP, IN"
+  },
+  {
+    "id": "ste_229",
+    "shipment_id": "25",
+    "event_time": "2026-07-10T01:09:29-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_230",
+    "shipment_id": "26",
+    "event_time": "2026-07-16T08:48:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_231",
+    "shipment_id": "26",
+    "event_time": "2026-07-16T07:35:00-07:00",
+    "courier_code": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_232",
+    "shipment_id": "26",
+    "event_time": "2026-07-16T07:25:08-07:00",
+    "courier_code": "AR",
+    "description": "At local FedEx facility",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_233",
+    "shipment_id": "26",
+    "event_time": "2026-07-15T07:14:00-07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Import",
+    "location": "RICHMOND, BC, CA"
+  },
+  {
+    "id": "ste_234",
+    "shipment_id": "26",
+    "event_time": "2026-07-15T00:45:00-07:00",
+    "courier_code": "AR",
+    "description": "At destination sort facility",
+    "location": "VANCOUVER, BC, CA"
+  },
+  {
+    "id": "ste_235",
+    "shipment_id": "26",
+    "event_time": "2026-07-14T20:45:00-07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SEATTLE, WA, US"
+  },
+  {
+    "id": "ste_236",
+    "shipment_id": "26",
+    "event_time": "2026-07-14T16:56:00-05:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_237",
+    "shipment_id": "26",
+    "event_time": "2026-07-14T10:26:00-05:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_238",
+    "shipment_id": "26",
+    "event_time": "2026-07-14T01:35:00-08:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_239",
+    "shipment_id": "26",
+    "event_time": "2026-07-13T16:52:00-08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_240",
+    "shipment_id": "26",
+    "event_time": "2026-07-13T16:51:00-08:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_241",
+    "shipment_id": "26",
+    "event_time": "2026-07-13T13:02:00-08:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_242",
+    "shipment_id": "26",
+    "event_time": "2026-07-13T22:28:00+09:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "INCHEON-SI, KR"
+  },
+  {
+    "id": "ste_243",
+    "shipment_id": "26",
+    "event_time": "2026-07-13T03:48:00+08:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_244",
+    "shipment_id": "26",
+    "event_time": "2026-07-12T23:13:00+08:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_245",
+    "shipment_id": "26",
+    "event_time": "2026-07-12T14:44:00+05:30",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "MUMBAI, MH, IN"
+  },
+  {
+    "id": "ste_246",
+    "shipment_id": "26",
+    "event_time": "2026-07-12T05:28:00+05:30",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "MUMBAI, MH, IN"
+  },
+  {
+    "id": "ste_247",
+    "shipment_id": "26",
+    "event_time": "2026-07-12T05:04:00+05:30",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "MUMBAI, MH, IN"
+  },
+  {
+    "id": "ste_248",
+    "shipment_id": "26",
+    "event_time": "2026-07-11T17:39:00+05:30",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "INDORE, MP, IN"
+  },
+  {
+    "id": "ste_249",
+    "shipment_id": "26",
+    "event_time": "2026-07-10T19:54:00+05:30",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "INDORE, MP, IN"
+  },
+  {
+    "id": "ste_250",
+    "shipment_id": "26",
+    "event_time": "2026-07-10T19:48:00+05:30",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "INDORE, MP, IN"
+  },
+  {
+    "id": "ste_251",
+    "shipment_id": "26",
+    "event_time": "2026-07-10T19:43:00+05:30",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "INDORE, MP, IN"
+  },
+  {
+    "id": "ste_252",
+    "shipment_id": "26",
+    "event_time": "2026-07-10T01:01:20-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_253",
+    "shipment_id": "27",
+    "event_time": "2026-07-16T11:21:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "DELTA, BC, CA"
+  },
+  {
+    "id": "ste_254",
+    "shipment_id": "27",
+    "event_time": "2026-07-16T09:55:57-07:00",
+    "courier_code": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "DELTA, BC, CA"
+  },
+  {
+    "id": "ste_255",
+    "shipment_id": "27",
+    "event_time": "2026-07-16T09:53:45-07:00",
+    "courier_code": "AR",
+    "description": "At local FedEx facility",
+    "location": "BURNABY, BC, CA"
+  },
+  {
+    "id": "ste_256",
+    "shipment_id": "27",
+    "event_time": "2026-07-16T07:04:00-07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Import",
+    "location": "RICHMOND, BC, CA"
+  },
+  {
+    "id": "ste_257",
+    "shipment_id": "27",
+    "event_time": "2026-07-16T01:19:00-07:00",
+    "courier_code": "AR",
+    "description": "At destination sort facility",
+    "location": "VANCOUVER, BC, CA"
+  },
+  {
+    "id": "ste_258",
+    "shipment_id": "27",
+    "event_time": "2026-07-15T21:30:00-07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SEATTLE, WA, US"
+  },
+  {
+    "id": "ste_259",
+    "shipment_id": "27",
+    "event_time": "2026-07-15T16:40:00-05:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_260",
+    "shipment_id": "27",
+    "event_time": "2026-07-15T05:20:00-05:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_261",
+    "shipment_id": "27",
+    "event_time": "2026-07-14T23:24:00-05:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_262",
+    "shipment_id": "27",
+    "event_time": "2026-07-14T22:07:00+02:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "LONATE POZZOLO, VA, IT"
+  },
+  {
+    "id": "ste_263",
+    "shipment_id": "27",
+    "event_time": "2026-07-14T06:30:00+05:30",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "MUMBAI, MH, IN"
+  },
+  {
+    "id": "ste_264",
+    "shipment_id": "27",
+    "event_time": "2026-07-14T06:30:00+05:30",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "MUMBAI, MH, IN"
+  },
+  {
+    "id": "ste_265",
+    "shipment_id": "27",
+    "event_time": "2026-07-12T04:56:00+05:30",
+    "courier_code": "SE",
+    "description": "Shipment exception",
+    "location": "MUMBAI, MH, IN"
+  },
+  {
+    "id": "ste_266",
+    "shipment_id": "27",
+    "event_time": "2026-07-12T03:32:00+05:30",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "THANE, MH, IN"
+  },
+  {
+    "id": "ste_267",
+    "shipment_id": "27",
+    "event_time": "2026-07-11T17:39:00+05:30",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "INDORE, MP, IN"
+  },
+  {
+    "id": "ste_268",
+    "shipment_id": "27",
+    "event_time": "2026-07-10T19:55:00+05:30",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "INDORE, MP, IN"
+  },
+  {
+    "id": "ste_269",
+    "shipment_id": "27",
+    "event_time": "2026-07-10T19:46:00+05:30",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "INDORE, MP, IN"
+  },
+  {
+    "id": "ste_270",
+    "shipment_id": "27",
+    "event_time": "2026-07-10T19:45:00+05:30",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "INDORE, MP, IN"
+  },
+  {
+    "id": "ste_271",
+    "shipment_id": "27",
+    "event_time": "2026-07-10T00:54:48-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_272",
+    "shipment_id": "3",
+    "event_time": "2026-07-22T11:15:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "VANCOUVER, BC, CA"
+  },
+  {
+    "id": "ste_273",
+    "shipment_id": "10",
+    "event_time": "2026-07-23T01:40:00+08:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_274",
+    "shipment_id": "10",
+    "event_time": "2026-07-22T21:57:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "HO CHI MINH CITY, VN"
+  },
+  {
+    "id": "ste_275",
+    "shipment_id": "10",
+    "event_time": "2026-07-22T04:54:00+07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_276",
+    "shipment_id": "10",
+    "event_time": "2026-07-22T03:40:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_277",
+    "shipment_id": "10",
+    "event_time": "2026-07-22T03:39:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_278",
+    "shipment_id": "10",
+    "event_time": "2026-07-21T22:14:00+07:00",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "JAKARTA, ID"
+  },
+  {
+    "id": "ste_279",
+    "shipment_id": "10",
+    "event_time": "2026-07-21T17:11:00+07:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "JAKARTA, ID"
+  },
+  {
+    "id": "ste_280",
+    "shipment_id": "10",
+    "event_time": "2026-07-21T01:04:15-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_281",
+    "shipment_id": "12",
+    "event_time": "2026-07-23T01:40:00+08:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_282",
+    "shipment_id": "12",
+    "event_time": "2026-07-22T21:57:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "HO CHI MINH CITY, VN"
+  },
+  {
+    "id": "ste_283",
+    "shipment_id": "12",
+    "event_time": "2026-07-22T04:55:00+07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_284",
+    "shipment_id": "12",
+    "event_time": "2026-07-22T03:40:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_285",
+    "shipment_id": "12",
+    "event_time": "2026-07-22T03:34:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_286",
+    "shipment_id": "12",
+    "event_time": "2026-07-21T22:14:00+07:00",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "JAKARTA, ID"
+  },
+  {
+    "id": "ste_287",
+    "shipment_id": "12",
+    "event_time": "2026-07-21T17:11:00+07:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "JAKARTA, ID"
+  },
+  {
+    "id": "ste_288",
+    "shipment_id": "12",
+    "event_time": "2026-07-21T01:15:36-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_289",
+    "shipment_id": "14",
+    "event_time": "2026-07-23T01:40:00+08:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_290",
+    "shipment_id": "14",
+    "event_time": "2026-07-22T21:57:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "HO CHI MINH CITY, VN"
+  },
+  {
+    "id": "ste_291",
+    "shipment_id": "14",
+    "event_time": "2026-07-22T04:55:00+07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Export",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_292",
+    "shipment_id": "14",
+    "event_time": "2026-07-22T03:40:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_293",
+    "shipment_id": "14",
+    "event_time": "2026-07-22T03:36:00+07:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "TANGERANG, ID"
+  },
+  {
+    "id": "ste_294",
+    "shipment_id": "14",
+    "event_time": "2026-07-21T22:14:00+07:00",
+    "courier_code": "DP",
+    "description": "Left FedEx origin facility",
+    "location": "JAKARTA, ID"
+  },
+  {
+    "id": "ste_295",
+    "shipment_id": "14",
+    "event_time": "2026-07-21T17:10:00+07:00",
+    "courier_code": "PU",
+    "description": "Picked up",
+    "location": "JAKARTA, ID"
+  },
+  {
+    "id": "ste_296",
+    "shipment_id": "14",
+    "event_time": "2026-07-21T01:35:24-05:00",
+    "courier_code": "OC",
+    "description": "Shipment information sent to FedEx",
+    "location": null
+  },
+  {
+    "id": "ste_297",
+    "shipment_id": "22",
+    "event_time": "2026-07-22T19:56:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "SHANGHAI, CN"
+  },
+  {
+    "id": "ste_298",
+    "shipment_id": "4",
+    "event_time": "2026-07-22T15:24:00-07:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "DELTA, BC, CA"
+  },
+  {
+    "id": "ste_299",
+    "shipment_id": "10",
+    "event_time": "2026-07-23T06:13:00+08:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_300",
+    "shipment_id": "12",
+    "event_time": "2026-07-23T04:19:00+08:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_301",
+    "shipment_id": "12",
+    "event_time": "2026-07-23T04:18:00+08:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_302",
+    "shipment_id": "14",
+    "event_time": "2026-07-23T06:13:00+08:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "GUANGZHOU, CN"
+  },
+  {
+    "id": "ste_303",
+    "shipment_id": "16",
+    "event_time": "2026-07-22T19:04:00-10:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "HONOLULU, HI, US"
+  },
+  {
+    "id": "ste_304",
+    "shipment_id": "17",
+    "event_time": "2026-07-22T19:04:00-10:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "HONOLULU, HI, US"
+  },
+  {
+    "id": "ste_305",
+    "shipment_id": "19",
+    "event_time": "2026-07-23T05:00:00+09:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "SENNAN-SHI, JP"
+  },
+  {
+    "id": "ste_306",
+    "shipment_id": "20",
+    "event_time": "2026-07-23T05:00:00+09:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "SENNAN-SHI, JP"
+  },
+  {
+    "id": "ste_307",
+    "shipment_id": "23",
+    "event_time": "2026-07-22T15:24:00-05:00",
+    "courier_code": "IT",
+    "description": "On the way",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_308",
+    "shipment_id": "24",
+    "event_time": "2026-07-22T16:47:00-05:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  }
+]

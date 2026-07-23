@@ -1,0 +1,130 @@
+[
+  {
+    "id": "bk_no_booking",
+    "name": "No Booking",
+    "module": "mainline",
+    "category": "booking",
+    "color": "#9CA3AF",
+    "sort_order": 1
+  },
+  {
+    "id": "bk_pending",
+    "name": "Booking Pending",
+    "module": "mainline",
+    "category": "booking",
+    "color": "#F59E0B",
+    "sort_order": 2
+  },
+  {
+    "id": "bk_approved",
+    "name": "Booking Approved",
+    "module": "mainline",
+    "category": "booking",
+    "color": "#3B82F6",
+    "sort_order": 3
+  },
+  {
+    "id": "bk_rejected",
+    "name": "Rejected",
+    "module": "mainline",
+    "category": "booking",
+    "color": "#DC2626",
+    "sort_order": 4
+  },
+  {
+    "id": "sh_ready",
+    "name": "Ready to Ship",
+    "module": "mainline",
+    "category": "shipment",
+    "color": "#3B82F6",
+    "sort_order": 1
+  },
+  {
+    "id": "sh_in_transit",
+    "name": "In Transit",
+    "module": "mainline",
+    "category": "shipment",
+    "color": "#8B5CF6",
+    "sort_order": 2
+  },
+  {
+    "id": "sh_at_port",
+    "name": "At Port",
+    "module": "mainline",
+    "category": "shipment",
+    "color": "#06B6D4",
+    "sort_order": 3
+  },
+  {
+    "id": "sh_delivered",
+    "name": "Delivered",
+    "module": "mainline",
+    "category": "shipment",
+    "color": "#10B981",
+    "sort_order": 4
+  },
+  {
+    "id": "sh_received",
+    "name": "Received",
+    "module": "mainline",
+    "category": "shipment",
+    "color": "#059669",
+    "sort_order": 5
+  },
+  {
+    "id": "cancelled",
+    "name": "Cancelled",
+    "module": "mainline",
+    "category": "both",
+    "color": "#EF4444",
+    "sort_order": 9
+  },
+  {
+    "id": "sms_label_created",
+    "name": "Label Created",
+    "color": "#9CA3AF",
+    "sort_order": 1,
+    "module": "sms",
+    "category": "shipment"
+  },
+  {
+    "id": "sms_picked_up",
+    "name": "Picked Up",
+    "color": "#3B82F6",
+    "sort_order": 2,
+    "module": "sms",
+    "category": "shipment"
+  },
+  {
+    "id": "sms_in_transit",
+    "name": "In Transit",
+    "color": "#8B5CF6",
+    "sort_order": 3,
+    "module": "sms",
+    "category": "shipment"
+  },
+  {
+    "id": "sms_out_for_delivery",
+    "name": "Out for Delivery",
+    "color": "#06B6D4",
+    "sort_order": 4,
+    "module": "sms",
+    "category": "shipment"
+  },
+  {
+    "id": "sms_delivered",
+    "name": "Delivered",
+    "color": "#10B981",
+    "sort_order": 5,
+    "module": "sms",
+    "category": "shipment"
+  },
+  {
+    "id": "sms_exception",
+    "name": "Exception",
+    "color": "#EF4444",
+    "sort_order": 6,
+    "module": "sms",
+    "category": "shipment"
+  }
+]

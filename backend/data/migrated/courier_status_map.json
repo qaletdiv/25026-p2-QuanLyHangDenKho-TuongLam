@@ -1,0 +1,146 @@
+[
+  {
+    "id": "csm_c1_OC",
+    "courier_id": "c1",
+    "courier_code": "OC",
+    "status_id": "sms_label_created"
+  },
+  {
+    "id": "csm_c1_PU",
+    "courier_id": "c1",
+    "courier_code": "PU",
+    "status_id": "sms_picked_up"
+  },
+  {
+    "id": "csm_c1_IT",
+    "courier_id": "c1",
+    "courier_code": "IT",
+    "status_id": "sms_in_transit"
+  },
+  {
+    "id": "csm_c1_DP",
+    "courier_id": "c1",
+    "courier_code": "DP",
+    "status_id": "sms_in_transit"
+  },
+  {
+    "id": "csm_c1_AR",
+    "courier_id": "c1",
+    "courier_code": "AR",
+    "status_id": "sms_in_transit"
+  },
+  {
+    "id": "csm_c1_OD",
+    "courier_id": "c1",
+    "courier_code": "OD",
+    "status_id": "sms_out_for_delivery"
+  },
+  {
+    "id": "csm_c1_DL",
+    "courier_id": "c1",
+    "courier_code": "DL",
+    "status_id": "sms_delivered"
+  },
+  {
+    "id": "csm_c1_DE",
+    "courier_id": "c1",
+    "courier_code": "DE",
+    "status_id": "sms_exception"
+  },
+  {
+    "id": "csm_c1_SE",
+    "courier_id": "c1",
+    "courier_code": "SE",
+    "status_id": "sms_exception"
+  },
+  {
+    "id": "csm_c1_CA",
+    "courier_id": "c1",
+    "courier_code": "CA",
+    "status_id": "sms_exception"
+  },
+  {
+    "id": "csm_c2_pre_transit",
+    "courier_id": "c2",
+    "courier_code": "pre-transit",
+    "status_id": "sms_label_created"
+  },
+  {
+    "id": "csm_c2_transit",
+    "courier_id": "c2",
+    "courier_code": "transit",
+    "status_id": "sms_in_transit"
+  },
+  {
+    "id": "csm_c2_delivered",
+    "courier_id": "c2",
+    "courier_code": "delivered",
+    "status_id": "sms_delivered"
+  },
+  {
+    "id": "csm_c2_failure",
+    "courier_id": "c2",
+    "courier_code": "failure",
+    "status_id": "sms_exception"
+  },
+  {
+    "id": "csm_c1_RS",
+    "courier_id": "c1",
+    "courier_code": "RS",
+    "status_id": "sms_exception"
+  },
+  {
+    "id": "csm_c1_IN",
+    "courier_id": "c1",
+    "courier_code": "IN",
+    "status_id": "sms_label_created"
+  },
+  {
+    "id": "csm_c1_HL",
+    "courier_id": "c1",
+    "courier_code": "HL",
+    "status_id": "sms_delivered"
+  },
+  {
+    "id": "csm_c1_RT",
+    "courier_id": "c1",
+    "courier_code": "RT",
+    "status_id": "sms_exception"
+  },
+  {
+    "id": "csm_c1_HP",
+    "courier_id": "c1",
+    "courier_code": "HP",
+    "status_id": "sms_delivered"
+  },
+  {
+    "id": "csm_c1_HA",
+    "courier_id": "c1",
+    "courier_code": "HA",
+    "status_id": "sms_in_transit"
+  },
+  {
+    "id": "csm_c1_AO",
+    "courier_id": "c1",
+    "courier_code": "AO",
+    "status_id": "sms_in_transit"
+  },
+  {
+    "id": "csm_c1_RR",
+    "courier_id": "c1",
+    "courier_code": "RR",
+    "status_id": "sms_in_transit"
+  },
+  {
+    "id": "csm_c1_OF",
+    "courier_id": "c1",
+    "courier_code": "OF",
+    "status_id": "sms_in_transit"
+  },
+  {
+    "id": "csm_c1_CD",
+    "courier_id": "c1",
+    "courier_code": "CD",
+    "status_id": "sms_in_transit"
+  }
+]

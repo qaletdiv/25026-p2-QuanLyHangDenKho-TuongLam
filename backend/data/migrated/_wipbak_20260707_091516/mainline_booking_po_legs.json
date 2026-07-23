@@ -1,0 +1,38 @@
+[
+  {
+    "id": "bpl_1_24",
+    "booking_id": "1",
+    "leg_id": "24",
+    "units": null,
+    "cartons": null,
+    "weight_kg": null,
+    "cbm": null
+  },
+  {
+    "id": "bpl_1_5",
+    "booking_id": "1",
+    "leg_id": "5",
+    "units": null,
+    "cartons": null,
+    "weight_kg": null,
+    "cbm": null
+  },
+  {
+    "id": "bpl_2_1",
+    "booking_id": "2",
+    "leg_id": "1",
+    "units": 92,
+    "cartons": 6,
+    "weight_kg": null,
+    "cbm": null
+  },
+  {
+    "id": "bpl_4_2",
+    "booking_id": "4",
+    "leg_id": "2",
+    "units": 139,
+    "cartons": 5,
+    "weight_kg": 50,
+    "cbm": null
+  }
+]
