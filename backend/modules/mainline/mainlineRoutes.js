@@ -19,6 +19,7 @@ const shipmentDataController = require('./ci/shipmentDataController');
 const packingController = require('./packing/mainlinePackingController');
 const fulfillmentController = require('./fulfillment/fulfillmentController');
 const asnController = require('./asn/mainlineAsnController');
+const receiptController = require('./receipts/mainlineReceiptController');
 
 // Legs (WIP) — Admin only; multipart field "file"
 router.post('/wip-import', requireAdmin, upload.single('file'), asyncWrap(wipImportController.importWip));
@@ -53,6 +54,11 @@ router.get('/shipments/:id/asn',                 asyncWrap(asnController.getAsn)
 // so "/fulfillment/po/<poNumber>" isn't captured as a TRN.
 router.get('/fulfillment/po/:poNumber',          asyncWrap(fulfillmentController.getPoReconcile));
 router.get('/fulfillment/:trn',                  asyncWrap(fulfillmentController.getFulfillment));
+
+// Item Receipt landed-cost match (manual-match before /:id/match so it isn't captured)
+router.post('/receipts/manual-match',   requireAuth, asyncWrap(receiptController.manualMatch));
+router.post('/receipts/:id/match',       requireAuth, asyncWrap(receiptController.setMatch));
+router.delete('/receipts/:id/match',     requireAuth, asyncWrap(receiptController.clearMatch));
 
 // Shipments
 router.get('/shipments',                         asyncWrap(shipmentController.getAll));

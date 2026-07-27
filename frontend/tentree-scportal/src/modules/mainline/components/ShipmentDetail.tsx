@@ -50,6 +50,8 @@ export default function ShipmentDetail({
     pol_port_id: s.pol_port_id ?? '', pod_port_id: s.pod_port_id ?? '',
     cargo_received_date: s.cargo_received_date ?? '', etd_pol: s.etd_pol ?? '', eta_pod: s.eta_pod ?? '', e_del: s.e_del ?? '',
     ata: s.ata ?? '',   // actual receipt date — manual entry
+    freight: s.freight != null ? String(s.freight) : '',   // total landed-cost freight/duty
+    duty: s.duty != null ? String(s.duty) : '',
   };
   const [form, setForm] = useState(blank);
   const setF = (k: keyof typeof blank, v: string) => setForm((f) => ({ ...f, [k]: v }));
@@ -71,6 +73,8 @@ export default function ShipmentDetail({
       eta_pod: form.eta_pod || null,
       e_del: form.e_del || null,
       ata: form.ata || null,
+      freight: form.freight === '' ? null : Number(form.freight),
+      duty: form.duty === '' ? null : Number(form.duty),
     });
     setBusy(false);
     if (res?.error) { toast.error(res.error); return; }
@@ -191,6 +195,26 @@ export default function ShipmentDetail({
               <Cell label="ATA" hint="actual — received in system">{editing ? dateInput('ata') : (s.ata ?? '—')}</Cell>
             </div>
           </div>
+        </Card>
+      </section>
+
+      {/* ── Landed Cost: total freight & duty for this shipment (split per PO on the Landed Costs page) ── */}
+      <section className="space-y-2">
+        <h2 className="text-sm font-medium text-muted-foreground">Landed Cost — Freight &amp; Duty</h2>
+        <Card className="p-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <Cell label="Total Freight (USD)">
+              {editing
+                ? <Input type="number" min="0" step="0.01" className="h-8" placeholder="0.00" value={form.freight} onChange={(e) => setF('freight', e.target.value)} />
+                : (s.freight != null ? `$${Number(s.freight).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—')}
+            </Cell>
+            <Cell label="Total Duty (USD)">
+              {editing
+                ? <Input type="number" min="0" step="0.01" className="h-8" placeholder="0.00" value={form.duty} onChange={(e) => setF('duty', e.target.value)} />
+                : (s.duty != null ? `$${Number(s.duty).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—')}
+            </Cell>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">Entered once per shipment; split per PO by CI value and posted to each PO&apos;s Item Receipt on the Landed Costs page.</p>
         </Card>
       </section>
 

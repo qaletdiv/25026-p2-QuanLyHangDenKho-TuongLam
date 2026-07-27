@@ -397,11 +397,16 @@ Table mainline_shipment_legs {
 // match). Separate from sms_item_receipts (no shared transactional tables).
 Table mainline_item_receipts {
   id                 varchar [pk]
-  netsuite_ir_id     varchar [unique]     // internal id
+  netsuite_ir_id     varchar [unique]     // internal id (push target)
   netsuite_ir_tranid varchar              // IR document number (e.g. IR65377)
   po_number          varchar [not null, ref: > po_orders.po_number]   // the receipt's source PO
   receipt_date       date
-  source             varchar              // 'netsuite'
+  source             varchar              // 'netsuite' | 'manual'
+  // portal-owned landed-cost match: which shipment's freight/duty share posts to
+  // this IR (confirmed per-PO). Preserved across sync; NetSuite facts never touch it.
+  matched_shipment_id varchar [ref: > mainline_shipments.id]
+  confirmed_by       varchar              // user id
+  confirmed_at       timestamp
 }
 Table mainline_item_receipt_lines {      // per-SKU received qty (from the NS IR lines)
   id         varchar [pk]

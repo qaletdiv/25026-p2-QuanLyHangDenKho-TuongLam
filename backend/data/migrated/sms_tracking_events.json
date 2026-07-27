@@ -3414,5 +3414,101 @@
     "courier_code": "CC",
     "description": "International shipment release - Import",
     "location": "RICHMOND, BC, CA"
+  },
+  {
+    "id": "ste_428",
+    "shipment_id": "10",
+    "event_time": "2026-07-27T11:22:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "VANCOUVER, BC, CA"
+  },
+  {
+    "id": "ste_429",
+    "shipment_id": "10",
+    "event_time": "2026-07-27T08:31:55-07:00",
+    "courier_code": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "DELTA, BC, CA"
+  },
+  {
+    "id": "ste_430",
+    "shipment_id": "10",
+    "event_time": "2026-07-27T08:16:04-07:00",
+    "courier_code": "AR",
+    "description": "At local FedEx facility",
+    "location": "DELTA, BC, CA"
+  },
+  {
+    "id": "ste_431",
+    "shipment_id": "12",
+    "event_time": "2026-07-27T09:12:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_432",
+    "shipment_id": "17",
+    "event_time": "2026-07-27T09:12:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_433",
+    "shipment_id": "19",
+    "event_time": "2026-07-27T11:00:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "VANCOUVER, BC, CA"
+  },
+  {
+    "id": "ste_434",
+    "shipment_id": "19",
+    "event_time": "2026-07-27T09:40:23-07:00",
+    "courier_code": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "DELTA, BC, CA"
+  },
+  {
+    "id": "ste_435",
+    "shipment_id": "19",
+    "event_time": "2026-07-27T09:37:50-07:00",
+    "courier_code": "AR",
+    "description": "At local FedEx facility",
+    "location": "BURNABY, BC, CA"
+  },
+  {
+    "id": "ste_436",
+    "shipment_id": "20",
+    "event_time": "2026-07-27T09:12:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_437",
+    "shipment_id": "22",
+    "event_time": "2026-07-27T11:00:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "VANCOUVER, BC, CA"
+  },
+  {
+    "id": "ste_438",
+    "shipment_id": "22",
+    "event_time": "2026-07-27T09:56:37-07:00",
+    "courier_code": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "DELTA, BC, CA"
+  },
+  {
+    "id": "ste_439",
+    "shipment_id": "22",
+    "event_time": "2026-07-27T09:53:29-07:00",
+    "courier_code": "AR",
+    "description": "At local FedEx facility",
+    "location": "BURNABY, BC, CA"
   }
 ]

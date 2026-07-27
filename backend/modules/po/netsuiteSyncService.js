@@ -129,12 +129,15 @@ function foldReceipts(nsReceipts, existingReceipts, existingLines) {
     let r = byIr.get(ir.ir_id);
     if (!r) {
       r = { id: `mir_${++irSeq}`, netsuite_ir_id: ir.ir_id, netsuite_ir_tranid: ir.ir_tranid || null,
-        po_number: ir.po_number, receipt_date: ir.receipt_date || null, source: 'netsuite' };
+        po_number: ir.po_number, receipt_date: ir.receipt_date || null, source: 'netsuite',
+        // portal-owned landed-cost match (confirmed per-PO IR ↔ shipment) — see
+        // mainlineReceiptController; preserved across re-sync, never touched here.
+        matched_shipment_id: null, confirmed_by: null, confirmed_at: null };
       outReceipts.push(r); byIr.set(ir.ir_id, r);
     } else {
-      r.po_number = ir.po_number;
-      r.netsuite_ir_tranid = ir.ir_tranid || r.netsuite_ir_tranid;
-      r.receipt_date = ir.receipt_date || r.receipt_date;
+      r.po_number = ir.po_number;                       // refresh NS facts only;
+      r.netsuite_ir_tranid = ir.ir_tranid || r.netsuite_ir_tranid;   // NEVER touch the
+      r.receipt_date = ir.receipt_date || r.receipt_date;             // matched_* columns
     }
     outLines = outLines.filter((l) => l.receipt_id !== r.id);
     (ir.lines || []).forEach((l, i) => outLines.push({ id: `mirl_${r.id.replace(/\D/g, '')}_${i + 1}`, receipt_id: r.id, sku_code: l.sku_code, qty: l.qty }));

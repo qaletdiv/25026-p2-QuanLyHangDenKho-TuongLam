@@ -1,13 +1,9 @@
-// Landed Costs — Mainline: placeholder. Freight & duty for ocean/air freight (from
-// the forwarder's bill / customs entry) will be added here later. All landed-cost
-// features today are SMS-only.
-export default function MainlineLandedCostsPage() {
-  return (
-    <div className="p-4 md:p-6">
-      <div className="rounded-md border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-        Mainline landed costs — coming soon.
-        <div className="text-xs mt-1">Freight &amp; duty for ocean/air freight shipments will be managed here.</div>
-      </div>
-    </div>
-  );
+import { getMainlineLandedCosts } from '@/modules/landed-costs/actions';
+import MainlineLandedCostsTable from '@/modules/landed-costs/components/MainlineLandedCostsTable';
+
+// Landed Costs — Mainline: freight & duty (entered on the shipment) split per PO by
+// CI value and posted to each PO's Item Receipt. Read-only amounts here.
+export default async function MainlineLandedCostsPage() {
+  const { rows } = await getMainlineLandedCosts();
+  return <MainlineLandedCostsTable rows={rows} />;
 }

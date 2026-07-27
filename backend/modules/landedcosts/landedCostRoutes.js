@@ -26,6 +26,13 @@ router.post('/sms/:shipmentId/post',      requireAuth, asyncWrap(controller.post
 router.get('/sms/:shipmentId/netsuite-preview',  requireAuth, asyncWrap(controller.netsuitePreviewSms));
 router.post('/sms/:shipmentId/netsuite-push',    requireAdmin, asyncWrap(controller.netsuitePushSms));
 
+// Mainline landed-cost read model + posting (amounts entered on the shipment;
+// per-PO split + IR match derived here; Post pushes to NetSuite).
+router.get('/mainline',                             asyncWrap(controller.getMainline));
+router.post('/mainline/:shipmentId/post',           requireAuth, asyncWrap(controller.postMainline));
+router.get('/mainline/:shipmentId/netsuite-preview', requireAuth, asyncWrap(controller.netsuitePreviewMainline));
+router.post('/mainline/:shipmentId/netsuite-push',  requireAdmin, asyncWrap(controller.netsuitePushMainline));
+
 // Unpost (corrections) — removes the posted snapshot only
 router.delete('/:id',                     requireAuth, asyncWrap(controller.unpost));
 

@@ -73,3 +73,45 @@ export interface SmsLandedCostResponse {
   rate: LandedCostRate | null;
   rows: SmsLandedCostRow[];
 }
+
+// ── Mainline ──────────────────────────────────────────────────────────────────
+// Freight/duty are entered on the shipment; split per PO by CI value; matched to
+// each PO's Item Receipt. The Landed Cost page is read-only for amounts.
+export interface MainlineLandedCostMatch {
+  po_number: string;
+  receipt_id: string | null;
+  netsuite_ir_id: string | null;
+  netsuite_ir_tranid: string | null;   // IR document number (e.g. IR65377)
+  receipt_date: string | null;
+  receipt_qty: number | null;
+  method: 'confirmed' | 'auto' | 'unmatched';
+  confidence: 'high' | 'medium' | 'low';
+  confirmed: boolean;
+  ambiguous: boolean;                   // PO has >1 IR and none confirmed
+}
+
+export interface MainlineLandedCostRow {
+  module: 'mainline';
+  shipment_id: string;
+  shipment_number: string | null;
+  ship_date: string | null;
+  ship_month: string | null;
+  mode: string | null;
+  facility: string | null;
+  customs_entry_number: string | null;
+  pos: string[];
+  has_shipping_data: boolean;
+  ci_value: number;
+  entered_freight: number | null;       // total on the shipment (null = not entered)
+  entered_duty: number | null;
+  has_amounts: boolean;
+  freight: number;                      // effective total (entered or posted)
+  duty: number;
+  posted: LandedCostPosted | null;
+  split: LandedCostSplit[];             // per-PO split of the effective totals
+  match: MainlineLandedCostMatch[];     // per-PO IR match
+  ir_resolved: boolean;
+  matched: boolean;
+  push_enabled: boolean;
+  push_allowed: boolean;
+}

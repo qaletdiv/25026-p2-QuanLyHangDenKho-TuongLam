@@ -21,6 +21,17 @@ module.exports = {
   smsReceipts:    new BaseModel('migrated/sms_item_receipts.json'),        // for IR-target resolution (push)
   smsReceiptLines: new BaseModel('migrated/sms_item_receipt_lines.json'),
 
+  // MAINLINE dataset — READ ONLY here (freight/duty entered on the shipment; the
+  // per-PO split + IR match are derived; posting writes only landed_costs).
+  mlShipments:    new BaseModel('migrated/mainline_shipments.json'),        // holds freight/duty/invoice_value
+  mlShipmentLegs: new BaseModel('migrated/mainline_shipment_legs.json'),
+  mlPoLegs:       new BaseModel('migrated/mainline_po_legs.json'),
+  poOrders:       new BaseModel('migrated/po_orders.json'),
+  mlPackingCartons: new BaseModel('migrated/mainline_packing_cartons.json'),
+  mlReceipts:     new BaseModel('migrated/mainline_item_receipts.json'),
+  mlReceiptLines: new BaseModel('migrated/mainline_item_receipt_lines.json'),
+  modes:          new BaseModel('modes.json'),
+
   // shared reference/master data (read only)
   suppliers:      new BaseModel('suppliers.json'),
   couriers:       new BaseModel('couriers.json'),
