@@ -46,6 +46,8 @@ async function _smsCtx() {
     postedBySms: new Map(posted.filter((p) => p.module === 'sms').map((p) => [p.shipment_id, p])),
     // push gating exposed to the UI so it can enable/disable the Post button
     pushEnabled: ns.pushEnabled(),
+    // Optional narrowing list. EMPTY = allow all (the normal production mode);
+    // set it only to restrict pushes to specific shipments (e.g. a sandbox test).
     pushAllow: new Set((process.env.LANDED_COST_PUSH_ALLOWLIST || '').split(',').map((x) => x.trim()).filter(Boolean)),
   };
 }
@@ -106,7 +108,7 @@ function _row(s, c) {
     ir_resolved,                     // every PO has a target IR
     matched,                         // every PO's IR match is confirmed
     push_enabled: c.pushEnabled,     // server arm switch
-    push_allowed: c.pushAllow.has(String(s.id)),  // this shipment is on the allowlist
+    push_allowed: c.pushAllow.size === 0 ? true : c.pushAllow.has(String(s.id)),  // empty list = all allowed
   };
 }
 

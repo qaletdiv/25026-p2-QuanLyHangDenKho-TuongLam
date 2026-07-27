@@ -37,5 +37,18 @@
     "posted_by": "2",
     "posted_at": "2026-07-23T17:23:50.889Z",
     "netsuite_pushed_at": "2026-07-23T17:23:50.889Z"
+  },
+  {
+    "id": "lc_sms_4",
+    "module": "sms",
+    "shipment_id": "4",
+    "invoice_value": 297.48,
+    "freight_pct": 40,
+    "duty_pct": 25,
+    "freight": 118.99,
+    "duty": 74.37,
+    "posted_by": "1",
+    "posted_at": "2026-07-27T15:08:25.410Z",
+    "netsuite_pushed_at": "2026-07-27T15:08:25.410Z"
   }
 ]

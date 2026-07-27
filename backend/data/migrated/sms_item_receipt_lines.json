@@ -18586,5 +18586,11 @@
     "receipt_id": "sir_131",
     "sku_code": "ZCW7015-6902-S",
     "qty": 4
+  },
+  {
+    "id": "sirl_132_1",
+    "receipt_id": "sir_132",
+    "sku_code": "ZCW4649-6898-S",
+    "qty": 4
   }
 ]

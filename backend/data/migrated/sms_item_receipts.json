@@ -1439,5 +1439,16 @@
     "confirmed_by": "2",
     "confirmed_at": "2026-07-23T17:19:51.606Z",
     "netsuite_ir_tranid": "IR65402"
+  },
+  {
+    "id": "sir_132",
+    "netsuite_ir_id": "33582244",
+    "netsuite_ir_tranid": "IR65416",
+    "po_number": "PO04803",
+    "receipt_date": "2026-07-24",
+    "source": "netsuite",
+    "matched_shipment_id": "4",
+    "confirmed_by": "1",
+    "confirmed_at": "2026-07-27T15:08:04.433Z"
   }
 ]
