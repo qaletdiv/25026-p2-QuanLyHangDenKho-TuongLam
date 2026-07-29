@@ -83,8 +83,9 @@ export async function getMainlineLandedCosts(): Promise<{ rows: MainlineLandedCo
   return data;
 }
 
-export async function postMainlineLandedCost(shipmentId: string) {
-  const res = await fetchApi(`/landed-costs/mainline/${encodeURIComponent(shipmentId)}/post`, { method: 'POST', body: '{}' });
+// Post ONE PO's landed cost on a shipment (posting is per PO — each PO → its own IR).
+export async function postMainlineLandedCost(shipmentId: string, poNumber: string) {
+  const res = await fetchApi(`/landed-costs/mainline/${encodeURIComponent(shipmentId)}/post`, { method: 'POST', body: JSON.stringify({ po_number: poNumber }) });
   if (res?.error) return { error: res.error as string };
   revalidateLandedCosts();
   return res;

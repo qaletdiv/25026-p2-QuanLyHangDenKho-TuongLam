@@ -46,5 +46,19 @@
     "code": "VNDAD",
     "name": "Da Nang",
     "country": "Vietnam"
+  },
+  {
+    "id": "port_cavan",
+    "code": "CAVAN",
+    "name": "Vancouver",
+    "country": "Canada",
+    "role": "discharge"
+  },
+  {
+    "id": "port_uslax",
+    "code": "USLAX",
+    "name": "Los Angeles",
+    "country": "United States",
+    "role": "discharge"
   }
 ]

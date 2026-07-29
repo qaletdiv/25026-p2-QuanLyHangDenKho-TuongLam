@@ -50,5 +50,72 @@
     "posted_by": "1",
     "posted_at": "2026-07-27T15:08:25.410Z",
     "netsuite_pushed_at": "2026-07-27T15:08:25.410Z"
+  },
+  {
+    "id": "lc_sms_23",
+    "module": "sms",
+    "shipment_id": "23",
+    "invoice_value": 918.54,
+    "freight_pct": 40,
+    "duty_pct": 25,
+    "freight": 367.42,
+    "duty": 229.64,
+    "posted_by": "1",
+    "posted_at": "2026-07-28T15:34:58.143Z",
+    "netsuite_pushed_at": "2026-07-28T15:34:58.143Z"
+  },
+  {
+    "id": "lc_sms_12",
+    "module": "sms",
+    "shipment_id": "12",
+    "invoice_value": 177.8,
+    "freight_pct": 40,
+    "duty_pct": 25,
+    "freight": 71.12,
+    "duty": 44.45,
+    "posted_by": "1",
+    "posted_at": "2026-07-29T15:30:01.956Z",
+    "netsuite_pushed_at": "2026-07-29T15:30:01.956Z"
+  },
+  {
+    "id": "lc_sms_20",
+    "module": "sms",
+    "shipment_id": "20",
+    "invoice_value": 72.55,
+    "freight_pct": 40,
+    "duty_pct": 25,
+    "freight": 29.02,
+    "duty": 18.14,
+    "posted_by": "1",
+    "posted_at": "2026-07-29T15:31:26.886Z",
+    "netsuite_pushed_at": "2026-07-29T15:31:26.886Z"
+  },
+  {
+    "id": "lc_ml_3_PO04774",
+    "module": "mainline",
+    "shipment_id": "3",
+    "po_number": "PO04774",
+    "invoice_value": 14775.04,
+    "freight_pct": null,
+    "duty_pct": null,
+    "freight": 664.09,
+    "duty": 4718.26,
+    "posted_by": "1",
+    "posted_at": "2026-07-29T18:17:56.933Z",
+    "netsuite_pushed_at": "2026-07-29T18:17:56.933Z"
+  },
+  {
+    "id": "lc_ml_3_PO04786",
+    "module": "mainline",
+    "shipment_id": "3",
+    "po_number": "PO04786",
+    "invoice_value": 3303.32,
+    "freight_pct": null,
+    "duty_pct": null,
+    "freight": 148.47,
+    "duty": 1054.88,
+    "posted_by": "1",
+    "posted_at": "2026-07-29T18:19:43.711Z",
+    "netsuite_pushed_at": "2026-07-29T18:19:43.711Z"
   }
 ]

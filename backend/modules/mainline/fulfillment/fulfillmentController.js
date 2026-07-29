@@ -7,18 +7,20 @@ const MainlineLegModel = require('../legs/MainlineLegModel');
 const MainlineCiModel = require('../ci/MainlineCiModel');
 const MainlinePackingModel = require('../packing/MainlinePackingModel');
 const ItemReceiptModel = require('../receipts/MainlineItemReceiptModel');
+const BaseModel = require('../../../models/BaseModel');
 const { deriveAllCiLines } = require('../ci/ciLines');
-const { compute, reconcilePo } = require('./fulfillmentService');
+const { compute, reconcilePo, reconcileLeg } = require('./fulfillmentService');
 
 async function _ctx() {
-  const [masters, orders, orderLines, legs, legLines, invoices, cartons, receipts, receiptLines] = await Promise.all([
+  const [masters, orders, orderLines, legs, legLines, invoices, cartons, receipts, receiptLines, modes] = await Promise.all([
     PoMasterModel.read(), PoOrderModel.readOrders(), PoOrderModel.readOrderLines(),
     MainlineLegModel.readLegs(), MainlineLegModel.readLegLines(),
     MainlineCiModel.readInvoices(), MainlinePackingModel.read(),
     ItemReceiptModel.readReceipts().catch(() => []), ItemReceiptModel.readReceiptLines().catch(() => []),
+    new BaseModel('modes.json').read().catch(() => []),
   ]);
   const ciLines = deriveAllCiLines(cartons);   // derived from packing cartons (not stored)
-  return { masters, orders, orderLines, legs, legLines, invoices, ciLines, receipts, receiptLines };
+  return { masters, orders, orderLines, legs, legLines, invoices, ciLines, receipts, receiptLines, modes };
 }
 
 // GET /mainline/fulfillment/:trn — TRN-grained three-way match.
@@ -42,4 +44,14 @@ async function getPoReconcile(req, res) {
   res.json(reconcilePo(poNumber, c));
 }
 
-module.exports = { getFulfillment, getPoReconcile };
+// GET /mainline/fulfillment/leg/:legId — one PO leg (air/sea split): allocated /
+// shipped / received scoped to the leg, with receipts split across the PO's legs.
+async function getLegReconcile(req, res) {
+  const { legId } = req.params;
+  const c = await _ctx();
+  const result = reconcileLeg(legId, c);
+  if (!result) { const e = new Error(`PO leg not found: ${legId}`); e.statusCode = 404; throw e; }
+  res.json(result);
+}
+
+module.exports = { getFulfillment, getPoReconcile, getLegReconcile };

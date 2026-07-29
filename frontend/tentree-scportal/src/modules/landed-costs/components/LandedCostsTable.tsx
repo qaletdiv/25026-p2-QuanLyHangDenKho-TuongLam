@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +54,8 @@ function postBlockReason(r: SmsLandedCostRow): string | null {
 
 export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user } = useSession();
   const canEdit = !user || (user.permissions ? user.permissions.includes('landed_costs') : user.role === 'Admin');
   const [busy, setBusy] = useState<string | null>(null);
@@ -64,8 +66,16 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
     () => [...new Set(rows.map((r) => r.ship_month).filter(Boolean) as string[])].sort().reverse(),
     [rows],
   );
-  const [month, setMonth] = useState<string>('all');
+  // month filter lives in the URL (?month=YYYY-MM) so it survives a reload / is shareable
+  const [month, setMonth] = useState<string>(searchParams.get('month') || 'all');
   const effMonth = month === 'all' && months.length ? months[0] : month;
+  const changeMonth = (v: string) => {
+    setMonth(v);
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    if (v === 'all') params.delete('month'); else params.set('month', v);
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
 
   const visibleRows = useMemo(
     () => (effMonth === 'all' ? rows : rows.filter((r) => r.ship_month === effMonth)),
@@ -222,7 +232,7 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
 
   const toolbar = (
     <>
-      <Select value={month} onValueChange={(v) => setMonth(v ?? 'all')}>
+      <Select value={month} onValueChange={(v) => changeMonth(v ?? 'all')}>
         <SelectTrigger className="w-36">{effMonth === 'all' ? 'All months' : effMonth}</SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All months</SelectItem>

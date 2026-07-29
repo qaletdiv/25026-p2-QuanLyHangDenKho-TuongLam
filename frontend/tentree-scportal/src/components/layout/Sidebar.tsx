@@ -47,17 +47,24 @@ export default function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: 
   const [isSummer, setIsSummer] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('portal-theme');
-    if (saved === 'summer') {
-      document.documentElement.classList.add('theme-summer');
-      setIsSummer(true);
+    // The theme class is already applied server-side (from the cookie). Sync the
+    // toggle's state, and backfill the cookie for users who set the theme before
+    // it was cookie-backed — so their NEXT reload also renders flash-free.
+    const isS = localStorage.getItem('portal-theme') === 'summer'
+      || document.documentElement.classList.contains('theme-summer');
+    setIsSummer(isS);
+    document.documentElement.classList.toggle('theme-summer', isS);
+    if (isS && !/(?:^|;\s*)portal-theme=/.test(document.cookie)) {
+      document.cookie = 'portal-theme=summer; path=/; max-age=31536000; samesite=lax';
     }
   }, []);
 
   const toggleTheme = () => {
     const next = !isSummer;
     setIsSummer(next);
-    localStorage.setItem('portal-theme', next ? 'summer' : 'red');
+    const val = next ? 'summer' : 'red';
+    localStorage.setItem('portal-theme', val);
+    document.cookie = `portal-theme=${val}; path=/; max-age=31536000; samesite=lax`;   // server reads this on reload
     document.documentElement.classList.toggle('theme-summer', next);
   };
 

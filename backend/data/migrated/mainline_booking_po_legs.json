@@ -25,5 +25,23 @@
     "cartons": null,
     "weight_kg": null,
     "cbm": null
+  },
+  {
+    "id": "bpl_3_20",
+    "booking_id": "3",
+    "leg_id": "20",
+    "units": 680,
+    "cartons": 20,
+    "weight_kg": 301.53,
+    "cbm": 1.3056
+  },
+  {
+    "id": "bpl_3_2",
+    "booking_id": "3",
+    "leg_id": "2",
+    "units": 139,
+    "cartons": 7,
+    "weight_kg": 89.35,
+    "cbm": 0.44
   }
 ]

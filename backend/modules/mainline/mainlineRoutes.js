@@ -53,6 +53,7 @@ router.get('/shipments/:id/asn',                 asyncWrap(asnController.getAsn)
 // Fulfillment (three-way match). Component-PO reconcile registered BEFORE /:trn
 // so "/fulfillment/po/<poNumber>" isn't captured as a TRN.
 router.get('/fulfillment/po/:poNumber',          asyncWrap(fulfillmentController.getPoReconcile));
+router.get('/fulfillment/leg/:legId',            asyncWrap(fulfillmentController.getLegReconcile));
 router.get('/fulfillment/:trn',                  asyncWrap(fulfillmentController.getFulfillment));
 
 // Item Receipt landed-cost match (manual-match before /:id/match so it isn't captured)

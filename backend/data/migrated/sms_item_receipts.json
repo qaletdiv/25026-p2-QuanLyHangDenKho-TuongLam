@@ -1450,5 +1450,38 @@
     "matched_shipment_id": "4",
     "confirmed_by": "1",
     "confirmed_at": "2026-07-27T15:08:04.433Z"
+  },
+  {
+    "id": "sir_133",
+    "netsuite_ir_id": "33613597",
+    "netsuite_ir_tranid": "IR65460",
+    "po_number": "PO04806",
+    "receipt_date": "2026-07-27",
+    "source": "netsuite",
+    "matched_shipment_id": "23",
+    "confirmed_by": "1",
+    "confirmed_at": "2026-07-28T15:34:23.793Z"
+  },
+  {
+    "id": "sir_134",
+    "netsuite_ir_id": "33623471",
+    "netsuite_ir_tranid": "IR65471",
+    "po_number": "PO04812",
+    "receipt_date": "2026-07-28",
+    "source": "netsuite",
+    "matched_shipment_id": "12",
+    "confirmed_by": "1",
+    "confirmed_at": "2026-07-29T15:29:42.491Z"
+  },
+  {
+    "id": "sir_135",
+    "netsuite_ir_id": "33623673",
+    "netsuite_ir_tranid": "IR65470",
+    "po_number": "PO04797",
+    "receipt_date": "2026-07-28",
+    "source": "netsuite",
+    "matched_shipment_id": "20",
+    "confirmed_by": "1",
+    "confirmed_at": "2026-07-29T15:31:19.827Z"
   }
 ]

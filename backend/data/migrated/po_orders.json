@@ -518,5 +518,117 @@
     "allocation_channel_id": "ch_reserved",
     "coo_country": "Vietnam",
     "netsuite_id": "31604612"
+  },
+  {
+    "po_number": "PO04826",
+    "trn_number": "TRN_1280",
+    "netsuite_id": "33614215",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04827",
+    "trn_number": "TRN_1268",
+    "netsuite_id": "33614216",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04828",
+    "trn_number": "TRN_1269",
+    "netsuite_id": "33616316",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04829",
+    "trn_number": "TRN_1271",
+    "netsuite_id": "33616317",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04830",
+    "trn_number": "TRN_1272",
+    "netsuite_id": "33616816",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04831",
+    "trn_number": "TRN_1273",
+    "netsuite_id": "33616817",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04832",
+    "trn_number": "TRN_1274",
+    "netsuite_id": "33616818",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04833",
+    "trn_number": "TRN_1275",
+    "netsuite_id": "33616819",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04834",
+    "trn_number": "TRN_1276",
+    "netsuite_id": "33616820",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04835",
+    "trn_number": "TRN_1277",
+    "netsuite_id": "33616821",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04836",
+    "trn_number": "TRN_1278",
+    "netsuite_id": "33617416",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04837",
+    "trn_number": "TRN_1279",
+    "netsuite_id": "33617417",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04838",
+    "trn_number": "TRN_5057",
+    "netsuite_id": "33624087",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04839",
+    "trn_number": "TRN_5058",
+    "netsuite_id": "33624088",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
   }
 ]

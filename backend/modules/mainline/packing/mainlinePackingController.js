@@ -12,8 +12,11 @@ function summarize(cartons) {
   for (const c of cartons) {
     total_pcs += c.pcs_per_ctn || 0;
     total_value += c.total_usd || 0;
-    if (!seen.has(c.ctn_number)) {
-      seen.add(c.ctn_number);
+    // key by (leg, ctn): two POs in one booking may both number cartons from #1,
+    // so ctn_number alone would collapse distinct physical cartons.
+    const ck = `${c.leg_id}|${c.ctn_number}`;
+    if (!seen.has(ck)) {
+      seen.add(ck);
       total_net_weight += c.net_weight_kgs || 0;
       total_gross_weight += c.gross_weight_kgs || 0;
       const m = (c.measure_cm || '').split(/[*×xX]/).map((p) => parseFloat(p.trim()));

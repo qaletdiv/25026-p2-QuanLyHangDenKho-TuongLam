@@ -207,6 +207,14 @@ export async function getMainlinePoReconcile(poNumber: string): Promise<PoReconc
   return data;
 }
 
+// PO-leg reconcile (one air/sea split): allocated/shipped/received scoped to the leg,
+// with NetSuite receipts split across the PO's legs by shipping method.
+export async function getMainlineLegReconcile(legId: string): Promise<PoReconcile | null> {
+  const data = await fetchApi(`/mainline/fulfillment/leg/${encodeURIComponent(legId)}`);
+  if (!data || data.error) return null;
+  return data;
+}
+
 // ASN is shipment-scoped (arrival notice for a physical shipment).
 export async function generateMainlineAsn(shipmentId: string) {
   const result = await fetchApi(`/mainline/shipments/${shipmentId}/asn`, { method: 'POST' });

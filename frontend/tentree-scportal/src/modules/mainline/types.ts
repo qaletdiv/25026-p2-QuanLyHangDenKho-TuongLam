@@ -180,6 +180,7 @@ export type MainlineShipmentStatus = 'Ready to Ship' | 'In Transit' | 'At Port' 
 export interface MainlineShipmentLeg {
   leg_id: string;
   po_number: string | null;
+  netsuite_id: string | null;           // component-PO NetSuite internal id
   trn_number: string | null;
   mode_id: string | null;
   mode: string | null;
@@ -212,6 +213,7 @@ export interface MainlineShipment {
   status: MainlineShipmentStatus | null;
   // shared logistics facts (header-level — edited once for all legs):
   bl_no: string | null;                   // ocean bill of lading number
+  customs_entry_number: string | null;    // customs entry # — landed-cost push (custbody_tt_customs_entry_number)
   container_type_id: string | null;
   container_type: string | null;          // FCL / LCL
   pol_port_id: string | null;
@@ -222,7 +224,8 @@ export interface MainlineShipment {
   eta_pod: string | null;
   e_del: string | null;
   cargo_received_date: string | null;     // received at port
-  ata: string | null;                     // ACTUAL receipt date ("received in system"); manual now / NetSuite later
+  ata: string | null;                     // ACTUAL receipt date; derived from NetSuite Item Receipts, manual fallback
+  ata_source: 'netsuite' | 'manual' | null; // where `ata` came from
   expected_ata: string | null;            // derived = e_del + 5 (never stored)
   netsuite_id: string | null;
   invoice_value: number | null;
@@ -237,7 +240,7 @@ export interface MainlineShipment {
   total_expected_quantity: number;
 }
 
-export interface PortOption { id: string; code?: string; name: string; country?: string }
+export interface PortOption { id: string; code?: string; name: string; country?: string; role?: string }
 export interface ContainerTypeOption { id: string; name: string }
 
 // One row of the season KPI report (GET /reports/mainline) — PO-LEG grained, full

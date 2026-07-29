@@ -550,5 +550,27 @@
     "po_number": "PO04751",
     "receipt_date": "2026-07-20",
     "source": "netsuite"
+  },
+  {
+    "id": "mir_70",
+    "netsuite_ir_id": "33624405",
+    "netsuite_ir_tranid": "IR65472",
+    "po_number": "PO04774",
+    "receipt_date": "2026-07-28",
+    "source": "netsuite",
+    "matched_shipment_id": "3",
+    "confirmed_by": "1",
+    "confirmed_at": "2026-07-29T17:51:36.178Z"
+  },
+  {
+    "id": "mir_71",
+    "netsuite_ir_id": "33624406",
+    "netsuite_ir_tranid": "IR65473",
+    "po_number": "PO04786",
+    "receipt_date": "2026-07-28",
+    "source": "netsuite",
+    "matched_shipment_id": "3",
+    "confirmed_by": "1",
+    "confirmed_at": "2026-07-29T17:51:32.938Z"
   }
 ]

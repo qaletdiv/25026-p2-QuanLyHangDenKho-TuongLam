@@ -187,5 +187,103 @@
     "season_id": "season_1",
     "main_shoulder": "Main",
     "netsuite_id": null
+  },
+  {
+    "trn_number": "TRN_1280",
+    "supplier_id": "3",
+    "season_id": "season_ss27",
+    "main_shoulder": null,
+    "netsuite_id": "33614215"
+  },
+  {
+    "trn_number": "TRN_1268",
+    "supplier_id": "15",
+    "season_id": "season_ss27",
+    "main_shoulder": null,
+    "netsuite_id": "33614216"
+  },
+  {
+    "trn_number": "TRN_1269",
+    "supplier_id": "14",
+    "season_id": "season_ss27",
+    "main_shoulder": null,
+    "netsuite_id": "33616316"
+  },
+  {
+    "trn_number": "TRN_1271",
+    "supplier_id": "5",
+    "season_id": "season_ss27",
+    "main_shoulder": null,
+    "netsuite_id": "33616317"
+  },
+  {
+    "trn_number": "TRN_1272",
+    "supplier_id": "20",
+    "season_id": "season_ss27",
+    "main_shoulder": null,
+    "netsuite_id": "33616816"
+  },
+  {
+    "trn_number": "TRN_1273",
+    "supplier_id": "9",
+    "season_id": "season_ss27",
+    "main_shoulder": null,
+    "netsuite_id": "33616817"
+  },
+  {
+    "trn_number": "TRN_1274",
+    "supplier_id": "18",
+    "season_id": "season_ss27",
+    "main_shoulder": null,
+    "netsuite_id": "33616818"
+  },
+  {
+    "trn_number": "TRN_1275",
+    "supplier_id": "13",
+    "season_id": "season_ss27",
+    "main_shoulder": null,
+    "netsuite_id": "33616819"
+  },
+  {
+    "trn_number": "TRN_1276",
+    "supplier_id": "17",
+    "season_id": "season_ss27",
+    "main_shoulder": null,
+    "netsuite_id": "33616820"
+  },
+  {
+    "trn_number": "TRN_1277",
+    "supplier_id": "7",
+    "season_id": "season_ss27",
+    "main_shoulder": null,
+    "netsuite_id": "33616821"
+  },
+  {
+    "trn_number": "TRN_1278",
+    "supplier_id": "16",
+    "season_id": "season_ss27",
+    "main_shoulder": null,
+    "netsuite_id": "33617416"
+  },
+  {
+    "trn_number": "TRN_1279",
+    "supplier_id": "8",
+    "season_id": "season_ss27",
+    "main_shoulder": null,
+    "netsuite_id": "33617417"
+  },
+  {
+    "trn_number": "TRN_5057",
+    "supplier_id": null,
+    "season_id": "season_1",
+    "main_shoulder": null,
+    "netsuite_id": "33624087"
+  },
+  {
+    "trn_number": "TRN_5058",
+    "supplier_id": null,
+    "season_id": "season_1",
+    "main_shoulder": null,
+    "netsuite_id": "33624088"
   }
 ]

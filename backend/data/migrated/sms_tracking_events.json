@@ -3510,5 +3510,53 @@
     "courier_code": "AR",
     "description": "At local FedEx facility",
     "location": "BURNABY, BC, CA"
+  },
+  {
+    "id": "ste_440",
+    "shipment_id": "14",
+    "event_time": "2026-07-28T04:03:25-07:00",
+    "courier_code": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "BLOOMINGTON, CA, US"
+  },
+  {
+    "id": "ste_441",
+    "shipment_id": "14",
+    "event_time": "2026-07-28T02:41:23-07:00",
+    "courier_code": "AR",
+    "description": "At local FedEx facility",
+    "location": "BLOOMINGTON, CA, US"
+  },
+  {
+    "id": "ste_442",
+    "shipment_id": "21",
+    "event_time": "2026-07-28T08:59:00-05:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Import",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_443",
+    "shipment_id": "21",
+    "event_time": "2026-07-28T04:06:00-05:00",
+    "courier_code": "SE",
+    "description": "Shipment exception",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_444",
+    "shipment_id": "14",
+    "event_time": "2026-07-28T11:06:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "FONTANA, CA, US"
+  },
+  {
+    "id": "ste_445",
+    "shipment_id": "21",
+    "event_time": "2026-07-28T15:19:00-05:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "MEMPHIS, TN, US"
   }
 ]

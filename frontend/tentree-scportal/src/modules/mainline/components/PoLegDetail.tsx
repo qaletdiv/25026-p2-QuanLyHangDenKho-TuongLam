@@ -81,12 +81,12 @@ export default function PoLegDetail({ leg, reconcile }: { leg: PoLegDetailT; rec
 
       {recRows.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-sm font-medium text-muted-foreground">{leg.po_number} — ordered vs shipped vs received</h2>
+          <h2 className="text-sm font-medium text-muted-foreground">{leg.po_number}{leg.mode ? ` · ${leg.mode}` : ''} — allocated vs shipped vs received <span className="font-normal">(this leg)</span></h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Stat label="Ordered" value={reconcile!.totals.ordered_qty} />
+            <Stat label="Allocated" value={reconcile!.totals.allocated_qty} />
             <Stat label="Shipped" value={reconcile!.totals.shipped_qty} />
             <Stat label="Received" value={reconcile!.totals.received_qty} />
-            <Stat label="Remaining" value={reconcile!.totals.ordered_qty - reconcile!.totals.shipped_qty} />
+            <Stat label="Remaining" value={reconcile!.totals.allocated_qty - reconcile!.totals.shipped_qty} />
           </div>
           <Card className="overflow-x-auto">
             <Table className="bg-card">
@@ -94,7 +94,7 @@ export default function PoLegDetail({ leg, reconcile }: { leg: PoLegDetailT; rec
                 <TableRow className="bg-card/80 hover:bg-card/80">
                   <TableHead>SKU</TableHead>
                   <TableHead>Item</TableHead>
-                  <TableHead className="text-right">Ordered</TableHead>
+                  <TableHead className="text-right">Allocated</TableHead>
                   <TableHead className="text-right">Shipped</TableHead>
                   <TableHead className="text-right">Received</TableHead>
                   <TableHead className="text-right">Variance</TableHead>
@@ -105,7 +105,7 @@ export default function PoLegDetail({ leg, reconcile }: { leg: PoLegDetailT; rec
                   <TableRow key={r.sku_code} className="border-border hover:bg-muted/30">
                     <TableCell className="font-mono text-xs">{r.sku_code}</TableCell>
                     <TableCell>{itemBySku.get(r.sku_code)?.item_name ?? '—'}</TableCell>
-                    <TableCell className="text-right tabular-nums">{r.ordered_qty.toLocaleString()}</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.allocated_qty.toLocaleString()}</TableCell>
                     <TableCell className="text-right tabular-nums">{r.shipped_qty ? r.shipped_qty.toLocaleString() : '—'}</TableCell>
                     <TableCell className="text-right tabular-nums">{r.received_qty.toLocaleString()}</TableCell>
                     <TableCell className={cn('text-right tabular-nums', r.variance !== 0 && r.received_qty > 0 && 'text-amber-600 font-medium')}>
@@ -115,7 +115,7 @@ export default function PoLegDetail({ leg, reconcile }: { leg: PoLegDetailT; rec
                 ))}
                 <TableRow className="bg-card/80 font-medium">
                   <TableCell colSpan={2}>Total ({recRows.length} SKUs)</TableCell>
-                  <TableCell className="text-right tabular-nums">{reconcile!.totals.ordered_qty.toLocaleString()}</TableCell>
+                  <TableCell className="text-right tabular-nums">{reconcile!.totals.allocated_qty.toLocaleString()}</TableCell>
                   <TableCell className="text-right tabular-nums">{reconcile!.totals.shipped_qty.toLocaleString()}</TableCell>
                   <TableCell className="text-right tabular-nums">{reconcile!.totals.received_qty.toLocaleString()}</TableCell>
                   <TableCell />

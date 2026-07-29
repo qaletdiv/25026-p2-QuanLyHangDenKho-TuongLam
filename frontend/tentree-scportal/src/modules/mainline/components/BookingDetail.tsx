@@ -78,12 +78,21 @@ export default function BookingDetail({
     router.refresh();
   }
 
-  async function onUpload(file: File) {
+  // Upload is per-PO and ADDITIVE: each file replaces only the PO(s) it contains and
+  // preserves the booking's other POs. Multiple files (one per PO) can be picked at once.
+  async function onUpload(files: File[]) {
     setBusy(true);
-    const res = await uploadShipmentData(booking.id, file);
+    const results: Array<{ error?: string; cartons?: number; unmatched_qty?: number; po_numbers?: string[] }> = [];
+    for (const f of files) {
+      const res = await uploadShipmentData(booking.id, f);
+      if (res?.error) { setBusy(false); toast.error(`${f.name}: ${res.error}`); router.refresh(); return; }
+      results.push(res);
+    }
     setBusy(false);
-    if (res?.error) { toast.error(res.error); return; }
-    toast.success(`Imported ${res.cartons} cartons → CI + packing slip generated${res.unmatched_qty ? ` · ⚠ ${res.unmatched_qty} unmatched` : ''}`);
+    const cartons = results.reduce((s, r) => s + (r.cartons || 0), 0);
+    const unmatched = results.reduce((s, r) => s + (r.unmatched_qty || 0), 0);
+    const pos = [...new Set(results.flatMap((r) => r.po_numbers || []))];
+    toast.success(`Imported ${cartons} cartons for ${pos.join(', ') || 'PO'} → CI + packing slip generated${unmatched ? ` · ⚠ ${unmatched} unmatched` : ''}`);
     router.refresh();
   }
 
@@ -91,6 +100,9 @@ export default function BookingDetail({
 
   // actual per-PO cargo, parsed from the uploaded shipment data (packing rollup)
   const hasActual = packingByPo.length > 0;
+  // booking POs that don't yet have uploaded shipment data (upload is additive per PO)
+  const uploadedPos = new Set(packingByPo.map((r) => r.po_number).filter(Boolean));
+  const pendingPos = booking.po_legs.map((l) => l.po_number).filter((po): po is string => !!po && !uploadedPos.has(po));
   const num = (n: number | null | undefined, dp = 0) => (n == null ? DASH : n.toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp }));
   const money = (n: number | null | undefined) => (n ? `$${num(n, 2)}` : DASH);
 
@@ -119,11 +131,12 @@ export default function BookingDetail({
             {booking.booking_status === 'Booking Pending' && (
               <Button size="sm" disabled={busy} onClick={() => setConfirmApprove(true)}><Check className="h-4 w-4 mr-1" /> Approve</Button>
             )}
-            <Button size="sm" variant="outline" disabled={busy} onClick={() => fileRef.current?.click()}>
-              <Upload className="h-4 w-4 mr-1" /> {ci ? 'Re-upload Shipment Data' : 'Upload Shipment Data'}
+            <Button size="sm" variant="outline" disabled={busy} onClick={() => fileRef.current?.click()}
+              title={booking.po_legs.length > 1 ? 'Upload one file per PO — you can select several at once; each adds/replaces only its own PO.' : 'Upload the shipment-data Excel'}>
+              <Upload className="h-4 w-4 mr-1" /> {ci ? 'Add / Re-upload Shipment Data' : 'Upload Shipment Data'}
             </Button>
-            <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f); e.target.value = ''; }} />
+            <input ref={fileRef} type="file" accept=".xlsx,.xls" multiple className="hidden"
+              onChange={(e) => { const fs = Array.from(e.target.files ?? []); if (fs.length) onUpload(fs); e.target.value = ''; }} />
             {ci && !ciConfirmed && (
               <Button size="sm" variant="outline" disabled={busy} onClick={() => run(() => confirmMainlineCi(booking.id), 'CI confirmed')}><Check className="h-4 w-4 mr-1" /> Confirm CI</Button>
             )}
@@ -199,7 +212,12 @@ export default function BookingDetail({
 
       {/* ── Actual booked — per-PO, parsed from the uploaded shipment data ── */}
       <section className="space-y-2">
-        <h2 className="text-sm font-medium text-muted-foreground">Actual booked <span className="font-normal">(from uploaded shipment data)</span></h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-medium text-muted-foreground">Actual booked <span className="font-normal">(from uploaded shipment data)</span></h2>
+          {hasActual && pendingPos.length > 0 && (
+            <span className="text-xs text-amber-600">Not yet uploaded: {pendingPos.join(', ')}</span>
+          )}
+        </div>
         <Card className="overflow-x-auto">
           <Table className="bg-card">
             <TableHeader>

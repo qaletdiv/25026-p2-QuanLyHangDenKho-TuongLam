@@ -22,6 +22,7 @@ const update = Joi.object({
   }),
   etd_pol: isoDate, eta_pod: isoDate, e_del: isoDate, cargo_received_date: isoDate, ata: isoDate,
   bl_no: Joi.string().allow(null, ''),
+  customs_entry_number: Joi.string().allow(null, ''),
   container_type_id: Joi.string().allow(null, ''),
   pol_port_id: Joi.string().allow(null, ''),
   pod_port_id: Joi.string().allow(null, ''),

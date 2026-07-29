@@ -18,5 +18,15 @@
     "booking_status_id": "bk_approved",
     "submitted_at": "2026-07-23T00:00:00.000Z",
     "approved_at": "2026-07-23T20:34:45.595Z"
+  },
+  {
+    "id": "3",
+    "booking_number": "BKG-3",
+    "supplier_id": "18",
+    "incoterm_id": null,
+    "cargo_ready_date": "2026-05-06",
+    "booking_status_id": "bk_approved",
+    "submitted_at": "2026-04-23T00:00:00.000Z",
+    "approved_at": "2026-07-29T15:52:23.659Z"
   }
 ]

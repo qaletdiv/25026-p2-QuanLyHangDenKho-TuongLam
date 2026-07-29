@@ -112,14 +112,14 @@ export default function DataTable<T>({
   return (
     <div className="p-4 md:p-6 space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div className="shrink-0">
           {title && <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">{title}</h1>}
-          <p className="text-sm text-muted-foreground">{filtered.length}{search ? ` of ${rows.length}` : ''} {noun}{filtered.length === 1 ? '' : 's'}</p>
+          <p className="whitespace-nowrap text-sm text-muted-foreground">{filtered.length}{search ? ` of ${rows.length}` : ''} {noun}{filtered.length === 1 ? '' : 's'}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
           {toolbar}
           <ColumnPicker columns={columns.map((c) => ({ key: c.key, label: c.label }))} visible={visible} onToggle={toggleColumn} />
-          <div className="relative w-full sm:w-64">
+          <div className="relative w-full sm:w-64 sm:min-w-0 sm:shrink">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input className="pl-8" placeholder={searchPlaceholder} value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>

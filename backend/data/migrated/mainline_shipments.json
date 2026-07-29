@@ -40,5 +40,27 @@
     "invoice_value": null,
     "duty": null,
     "freight": null
+  },
+  {
+    "id": "3",
+    "shipment_number": "SHP-3",
+    "booking_id": "3",
+    "facility_id": "fac_nri_us",
+    "mode_id": "m1",
+    "status_id": "sms_delivered",
+    "container_type_id": "ct_lcl",
+    "pol_port_id": "port_idjkt",
+    "pod_port_id": "port_uslax",
+    "bl_no": "ID106735745",
+    "etd_pol": "2026-05-15",
+    "eta_pod": "2026-07-09",
+    "e_del": "2026-07-21",
+    "cargo_received_date": "2026-05-07",
+    "ata": null,
+    "netsuite_id": null,
+    "invoice_value": null,
+    "duty": 5773.14,
+    "freight": 812.56,
+    "customs_entry_number": "CIU-8131412-6"
   }
 ]

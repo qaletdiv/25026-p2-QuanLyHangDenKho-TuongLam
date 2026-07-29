@@ -90,6 +90,15 @@ export interface MainlineLandedCostMatch {
   ambiguous: boolean;                   // PO has >1 IR and none confirmed
 }
 
+// per-PO split for mainline — each PO carries its own posted state (posting is per PO)
+export interface MainlineLandedCostSplit {
+  po_number: string;
+  ci_value: number;
+  freight: number;
+  duty: number;
+  posted: { id: string; posted_at: string | null; netsuite_pushed_at?: string | null } | null;
+}
+
 export interface MainlineLandedCostRow {
   module: 'mainline';
   shipment_id: string;
@@ -107,8 +116,9 @@ export interface MainlineLandedCostRow {
   has_amounts: boolean;
   freight: number;                      // effective total (entered or posted)
   duty: number;
-  posted: LandedCostPosted | null;
-  split: LandedCostSplit[];             // per-PO split of the effective totals
+  posted_count: number;                 // # of POs posted on this shipment
+  all_posted: boolean;
+  split: MainlineLandedCostSplit[];     // per-PO split (each carries its own posted state)
   match: MainlineLandedCostMatch[];     // per-PO IR match
   ir_resolved: boolean;
   matched: boolean;

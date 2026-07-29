@@ -19,5 +19,19 @@
     "leg_id": "5",
     "lot_number": 1,
     "expected_quantity": 694
+  },
+  {
+    "id": "spl_3_20",
+    "shipment_id": "3",
+    "leg_id": "20",
+    "lot_number": 1,
+    "expected_quantity": 680
+  },
+  {
+    "id": "spl_3_2",
+    "shipment_id": "3",
+    "leg_id": "2",
+    "lot_number": 1,
+    "expected_quantity": 139
   }
 ]

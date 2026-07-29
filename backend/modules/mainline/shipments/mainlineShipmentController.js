@@ -36,7 +36,7 @@ function checkChronology(shipment) {
 }
 
 async function _ctx() {
-  const [shipLegs, bookingLegs, packingCartons, legs, orders, masters, suppliers, facilities, channels, ports, containerTypes, bookings, modes, seasons] = await Promise.all([
+  const [shipLegs, bookingLegs, packingCartons, legs, orders, masters, suppliers, facilities, channels, ports, containerTypes, bookings, modes, seasons, itemReceipts, itemReceiptLines] = await Promise.all([
     MainlineShipmentLegModel.read(), MainlineBookingModel.readBookingLegs().catch(() => []),
     new BaseModel('migrated/mainline_packing_cartons.json').read().catch(() => []),
     MainlineLegModel.readLegs(), PoOrderModel.readOrders(), PoMasterModel.read(),
@@ -47,8 +47,10 @@ async function _ctx() {
     new BaseModel('migrated/container_types.json').read().catch(() => []),
     MainlineBookingModel.readBookings().catch(() => []), ModeModel.read().catch(() => []),
     new BaseModel('migrated/seasons.json').read().catch(() => []),
+    new BaseModel('migrated/mainline_item_receipts.json').read().catch(() => []),
+    new BaseModel('migrated/mainline_item_receipt_lines.json').read().catch(() => []),
   ]);
-  return { shipLegs, bookingLegs, packingCartons, legs, orders, masters, suppliers, facilities, channels, ports, containerTypes, bookings, modes, seasons };
+  return { shipLegs, bookingLegs, packingCartons, legs, orders, masters, suppliers, facilities, channels, ports, containerTypes, bookings, modes, seasons, itemReceipts, itemReceiptLines };
 }
 
 async function _enrich(shipments, ctx) {
@@ -81,7 +83,7 @@ async function update(req, res) {
   //  `ata` is the actual receipt date — manual now, NetSuite later. Expected ATA is
   //  derived (e_del + 5) and therefore not editable.)
   for (const k of ['etd_pol', 'eta_pod', 'e_del', 'cargo_received_date', 'ata', 'netsuite_id',
-                   'bl_no', 'container_type_id', 'pol_port_id', 'pod_port_id', 'invoice_value', 'duty', 'freight']) {
+                   'bl_no', 'customs_entry_number', 'container_type_id', 'pol_port_id', 'pod_port_id', 'invoice_value', 'duty', 'freight']) {
     if (req.body[k] !== undefined) next[k] = req.body[k];
   }
   checkChronology(next);   // 400 before anything is written

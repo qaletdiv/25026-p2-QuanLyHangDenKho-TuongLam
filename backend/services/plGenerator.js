@@ -77,18 +77,20 @@ async function generatePL(shipmentData, meta) {
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8E8E8' } };
     });
 
-    // ── Group rows by carton number (preserve order) ─────────────────────
+    // ── Group rows by carton (preserve order) ────────────────────────────
+    // Group on `_group_key` (po#ctn) when present so two POs that both number
+    // cartons from #1 stay separate; falls back to ctn_number (single-PO / SMS).
     const cartonGroups = new Map();
     for (const r of shipmentData.rows) {
-        const key = r.ctn_number;
+        const key = r._group_key ?? r.ctn_number;
         if (!cartonGroups.has(key)) {
             cartonGroups.set(key, []);
         }
         cartonGroups.get(key).push(r);
     }
 
-    // Sort carton groups by carton number ascending
-    const sortedCartons = [...cartonGroups.entries()].sort((a, b) => a[0] - b[0]);
+    // Sort carton groups by carton number ascending (by the group's own ctn number)
+    const sortedCartons = [...cartonGroups.entries()].sort((a, b) => a[1][0].ctn_number - b[1][0].ctn_number);
 
     // ── Data rows (row 13+) ──────────────────────────────────────────────
     let dataRow = 13;
@@ -97,7 +99,8 @@ async function generatePL(shipmentData, meta) {
     let totalGrossWeight = 0;
     let totalCartons = 0;
 
-    for (const [ctnNum, rows] of sortedCartons) {
+    for (const [, rows] of sortedCartons) {
+        const ctnNum = rows[0].ctn_number;   // displayed carton number (group key may be po#ctn)
         const startRow = dataRow;
         const groupSize = rows.length;
         totalCartons++;

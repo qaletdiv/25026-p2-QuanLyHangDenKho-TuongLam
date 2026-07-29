@@ -74,4 +74,70 @@ function reconcilePo(poNumber, ctx) {
   return { po_number: poNumber, ...computeForPos(new Set([poNumber]), ctx) };
 }
 
-module.exports = { compute, reconcilePo };
+// LEG grain — one air/sea split of a PO. Unlike reconcilePo (which unions all of a
+// PO's legs), this scopes shipped to THIS leg and splits the PO's NetSuite receipts
+// across its legs by SHIPPING METHOD (air arrives/receives before sea) capped at each
+// leg's allocated quantity per SKU — so the sea leg isn't credited the air leg's
+// received units. All derived at read; nothing stored (3NF).
+function reconcileLeg(legId, { legs, legLines, invoices, ciLines, receipts = [], receiptLines = [], modes = [] }) {
+  const leg = legs.find((l) => String(l.id) === String(legId));
+  if (!leg) return null;
+  const po = leg.po_number;
+  const modeName = new Map(modes.map((m) => [m.id, m.name]));
+  // legs of this PO, ordered by shipping method: Air (faster) receives first, then Sea/other.
+  const rank = (l) => { const m = modeName.get(l.mode_id) || ''; return /air/i.test(m) ? 0 : /sea/i.test(m) ? 1 : 2; };
+  const poLegs = legs.filter((l) => l.po_number === po).sort((a, b) => rank(a) - rank(b) || String(a.id).localeCompare(String(b.id)));
+
+  // allocated per (leg, sku) — the WIP target for each split
+  const allocByLegSku = new Map();
+  legLines.forEach((ll) => { const k = `${ll.leg_id}|${ll.sku_code}`; allocByLegSku.set(k, (allocByLegSku.get(k) || 0) + (ll.allocated_qty || 0)); });
+
+  // received per SKU for the whole PO (NetSuite receipt lines are size-level)
+  const myReceiptIds = new Set(receipts.filter((r) => r.po_number === po).map((r) => r.id));
+  const recvBySku = new Map();
+  receiptLines.forEach((l) => { if (myReceiptIds.has(l.receipt_id)) recvBySku.set(l.sku_code, (recvBySku.get(l.sku_code) || 0) + (l.qty || 0)); });
+
+  // allocate each SKU's received qty across the PO's legs (air first) capped at each
+  // leg's allocated qty; any overflow beyond all allocations lands on the last leg.
+  const recvForLegSku = new Map();
+  recvBySku.forEach((qty, sku) => {
+    let remaining = qty;
+    for (const l of poLegs) {
+      if (remaining <= 0) break;
+      const take = Math.min(remaining, allocByLegSku.get(`${l.id}|${sku}`) || 0);
+      if (take > 0) recvForLegSku.set(`${l.id}|${sku}`, (recvForLegSku.get(`${l.id}|${sku}`) || 0) + take);
+      remaining -= take;
+    }
+    if (remaining > 0 && poLegs.length) {
+      const last = poLegs[poLegs.length - 1].id;
+      recvForLegSku.set(`${last}|${sku}`, (recvForLegSku.get(`${last}|${sku}`) || 0) + remaining);
+    }
+  });
+
+  // shipped per SKU for THIS leg — confirmed CI lines matched to the leg
+  const confirmedInv = new Set(invoices.filter((i) => i.status === 'confirmed').map((i) => i.id));
+  const shippedBySku = new Map();
+  ciLines.forEach((cl) => { if (String(cl.matched_leg_id) === String(legId) && confirmedInv.has(cl.invoice_id)) shippedBySku.set(cl.sku_code, (shippedBySku.get(cl.sku_code) || 0) + (cl.qty || 0)); });
+
+  // rows = every SKU touching this leg (allocated | shipped | received)
+  const skus = new Set();
+  legLines.forEach((ll) => { if (String(ll.leg_id) === String(legId)) skus.add(ll.sku_code); });
+  shippedBySku.forEach((_, s) => skus.add(s));
+  recvForLegSku.forEach((_, k) => { const i = k.indexOf('|'); if (k.slice(0, i) === String(legId)) skus.add(k.slice(i + 1)); });
+
+  const fulfillment = [...skus].map((sku) => {
+    const allocated_qty = allocByLegSku.get(`${legId}|${sku}`) || 0;
+    const shipped_qty = shippedBySku.get(sku) || 0;
+    const received_qty = recvForLegSku.get(`${legId}|${sku}`) || 0;
+    return { sku_code: sku, ordered_qty: allocated_qty, allocated_qty, shipped_qty, received_qty, remaining_qty: allocated_qty - shipped_qty, variance: shipped_qty - received_qty };
+  }).sort((a, b) => a.sku_code.localeCompare(b.sku_code));
+
+  const totals = fulfillment.reduce((t, r) => ({
+    ordered_qty: t.ordered_qty + r.ordered_qty, allocated_qty: t.allocated_qty + r.allocated_qty,
+    shipped_qty: t.shipped_qty + r.shipped_qty, received_qty: t.received_qty + r.received_qty,
+  }), { ordered_qty: 0, allocated_qty: 0, shipped_qty: 0, received_qty: 0 });
+
+  return { po_number: po, leg_id: leg.id, mode: modeName.get(leg.mode_id) || null, sku_count: fulfillment.length, totals, fulfillment };
+}
+
+module.exports = { compute, reconcilePo, reconcileLeg };

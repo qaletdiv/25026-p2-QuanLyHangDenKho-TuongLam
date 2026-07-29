@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Geist } from "next/font/google";
-import Script from "next/script";
+import { cookies } from "next/headers";
 import "./globals.css";
 import AppLayout from "@/components/layout/AppLayout";
 import { SessionProvider } from "@/components/providers/SessionProvider";
@@ -25,16 +25,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getSession();
+  const [user, cookieStore] = await Promise.all([getSession(), cookies()]);
+  // Theme is rendered server-side from the cookie so the saved theme is in the
+  // initial HTML — no flash of the default (red) theme, and no client-side script.
+  const themeSummer = cookieStore.get('portal-theme')?.value === 'summer';
 
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
+    <html lang="en" className={cn("font-sans", geist.variable, themeSummer && "theme-summer")} suppressHydrationWarning>
       <body className={`${inter.variable} antialiased`}>
-        {/* Apply the saved theme before hydration to avoid a flash (next/script,
-            beforeInteractive — must live in the root layout; id required for inline). */}
-        <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{
-          __html: `(function(){try{var t=localStorage.getItem('portal-theme');if(t==='summer')document.documentElement.classList.add('theme-summer');}catch(e){}})();`,
-        }} />
         <SessionProvider initialUser={user}>
           <AppLayout>
             {children}

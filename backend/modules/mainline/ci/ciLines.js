@@ -13,15 +13,21 @@ const cbmOf = (measure) => {
 };
 
 // CI lines for ONE booking, from that booking's cartons (filters internally).
+// Grouped per (LEG, sku): a consolidated booking can carry the SAME style-color SKU
+// under more than one leg (two POs, or the air+sea split of one PO), and those must
+// stay as separate lines — keying by sku alone would collapse them onto one leg and
+// mis-attribute shipped quantities. Mirrors how the CI document keys by (po, sku).
 function linesForBooking(cartons, bookingId) {
   const bySku = new Map();
   for (const c of cartons) {
     if (c.booking_id !== bookingId || !c.sku_code) continue;
-    const cur = bySku.get(c.sku_code) || { sku_code: c.sku_code, matched_leg_id: c.leg_id || null, qty: 0, weight_kg: 0, cbm: 0 };
+    const legKey = c.leg_id || null;
+    const key = `${legKey}||${c.sku_code}`;
+    const cur = bySku.get(key) || { sku_code: c.sku_code, matched_leg_id: legKey, qty: 0, weight_kg: 0, cbm: 0 };
     cur.qty += Number(c.pcs_per_ctn) || 0;
     cur.weight_kg += Number(c.net_weight_kgs) || 0;
     cur.cbm += cbmOf(c.measure_cm);
-    bySku.set(c.sku_code, cur);
+    bySku.set(key, cur);
   }
   return [...bySku.values()].map((x, i) => ({
     id: `cil_${bookingId}_${i + 1}`,

@@ -18,8 +18,11 @@ function summarize(rows) {
   let pcs = 0, val = 0, net = 0, gross = 0, cbm = 0;
   rows.forEach((r) => {
     pcs += +r.pcs_per_ctn || 0; val += +r.total_usd || 0;
-    if (!seen.has(r.ctn_number)) {
-      seen.add(r.ctn_number);
+    // `_group_key` (po#ctn) keeps cartons distinct across POs — two POs may both
+    // start at carton #1; falls back to ctn_number for single-PO / SMS callers.
+    const ck = r._group_key ?? r.ctn_number;
+    if (!seen.has(ck)) {
+      seen.add(ck);
       net += +r.net_weight_kgs || 0; gross += +r.gross_weight_kgs || 0;
       const d = String(r.measure_cm || '').split(/[*×xX]/).map((p) => parseFloat(p.trim()));
       if (d.length === 3 && d.every((v) => !isNaN(v))) cbm += (d[0] * d[1] * d[2]) / 1e6;
