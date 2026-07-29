@@ -279,7 +279,7 @@ export default function MainlineReportsClient({ rows, transit, schedules = [] }:
           <div className="p-3 rounded-xl bg-primary-foreground/15 self-start"><BarChart3 className="w-6 h-6 text-primary-foreground" /></div>
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-primary-foreground tracking-tight">Season Delivery KPI</h1>
-            <p className="text-sm mt-0.5 text-primary-foreground/70">
+            <div className="text-sm mt-0.5 text-primary-foreground/70">
               {(() => {
                 const sched = schedules.find((s) => s.season === activeSeason);
                 return sched?.ontime_by && sched?.atrisk_by
@@ -289,9 +289,9 @@ export default function MainlineReportsClient({ rows, transit, schedules = [] }:
                       <p>At Risk ≤ {sched.atrisk_by}</p>
                       <p>Late = {sched.atrisk_by}</p>
                     </>
-                  : <>No production schedule set for {activeSeason || 'this season'} — grades show as Unknown. Set the cutoffs in Settings → Production Schedule.</>;
+                  : <p>No production schedule set for {activeSeason || 'this season'} — grades show as Unknown. Set the cutoffs in Settings → Production Schedule.</p>;
               })()}
-            </p>
+            </div>
           </div>
           <div className="md:ml-auto flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
