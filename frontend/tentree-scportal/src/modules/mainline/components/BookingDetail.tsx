@@ -11,7 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import { BACKEND_URL } from '@/lib/api';
+import { docHref } from '@/lib/api';
 import { approveMainlineBooking, confirmMainlineCi, updateMainlineBooking, uploadShipmentData } from '@/modules/mainline/actions';
 import { useSession } from '@/components/providers/SessionProvider';
 import ConfirmDialog from './ConfirmDialog';
@@ -270,7 +270,7 @@ export default function BookingDetail({
                 <div key={scope} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                   <span className="w-full sm:w-44 shrink-0 text-muted-foreground">{scope}</span>
                   {documents.filter((d) => d.scope === scope).sort((a) => (a.doc_type === 'commercial_invoice' ? -1 : 1)).map((d) => (
-                    <a key={d.id} href={`${BACKEND_URL}${d.file_url}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                    <a key={d.id} href={docHref(d.file_url)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
                       <Download className="h-3.5 w-3.5" /> {d.doc_type === 'commercial_invoice' ? 'Commercial Invoice' : 'Packing Slip'}
                     </a>
                   ))}

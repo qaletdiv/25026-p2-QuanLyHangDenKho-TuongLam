@@ -22,6 +22,10 @@ const update = Joi.object({
   }),
   etd_pol: isoDate, eta_pod: isoDate, e_del: isoDate, cargo_received_date: isoDate, ata: isoDate,
   bl_no: Joi.string().allow(null, ''),
+  courier_id: Joi.string().allow(null, ''),          // actual carrier; drives the landed-cost basis
+  // Was `ceva_shipment_number` — the carrier is data now, so the column no longer
+  // names one. NOT `shipment_number`: that is the portal's own SHP-N sequence.
+  carrier_reference: Joi.string().allow(null, ''),
   customs_entry_number: Joi.string().allow(null, ''),
   container_type_id: Joi.string().allow(null, ''),
   pol_port_id: Joi.string().allow(null, ''),

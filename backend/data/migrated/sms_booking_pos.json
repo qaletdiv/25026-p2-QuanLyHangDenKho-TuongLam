@@ -1,0 +1,52 @@
+[
+  {
+    "id": "smsbp_smsbk_1_1",
+    "booking_id": "smsbk_1",
+    "po_number": "PO04818",
+    "lot_number": 1,
+    "units": 222,
+    "cartons": null,
+    "weight_kg": null,
+    "cbm": null
+  },
+  {
+    "id": "smsbp_smsbk_2_1",
+    "booking_id": "smsbk_2",
+    "po_number": "PO04789",
+    "lot_number": 2,
+    "units": 206,
+    "cartons": 9,
+    "weight_kg": null,
+    "cbm": null
+  },
+  {
+    "id": "smsbp_smsbk_3_1",
+    "booking_id": "smsbk_3",
+    "po_number": "PO04817",
+    "lot_number": 2,
+    "units": 274,
+    "cartons": 14,
+    "weight_kg": null,
+    "cbm": null
+  },
+  {
+    "id": "smsbp_smsbk_4_1",
+    "booking_id": "smsbk_4",
+    "po_number": "PO04819",
+    "lot_number": 2,
+    "units": 433,
+    "cartons": 21,
+    "weight_kg": null,
+    "cbm": null
+  },
+  {
+    "id": "smsbp_smsbk_5_1",
+    "booking_id": "smsbk_5",
+    "po_number": "PO04801",
+    "lot_number": 1,
+    "units": 332,
+    "cartons": 13,
+    "weight_kg": null,
+    "cbm": null
+  }
+]

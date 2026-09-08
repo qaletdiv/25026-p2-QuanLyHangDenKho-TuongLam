@@ -79,6 +79,20 @@ export interface PoReconcile {
   fulfillment: FulfillmentRow[];
 }
 
+// GET /mainline/legs/:legId/shipments — the consignments carrying one PO leg.
+// Quantities are the SHIPPED actuals from the shipping-data upload (null until it
+// is uploaded), not the booked expected_quantity.
+export interface LegShipment {
+  shipment_id: string;
+  shipment_number: string | null;
+  lot_number: number | null;
+  carrier_shipment_number: string | null;   // the forwarder's own ref; blank if unset
+  crd_actual: string | null;                // per-shipment cargo-ready; ≠ the leg's CRD target
+  shipped_qty: number | null;
+  shipped_cartons: number | null;
+  status: string | null;
+}
+
 export interface PoLegDetail {
   id: string;
   po_number: string;
@@ -162,6 +176,11 @@ export interface MainlineBooking {
   supplier_name: string | null;
   incoterm_id: string | null;
   cargo_ready_date: string | null;
+  // PLANNED carrier — "book with FedEx/DHL, or book with a freight forwarder".
+  // Copied onto the shipment at approve; the SHIPMENT's carrier is the one that
+  // drives the landed-cost basis, so this is the plan, not the outcome.
+  courier_id: string | null;
+  courier: string | null;       // joined
   mode: string | null;          // Air / Sea — one per booking (G3); for the forwarder
   season: string | null;        // derived (leg → PO → master); for the season filter
   booking_status: MainlineBookingStatus | null;
@@ -213,6 +232,15 @@ export interface MainlineShipment {
   status: MainlineShipmentStatus | null;
   // shared logistics facts (header-level — edited once for all legs):
   bl_no: string | null;                   // ocean bill of lading number
+  // ACTUAL carrier for this conveyance. Drives landed_cost_basis: a carrier that
+  // does not invoice freight & duty separately (FedEx/DHL) makes the landed cost an
+  // estimate off the CI value. Null (pre-2026-08-24 rows) reads as 'actual'.
+  courier_id: string | null;
+  courier: string | null;                 // joined
+  landed_cost_basis: 'actual' | 'estimate';   // DERIVED from the carrier, never stored
+  // The carrier's OWN reference for this shipment (was `ceva_shipment_number`, which
+  // hardcoded one carrier's name). NOT `shipment_number` — that is the portal's SHP-N.
+  carrier_reference: string | null;       // manually entered
   customs_entry_number: string | null;    // customs entry # — landed-cost push (custbody_tt_customs_entry_number)
   container_type_id: string | null;
   container_type: string | null;          // FCL / LCL
@@ -242,6 +270,10 @@ export interface MainlineShipment {
 
 export interface PortOption { id: string; code?: string; name: string; country?: string; role?: string }
 export interface ContainerTypeOption { id: string; name: string }
+// Carriers: parcel couriers (FedEx, DHL) AND freight forwarders (Ceva).
+// `provides_cost_invoices: false` ⇒ no traceable freight & duty invoice, so the
+// mainline landed cost is estimated from the commercial-invoice value.
+export interface CourierOption { id: string; name: string; provides_cost_invoices?: boolean }
 
 // One row of the season KPI report (GET /reports/mainline) — PO-LEG grained, full
 // order book. A leg's qty is split across mutually-exclusive rows (shipment rows,
@@ -272,7 +304,8 @@ export interface MainlineReportRow {
   date_basis: 'actual' | 'projected';     // whose E-DEL was graded (shipment vs WIP/transit projection)
   e_del: string | null;                   // best-known E-DEL (graded)
   expected_ata: string | null;            // derived = E-DEL + 5
-  ata: string | null;                     // actual receipt date
+  ata: string | null;                     // actual receipt date (derived from Item Receipts, else typed)
+  ata_source?: 'netsuite' | 'manual' | null;
   timeliness: string;                     // On Time / At Risk / Late / Unknown
   kpi_status: string;                     // Received / Delivered / On Time / At Risk / Late / Unknown
   reason: string;                         // human-readable grade explanation
@@ -306,7 +339,9 @@ export interface TransitShipmentRow {
   eta_pod: string | null;
   e_del: string | null;
   ata: string | null;
+  ata_source: 'netsuite' | 'manual' | null;             // attributed Item Receipt vs typed on the header
   durations: Record<string, number | null>;
+  total_days: number | null;                            // end-to-end CRD → ATA
   slipped: TransitSlippedSegment[];
 }
 // One lane = supplier × country of origin × departure port × mode.

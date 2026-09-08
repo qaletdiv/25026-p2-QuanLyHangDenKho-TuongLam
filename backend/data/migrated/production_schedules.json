@@ -3,5 +3,15 @@
     "season_id": "season_1",
     "ontime_by": "2026-07-07",
     "atrisk_by": "2026-07-15"
+  },
+  {
+    "season_id": "season_ss27",
+    "ontime_by": "2027-07-01",
+    "atrisk_by": "2027-12-01"
+  },
+  {
+    "season_id": "season_fw27",
+    "ontime_by": null,
+    "atrisk_by": null
   }
 ]

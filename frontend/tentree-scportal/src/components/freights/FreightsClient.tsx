@@ -13,13 +13,12 @@ import {
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { BACKEND_URL } from '@/lib/api';
+import { docHref } from '@/lib/api';
 import {
   parseFreightTemplate,
   exportFreightRecord,
   deleteFreightRecord,
   getFreightRecord,
-  getFreightTemplateUrl,
 } from '@/app/actions/freights';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -86,15 +85,19 @@ export default function FreightsClient({ initialRecords = [] }: { initialRecords
 
   // ── Template download ────────────────────────────────────────────────────────
 
+  // Goes through our own /api/documents proxy, which authenticates via the httpOnly
+  // cookie. Previously this called a server action that RETURNED the raw JWT so this
+  // client code could set an Authorization header — which put the token in browser
+  // JavaScript and undid the httpOnly cookie entirely (any XSS could read it).
   const handleDownloadTemplate = async () => {
-    const { url, token } = await getFreightTemplateUrl();
-    const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+    const res = await fetch(docHref('/freights/template'));
     if (!res.ok) { toast.error('Failed to download template'); return; }
     const blob = await res.blob();
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'freight_rate_template.xlsx';
     a.click();
+    URL.revokeObjectURL(a.href);
   };
 
   // ── File processing ──────────────────────────────────────────────────────────
@@ -157,7 +160,7 @@ export default function FreightsClient({ initialRecords = [] }: { initialRecords
     try {
       const { file_url } = await exportFreightRecord(record.id);
       const a = document.createElement('a');
-      a.href = `${BACKEND_URL}${file_url}`;
+      a.href = docHref(file_url);
       a.download = file_url.split('/').pop() || 'freight.xlsx';
       a.click();
       toast.success('Excel exported');

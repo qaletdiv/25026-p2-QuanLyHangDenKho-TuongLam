@@ -1,5 +1,6 @@
 const { suppliers, couriers, incoterms, statuses, warehouses, modes } = require('../models/MasterDataModel');
 const BaseModel = require('../models/BaseModel');
+const { supplierKey } = require('../utils/nameKey');
 
 // Normalized destination master data (mainline module). Read-only for now — the
 // migration / ingestion own these files. warehouse_facilities = physical destinations
@@ -17,7 +18,25 @@ const seasonsModel        = new BaseModel('migrated/seasons.json');
 async function getSuppliers(req, res) {
     res.json(await suppliers.read().catch(() => []));
 }
+// suppliers.name is declared `unique` in database.dbml but the JSON stack can't
+// enforce it, so the check lives here — otherwise nothing stops a second row for a
+// vendor that already exists (which is how six punctuation-variant duplicates got
+// in via the SMS NetSuite sync; merged 2026-08-12). Compared on supplierKey, so
+// "Best Star Fashions Co Ltd" and "Best Star Fashions Co., Ltd." collide. The key
+// is computed here and never stored — it is derived from `name`.
 async function putSuppliers(req, res) {
+    const seen = new Map();
+    for (const row of Array.isArray(req.body) ? req.body : []) {
+        const key = supplierKey(row && row.name);
+        if (!key) continue;                       // blank rows are the "Add" placeholder
+        if (seen.has(key)) {
+            return res.status(400).json({
+                success: false,
+                error: `Duplicate supplier: "${row.name}" is the same as "${seen.get(key)}".`,
+            });
+        }
+        seen.set(key, row.name);
+    }
     await suppliers.write(req.body);
     res.json({ success: true });
 }

@@ -13,12 +13,23 @@
 // Per-carton N/W·G/W·MEASURE are placed on each carton's FIRST row (blank on
 // continuation rows) — the layout parseShipmentData expects (it de-dups weight
 // and measure by ctn_number).
+//
+// Usage: node scripts/convertTtSmsToShipmentData.js [--dir <subdir of "converted
+// docs">] [--lot <n>] [--only <file substring>]...
+//   --dir SMS --lot 2 --only "TT SMS 007"  ->  data/converted docs/SMS/PO<num>-shipment-data-lot2.xlsx
 
 const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const DIR = path.join(__dirname, '..', 'data', 'converted docs');
+const argv = process.argv.slice(2);
+const argOf = (flag) => { const i = argv.indexOf(flag); return i >= 0 ? argv[i + 1] : null; };
+const argsOf = (flag) => argv.reduce((acc, a, i) => (a === flag && argv[i + 1] ? [...acc, argv[i + 1]] : acc), []);
+
+const SUBDIR = argOf('--dir') || '';
+const LOT = Number(argOf('--lot') || 1);
+const ONLY = argsOf('--only');
+const DIR = path.join(__dirname, '..', 'data', 'converted docs', SUBDIR);
 
 const TEMPLATE_HEADER = [
   'CTN#', 'PO#', 'SKU', 'UPC', 'Knit/Woven', 'Style Description', 'Color Description',
@@ -46,9 +57,11 @@ function priceMap(inv) {
 
   const map = new Map();
   for (let i = sub + 1; i < inv.length; i++) {
+    if (/total/i.test(S(inv[i][poCol]))) break;   // TOTAL row ends the item block
     const sku = S(inv[i][skuCol]);
-    if (!sku) break;                       // blank row ends the item block
-    if (/total/i.test(S(inv[i][poCol]))) break;
+    // The "Marks, Numbers" block (col 0) can start a row or two ABOVE the first
+    // item line, so blanks only end the block once items have been seen.
+    if (!sku) { if (map.size) break; else continue; }
     if (!map.has(sku)) map.set(sku, N(inv[i][unitCol]));
   }
   return map;
@@ -73,6 +86,18 @@ function packingRows(pl) {
       style: S(r[C.style]), color: S(r[C.color]), composition: S(r[C.comp]),
       pcs: N(r[C.pcs]), nw: N(r[C.nw]), gw: N(r[C.gw]), measure: normMeasure(r[C.measure]),
     });
+  }
+
+  // Some workbooks (TT SMS 007/008/009) keep the header labels "Composition |
+  // Color Description" but fill the two DATA columns the other way round. A
+  // composition always states fibre percentages, a colourway never does — so
+  // vote on the content and swap the pair rather than trusting the position.
+  const looksComp = (v) => /\d\s*%/.test(v);
+  const swapped = rows.filter((r) => looksComp(r.color)).length;
+  const asLabelled = rows.filter((r) => looksComp(r.composition)).length;
+  if (swapped > asLabelled) {
+    for (const r of rows) { const t = r.color; r.color = r.composition; r.composition = t; }
+    console.log('     (PL Composition/Color columns were swapped in the source — corrected)');
   }
   return rows;
 }
@@ -108,7 +133,9 @@ function build(rows, prices) {
   return { wb, unmatched, cartonNW, cartonGW, cartonMeasure };
 }
 
-const files = fs.readdirSync(DIR).filter((f) => /^TT SMS .*\.xlsx$/i.test(f));
+const files = fs.readdirSync(DIR)
+  .filter((f) => /^TT SMS .*\.xlsx$/i.test(f))
+  .filter((f) => !ONLY.length || ONLY.some((o) => f.toLowerCase().includes(o.toLowerCase())));
 for (const f of files) {
   const wb = xlsx.read(fs.readFileSync(path.join(DIR, f)), { type: 'buffer', cellDates: true });
   const invName = wb.SheetNames.find((n) => /^INV/i.test(n)); // prefer HCIN (first INV*)
@@ -118,7 +145,7 @@ for (const f of files) {
   const po = rows[0]?.po;
   const { wb: out, unmatched, cartonNW, cartonGW } = build(rows, prices);
 
-  const outName = `PO${po}-shipment-data.xlsx`;
+  const outName = `PO${po}-shipment-data${LOT > 1 ? `-lot${LOT}` : ''}.xlsx`;
   xlsx.writeFile(out, path.join(DIR, outName));
 
   const cartons = [...new Set(rows.map((r) => r.ctn))];

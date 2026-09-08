@@ -113,7 +113,7 @@
   },
   {
     "trn_number": "TRN_5051",
-    "supplier_id": "4",
+    "supplier_id": "20",
     "season_id": "season_1",
     "main_shoulder": "Main",
     "netsuite_id": "32262017"
@@ -155,7 +155,7 @@
   },
   {
     "trn_number": "TRN_1265",
-    "supplier_id": "6",
+    "supplier_id": "16",
     "season_id": "season_1",
     "main_shoulder": "Main + Shoulder",
     "netsuite_id": null
@@ -169,21 +169,21 @@
   },
   {
     "trn_number": "TRN_2101",
-    "supplier_id": "1",
+    "supplier_id": "15",
     "season_id": "season_1",
     "main_shoulder": "Main",
     "netsuite_id": null
   },
   {
     "trn_number": "TRN_5052",
-    "supplier_id": "1",
+    "supplier_id": "15",
     "season_id": "season_1",
     "main_shoulder": "Main + Shoulder",
     "netsuite_id": null
   },
   {
     "trn_number": "TRN_2098",
-    "supplier_id": "6",
+    "supplier_id": "16",
     "season_id": "season_1",
     "main_shoulder": "Main",
     "netsuite_id": null
@@ -285,5 +285,26 @@
     "season_id": "season_1",
     "main_shoulder": null,
     "netsuite_id": "33624088"
+  },
+  {
+    "trn_number": "TRN_1281",
+    "supplier_id": "uxhnuqsv3",
+    "season_id": "season_1",
+    "main_shoulder": null,
+    "netsuite_id": "33640702"
+  },
+  {
+    "trn_number": "TRN_5059",
+    "supplier_id": "10",
+    "season_id": "season_1",
+    "main_shoulder": null,
+    "netsuite_id": "33759582"
+  },
+  {
+    "trn_number": "TRN_5060",
+    "supplier_id": "15",
+    "season_id": "season_1",
+    "main_shoulder": null,
+    "netsuite_id": "33832831"
   }
 ]

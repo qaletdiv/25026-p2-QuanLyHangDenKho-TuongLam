@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Package, FileText, Users, Settings, LogOut, BarChart3, LineChart, ClipboardList, Truck, FileCode, Palette, Sun, Flame, Warehouse, Ship, UserCog, Globe, CalendarClock, Coins, Percent } from 'lucide-react';
+import { Package, FileText, Users, ShieldCheck, LogOut, BarChart3, LineChart, ClipboardList, Truck, FileCode, Palette, Sun, Flame, Warehouse, Ship, UserCog, Globe, CalendarClock, Coins, Percent, ReceiptText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { logout } from '@/app/actions/auth';
@@ -13,19 +13,25 @@ const navItems = [
   // /purchase-orders, /bookings, /shipments remain mounted ONLY for SMS until the
   // SMS module is migrated (Phase 6 = promote mainline, keep legacy for SMS).
   { name: 'Purchase Orders', href: '/mainline/purchase-orders', icon: ClipboardList, permission: 'purchase_orders', matchPrefix: ['/mainline/purchase-orders', '/sms/purchase-orders'] },
-  { name: 'Bookings',        href: '/mainline/bookings',        icon: FileText,        permission: 'bookings',   matchPrefix: '/mainline/bookings' },
+  { name: 'Bookings',        href: '/mainline/bookings',        icon: FileText,        permission: 'bookings',   matchPrefix: ['/mainline/bookings', '/sms/bookings'] },
   { name: 'Shipments',       href: '/mainline/shipments',       icon: Package,         permission: 'shipments',  matchPrefix: ['/mainline/shipments', '/sms/shipments'] },
-  // SMS shares the Purchase Orders / Shipments entries above via a Mainline | SMS
-  // tab strip on each list page (ModuleTabs) — the two modules are separate
-  // datasets, unified in navigation only. SMS has no bookings (vendors ship
-  // directly via courier), so Bookings stays mainline-only. Receiving screen
-  // removed 2026-07-03 — receipts sync from NetSuite into the PO reconciliation.
+  // SMS shares the Purchase Orders / Bookings / Shipments entries above via a
+  // Mainline | SMS tab strip on each list page (ModuleTabs) — the two modules are
+  // separate datasets, unified in navigation only. SMS bookings are OPTIONAL
+  // (added 2026-08-07): a courier consignment reserves no space, so most SMS
+  // shipments are still entered directly with no booking; a booking is used when
+  // the consignment is authorized up front and clears customs formally.
+  // Receiving screen removed 2026-07-03 — receipts sync from NetSuite into the PO
+  // reconciliation.
   { name: 'Reports',         href: '/reports/mainline',   icon: BarChart3,       permission: 'reports', matchPrefix: '/reports' },
   { name: 'Forecast',        href: '/forecast',           icon: LineChart,       permission: 'forecast' },
 
   { name: 'Contacts',        href: '/contacts',           icon: Users,           permission: 'contacts' },
   { name: 'Freight Rates',   href: '/freights',           icon: Globe,           permission: 'freight' },
   { name: 'Landed Costs',    href: '/landed-costs/sms',   icon: Coins,           permission: 'landed_costs', matchPrefix: '/landed-costs' },
+  // 3PL invoice verification. Reuses `landed_costs` (Admin + Logistics) rather
+  // than adding a permission key — same finance audience, no roles.json edit.
+  { name: 'NRI Invoices',    href: '/nri-invoices',       icon: ReceiptText,     permission: 'landed_costs', matchPrefix: '/nri-invoices' },
 ];
 
 const masterDataItems = [
@@ -37,7 +43,8 @@ const masterDataItems = [
   { name: 'Transport Modes', href: '/settings/modes', icon: Ship },
   { name: 'Production Schedule', href: '/settings/production-schedules', icon: CalendarClock },
   { name: 'Landed Cost Rates', href: '/settings/landed-costs', icon: Percent },
-  { name: 'Roles', href: '/settings/roles', icon: Settings, adminOnly: true },
+  // icon matches the Role Management page header (settings/roles/page.tsx)
+  { name: 'Roles', href: '/settings/roles', icon: ShieldCheck, adminOnly: true },
   { name: 'Users', href: '/settings/users', icon: UserCog, adminOnly: true },
 ];
 

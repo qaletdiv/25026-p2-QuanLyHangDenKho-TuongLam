@@ -9,27 +9,38 @@
 
 const M = require('./SmsModels');
 const { resolveForShipment } = require('./receiptMatch');
+const { assertShipmentVisible } = require('./vendorAccess');
 
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
+
+// Drop any rejection of this (receipt, shipment) pair — confirming the pair is the
+// opposite assertion, so the two can never both stand. Also the undo path: re-adding
+// the IR by hand un-rejects it. Returns the surviving rows (caller writes once).
+const withoutRejection = (rejections, receiptId, shipmentId) =>
+  rejections.filter((x) => !(x.receipt_id === receiptId && x.shipment_id === shipmentId));
 
 // GET /sms/shipments/:id/receipt-matches — the suggested (or confirmed) IR per PO
 // for a shipment. Read-only; drives a confirm UI and lets you inspect a match.
 async function suggestForShipment(req, res) {
-  const [shipments, shipmentPos, cartons, receipts, receiptLines] = await Promise.all([
+  await assertShipmentVisible(req, req.params.id);
+  const [shipments, shipmentPos, cartons, receipts, receiptLines, rejections] = await Promise.all([
     M.shipments.read(), M.shipmentPos.read(), M.packingCartons.read().catch(() => []),
     M.receipts.read().catch(() => []), M.receiptLines.read().catch(() => []),
+    M.receiptRejections.read().catch(() => []),
   ]);
   const s = shipments.find((x) => x.id === req.params.id);
   if (!s) err('SMS shipment not found', 404);
   const poNumbers = [...new Set(shipmentPos.filter((j) => j.shipment_id === s.id).map((j) => j.po_number))];
-  const resolved = resolveForShipment(s.id, poNumbers, { junctions: shipmentPos, cartons, receipts, receiptLines, shipments });
+  const resolved = resolveForShipment(s.id, poNumbers, { junctions: shipmentPos, cartons, receipts, receiptLines, shipments, rejections });
   res.json({ shipment_id: s.id, matches: resolved });
 }
 
 // POST /sms/receipts/:id/match { shipment_id } — confirm the match.
 async function setMatch(req, res) {
   const { shipment_id } = req.body;
-  const [receipts, shipmentPos] = await Promise.all([M.receipts.read(), M.shipmentPos.read()]);
+  const [receipts, shipmentPos, rejections] = await Promise.all([
+    M.receipts.read(), M.shipmentPos.read(), M.receiptRejections.read().catch(() => []),
+  ]);
   const r = receipts.find((x) => x.id === req.params.id);
   if (!r) err('Item receipt not found', 404);
   // the shipment must actually carry this receipt's PO
@@ -40,7 +51,49 @@ async function setMatch(req, res) {
   r.confirmed_by = req.user?.id || null;
   r.confirmed_at = new Date().toISOString();
   await M.receipts.write(receipts);
+  const kept = withoutRejection(rejections, r.id, shipment_id);
+  if (kept.length !== rejections.length) await M.receiptRejections.write(kept);
   res.json(r);
+}
+
+// POST /sms/receipts/:id/reject { shipment_id } — the human says this suggested IR
+// is NOT the one that received this lot. Stored (the match is derived per read, so
+// an unstored "no" would come straight back); the matcher then offers the next
+// candidate, or falls through to the manual IR-# entry when there is none.
+async function rejectMatch(req, res) {
+  const { shipment_id } = req.body;
+  const [receipts, shipmentPos, rejections] = await Promise.all([
+    M.receipts.read(), M.shipmentPos.read(), M.receiptRejections.read().catch(() => []),
+  ]);
+  const r = receipts.find((x) => x.id === req.params.id);
+  if (!r) err('Item receipt not found', 404);
+  if (!shipmentPos.some((j) => j.shipment_id === shipment_id && j.po_number === r.po_number)) {
+    err(`Shipment ${shipment_id} does not carry PO ${r.po_number}`, 400);
+  }
+  // rejecting a pair that is currently CONFIRMED also withdraws the confirmation
+  if (r.matched_shipment_id === shipment_id) {
+    r.matched_shipment_id = null; r.confirmed_by = null; r.confirmed_at = null;
+    await M.receipts.write(receipts);
+  }
+  if (!rejections.some((x) => x.receipt_id === r.id && x.shipment_id === shipment_id)) {
+    const seq = rejections.reduce((mx, x) => Math.max(mx, +String(x.id).replace(/\D/g, '') || 0), 0) + 1;
+    rejections.push({ id: `srej_${seq}`, receipt_id: r.id, shipment_id,
+      rejected_by: req.user?.id || null, rejected_at: new Date().toISOString() });
+    await M.receiptRejections.write(rejections);
+  }
+  res.json({ receipt_id: r.id, shipment_id, rejected: true });
+}
+
+// DELETE /sms/receipts/:id/reject { shipment_id } — undo a rejection (the pair
+// becomes auto-matchable again). Confirming or manually re-adding the IR does this
+// implicitly; this is the explicit "I clicked ✗ by mistake" path.
+async function unrejectMatch(req, res) {
+  const shipment_id = req.body?.shipment_id || req.query.shipment_id;
+  if (!shipment_id) err("'shipment_id' is required", 400);
+  const rejections = await M.receiptRejections.read().catch(() => []);
+  const kept = withoutRejection(rejections, req.params.id, shipment_id);
+  if (kept.length !== rejections.length) await M.receiptRejections.write(kept);
+  res.json({ receipt_id: req.params.id, shipment_id, rejected: false });
 }
 
 // POST /sms/receipts/manual-match { shipment_id, po_number, ir_tranid } — when the
@@ -50,7 +103,9 @@ async function setMatch(req, res) {
 // so the landed-cost push has a target. The internal id is what the push PATCHes.
 async function manualMatch(req, res) {
   const { shipment_id, po_number, ir_tranid } = req.body;
-  const [receipts, shipmentPos] = await Promise.all([M.receipts.read(), M.shipmentPos.read()]);
+  const [receipts, shipmentPos, rejections] = await Promise.all([
+    M.receipts.read(), M.shipmentPos.read(), M.receiptRejections.read().catch(() => []),
+  ]);
   if (!shipmentPos.some((j) => j.shipment_id === shipment_id && j.po_number === po_number)) {
     err(`Shipment ${shipment_id} does not carry PO ${po_number}`, 400);
   }
@@ -75,6 +130,8 @@ async function manualMatch(req, res) {
   r.confirmed_by = req.user?.id || null;
   r.confirmed_at = new Date().toISOString();
   await M.receipts.write(receipts);
+  const kept = withoutRejection(rejections, r.id, shipment_id);
+  if (kept.length !== rejections.length) await M.receiptRejections.write(kept);
   res.json(r);
 }
 
@@ -90,4 +147,4 @@ async function clearMatch(req, res) {
   res.json(r);
 }
 
-module.exports = { suggestForShipment, setMatch, clearMatch, manualMatch };
+module.exports = { suggestForShipment, setMatch, clearMatch, manualMatch, rejectMatch, unrejectMatch };

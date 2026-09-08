@@ -19,6 +19,7 @@ const { suppliers: SupplierModel, modes: ModeModel } = require('../../../models/
 const BaseModel = require('../../../models/BaseModel');
 const status = require('../statuses');
 const svc = require('./mainlineBookingService');
+const { resolveVendorSupplierId } = require('../../../utils/vendorScope');
 
 // FCL/LCL is implied by the Sea mode name; Air/Courier have no container type.
 const containerTypeFromMode = (modeName) => {
@@ -31,14 +32,15 @@ const containerTypeFromMode = (modeName) => {
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
 
 async function _loadContext() {
-  const [bookings, bookingLegs, legs, legLines, orders, masters, suppliers, modes, seasons] = await Promise.all([
+  const [bookings, bookingLegs, legs, legLines, orders, masters, suppliers, modes, seasons, couriers] = await Promise.all([
     MainlineBookingModel.readBookings(), MainlineBookingModel.readBookingLegs(),
     MainlineLegModel.readLegs(), MainlineLegModel.readLegLines(),
     PoOrderModel.readOrders(), PoMasterModel.read(), SupplierModel.read().catch(() => []),
     ModeModel.read().catch(() => []),
     new BaseModel('migrated/seasons.json').read().catch(() => []),
+    new BaseModel('couriers.json').read().catch(() => []),
   ]);
-  return { bookings, bookingLegs, legs, legLines, orders, masters, suppliers, modes, seasons };
+  return { bookings, bookingLegs, legs, legLines, orders, masters, suppliers, modes, seasons, couriers };
 }
 
 async function _enrich(bookings, ctx) {
@@ -46,7 +48,7 @@ async function _enrich(bookings, ctx) {
   await Promise.all(bookings.map(async (b) => idToStatusName.set(b.booking_status_id, await status.nameForId(b.booking_status_id))));
   return svc.enrichBookings(bookings, {
     bookingLegs: ctx.bookingLegs, legs: ctx.legs, suppliers: ctx.suppliers, modes: ctx.modes,
-    orders: ctx.orders, masters: ctx.masters, seasons: ctx.seasons, idToStatusName,
+    orders: ctx.orders, masters: ctx.masters, seasons: ctx.seasons, couriers: ctx.couriers, idToStatusName,
   });
 }
 
@@ -56,22 +58,41 @@ function nextBookingNumber(bookings) {
   return `BKG-${mx + 1}`;
 }
 
+// Vendor row scoping. mainline_bookings carries supplier_id directly (G1 guarantees
+// one supplier per booking), so this is a straight row filter. Only the RECORD LIST
+// is filtered — the enrichment context (legs, orders, masters, suppliers) stays whole,
+// because those are lookup tables and pruning them would blank out joined names.
+// Safe to filter the list: enrichBookings is a pure per-booking map with no
+// cross-record aggregation.
+const bookingScope = (req) => resolveVendorSupplierId(req.user, { onUnlinked: 'deny' });
+const mineOnly = (bookings, vendorSid) =>
+  vendorSid == null ? bookings : bookings.filter((b) => String(b.supplier_id) === String(vendorSid));
+
 async function getAll(req, res) {
-  const ctx = await _loadContext();
-  res.json(await _enrich(ctx.bookings, ctx));
+  const [ctx, vendorSid] = await Promise.all([_loadContext(), bookingScope(req)]);
+  res.json(await _enrich(mineOnly(ctx.bookings, vendorSid), ctx));
 }
 
 async function getOne(req, res) {
-  const ctx = await _loadContext();
+  const [ctx, vendorSid] = await Promise.all([_loadContext(), bookingScope(req)]);
   const b = ctx.bookings.find((x) => x.id === req.params.id);
-  if (!b) err('Booking not found', 404);
+  // 404 (not 403) when it exists but isn't theirs — a 403 would confirm the id is
+  // real, letting a vendor enumerate other suppliers' bookings by probing ids.
+  if (!b || (vendorSid != null && String(b.supplier_id) !== String(vendorSid))) err('Booking not found', 404);
   res.json((await _enrich([b], ctx))[0]);
 }
 
 async function create(req, res) {
-  const { supplier_id, po_legs, force_overbook } = req.body;
+  const { supplier_id, po_legs, courier_id, force_overbook } = req.body;
   const ctx = await _loadContext();
   const legById = new Map(ctx.legs.map((l) => [l.id, l]));
+
+  // PLANNED carrier. Optional: it is not always decided when the vendor submits,
+  // and it stays correctable on the shipment afterwards. Validated when supplied so
+  // a typo cannot reach the landed-cost basis, which keys on this carrier.
+  if (courier_id && !ctx.couriers.some((cr) => cr.id === courier_id)) {
+    err(`Unknown courier_id '${courier_id}'`, 400);
+  }
 
   // Leg-only guard: every referenced leg must exist (forecast POs have none).
   const missing = po_legs.filter((p) => !legById.has(p.leg_id)).map((p) => p.leg_id);
@@ -123,6 +144,7 @@ async function create(req, res) {
     booking_number: req.body.booking_number || nextBookingNumber(ctx.bookings),
     supplier_id,
     incoterm_id: req.body.incoterm_id || null,
+    courier_id: courier_id || null,          // planned carrier; stamped onto the shipment at approve
     cargo_ready_date: req.body.cargo_ready_date || seededCrd,
     booking_status_id: await status.idForName('Booking Pending'),
     // booking date — user-settable (existing column, no schema change); defaults to now
@@ -193,7 +215,13 @@ async function _approve(booking, ctx) {
         mode_id,
         status_id: readyToShipId,
         container_type_id: containerTypeFromMode(modeName.get(mode_id)),
-        pol_port_id: null, pod_port_id: null, bl_no: null,
+        // ACTUAL carrier, seeded from the booking's PLAN. Null when the booking did
+        // not name one — and null means ACTUAL basis on the Landed Costs page, i.e.
+        // the pre-2026-08-24 behaviour, never a silent estimate. Correctable on the
+        // shipment. Deliberately NOT defaulted to a carrier: guessing one is the bug
+        // this replaces (SMS approve used to hardcode FedEx).
+        courier_id: booking.courier_id || null,
+        pol_port_id: null, pod_port_id: null, bl_no: null, carrier_reference: null,
         etd_pol: items.reduce((d, { leg }) => earliest(d, leg.etd_pol || null), null),
         eta_pod: null,
         e_del: items.reduce((d, { leg }) => latest(d, leg.e_del || null), null),
@@ -243,6 +271,15 @@ async function update(req, res) {
     booking.cargo_ready_date = req.body.cargo_ready_date || null;
   }
   if (req.body.incoterm_id !== undefined) booking.incoterm_id = req.body.incoterm_id;
+  // Planned carrier. Editable up to approval — after that the SHIPMENT's carrier is
+  // the one that matters (it drives the landed-cost basis), so changing the plan
+  // here deliberately does NOT retro-change an already-created shipment.
+  if (req.body.courier_id !== undefined) {
+    if (req.body.courier_id && !ctx.couriers.some((cr) => cr.id === req.body.courier_id)) {
+      err(`Unknown courier_id '${req.body.courier_id}'`, 400);
+    }
+    booking.courier_id = req.body.courier_id || null;
+  }
 
   let createdShipments = [];
   if (newStatusName === 'Booking Approved' && oldStatusName !== 'Booking Approved') {

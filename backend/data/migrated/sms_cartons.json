@@ -1,0 +1,1162 @@
+[
+  {
+    "id": "sctn_1_1",
+    "shipment_id": "1",
+    "ctn_number": 1,
+    "net_weight_kgs": 4.8,
+    "gross_weight_kgs": 5.8,
+    "measure_cm": "60X40X20"
+  },
+  {
+    "id": "sctn_2_1",
+    "shipment_id": "2",
+    "ctn_number": 1,
+    "net_weight_kgs": 4.8,
+    "gross_weight_kgs": 5.8,
+    "measure_cm": "60X40X20"
+  },
+  {
+    "id": "sctn_3_1",
+    "shipment_id": "3",
+    "ctn_number": 1,
+    "net_weight_kgs": 7.1,
+    "gross_weight_kgs": 8.8,
+    "measure_cm": "53X33X45"
+  },
+  {
+    "id": "sctn_3_2",
+    "shipment_id": "3",
+    "ctn_number": 2,
+    "net_weight_kgs": 6,
+    "gross_weight_kgs": 7.7,
+    "measure_cm": "53X33X45"
+  },
+  {
+    "id": "sctn_4_1",
+    "shipment_id": "4",
+    "ctn_number": 1,
+    "net_weight_kgs": 2.6,
+    "gross_weight_kgs": 3.6,
+    "measure_cm": "43X37X15"
+  },
+  {
+    "id": "sctn_5_1",
+    "shipment_id": "5",
+    "ctn_number": 1,
+    "net_weight_kgs": 6.6,
+    "gross_weight_kgs": 8,
+    "measure_cm": "47X31X40"
+  },
+  {
+    "id": "sctn_6_1",
+    "shipment_id": "6",
+    "ctn_number": 1,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": null,
+    "measure_cm": null
+  },
+  {
+    "id": "sctn_7_1",
+    "shipment_id": "7",
+    "ctn_number": 1,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": null,
+    "measure_cm": null
+  },
+  {
+    "id": "sctn_8_1",
+    "shipment_id": "8",
+    "ctn_number": 1,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": null,
+    "measure_cm": null
+  },
+  {
+    "id": "sctn_9_1",
+    "shipment_id": "9",
+    "ctn_number": 1,
+    "net_weight_kgs": 8.4,
+    "gross_weight_kgs": 9.4,
+    "measure_cm": "60X40X20"
+  },
+  {
+    "id": "sctn_16_1",
+    "shipment_id": "16",
+    "ctn_number": 1,
+    "net_weight_kgs": 11.44,
+    "gross_weight_kgs": 13,
+    "measure_cm": "55X43X38"
+  },
+  {
+    "id": "sctn_17_1",
+    "shipment_id": "17",
+    "ctn_number": 1,
+    "net_weight_kgs": 9.68,
+    "gross_weight_kgs": 11,
+    "measure_cm": "55X43X38"
+  },
+  {
+    "id": "sctn_18_1",
+    "shipment_id": "18",
+    "ctn_number": 1,
+    "net_weight_kgs": 11,
+    "gross_weight_kgs": 12.5,
+    "measure_cm": "55X43X38"
+  },
+  {
+    "id": "sctn_18_2",
+    "shipment_id": "18",
+    "ctn_number": 2,
+    "net_weight_kgs": 7.59,
+    "gross_weight_kgs": 8.63,
+    "measure_cm": "55X43X38"
+  },
+  {
+    "id": "sctn_19_1",
+    "shipment_id": "19",
+    "ctn_number": 1,
+    "net_weight_kgs": 0.4,
+    "gross_weight_kgs": 0.5,
+    "measure_cm": "45.4X31.4X7.6"
+  },
+  {
+    "id": "sctn_20_1",
+    "shipment_id": "20",
+    "ctn_number": 1,
+    "net_weight_kgs": 0.4,
+    "gross_weight_kgs": 0.5,
+    "measure_cm": "45.4X31.4X7.6"
+  },
+  {
+    "id": "sctn_21_1",
+    "shipment_id": "21",
+    "ctn_number": 1,
+    "net_weight_kgs": 0.4,
+    "gross_weight_kgs": 0.5,
+    "measure_cm": "37X31.5X17"
+  },
+  {
+    "id": "sctn_22_1",
+    "shipment_id": "22",
+    "ctn_number": 1,
+    "net_weight_kgs": 12.9,
+    "gross_weight_kgs": 13.9,
+    "measure_cm": "60X40X40"
+  },
+  {
+    "id": "sctn_22_2",
+    "shipment_id": "22",
+    "ctn_number": 2,
+    "net_weight_kgs": 11.7,
+    "gross_weight_kgs": 12.7,
+    "measure_cm": "60X40X40"
+  },
+  {
+    "id": "sctn_23_1",
+    "shipment_id": "23",
+    "ctn_number": 1,
+    "net_weight_kgs": 5,
+    "gross_weight_kgs": 6,
+    "measure_cm": "43X37X28"
+  },
+  {
+    "id": "sctn_23_2",
+    "shipment_id": "23",
+    "ctn_number": 2,
+    "net_weight_kgs": 10.35,
+    "gross_weight_kgs": 11.35,
+    "measure_cm": "60X40X40"
+  },
+  {
+    "id": "sctn_23_3",
+    "shipment_id": "23",
+    "ctn_number": 3,
+    "net_weight_kgs": 10.4,
+    "gross_weight_kgs": 11.4,
+    "measure_cm": "60X40X40"
+  },
+  {
+    "id": "sctn_24_1",
+    "shipment_id": "24",
+    "ctn_number": 1,
+    "net_weight_kgs": 9.7,
+    "gross_weight_kgs": 10.7,
+    "measure_cm": "60X40X30"
+  },
+  {
+    "id": "sctn_24_2",
+    "shipment_id": "24",
+    "ctn_number": 2,
+    "net_weight_kgs": 11.9,
+    "gross_weight_kgs": 12.9,
+    "measure_cm": "60X40X40"
+  },
+  {
+    "id": "sctn_24_3",
+    "shipment_id": "24",
+    "ctn_number": 3,
+    "net_weight_kgs": 10.25,
+    "gross_weight_kgs": 11.25,
+    "measure_cm": "60X40X40"
+  },
+  {
+    "id": "sctn_24_4",
+    "shipment_id": "24",
+    "ctn_number": 4,
+    "net_weight_kgs": 9.7,
+    "gross_weight_kgs": 10.7,
+    "measure_cm": "60X40X40"
+  },
+  {
+    "id": "sctn_24_5",
+    "shipment_id": "24",
+    "ctn_number": 5,
+    "net_weight_kgs": 11.5,
+    "gross_weight_kgs": 12.5,
+    "measure_cm": "60X40X40"
+  },
+  {
+    "id": "sctn_25_1",
+    "shipment_id": "25",
+    "ctn_number": 1,
+    "net_weight_kgs": 10,
+    "gross_weight_kgs": 10.86,
+    "measure_cm": "60X40X30"
+  },
+  {
+    "id": "sctn_26_1",
+    "shipment_id": "26",
+    "ctn_number": 1,
+    "net_weight_kgs": 2.94,
+    "gross_weight_kgs": 3.08,
+    "measure_cm": "45X30X15"
+  },
+  {
+    "id": "sctn_10_1",
+    "shipment_id": "10",
+    "ctn_number": 1,
+    "net_weight_kgs": 4.8,
+    "gross_weight_kgs": 6.2,
+    "measure_cm": "55X40X53"
+  },
+  {
+    "id": "sctn_12_1",
+    "shipment_id": "12",
+    "ctn_number": 1,
+    "net_weight_kgs": 3.6,
+    "gross_weight_kgs": 5,
+    "measure_cm": "55X40X53"
+  },
+  {
+    "id": "sctn_27_1",
+    "shipment_id": "27",
+    "ctn_number": 1,
+    "net_weight_kgs": 7.2,
+    "gross_weight_kgs": 7.3,
+    "measure_cm": "50X35X20"
+  },
+  {
+    "id": "sctn_29_1",
+    "shipment_id": "29",
+    "ctn_number": 1,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X32"
+  },
+  {
+    "id": "sctn_29_2",
+    "shipment_id": "29",
+    "ctn_number": 2,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X32"
+  },
+  {
+    "id": "sctn_29_3",
+    "shipment_id": "29",
+    "ctn_number": 3,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X32"
+  },
+  {
+    "id": "sctn_29_4",
+    "shipment_id": "29",
+    "ctn_number": 4,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X32"
+  },
+  {
+    "id": "sctn_29_5",
+    "shipment_id": "29",
+    "ctn_number": 5,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": null,
+    "measure_cm": null
+  },
+  {
+    "id": "sctn_29_6",
+    "shipment_id": "29",
+    "ctn_number": 6,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X20"
+  },
+  {
+    "id": "sctn_30_1",
+    "shipment_id": "30",
+    "ctn_number": 1,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X32"
+  },
+  {
+    "id": "sctn_30_2",
+    "shipment_id": "30",
+    "ctn_number": 2,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X32"
+  },
+  {
+    "id": "sctn_30_3",
+    "shipment_id": "30",
+    "ctn_number": 3,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X32"
+  },
+  {
+    "id": "sctn_30_4",
+    "shipment_id": "30",
+    "ctn_number": 4,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X32"
+  },
+  {
+    "id": "sctn_30_5",
+    "shipment_id": "30",
+    "ctn_number": 5,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X32"
+  },
+  {
+    "id": "sctn_30_6",
+    "shipment_id": "30",
+    "ctn_number": 6,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X32"
+  },
+  {
+    "id": "sctn_30_7",
+    "shipment_id": "30",
+    "ctn_number": 7,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X20"
+  },
+  {
+    "id": "sctn_30_8",
+    "shipment_id": "30",
+    "ctn_number": 8,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X20"
+  },
+  {
+    "id": "sctn_30_9",
+    "shipment_id": "30",
+    "ctn_number": 9,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X20"
+  },
+  {
+    "id": "sctn_30_10",
+    "shipment_id": "30",
+    "ctn_number": 10,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X20"
+  },
+  {
+    "id": "sctn_34_1",
+    "shipment_id": "34",
+    "ctn_number": 1,
+    "net_weight_kgs": 12.08,
+    "gross_weight_kgs": 13.1,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_34_2",
+    "shipment_id": "34",
+    "ctn_number": 2,
+    "net_weight_kgs": 13,
+    "gross_weight_kgs": 14,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_34_3",
+    "shipment_id": "34",
+    "ctn_number": 3,
+    "net_weight_kgs": 13.82,
+    "gross_weight_kgs": 15.07,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_34_4",
+    "shipment_id": "34",
+    "ctn_number": 4,
+    "net_weight_kgs": 11.8,
+    "gross_weight_kgs": 12.81,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_34_5",
+    "shipment_id": "34",
+    "ctn_number": 5,
+    "net_weight_kgs": 13.21,
+    "gross_weight_kgs": 14.27,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_34_6",
+    "shipment_id": "34",
+    "ctn_number": 6,
+    "net_weight_kgs": 4.2,
+    "gross_weight_kgs": 4.74,
+    "measure_cm": "32X36X22"
+  },
+  {
+    "id": "sctn_35_1",
+    "shipment_id": "35",
+    "ctn_number": 1,
+    "net_weight_kgs": 0.94,
+    "gross_weight_kgs": 1.88,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_14_1",
+    "shipment_id": "14",
+    "ctn_number": 1,
+    "net_weight_kgs": 6.3,
+    "gross_weight_kgs": 7.3,
+    "measure_cm": "55X40X53"
+  },
+  {
+    "id": "sctn_13_1",
+    "shipment_id": "13",
+    "ctn_number": 1,
+    "net_weight_kgs": 3.6,
+    "gross_weight_kgs": 5,
+    "measure_cm": "55X40X53"
+  },
+  {
+    "id": "sctn_15_1",
+    "shipment_id": "15",
+    "ctn_number": 1,
+    "net_weight_kgs": 6.6,
+    "gross_weight_kgs": 8,
+    "measure_cm": "55X40X53"
+  },
+  {
+    "id": "sctn_36_1",
+    "shipment_id": "36",
+    "ctn_number": 1,
+    "net_weight_kgs": 11.7,
+    "gross_weight_kgs": 12.5,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_36_2",
+    "shipment_id": "36",
+    "ctn_number": 2,
+    "net_weight_kgs": 10.3,
+    "gross_weight_kgs": 11.1,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_36_3",
+    "shipment_id": "36",
+    "ctn_number": 3,
+    "net_weight_kgs": 12.8,
+    "gross_weight_kgs": 13.6,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_36_4",
+    "shipment_id": "36",
+    "ctn_number": 4,
+    "net_weight_kgs": 13.3,
+    "gross_weight_kgs": 14.1,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_36_5",
+    "shipment_id": "36",
+    "ctn_number": 5,
+    "net_weight_kgs": 10.5,
+    "gross_weight_kgs": 11.3,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_36_6",
+    "shipment_id": "36",
+    "ctn_number": 6,
+    "net_weight_kgs": 10.5,
+    "gross_weight_kgs": 11.3,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_36_7",
+    "shipment_id": "36",
+    "ctn_number": 7,
+    "net_weight_kgs": 7.7,
+    "gross_weight_kgs": 8.5,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_36_8",
+    "shipment_id": "36",
+    "ctn_number": 8,
+    "net_weight_kgs": 7.2,
+    "gross_weight_kgs": 8,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_36_9",
+    "shipment_id": "36",
+    "ctn_number": 9,
+    "net_weight_kgs": 12,
+    "gross_weight_kgs": 13,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_36_10",
+    "shipment_id": "36",
+    "ctn_number": 10,
+    "net_weight_kgs": 12,
+    "gross_weight_kgs": 13,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_36_11",
+    "shipment_id": "36",
+    "ctn_number": 11,
+    "net_weight_kgs": 12,
+    "gross_weight_kgs": 13,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_36_12",
+    "shipment_id": "36",
+    "ctn_number": 12,
+    "net_weight_kgs": 12,
+    "gross_weight_kgs": 13,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_38_1",
+    "shipment_id": "38",
+    "ctn_number": 1,
+    "net_weight_kgs": 0.44,
+    "gross_weight_kgs": 0.5,
+    "measure_cm": null
+  },
+  {
+    "id": "sctn_37_1",
+    "shipment_id": "37",
+    "ctn_number": 1,
+    "net_weight_kgs": 0.66,
+    "gross_weight_kgs": 0.75,
+    "measure_cm": null
+  },
+  {
+    "id": "sctn_40_1",
+    "shipment_id": "40",
+    "ctn_number": 1,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X32"
+  },
+  {
+    "id": "sctn_40_2",
+    "shipment_id": "40",
+    "ctn_number": 2,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X32"
+  },
+  {
+    "id": "sctn_40_3",
+    "shipment_id": "40",
+    "ctn_number": 3,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X32"
+  },
+  {
+    "id": "sctn_40_4",
+    "shipment_id": "40",
+    "ctn_number": 4,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X32"
+  },
+  {
+    "id": "sctn_40_5",
+    "shipment_id": "40",
+    "ctn_number": 5,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X32"
+  },
+  {
+    "id": "sctn_40_6",
+    "shipment_id": "40",
+    "ctn_number": 6,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X20"
+  },
+  {
+    "id": "sctn_40_7",
+    "shipment_id": "40",
+    "ctn_number": 7,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X20"
+  },
+  {
+    "id": "sctn_40_8",
+    "shipment_id": "40",
+    "ctn_number": 8,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X20"
+  },
+  {
+    "id": "sctn_40_9",
+    "shipment_id": "40",
+    "ctn_number": 9,
+    "net_weight_kgs": null,
+    "gross_weight_kgs": 9,
+    "measure_cm": "52X32X20"
+  },
+  {
+    "id": "sctn_41_1",
+    "shipment_id": "41",
+    "ctn_number": 1,
+    "net_weight_kgs": 11.2,
+    "gross_weight_kgs": 12,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_41_2",
+    "shipment_id": "41",
+    "ctn_number": 2,
+    "net_weight_kgs": 12.9,
+    "gross_weight_kgs": 13.7,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_41_3",
+    "shipment_id": "41",
+    "ctn_number": 3,
+    "net_weight_kgs": 11.7,
+    "gross_weight_kgs": 12.5,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_41_4",
+    "shipment_id": "41",
+    "ctn_number": 4,
+    "net_weight_kgs": 12.9,
+    "gross_weight_kgs": 13.7,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_41_5",
+    "shipment_id": "41",
+    "ctn_number": 5,
+    "net_weight_kgs": 13.4,
+    "gross_weight_kgs": 14.2,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_41_6",
+    "shipment_id": "41",
+    "ctn_number": 6,
+    "net_weight_kgs": 12.7,
+    "gross_weight_kgs": 13.5,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_41_7",
+    "shipment_id": "41",
+    "ctn_number": 7,
+    "net_weight_kgs": 9.9,
+    "gross_weight_kgs": 10.7,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_41_8",
+    "shipment_id": "41",
+    "ctn_number": 8,
+    "net_weight_kgs": 10.2,
+    "gross_weight_kgs": 11,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_41_9",
+    "shipment_id": "41",
+    "ctn_number": 9,
+    "net_weight_kgs": 8.8,
+    "gross_weight_kgs": 9.6,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_41_10",
+    "shipment_id": "41",
+    "ctn_number": 10,
+    "net_weight_kgs": 2.8,
+    "gross_weight_kgs": 3.2,
+    "measure_cm": "54X32X16"
+  },
+  {
+    "id": "sctn_41_11",
+    "shipment_id": "41",
+    "ctn_number": 11,
+    "net_weight_kgs": 8.4,
+    "gross_weight_kgs": 9.2,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_41_12",
+    "shipment_id": "41",
+    "ctn_number": 12,
+    "net_weight_kgs": 12,
+    "gross_weight_kgs": 13,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_41_13",
+    "shipment_id": "41",
+    "ctn_number": 13,
+    "net_weight_kgs": 12,
+    "gross_weight_kgs": 13,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_41_14",
+    "shipment_id": "41",
+    "ctn_number": 14,
+    "net_weight_kgs": 12,
+    "gross_weight_kgs": 13,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_1",
+    "shipment_id": "42",
+    "ctn_number": 1,
+    "net_weight_kgs": 12.8,
+    "gross_weight_kgs": 13.6,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_2",
+    "shipment_id": "42",
+    "ctn_number": 2,
+    "net_weight_kgs": 13.1,
+    "gross_weight_kgs": 13.9,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_3",
+    "shipment_id": "42",
+    "ctn_number": 3,
+    "net_weight_kgs": 10.4,
+    "gross_weight_kgs": 11.2,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_4",
+    "shipment_id": "42",
+    "ctn_number": 4,
+    "net_weight_kgs": 14.2,
+    "gross_weight_kgs": 15,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_5",
+    "shipment_id": "42",
+    "ctn_number": 5,
+    "net_weight_kgs": 13.6,
+    "gross_weight_kgs": 14.4,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_6",
+    "shipment_id": "42",
+    "ctn_number": 6,
+    "net_weight_kgs": 12.1,
+    "gross_weight_kgs": 12.9,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_7",
+    "shipment_id": "42",
+    "ctn_number": 7,
+    "net_weight_kgs": 15,
+    "gross_weight_kgs": 15.8,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_8",
+    "shipment_id": "42",
+    "ctn_number": 8,
+    "net_weight_kgs": 12,
+    "gross_weight_kgs": 13,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_9",
+    "shipment_id": "42",
+    "ctn_number": 9,
+    "net_weight_kgs": 9.7,
+    "gross_weight_kgs": 10.5,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_10",
+    "shipment_id": "42",
+    "ctn_number": 10,
+    "net_weight_kgs": 10.5,
+    "gross_weight_kgs": 11.3,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_11",
+    "shipment_id": "42",
+    "ctn_number": 11,
+    "net_weight_kgs": 11.8,
+    "gross_weight_kgs": 12.6,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_12",
+    "shipment_id": "42",
+    "ctn_number": 12,
+    "net_weight_kgs": 9,
+    "gross_weight_kgs": 9.8,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_13",
+    "shipment_id": "42",
+    "ctn_number": 13,
+    "net_weight_kgs": 13,
+    "gross_weight_kgs": 13.8,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_14",
+    "shipment_id": "42",
+    "ctn_number": 14,
+    "net_weight_kgs": 5,
+    "gross_weight_kgs": 5.8,
+    "measure_cm": "54X32X30"
+  },
+  {
+    "id": "sctn_42_15",
+    "shipment_id": "42",
+    "ctn_number": 15,
+    "net_weight_kgs": 12,
+    "gross_weight_kgs": 13,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_16",
+    "shipment_id": "42",
+    "ctn_number": 16,
+    "net_weight_kgs": 12,
+    "gross_weight_kgs": 13,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_17",
+    "shipment_id": "42",
+    "ctn_number": 17,
+    "net_weight_kgs": 12,
+    "gross_weight_kgs": 13,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_18",
+    "shipment_id": "42",
+    "ctn_number": 18,
+    "net_weight_kgs": 12,
+    "gross_weight_kgs": 13,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_19",
+    "shipment_id": "42",
+    "ctn_number": 19,
+    "net_weight_kgs": 12,
+    "gross_weight_kgs": 13,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_20",
+    "shipment_id": "42",
+    "ctn_number": 20,
+    "net_weight_kgs": 12,
+    "gross_weight_kgs": 13,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_42_21",
+    "shipment_id": "42",
+    "ctn_number": 21,
+    "net_weight_kgs": 12,
+    "gross_weight_kgs": 13,
+    "measure_cm": "54X32X40"
+  },
+  {
+    "id": "sctn_11_1",
+    "shipment_id": "11",
+    "ctn_number": 1,
+    "net_weight_kgs": 2.4,
+    "gross_weight_kgs": 3.8,
+    "measure_cm": "55X40X53"
+  },
+  {
+    "id": "sctn_43_1",
+    "shipment_id": "43",
+    "ctn_number": 1,
+    "net_weight_kgs": 10.75,
+    "gross_weight_kgs": 11.9,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_43_2",
+    "shipment_id": "43",
+    "ctn_number": 2,
+    "net_weight_kgs": 14.17,
+    "gross_weight_kgs": 15.32,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_43_3",
+    "shipment_id": "43",
+    "ctn_number": 3,
+    "net_weight_kgs": 11.35,
+    "gross_weight_kgs": 12.5,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_43_4",
+    "shipment_id": "43",
+    "ctn_number": 4,
+    "net_weight_kgs": 12.59,
+    "gross_weight_kgs": 13.74,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_43_5",
+    "shipment_id": "43",
+    "ctn_number": 5,
+    "net_weight_kgs": 11.97,
+    "gross_weight_kgs": 13.12,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_43_6",
+    "shipment_id": "43",
+    "ctn_number": 6,
+    "net_weight_kgs": 12.85,
+    "gross_weight_kgs": 14,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_43_7",
+    "shipment_id": "43",
+    "ctn_number": 7,
+    "net_weight_kgs": 12.95,
+    "gross_weight_kgs": 14.1,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_39_1",
+    "shipment_id": "39",
+    "ctn_number": 1,
+    "net_weight_kgs": 0.99,
+    "gross_weight_kgs": 1.13,
+    "measure_cm": null
+  },
+  {
+    "id": "sctn_44_1",
+    "shipment_id": "44",
+    "ctn_number": 1,
+    "net_weight_kgs": 11.3,
+    "gross_weight_kgs": 12,
+    "measure_cm": "60X40X30"
+  },
+  {
+    "id": "sctn_44_2",
+    "shipment_id": "44",
+    "ctn_number": 2,
+    "net_weight_kgs": 14.6,
+    "gross_weight_kgs": 15,
+    "measure_cm": "60X40X30"
+  },
+  {
+    "id": "sctn_44_3",
+    "shipment_id": "44",
+    "ctn_number": 3,
+    "net_weight_kgs": 13.45,
+    "gross_weight_kgs": 14,
+    "measure_cm": "60X40X30"
+  },
+  {
+    "id": "sctn_44_4",
+    "shipment_id": "44",
+    "ctn_number": 4,
+    "net_weight_kgs": 12.6,
+    "gross_weight_kgs": 13,
+    "measure_cm": "60X40X30"
+  },
+  {
+    "id": "sctn_45_1",
+    "shipment_id": "45",
+    "ctn_number": 1,
+    "net_weight_kgs": 15.6,
+    "gross_weight_kgs": 16.6,
+    "measure_cm": "60X35X40"
+  },
+  {
+    "id": "sctn_45_2",
+    "shipment_id": "45",
+    "ctn_number": 2,
+    "net_weight_kgs": 13.2,
+    "gross_weight_kgs": 14.2,
+    "measure_cm": "60X35X40"
+  },
+  {
+    "id": "sctn_45_3",
+    "shipment_id": "45",
+    "ctn_number": 3,
+    "net_weight_kgs": 11.3,
+    "gross_weight_kgs": 12.3,
+    "measure_cm": "60X35X40"
+  },
+  {
+    "id": "sctn_46_1",
+    "shipment_id": "46",
+    "ctn_number": 1,
+    "net_weight_kgs": 12.4,
+    "gross_weight_kgs": 13.7,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_46_2",
+    "shipment_id": "46",
+    "ctn_number": 2,
+    "net_weight_kgs": 12.93,
+    "gross_weight_kgs": 14.23,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_46_3",
+    "shipment_id": "46",
+    "ctn_number": 3,
+    "net_weight_kgs": 13.4,
+    "gross_weight_kgs": 14.7,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_46_4",
+    "shipment_id": "46",
+    "ctn_number": 4,
+    "net_weight_kgs": 12.52,
+    "gross_weight_kgs": 13.82,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_46_5",
+    "shipment_id": "46",
+    "ctn_number": 5,
+    "net_weight_kgs": 10.7,
+    "gross_weight_kgs": 12,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_46_6",
+    "shipment_id": "46",
+    "ctn_number": 6,
+    "net_weight_kgs": 14.13,
+    "gross_weight_kgs": 15.43,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_46_7",
+    "shipment_id": "46",
+    "ctn_number": 7,
+    "net_weight_kgs": 14.34,
+    "gross_weight_kgs": 15.64,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_46_8",
+    "shipment_id": "46",
+    "ctn_number": 8,
+    "net_weight_kgs": 14,
+    "gross_weight_kgs": 15.3,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_46_9",
+    "shipment_id": "46",
+    "ctn_number": 9,
+    "net_weight_kgs": 12.23,
+    "gross_weight_kgs": 13.53,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_46_10",
+    "shipment_id": "46",
+    "ctn_number": 10,
+    "net_weight_kgs": 10.4,
+    "gross_weight_kgs": 11.7,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_46_11",
+    "shipment_id": "46",
+    "ctn_number": 11,
+    "net_weight_kgs": 11.07,
+    "gross_weight_kgs": 12.37,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_46_12",
+    "shipment_id": "46",
+    "ctn_number": 12,
+    "net_weight_kgs": 14,
+    "gross_weight_kgs": 15.3,
+    "measure_cm": "53X40X32"
+  },
+  {
+    "id": "sctn_46_13",
+    "shipment_id": "46",
+    "ctn_number": 13,
+    "net_weight_kgs": 9.8,
+    "gross_weight_kgs": 10.38,
+    "measure_cm": "53X40X32"
+  }
+]

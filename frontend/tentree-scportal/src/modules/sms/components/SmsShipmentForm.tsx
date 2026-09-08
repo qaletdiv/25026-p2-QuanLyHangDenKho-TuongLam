@@ -15,7 +15,6 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import { useSession } from '@/components/providers/SessionProvider';
 import { createSmsShipment } from '@/modules/sms/actions';
 import { facilityLabel } from './smsStatus';
 import type { SmsPo, CourierOption } from '@/modules/sms/types';
@@ -29,22 +28,28 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
   couriers: CourierOption[];
 }) {
   const router = useRouter();
-  const { user } = useSession();
   const [courierId, setCourierId] = useState(() => couriers.find((c) => c.name === 'FedEx')?.id || couriers[0]?.id || '');
   const [trackingNumber, setTrackingNumber] = useState('');
   const [shipDate, setShipDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [facilityId, setFacilityId] = useState('');
+  // View filter over the PO list only — NOT a constraint on the consignment.
+  const [filterSupplierId, setFilterSupplierId] = useState('');
   const [rows, setRows] = useState<Record<string, RowInput>>({});
   const [submitting, setSubmitting] = useState(false);
   const [warning, setWarning] = useState<null | { warnings: Array<{ po_number: string; ordered: number; already_shipped: number; requested: number }> }>(null);
 
-  // Vendors see only their own POs (the server enforces this regardless).
-  const eligible = useMemo(() => {
-    const mine = user?.role === 'Vendor' && user?.supplier
-      ? pos.filter((p) => (p.supplier || '').trim().toLowerCase() === String(user.supplier).trim().toLowerCase())
-      : pos;
-    return [...mine].sort((a, b) => (b.remaining_qty > 0 ? 1 : 0) - (a.remaining_qty > 0 ? 1 : 0) || a.po_number.localeCompare(b.po_number));
-  }, [pos, user]);
+  // No client-side supplier filter: `/sms/pos` is ALREADY vendor-scoped at one
+  // point on the server (smsPoController._ctx), so re-deriving visibility here was
+  // redundant — and wrong. It compared supplier NAMES with plain trim/lowercase,
+  // which fails the live vendor ("Best Star Fashions Co Ltd" vs the master-data
+  // "Best Star Fashions Co., Ltd."): 0 of their POs matched, so `destinations` was
+  // empty and the form was unusable. The server matches on supplierKey (punctuation
+  // -insensitive) — the same trap fixed backend-side 2026-08-12. If a client-side
+  // belt is ever wanted, key on supplier_id, never the name.
+  const eligible = useMemo(
+    () => [...pos].sort((a, b) => (b.remaining_qty > 0 ? 1 : 0) - (a.remaining_qty > 0 ? 1 : 0) || a.po_number.localeCompare(b.po_number)),
+    [pos],
+  );
 
   // Destinations that actually have eligible POs. A consignment ships to ONE
   // destination (we never mix warehouses in one box), so Destination is the
@@ -61,6 +66,22 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
     [eligible, facilityId],
   );
 
+  // Suppliers present at the chosen destination. One or none → no filter rendered,
+  // which is the vendor case (their POs are all one supplier).
+  const supplierOptions = useMemo(() => {
+    const m = new Map<string, string>();
+    displayed.forEach((p) => { if (p.supplier_id && !m.has(p.supplier_id)) m.set(p.supplier_id, p.supplier ?? p.supplier_id); });
+    return [...m.entries()].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [displayed]);
+
+  // `selected` reads `displayed`, not this — narrowing the view must never silently
+  // drop units already entered on a PO the filter happens to hide. That matters more
+  // here than on the booking form, since a box MAY span suppliers.
+  const visible = useMemo(
+    () => (filterSupplierId ? displayed.filter((p) => p.supplier_id === filterSupplierId) : displayed),
+    [displayed, filterSupplierId],
+  );
+
   const setField = (po: string, field: keyof RowInput, value: string) =>
     setRows((r) => ({ ...r, [po]: { ...r[po], [field]: value } }));
 
@@ -73,11 +94,11 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
     .filter((x): x is NonNullable<typeof x> => x !== null);
 
   // switching destination clears any units entered for the previous one
-  const changeDestination = (id: string) => { setFacilityId(id); setRows({}); setWarning(null); };
+  const changeDestination = (id: string) => { setFacilityId(id); setRows({}); setWarning(null); setFilterSupplierId(''); };
 
   function reset() {
     setRows({}); setWarning(null); setTrackingNumber('');
-    setShipDate(new Date().toISOString().slice(0, 10)); setFacilityId('');
+    setShipDate(new Date().toISOString().slice(0, 10)); setFacilityId(''); setFilterSupplierId('');
   }
 
   async function submit(force = false) {
@@ -101,7 +122,9 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) { onClose(); reset(); } }} modal={false}>
-      <DialogContent className="w-[95vw] max-w-3xl" onInteractOutside={(e) => e.preventDefault()}>
+      {/* 5xl to match SmsBookingForm: the PO table gained a Supplier column (7 now),
+          which does not fit 3xl without permanent horizontal scroll. */}
+      <DialogContent className="w-[95vw] max-w-5xl" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>New SMS Shipment</DialogTitle>
           <p className="text-sm text-muted-foreground">
@@ -110,7 +133,11 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
           </p>
         </DialogHeader>
 
-        <div className="space-y-4">
+        {/* min-w-0: DialogContent is a CSS grid, so this child otherwise defaults to
+            min-width:auto and refuses to shrink below the PO table's min-content
+            width — overriding the table's own overflow-x-auto and pushing the form
+            past the dialog edge on narrow screens. Same fix as SmsBookingForm. */}
+        <div className="space-y-4 min-w-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-1.5">
               <Label>Courier</Label>
@@ -142,12 +169,33 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
           </div>
 
           <div className="space-y-1.5">
-            <Label>POs in this shipment — enter units to include ({selected.length} selected)</Label>
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <Label>POs in this shipment — enter units to include ({selected.length} selected)</Label>
+              {/* Find-aid only. Unlike the BOOKING form there is NO supplier lock here:
+                  a courier box may legitimately carry POs from more than one supplier
+                  (there is no same-supplier guard server-side either), so restricting
+                  it would contradict the multi-PO consignment design. Hidden when the
+                  destination holds one supplier, which is always the vendor case. */}
+              {supplierOptions.length > 1 && (
+                <Select value={filterSupplierId || 'all'} onValueChange={(v) => setFilterSupplierId(v === 'all' ? '' : (v ?? ''))}>
+                  <SelectTrigger className="h-8 w-56 text-xs">
+                    <span className={cn(!filterSupplierId && 'text-muted-foreground')}>
+                      {supplierOptions.find((s) => s.id === filterSupplierId)?.name || 'All suppliers'}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All suppliers</SelectItem>
+                    {supplierOptions.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
             <div className="max-h-72 overflow-auto rounded-md border border-border">
               <Table className="bg-card">
                 <TableHeader>
                   <TableRow className="bg-card/80 hover:bg-card/80">
                     <TableHead>PO</TableHead>
+                    <TableHead>Supplier</TableHead>
                     <TableHead>Season</TableHead>
                     <TableHead>HOD</TableHead>
                     <TableHead className="text-right">Remaining / Ordered</TableHead>
@@ -157,22 +205,26 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
                 </TableHeader>
                 <TableBody>
                   {!facilityId && (
-                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">Pick a destination above to list its POs.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Pick a destination above to list its POs.</TableCell></TableRow>
                   )}
                   {facilityId && displayed.length === 0 && (
-                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">No open POs for this destination.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">No open POs for this destination.</TableCell></TableRow>
                   )}
-                  {displayed.map((p) => {
+                  {facilityId && displayed.length > 0 && visible.length === 0 && (
+                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">No POs for this supplier at this destination.</TableCell></TableRow>
+                  )}
+                  {visible.map((p) => {
                     const r = rows[p.po_number] || {};
                     const entered = Number(r.units) || 0;
                     const over = entered > p.remaining_qty;
                     return (
                       <TableRow key={p.po_number} className={cn('border-border', entered > 0 && 'bg-primary/5')}>
                         <TableCell className="font-medium whitespace-nowrap">{p.po_number}</TableCell>
+                        <TableCell className="text-muted-foreground whitespace-nowrap">{p.supplier ?? '—'}</TableCell>
                         <TableCell className="text-muted-foreground whitespace-nowrap">{p.season ?? '—'}</TableCell>
                         <TableCell className="text-muted-foreground whitespace-nowrap">{p.hod ?? '—'}</TableCell>
                         <TableCell className="text-right tabular-nums whitespace-nowrap">
-                          <span className={cn(p.remaining_qty <= 0 ? 'text-red-500' : 'text-emerald-600')}>{p.remaining_qty.toLocaleString()}</span>
+                          <span className="text-red-600">{p.remaining_qty.toLocaleString()}</span>
                           <span className="text-muted-foreground"> / {p.ordered_qty.toLocaleString()}</span>
                         </TableCell>
                         <TableCell className="text-right">

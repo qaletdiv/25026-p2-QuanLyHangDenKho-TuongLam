@@ -1,0 +1,1175 @@
+[
+  {
+    "id": "nri_us_48872",
+    "invoice_no": "48872",
+    "entity": "US",
+    "invoice_date": "2026-08-31",
+    "ending_date": "2026-08-31",
+    "payment_terms": "Net 15",
+    "due_date": "2026-09-15",
+    "fx_rate": 1,
+    "subtotal": 39511.77,
+    "taxes": 136.32,
+    "total": 39648.09,
+    "tax_lines": [
+      {
+        "label": "State 9.50",
+        "amount": 136.32
+      },
+      {
+        "label": "State",
+        "amount": 0
+      }
+    ],
+    "is_credit": false,
+    "invoice_no_source": "pdf",
+    "source_file": "aug31.xlsx",
+    "has_summary": true,
+    "tie_out": {
+      "status": "balanced",
+      "message": "Detail ties to invoice 48872 across all 28 services.",
+      "detail_charges": 39511.77,
+      "detail_taxes": 136.32,
+      "detail_total": 39648.09,
+      "invoice_subtotal": 39511.77,
+      "invoice_taxes": 136.32,
+      "invoice_total": 39648.09,
+      "subtotal_variance": 0,
+      "tax_variance": 0,
+      "total_variance": 0,
+      "services": [
+        {
+          "service": "Outbound Freight",
+          "lines": 971,
+          "charges": 15411.14,
+          "taxes": 0,
+          "invoice_amount": 15411.14,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Storage",
+          "lines": 49,
+          "charges": 13656.95,
+          "taxes": 0,
+          "invoice_amount": 13656.95,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Handling",
+          "lines": 834,
+          "charges": 3899.01,
+          "taxes": 0,
+          "invoice_amount": 3899.01,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Cycle Count",
+          "lines": 5,
+          "charges": 1830.94,
+          "taxes": 0,
+          "invoice_amount": 1830.94,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Order Processing",
+          "lines": 833,
+          "charges": 1416.1,
+          "taxes": 0,
+          "invoice_amount": 1416.1,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Recoverable Materials",
+          "lines": 2,
+          "charges": 784,
+          "taxes": 74.48,
+          "invoice_amount": 784,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Outbound Shipment Materials",
+          "lines": 831,
+          "charges": 664.84,
+          "taxes": 61.62,
+          "invoice_amount": 664.84,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Returns Freight",
+          "lines": 2,
+          "charges": 563.47,
+          "taxes": 0,
+          "invoice_amount": 563.47,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Replenishment",
+          "lines": 10,
+          "charges": 354.4,
+          "taxes": 0,
+          "invoice_amount": 354.4,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Shipment Cancellation",
+          "lines": 2,
+          "charges": 190,
+          "taxes": 0,
+          "invoice_amount": 190,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Service Center Labor",
+          "lines": 45,
+          "charges": 186.99,
+          "taxes": 0,
+          "invoice_amount": 186.99,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Returns",
+          "lines": 48,
+          "charges": 155.87,
+          "taxes": 0,
+          "invoice_amount": 155.87,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "CI Maintenance",
+          "lines": 17,
+          "charges": 85,
+          "taxes": 0,
+          "invoice_amount": 85,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Receipt Mixed Carton Unit",
+          "lines": 1,
+          "charges": 76.68,
+          "taxes": 0,
+          "invoice_amount": 76.68,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Receiving",
+          "lines": 2,
+          "charges": 55.85,
+          "taxes": 0,
+          "invoice_amount": 55.85,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Pallet Wrap",
+          "lines": 4,
+          "charges": 52.5,
+          "taxes": 0,
+          "invoice_amount": 52.5,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "CI Generation",
+          "lines": 36,
+          "charges": 36,
+          "taxes": 0,
+          "invoice_amount": 36,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Receipt Processing",
+          "lines": 2,
+          "charges": 21.52,
+          "taxes": 0,
+          "invoice_amount": 21.52,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Inbound Palletization",
+          "lines": 1,
+          "charges": 17.5,
+          "taxes": 0,
+          "invoice_amount": 17.5,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Restock",
+          "lines": 46,
+          "charges": 15.67,
+          "taxes": 0,
+          "invoice_amount": 15.67,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "EDI Labels",
+          "lines": 7,
+          "charges": 12,
+          "taxes": 0,
+          "invoice_amount": 12,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Order Cancellation",
+          "lines": 4,
+          "charges": 8,
+          "taxes": 0,
+          "invoice_amount": 8,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Data Entry Labour",
+          "lines": 1,
+          "charges": 7.56,
+          "taxes": 0,
+          "invoice_amount": 7.56,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Inbound Units Audit",
+          "lines": 1,
+          "charges": 3.96,
+          "taxes": 0,
+          "invoice_amount": 3.96,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Storage Carton Shipped",
+          "lines": 8,
+          "charges": 3.3,
+          "taxes": 0,
+          "invoice_amount": 3.3,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Shop Supplies",
+          "lines": 11,
+          "charges": 1.87,
+          "taxes": 0.22,
+          "invoice_amount": 1.87,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "Order Restocking",
+          "lines": 1,
+          "charges": 0.65,
+          "taxes": 0,
+          "invoice_amount": 0.65,
+          "variance": 0,
+          "status": "ok"
+        },
+        {
+          "service": "(blank)",
+          "lines": 1,
+          "charges": 0,
+          "taxes": 0,
+          "invoice_amount": null,
+          "variance": null,
+          "status": "ok"
+        }
+      ],
+      "mismatched": 0,
+      "unmatched_on_invoice": []
+    },
+    "totals": {
+      "lines": 3775,
+      "charges": 39511.77,
+      "taxes": 136.32,
+      "amount": 39648.09,
+      "coded": 2326,
+      "needs_attention": 1449,
+      "validated_ok": 1885,
+      "unvalidatable": 1822,
+      "variance": 5393.97
+    },
+    "by_gl": [
+      {
+        "gl": 5206,
+        "gl_desc": "COGS : Distribution/Logistics : Freight Expense - Outbound",
+        "classes": [
+          {
+            "class": "US - Whsle",
+            "amount": 6079.35
+          },
+          {
+            "class": "INTL - Online",
+            "amount": 1265.81
+          },
+          {
+            "class": "US - Online",
+            "amount": 3974.1
+          },
+          {
+            "class": "(unclassed)",
+            "amount": 4091.88
+          }
+        ],
+        "lines": 971,
+        "charges": 15411.14,
+        "taxes": 0,
+        "amount": 15411.14
+      },
+      {
+        "gl": 5205,
+        "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Storage",
+        "classes": [
+          {
+            "class": "US - Whsle",
+            "amount": 14866.74
+          },
+          {
+            "class": "US - Online",
+            "amount": 3.02
+          },
+          {
+            "class": "Amazon-US",
+            "amount": 0.07
+          }
+        ],
+        "lines": 61,
+        "charges": 14795.35,
+        "taxes": 74.48,
+        "amount": 14869.83
+      },
+      {
+        "gl": 5201,
+        "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+        "classes": [
+          {
+            "class": "US - Whsle",
+            "amount": 3037.23
+          },
+          {
+            "class": "US - Online",
+            "amount": 1142.05
+          },
+          {
+            "class": "INTL - Online",
+            "amount": 168.24
+          },
+          {
+            "class": "(unclassed)",
+            "amount": 1099.89
+          }
+        ],
+        "lines": 1732,
+        "charges": 5447.41,
+        "taxes": 0,
+        "amount": 5447.41
+      },
+      {
+        "gl": 5204,
+        "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+        "classes": [
+          {
+            "class": "US - Online",
+            "amount": 0.65
+          },
+          {
+            "class": "US - Whsle",
+            "amount": 1830.94
+          },
+          {
+            "class": "(unclassed)",
+            "amount": 190
+          }
+        ],
+        "lines": 8,
+        "charges": 2021.59,
+        "taxes": 0,
+        "amount": 2021.59
+      },
+      {
+        "gl": 5210,
+        "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Supplies",
+        "classes": [
+          {
+            "class": "(unclassed)",
+            "amount": 115.19
+          },
+          {
+            "class": "US - Whsle",
+            "amount": 514.6
+          },
+          {
+            "class": "US - Online",
+            "amount": 141.92
+          },
+          {
+            "class": "INTL - Online",
+            "amount": 9.34
+          }
+        ],
+        "lines": 846,
+        "charges": 719.21,
+        "taxes": 61.84,
+        "amount": 781.05
+      },
+      {
+        "gl": 5207,
+        "gl_desc": "COGS : Distribution/Logistics : Freight Expense - Returns",
+        "classes": [
+          {
+            "class": "INTL - Online",
+            "amount": 546.32
+          },
+          {
+            "class": "US - Online",
+            "amount": 17.15
+          }
+        ],
+        "lines": 2,
+        "charges": 563.47,
+        "taxes": 0,
+        "amount": 563.47
+      },
+      {
+        "gl": 5203,
+        "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Returns",
+        "classes": [
+          {
+            "class": "US - Online",
+            "amount": 130.28
+          },
+          {
+            "class": "US - Whsle",
+            "amount": 122.79
+          },
+          {
+            "class": "(unclassed)",
+            "amount": 100.67
+          },
+          {
+            "class": "Amazon-US",
+            "amount": 4.79
+          }
+        ],
+        "lines": 139,
+        "charges": 358.53,
+        "taxes": 0,
+        "amount": 358.53
+      },
+      {
+        "gl": 5202,
+        "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Inbound",
+        "classes": [
+          {
+            "class": "US - Whsle",
+            "amount": 175.51
+          }
+        ],
+        "lines": 7,
+        "charges": 175.51,
+        "taxes": 0,
+        "amount": 175.51
+      },
+      {
+        "gl": 5211,
+        "gl_desc": "COGS : Distribution/Logistics : Fulfillment - VAS",
+        "classes": [
+          {
+            "class": "US - Whsle",
+            "amount": 19.56
+          }
+        ],
+        "lines": 8,
+        "charges": 19.56,
+        "taxes": 0,
+        "amount": 19.56
+      },
+      {
+        "gl": null,
+        "gl_desc": null,
+        "classes": [
+          {
+            "class": "US - Whsle",
+            "amount": 0
+          }
+        ],
+        "lines": 1,
+        "charges": 0,
+        "taxes": 0,
+        "amount": 0
+      }
+    ],
+    "by_service": [
+      {
+        "service": "Outbound Freight",
+        "gl": 5206,
+        "basis": "market",
+        "lines": 971,
+        "units": 4199,
+        "charges": 15411.14,
+        "amount": 15411.14,
+        "expected": null,
+        "variance": null,
+        "has_expected": false,
+        "verdict": "no_contract_rate"
+      },
+      {
+        "service": "Storage",
+        "gl": 5205,
+        "basis": "per_unit_month",
+        "lines": 49,
+        "units": 116869,
+        "charges": 13656.95,
+        "amount": 13656.95,
+        "expected": 8297.65,
+        "variance": 5359.3,
+        "has_expected": true,
+        "verdict": "aging_premium"
+      },
+      {
+        "service": "Handling",
+        "gl": 5201,
+        "basis": "per_unit",
+        "lines": 834,
+        "units": 5879,
+        "charges": 3899.01,
+        "amount": 3899.01,
+        "expected": 3863.02,
+        "variance": 35.99,
+        "has_expected": true,
+        "verdict": "overcharge"
+      },
+      {
+        "service": "Cycle Count",
+        "gl": 5204,
+        "basis": "per_hour",
+        "lines": 5,
+        "units": 38.75,
+        "charges": 1830.94,
+        "amount": 1830.94,
+        "expected": null,
+        "variance": null,
+        "has_expected": false,
+        "verdict": "qty_unsupported"
+      },
+      {
+        "service": "Order Processing",
+        "gl": 5201,
+        "basis": "per_order",
+        "lines": 833,
+        "units": 833,
+        "charges": 1416.1,
+        "amount": 1416.1,
+        "expected": 1416.1,
+        "variance": 0,
+        "has_expected": true,
+        "verdict": "ok"
+      },
+      {
+        "service": "Recoverable Materials",
+        "gl": 5205,
+        "basis": "none",
+        "lines": 2,
+        "units": 2,
+        "charges": 784,
+        "amount": 858.48,
+        "expected": null,
+        "variance": null,
+        "has_expected": false,
+        "verdict": "no_contract_rate"
+      },
+      {
+        "service": "Outbound Shipment Materials",
+        "gl": 5210,
+        "basis": "market",
+        "lines": 831,
+        "units": 664.8399999999936,
+        "charges": 664.84,
+        "amount": 726.46,
+        "expected": null,
+        "variance": null,
+        "has_expected": false,
+        "verdict": "no_contract_rate"
+      },
+      {
+        "service": "Returns Freight",
+        "gl": 5207,
+        "basis": "market",
+        "lines": 2,
+        "units": 9,
+        "charges": 563.47,
+        "amount": 563.47,
+        "expected": null,
+        "variance": null,
+        "has_expected": false,
+        "verdict": "no_contract_rate"
+      },
+      {
+        "service": "Replenishment",
+        "gl": 5205,
+        "basis": "per_hour",
+        "lines": 10,
+        "units": 7.5,
+        "charges": 354.4,
+        "amount": 354.4,
+        "expected": null,
+        "variance": null,
+        "has_expected": false,
+        "verdict": "qty_unsupported"
+      },
+      {
+        "service": "Shipment Cancellation",
+        "gl": 5204,
+        "basis": "per_shipment",
+        "lines": 2,
+        "units": 19,
+        "charges": 190,
+        "amount": 190,
+        "expected": 190,
+        "variance": 0,
+        "has_expected": true,
+        "verdict": "ok"
+      },
+      {
+        "service": "Service Center Labor",
+        "gl": 5203,
+        "basis": "per_hour",
+        "lines": 45,
+        "units": 3.959999999999998,
+        "charges": 186.99,
+        "amount": 186.99,
+        "expected": null,
+        "variance": null,
+        "has_expected": false,
+        "verdict": "qty_unsupported"
+      },
+      {
+        "service": "Returns",
+        "gl": 5203,
+        "basis": "composite",
+        "lines": 48,
+        "units": 74,
+        "charges": 155.87,
+        "amount": 155.87,
+        "expected": 157.19,
+        "variance": -1.32,
+        "has_expected": true,
+        "verdict": "undercharge"
+      },
+      {
+        "service": "CI Maintenance",
+        "gl": 5201,
+        "basis": "per_edit",
+        "lines": 17,
+        "units": 17,
+        "charges": 85,
+        "amount": 85,
+        "expected": 85,
+        "variance": 0,
+        "has_expected": true,
+        "verdict": "ok"
+      },
+      {
+        "service": "Receipt Mixed Carton Unit",
+        "gl": 5202,
+        "basis": "per_unit",
+        "lines": 1,
+        "units": 426,
+        "charges": 76.68,
+        "amount": 76.68,
+        "expected": 76.68,
+        "variance": 0,
+        "has_expected": true,
+        "verdict": "ok"
+      },
+      {
+        "service": "Receiving",
+        "gl": 5202,
+        "basis": "per_unit",
+        "lines": 2,
+        "units": 433,
+        "charges": 55.85,
+        "amount": 55.85,
+        "expected": 55.85,
+        "variance": 0,
+        "has_expected": true,
+        "verdict": "ok"
+      },
+      {
+        "service": "Pallet Wrap",
+        "gl": 5210,
+        "basis": "market",
+        "lines": 4,
+        "units": 5,
+        "charges": 52.5,
+        "amount": 52.5,
+        "expected": null,
+        "variance": null,
+        "has_expected": false,
+        "verdict": "no_contract_rate"
+      },
+      {
+        "service": "CI Generation",
+        "gl": 5201,
+        "basis": "per_shipment",
+        "lines": 36,
+        "units": 36,
+        "charges": 36,
+        "amount": 36,
+        "expected": 36,
+        "variance": 0,
+        "has_expected": true,
+        "verdict": "ok"
+      },
+      {
+        "service": "Receipt Processing",
+        "gl": 5202,
+        "basis": "per_receipt",
+        "lines": 2,
+        "units": 2,
+        "charges": 21.52,
+        "amount": 21.52,
+        "expected": 21.52,
+        "variance": 0,
+        "has_expected": true,
+        "verdict": "ok"
+      },
+      {
+        "service": "Inbound Palletization",
+        "gl": 5202,
+        "basis": "market",
+        "lines": 1,
+        "units": 1,
+        "charges": 17.5,
+        "amount": 17.5,
+        "expected": null,
+        "variance": null,
+        "has_expected": false,
+        "verdict": "no_contract_rate"
+      },
+      {
+        "service": "Restock",
+        "gl": 5203,
+        "basis": "per_unit",
+        "lines": 46,
+        "units": 72,
+        "charges": 15.67,
+        "amount": 15.67,
+        "expected": 15.67,
+        "variance": 0,
+        "has_expected": true,
+        "verdict": "ok"
+      },
+      {
+        "service": "EDI Labels",
+        "gl": 5211,
+        "basis": "per_unit",
+        "lines": 7,
+        "units": 12,
+        "charges": 12,
+        "amount": 12,
+        "expected": 12,
+        "variance": 0,
+        "has_expected": true,
+        "verdict": "ok"
+      },
+      {
+        "service": "Order Cancellation",
+        "gl": 5201,
+        "basis": "per_order",
+        "lines": 4,
+        "units": 4,
+        "charges": 8,
+        "amount": 8,
+        "expected": 8,
+        "variance": 0,
+        "has_expected": true,
+        "verdict": "ok"
+      },
+      {
+        "service": "Data Entry Labour",
+        "gl": 5211,
+        "basis": "per_hour",
+        "lines": 1,
+        "units": 0.16,
+        "charges": 7.56,
+        "amount": 7.56,
+        "expected": null,
+        "variance": null,
+        "has_expected": false,
+        "verdict": "qty_unsupported"
+      },
+      {
+        "service": "Inbound Units Audit",
+        "gl": 5202,
+        "basis": "per_unit",
+        "lines": 1,
+        "units": 22,
+        "charges": 3.96,
+        "amount": 3.96,
+        "expected": 3.96,
+        "variance": 0,
+        "has_expected": true,
+        "verdict": "ok"
+      },
+      {
+        "service": "Storage Carton Shipped",
+        "gl": 5201,
+        "basis": "per_unit",
+        "lines": 8,
+        "units": 11,
+        "charges": 3.3,
+        "amount": 3.3,
+        "expected": 3.3,
+        "variance": 0,
+        "has_expected": true,
+        "verdict": "ok"
+      },
+      {
+        "service": "Shop Supplies",
+        "gl": 5210,
+        "basis": "market",
+        "lines": 11,
+        "units": 11,
+        "charges": 1.87,
+        "amount": 2.09,
+        "expected": null,
+        "variance": null,
+        "has_expected": false,
+        "verdict": "no_contract_rate"
+      },
+      {
+        "service": "Order Restocking",
+        "gl": 5204,
+        "basis": "per_unit",
+        "lines": 1,
+        "units": 3,
+        "charges": 0.65,
+        "amount": 0.65,
+        "expected": 0.65,
+        "variance": 0,
+        "has_expected": true,
+        "verdict": "ok"
+      },
+      {
+        "service": "(blank)",
+        "gl": null,
+        "basis": null,
+        "lines": 1,
+        "units": 0,
+        "charges": 0,
+        "amount": 0,
+        "expected": null,
+        "variance": null,
+        "has_expected": false,
+        "verdict": "no_rate_on_file"
+      }
+    ],
+    "findings": [
+      {
+        "severity": "blocker",
+        "type": "needs_class",
+        "title": "Class unresolved — order data missing for this period",
+        "lines": 1448,
+        "amount": 5597.63,
+        "variance": -1.32,
+        "services": [
+          "Order Processing",
+          "Handling",
+          "Shop Supplies",
+          "Service Center Labor",
+          "Returns",
+          "Outbound Freight"
+        ],
+        "examples": [
+          {
+            "seq": 579,
+            "service": "Order Processing",
+            "month": "2026-08",
+            "units": 1,
+            "charges": 1.7,
+            "expected": 1.7,
+            "detail": "order IF4041481555 is not in the order master — needs the order data covering this period"
+          },
+          {
+            "seq": 580,
+            "service": "Handling",
+            "month": "2026-08",
+            "units": 4,
+            "charges": 2.63,
+            "expected": 2.63,
+            "detail": "order IF4041481555 is not in the order master — needs the order data covering this period"
+          },
+          {
+            "seq": 581,
+            "service": "Order Processing",
+            "month": "2026-08",
+            "units": 1,
+            "charges": 1.7,
+            "expected": 1.7,
+            "detail": "order IF4041481584 is not in the order master — needs the order data covering this period"
+          },
+          {
+            "seq": 582,
+            "service": "Handling",
+            "month": "2026-08",
+            "units": 4,
+            "charges": 2.63,
+            "expected": 2.63,
+            "detail": "order IF4041481584 is not in the order master — needs the order data covering this period"
+          },
+          {
+            "seq": 583,
+            "service": "Handling",
+            "month": "2026-08",
+            "units": 3,
+            "charges": 1.97,
+            "expected": 1.97,
+            "detail": "order IF4041481651 is not in the order master — needs the order data covering this period"
+          }
+        ]
+      },
+      {
+        "severity": "warning",
+        "type": "aging_premium",
+        "title": "Storage above the base rate — no aging breakdown on the invoice",
+        "lines": 1,
+        "amount": 13621.14,
+        "variance": 5359.3,
+        "services": [
+          "Storage"
+        ],
+        "examples": [
+          {
+            "seq": 3735,
+            "service": "Storage",
+            "month": "2026-08",
+            "units": 116364,
+            "charges": 13621.14,
+            "expected": 8261.84,
+            "detail": "$0.1171/unit = 1.65x base. Within the aging schedule (max 3x), but the invoice gives no aging breakdown to prove it"
+          }
+        ],
+        "max_aging_multiple": 1.649,
+        "premium": 5359.3
+      },
+      {
+        "severity": "warning",
+        "type": "overcharge",
+        "title": "Charged above the rate agreement",
+        "lines": 3,
+        "amount": 45.85,
+        "variance": 35.99,
+        "services": [
+          "Handling"
+        ],
+        "examples": [
+          {
+            "seq": 125,
+            "service": "Handling",
+            "month": "2026-08",
+            "units": 10,
+            "charges": 27.1,
+            "expected": 6.57,
+            "detail": "10 x $0.657 per unit = $6.57, charged $27.10"
+          },
+          {
+            "seq": 699,
+            "service": "Handling",
+            "month": "2026-08",
+            "units": 4,
+            "charges": 16.6,
+            "expected": 2.63,
+            "detail": "4 x $0.657 per unit = $2.63, charged $16.60"
+          },
+          {
+            "seq": 2926,
+            "service": "Handling",
+            "month": "2026-08",
+            "units": 1,
+            "charges": 2.15,
+            "expected": 0.66,
+            "detail": "1 x $0.657 per unit = $0.66, charged $2.15"
+          }
+        ]
+      },
+      {
+        "severity": "info",
+        "type": "no_contract_rate",
+        "title": "No rate in the agreement — cannot be validated",
+        "lines": 1822,
+        "amount": 17631.64,
+        "variance": 0,
+        "services": [
+          "Shop Supplies",
+          "Returns Freight",
+          "Inbound Palletization",
+          "Outbound Freight",
+          "Outbound Shipment Materials",
+          "Pallet Wrap"
+        ],
+        "examples": [
+          {
+            "seq": 1681,
+            "service": "Shop Supplies",
+            "month": "2026-08",
+            "units": 1,
+            "charges": 0.17,
+            "expected": null,
+            "detail": "no rate in the agreement"
+          },
+          {
+            "seq": 1685,
+            "service": "Shop Supplies",
+            "month": "2026-08",
+            "units": 1,
+            "charges": 0.17,
+            "expected": null,
+            "detail": "no rate in the agreement"
+          },
+          {
+            "seq": 1694,
+            "service": "Shop Supplies",
+            "month": "2026-08",
+            "units": 1,
+            "charges": 0.17,
+            "expected": null,
+            "detail": "no rate in the agreement"
+          },
+          {
+            "seq": 1700,
+            "service": "Shop Supplies",
+            "month": "2026-08",
+            "units": 1,
+            "charges": 0.17,
+            "expected": null,
+            "detail": "no rate in the agreement"
+          },
+          {
+            "seq": 1705,
+            "service": "Shop Supplies",
+            "month": "2026-08",
+            "units": 1,
+            "charges": 0.17,
+            "expected": null,
+            "detail": "no rate in the agreement"
+          }
+        ]
+      },
+      {
+        "severity": "info",
+        "type": "qty_unsupported",
+        "title": "Hourly labour — rate verified, hours not evidenced",
+        "lines": 61,
+        "amount": 2379.89,
+        "variance": 0,
+        "services": [
+          "Service Center Labor",
+          "Replenishment",
+          "Cycle Count",
+          "Data Entry Labour"
+        ],
+        "examples": [
+          {
+            "seq": 1680,
+            "service": "Service Center Labor",
+            "month": "2026-08",
+            "units": 0.21,
+            "charges": 9.92,
+            "expected": null,
+            "detail": "charge is not a clean multiple of $47.25/hr (implies 0.2099 hrs)"
+          },
+          {
+            "seq": 1686,
+            "service": "Service Center Labor",
+            "month": "2026-08",
+            "units": 0.035,
+            "charges": 1.65,
+            "expected": null,
+            "detail": "charge is not a clean multiple of $47.25/hr (implies 0.0349 hrs)"
+          },
+          {
+            "seq": 1690,
+            "service": "Service Center Labor",
+            "month": "2026-08",
+            "units": 0.035,
+            "charges": 1.65,
+            "expected": null,
+            "detail": "charge is not a clean multiple of $47.25/hr (implies 0.0349 hrs)"
+          },
+          {
+            "seq": 1697,
+            "service": "Service Center Labor",
+            "month": "2026-08",
+            "units": 0.035,
+            "charges": 1.65,
+            "expected": null,
+            "detail": "charge is not a clean multiple of $47.25/hr (implies 0.0349 hrs)"
+          },
+          {
+            "seq": 1702,
+            "service": "Service Center Labor",
+            "month": "2026-08",
+            "units": 0.035,
+            "charges": 1.65,
+            "expected": null,
+            "detail": "charge is not a clean multiple of $47.25/hr (implies 0.0349 hrs)"
+          }
+        ],
+        "implied_hours": 50.37
+      },
+      {
+        "severity": "info",
+        "type": "undercharge",
+        "title": "Charged below the rate agreement",
+        "lines": 2,
+        "amount": 4.52,
+        "variance": -1.32,
+        "services": [
+          "Returns"
+        ],
+        "examples": [
+          {
+            "seq": 1711,
+            "service": "Returns",
+            "month": "2026-08",
+            "units": 1,
+            "charges": 2.26,
+            "expected": 2.92,
+            "detail": "$2.26 per return + 1 units at $0.657 = $2.92, charged $2.26"
+          },
+          {
+            "seq": 1744,
+            "service": "Returns",
+            "month": "2026-08",
+            "units": 1,
+            "charges": 2.26,
+            "expected": 2.92,
+            "detail": "$2.26 per return + 1 units at $0.657 = $2.92, charged $2.26"
+          }
+        ]
+      }
+    ],
+    "status": "loaded",
+    "loaded_by": "admin@tentree.com",
+    "loaded_at": "2026-09-04T22:42:44.133Z",
+    "submitted_by": null,
+    "submitted_at": null
+  }
+]

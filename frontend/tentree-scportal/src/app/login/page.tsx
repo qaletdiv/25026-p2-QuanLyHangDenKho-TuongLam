@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { login } from '../actions/auth';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { Shield, Lock, Mail, ArrowRight, Loader2, Package } from 'lucide-react';
+import { Shield, Lock, Mail, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -38,17 +38,22 @@ export default function LoginPage() {
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" />
 
-      <div className="w-full max-w-md p-8 relative z-10">
-        <div className="text-center mb-10 space-y-3">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary shadow-xl shadow-primary/20 mb-4 animate-in fade-in zoom-in duration-500">
-            <Package className="w-8 h-8 text-white" />
+      <div className="w-full max-w-md p-6 relative z-10">
+        {/* One surface: brand, form and footer share a single card so the page
+            reads as one object rather than four stacked islands. */}
+        <div className="bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-700">
+          <div className="px-8 pt-10 pb-8 text-center">
+            <img
+              src="/tentree_logo_green.png"
+              alt="Tentree"
+              className="h-14 w-auto object-contain mx-auto"
+            />
+            <h1 className="mt-5 text-2xl font-bold tracking-tight text-slate-900">Tentree Portal</h1>
+            <p className="mt-1.5 text-sm text-slate-500 font-medium">Supply Chain Management System</p>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Tentree Portal</h1>
-          <p className="text-slate-500 font-medium">Supply Chain Management System</p>
-        </div>
 
-        <div className="bg-white p-8 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-slate-100 animate-in slide-in-from-bottom-8 duration-700">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="px-8 pb-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-semibold text-slate-700">Email Address</Label>
               <div className="relative">
@@ -97,22 +102,23 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
+          </div>
 
-          <div className="mt-8 pt-6 border-t border-slate-100">
-            <div className="flex items-center justify-center gap-2 text-xs font-medium text-slate-400">
-              <Shield className="w-3.5 h-3.5" />
+          {/* Tinted footer rail — anchors the card's bottom edge and keeps the
+              help + security lines attached to it instead of drifting below. */}
+          <div className="bg-slate-50/80 border-t border-slate-100 px-8 py-5 space-y-2.5 text-center">
+            <p className="text-sm text-slate-500">
+              Need help?{' '}
+              <span className="text-primary font-semibold cursor-pointer hover:underline">Contact IT Support</span>
+            </p>
+            <div className="flex items-center justify-center gap-1.5 text-[11px] font-medium tracking-wide text-slate-400">
+              <Shield className="w-3 h-3" />
               SECURE ACCESS ONLY
             </div>
           </div>
-        </div>
-
-        <div className="mt-8 text-center">
-          <p className="text-sm text-slate-500">
-            Need help accessing your account? <br />
-            <span className="text-primary font-semibold cursor-pointer hover:underline">Contact IT Support</span>
-          </p>
         </div>
       </div>
     </div>
   );
 }
+

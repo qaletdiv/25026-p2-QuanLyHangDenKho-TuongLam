@@ -2,25 +2,41 @@
   {
     "id": "1",
     "email": "admin@tentree.com",
-    "password": "password123",
-    "_TODO_password": "WEAK DEFAULT — replace with bcrypt hash before any production or staging deployment",
+    "password": "scrypt:1510d108112790e0613a1427b1675555:321976bdd54c8534ccffe61881f0c98584f5dbdbf16515f14d961ba7746a8ac8545310617dafdd09a6de1da8096bdb5880ccade89fb1401f77847d4b87bdec3f",
     "name": "Admin User",
-    "role": "Admin"
+    "role": "Admin",
+    "must_change_password": true
   },
   {
     "id": "2",
     "email": "logistics@tentree.com",
-    "password": "password123",
-    "_TODO_password": "WEAK DEFAULT — replace with bcrypt hash before any production or staging deployment",
+    "password": "scrypt:85b9e5abdc025553e37a5763f240758d:77ff0ece04d3e6a3120edd57eea038d01141e7fcb605bb607e8d3fddfb2b40de63e85226c54a6c2b6ee324ed16a9f3203a19faa0c0a0f438dd095bf54841b2e7",
     "name": "Logistics Coord",
     "role": "Logistics Coordinator"
   },
   {
     "id": "3",
     "email": "production@tentree.com",
-    "password": "password123",
-    "_TODO_password": "WEAK DEFAULT — replace with bcrypt hash before any production or staging deployment",
+    "password": "scrypt:d89693bec32d1b8daa99578db2d1b6be:6d0ca7aa8e3c14c25bc06085d319d416b285ccbf7469f20eb76780ac81bda970df1c2b5e4ec49cfb0d89b3e542640afe79fa0786f3734cc93950c7c401476783",
     "name": "Production Team",
     "role": "Production"
+  },
+  {
+    "id": "1786561729792",
+    "name": "vendor1",
+    "email": "vendor@vendor.com",
+    "password": "scrypt:7729fe349b87d6d9a2ad7646bdd454ca:bbcd8cf2f73c1d55dd15caca24022b766b7a3ea9e4afc8a074e22c7c1f1febcd9530b4b83957940f8b42280f02d590138b7685406ce02a1940e8c6eb527dfeec",
+    "role": "Vendor",
+    "supplier": "Best Star Fashions Co Ltd",
+    "must_change_password": true
+  },
+  {
+    "id": "1786561787434",
+    "name": "ff1",
+    "email": "ff1@ceva.com",
+    "password": "scrypt:e6f6a1d75b51bc80b793b92e19f105a3:43871001e1fcf4523ccce3dd54ecf56259d4b49a83fc7b0aac00fe141990093f3853bdcd5216c35c3bdebc042df9f150fb3e3feb63344642181ec08f19f4f422",
+    "role": "Freight Forwarder",
+    "supplier": null,
+    "must_change_password": true
   }
 ]

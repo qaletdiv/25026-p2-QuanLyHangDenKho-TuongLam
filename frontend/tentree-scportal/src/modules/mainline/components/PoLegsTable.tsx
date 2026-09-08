@@ -46,8 +46,14 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
     const r = await importWip(file);
     setBusy(null);
     if (r?.error) return void toast.error(r.error);
+    // The reconciliation is scoped server-side to the POs in THIS sheet, so the count
+    // describes the upload. Worded as a fact ("differ from NetSuite") rather than
+    // "⚠ mismatch(es)", which read as "your file was rejected" on a success toast —
+    // ordered-vs-allocated divergence is expected whenever NetSuite has revised a PO.
     const mm = r?.reconciliation?.mismatch_count ?? 0;
-    toast.success(`WIP import: ${r.added ?? 0} added, ${r.updated ?? 0} updated${mm ? ` · ⚠ ${mm} mismatch(es)` : ''}`);
+    const pos: string[] = r?.reconciliation?.po_numbers ?? [];
+    const on = pos.length === 1 ? ` on ${pos[0]}` : '';
+    toast.success(`WIP import: ${r.added ?? 0} added, ${r.updated ?? 0} updated${mm ? ` · ${mm} SKU(s)${on} differ from NetSuite` : ''}`);
     router.refresh();
   }
 

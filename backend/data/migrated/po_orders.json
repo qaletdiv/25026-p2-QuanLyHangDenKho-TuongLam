@@ -630,5 +630,37 @@
     "facility_id": null,
     "allocation_channel_id": null,
     "coo_country": null
+  },
+  {
+    "po_number": "PO04840",
+    "trn_number": "TRN_1281",
+    "netsuite_id": "33640702",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04841",
+    "trn_number": "TRN_5059",
+    "netsuite_id": "33759582",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04843",
+    "trn_number": "TRN_5060",
+    "netsuite_id": "33833235",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
+  },
+  {
+    "po_number": "PO04842",
+    "trn_number": "TRN_5060",
+    "netsuite_id": "33832831",
+    "facility_id": null,
+    "allocation_channel_id": null,
+    "coo_country": null
   }
 ]

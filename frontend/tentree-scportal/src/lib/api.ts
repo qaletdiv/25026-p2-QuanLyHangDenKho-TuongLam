@@ -2,6 +2,21 @@ import { getAuthToken } from '@/app/actions/auth';
 
 export const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
 
+/**
+ * Href for a backend file (`/uploads/...`, `/templates/...`).
+ *
+ * Points at our own authenticated proxy, NOT at the backend. The backend's static
+ * mounts now sit below its auth gate, and a browser tab cannot send a Bearer token —
+ * it only has the httpOnly cookie. The route handler at /api/documents reads that
+ * cookie server-side and streams the file through.
+ *
+ * Client components must use this instead of building `${BACKEND_URL}${file_url}`.
+ */
+export function docHref(fileUrl: string | null | undefined): string {
+  if (!fileUrl) return '#';
+  return `/api/documents?path=${encodeURIComponent(fileUrl)}`;
+}
+
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const url = `${BACKEND_URL}${endpoint}`;
   try {

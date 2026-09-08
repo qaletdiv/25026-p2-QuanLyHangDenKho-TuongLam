@@ -112,6 +112,10 @@ export default function SmsPoDetail({ po }: { po: SmsPoDetailT }) {
                   <TableCell>
                     <Badge variant="outline" className={cn(SMS_STATUS_STYLES[c.status || ''])}>{c.status ?? DASH}</Badge>
                     {c.status_source === 'manual' && <span className="ml-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/70">manual</span>}
+                    {/* Received = an Item Receipt exists in NetSuite for this lot */}
+                    {c.status_source === 'netsuite' && c.received_date && (
+                      <span className="ml-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/70">{c.received_date}</span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

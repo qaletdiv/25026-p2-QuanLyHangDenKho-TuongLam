@@ -12,9 +12,9 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { BACKEND_URL } from '@/lib/api';
+import { docHref } from '@/lib/api';
 import { generateMainlineAsn, updateMainlineShipment } from '@/modules/mainline/actions';
-import type { MainlineShipment, MainlineShipmentStatus, MainlineDocument, PortOption, ContainerTypeOption } from '@/modules/mainline/types';
+import type { MainlineShipment, MainlineShipmentStatus, MainlineDocument, PortOption, ContainerTypeOption, CourierOption } from '@/modules/mainline/types';
 
 const STATUSES: MainlineShipmentStatus[] = ['Ready to Ship', 'In Transit', 'At Port', 'Delivered', 'Received', 'Cancelled'];
 const STATUS_STYLES: Record<string, string> = {
@@ -39,8 +39,8 @@ function Cell({ label, children, hint }: { label: string; children: React.ReactN
 }
 
 export default function ShipmentDetail({
-  shipment: s, documents, asn, ports, containerTypes,
-}: { shipment: MainlineShipment; documents: MainlineDocument[]; asn: { file_url?: string } | null; ports: PortOption[]; containerTypes: ContainerTypeOption[] }) {
+  shipment: s, documents, asn, ports, containerTypes, couriers = [],
+}: { shipment: MainlineShipment; documents: MainlineDocument[]; asn: { file_url?: string } | null; ports: PortOption[]; containerTypes: ContainerTypeOption[]; couriers?: CourierOption[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -54,7 +54,7 @@ export default function ShipmentDetail({
   };
   // editable header-level fields — one edit covers every PO leg in this shipment
   const blank = {
-    status: s.status ?? '', bl_no: s.bl_no ?? '', customs_entry_number: s.customs_entry_number ?? '', container_type_id: s.container_type_id ?? '',
+    status: s.status ?? '', bl_no: s.bl_no ?? '', courier_id: s.courier_id ?? '', carrier_reference: s.carrier_reference ?? '', customs_entry_number: s.customs_entry_number ?? '', container_type_id: s.container_type_id ?? '',
     pol_port_id: s.pol_port_id ?? '', pod_port_id: s.pod_port_id ?? (FACILITY_POD[s.facility_id ?? ''] ?? ''),
     cargo_received_date: s.cargo_received_date ?? '', etd_pol: s.etd_pol ?? '', eta_pod: s.eta_pod ?? '', e_del: s.e_del ?? '',
     ata: s.ata ?? '',   // actual receipt date — manual entry
@@ -63,6 +63,12 @@ export default function ShipmentDetail({
   };
   const [form, setForm] = useState(blank);
   const setF = (k: keyof typeof blank, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  // Landed-cost BASIS follows the carrier currently selected in the form (not the
+  // saved one), so switching to FedEx immediately hides the freight/duty inputs
+  // rather than letting the user type values the server will reject.
+  const selectedCourier = couriers.find((c) => c.id === form.courier_id) || null;
+  const isEstimateBasis = !!selectedCourier && selectedCourier.provides_cost_invoices === false;
 
   const legIds = useMemo(() => new Set(s.legs.map((l) => l.leg_id)), [s.legs]);
   const shipmentDocs = documents.filter((d) => d.leg_id === null || legIds.has(d.leg_id as string));
@@ -73,6 +79,8 @@ export default function ShipmentDetail({
     const res = await updateMainlineShipment(s.id, {
       status: form.status || undefined,
       bl_no: form.bl_no || null,
+      courier_id: form.courier_id || null,
+      carrier_reference: form.carrier_reference || null,
       customs_entry_number: form.customs_entry_number || null,
       container_type_id: form.container_type_id || null,
       pol_port_id: form.pol_port_id || null,
@@ -83,8 +91,13 @@ export default function ShipmentDetail({
       e_del: form.e_del || null,
       // ATA is derived from NetSuite Item Receipts when present — don't overwrite it
       ata: s.ata_source === 'netsuite' ? undefined : (form.ata || null),
-      freight: form.freight === '' ? null : Number(form.freight),
-      duty: form.duty === '' ? null : Number(form.duty),
+      // Omitted entirely on an estimate-basis carrier: the server refuses typed
+      // amounts there (they would contradict the derived CI × rate figure), and
+      // sending even a null would be asserting something about a field we don't own.
+      ...(isEstimateBasis ? {} : {
+        freight: form.freight === '' ? null : Number(form.freight),
+        duty: form.duty === '' ? null : Number(form.duty),
+      }),
     });
     setBusy(false);
     if (res?.error) { toast.error(res.error); return; }
@@ -130,7 +143,7 @@ export default function ShipmentDetail({
             <h1 className="text-2xl font-semibold tracking-tight">{s.shipment_number}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {asn?.file_url && <a href={`${BACKEND_URL}${asn.file_url}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline text-sm"><Download className="h-3.5 w-3.5" /> Latest ASN</a>}
+            {asn?.file_url && <a href={docHref(asn.file_url)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline text-sm"><Download className="h-3.5 w-3.5" /> Latest ASN</a>}
             <Button size="sm" variant="outline" disabled={busy || !s.e_del} title={s.e_del ? 'Generate ASN' : 'Needs an estimated delivery date (E-DEL)'} onClick={genAsn}>
               <FileText className="h-4 w-4 mr-1" /> {asn ? 'Regenerate ASN' : 'Generate ASN'}
             </Button>
@@ -150,8 +163,8 @@ export default function ShipmentDetail({
       <section className="space-y-2">
         <h2 className="text-sm font-medium text-muted-foreground">Overview</h2>
         <Card className="p-4 space-y-4">
-          {/* line 1 — booking + status */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* line 1 — booking + status + carrier + its reference */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <Cell label="Booking">
               {s.booking_id
                 ? <Link href={`/mainline/bookings/${s.booking_id}`} className="text-primary hover:underline">{s.booking_number ?? 'view booking'}</Link>
@@ -164,6 +177,32 @@ export default function ShipmentDetail({
                     <SelectContent>{STATUSES.map((st) => <SelectItem key={st} value={st}>{st}</SelectItem>)}</SelectContent>
                   </Select>
                 : <Badge variant="outline" className={cn(STATUS_STYLES[s.status || ''])}>{s.status ?? '—'}</Badge>}
+            </Cell>
+            {/* Carrier — WHO moved it. Not every mainline shipment goes with a
+                forwarder, and this is what decides whether the landed cost is the
+                actual off their invoices or an estimate from the CI value. */}
+            <Cell label="Carrier" hint={isEstimateBasis ? 'no separate freight & duty invoice — landed cost is estimated' : undefined}>
+              {editing
+                ? <Select value={form.courier_id || NONE} onValueChange={(v) => setF('courier_id', v === NONE ? '' : (v ?? ''))}>
+                    {/* label rendered directly — see the Radix Select gotcha in CLAUDE.md */}
+                    <SelectTrigger className="h-8">
+                      <span className={cn(!form.courier_id && 'text-muted-foreground')}>
+                        {couriers.find((c) => c.id === form.courier_id)?.name ?? '—'}
+                      </span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NONE}>—</SelectItem>
+                      {couriers.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                : (s.courier ?? '—')}
+            </Cell>
+            {/* Was "CEVA Shipment #". Deliberately NOT "Shipment #" — that is the
+                portal's own SHP-N in the header above. */}
+            <Cell label="Carrier Ref #" hint="the carrier's own reference for this shipment">
+              {editing
+                ? <Input className="h-8" placeholder="carrier reference" value={form.carrier_reference} onChange={(e) => setF('carrier_reference', e.target.value)} />
+                : (s.carrier_reference ?? '—')}
             </Cell>
           </div>
           {/* line 2 — cargo identity */}
@@ -201,7 +240,7 @@ export default function ShipmentDetail({
           </div>
           {/* timeline — chronological order */}
           <div className="border-t border-border pt-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Cell label="CRD">{s.crd ?? '—'}</Cell>
               <Cell label="Received at Port">{editing ? dateInput('cargo_received_date') : (s.cargo_received_date ?? '—')}</Cell>
               <Cell label="ETD POL">{editing ? dateInput('etd_pol') : (s.etd_pol ?? '—')}</Cell>
@@ -220,16 +259,32 @@ export default function ShipmentDetail({
       <section className="space-y-2">
         <h2 className="text-sm font-medium text-muted-foreground">Landed Cost — Freight &amp; Duty</h2>
         <Card className="p-4">
+          {/* An estimate-basis carrier (FedEx/DHL) invoices no freight or duty that
+              finance can trace, so the figures are DERIVED from the commercial-invoice
+              value on the Landed Costs page. Typing them here is refused server-side,
+              so the inputs are replaced by an explanation rather than shown disabled. */}
+          {isEstimateBasis && (
+            <p className="mb-3 text-xs text-amber-600 dark:text-amber-400">
+              {/* explicit {' '} — this toolchain drops the literal space after an expression */}
+              {selectedCourier?.name}{' '}does not invoice freight &amp; duty separately, so this shipment&apos;s landed cost is
+              estimated from the commercial-invoice value — see the{' '}
+              <Link href="/landed-costs/mainline" className="underline">Landed Costs</Link> page. Amounts cannot be entered by hand.
+            </p>
+          )}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Cell label="Total Freight (USD)">
-              {editing
+              {editing && !isEstimateBasis
                 ? <Input type="number" min="0" step="0.01" className="h-8" placeholder="0.00" value={form.freight} onChange={(e) => setF('freight', e.target.value)} />
-                : (s.freight != null ? `$${Number(s.freight).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—')}
+                : isEstimateBasis
+                  ? <span className="text-muted-foreground">estimated</span>
+                  : (s.freight != null ? `$${Number(s.freight).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—')}
             </Cell>
             <Cell label="Total Duty (USD)">
-              {editing
+              {editing && !isEstimateBasis
                 ? <Input type="number" min="0" step="0.01" className="h-8" placeholder="0.00" value={form.duty} onChange={(e) => setF('duty', e.target.value)} />
-                : (s.duty != null ? `$${Number(s.duty).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—')}
+                : isEstimateBasis
+                  ? <span className="text-muted-foreground">estimated</span>
+                  : (s.duty != null ? `$${Number(s.duty).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—')}
             </Cell>
             <Cell label="Entry Number">
               {editing
@@ -295,7 +350,7 @@ export default function ShipmentDetail({
                 <div key={scope} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                   <span className="w-full sm:w-44 shrink-0 text-muted-foreground">{scope}</span>
                   {shipmentDocs.filter((d) => d.scope === scope).sort((a) => (a.doc_type === 'commercial_invoice' ? -1 : 1)).map((d) => (
-                    <a key={d.id} href={`${BACKEND_URL}${d.file_url}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                    <a key={d.id} href={docHref(d.file_url)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
                       <Download className="h-3.5 w-3.5" /> {d.doc_type === 'commercial_invoice' ? 'Commercial Invoice' : 'Packing Slip'}
                     </a>
                   ))}

@@ -12,4 +12,15 @@ const rateRow = Joi.object({
 
 const ratesUpdate = Joi.array().items(rateRow);
 
-module.exports = { ratesUpdate };
+// PUT /landed-costs/{sms,mainline}/commissions — per-supplier commission % of CI
+// value (whole-table replace, per module). Kept separate from rates: commission
+// is supplier-scoped, not module-scoped (e.g. Pratibha 1.5%).
+const commissionRow = Joi.object({
+  id: Joi.string().min(1).required(),
+  supplier_id: Joi.string().min(1).required(),
+  commission_pct: Joi.number().min(0).max(100).required(),
+});
+
+const commissionsUpdate = Joi.array().items(commissionRow);
+
+module.exports = { ratesUpdate, commissionsUpdate };

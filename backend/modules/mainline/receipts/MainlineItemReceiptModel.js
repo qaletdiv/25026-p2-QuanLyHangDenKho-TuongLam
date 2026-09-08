@@ -9,10 +9,16 @@ const BaseModel = require('../../../models/BaseModel');
 
 const receipts     = new BaseModel('migrated/mainline_item_receipts.json');
 const receiptLines = new BaseModel('migrated/mainline_item_receipt_lines.json');
+// Human REJECTIONS of an auto-suggested (receipt × shipment) pair — the negative of
+// matched_shipment_id. Own table (a repeating group on the receipt row otherwise);
+// mainline's own, never shared with the SMS rejection table.
+const rejections   = new BaseModel('migrated/mainline_receipt_match_rejections.json');
 
 module.exports = {
   readReceipts:      () => receipts.read(),
   writeReceipts:     (d) => receipts.write(d),
   readReceiptLines:  () => receiptLines.read(),
   writeReceiptLines: (d) => receiptLines.write(d),
+  readRejections:    () => rejections.read(),
+  writeRejections:   (d) => rejections.write(d),
 };

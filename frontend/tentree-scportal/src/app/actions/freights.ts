@@ -40,11 +40,11 @@ export async function parseFreightTemplate(formData: FormData) {
   return data;
 }
 
-/** GET /freights/template — download blank Excel template */
-export async function getFreightTemplateUrl() {
-  const token = await getAuthToken();
-  return { url: `${BACKEND_URL}/freights/template`, token: token || '' };
-}
+// getFreightTemplateUrl() was REMOVED (2026-08-12). It returned the raw JWT to client
+// code so a browser fetch could set an Authorization header — which put the token in
+// browser JavaScript and defeated the httpOnly cookie. The template now downloads via
+// docHref('/freights/template') → the /api/documents proxy, which authenticates from
+// the cookie server-side. Do not reintroduce a server action that returns the token.
 
 /** GET /freights/:id/export — generate export xlsx, return file_url */
 export async function exportFreightRecord(id: string) {

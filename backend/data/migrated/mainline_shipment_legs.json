@@ -33,5 +33,89 @@
     "leg_id": "2",
     "lot_number": 1,
     "expected_quantity": 139
+  },
+  {
+    "id": "spl_4_77",
+    "shipment_id": "4",
+    "leg_id": "77",
+    "lot_number": 1,
+    "expected_quantity": 3516
+  },
+  {
+    "id": "spl_4_45",
+    "shipment_id": "4",
+    "leg_id": "45",
+    "lot_number": 1,
+    "expected_quantity": 2959
+  },
+  {
+    "id": "spl_5_73",
+    "shipment_id": "5",
+    "leg_id": "73",
+    "lot_number": 1,
+    "expected_quantity": 2959
+  },
+  {
+    "id": "spl_5_38",
+    "shipment_id": "5",
+    "leg_id": "38",
+    "lot_number": 1,
+    "expected_quantity": 1936
+  },
+  {
+    "id": "spl_6_77",
+    "shipment_id": "6",
+    "leg_id": "77",
+    "lot_number": 2,
+    "expected_quantity": 7279
+  },
+  {
+    "id": "spl_6_45",
+    "shipment_id": "6",
+    "leg_id": "45",
+    "lot_number": 2,
+    "expected_quantity": 13065
+  },
+  {
+    "id": "spl_7_28",
+    "shipment_id": "7",
+    "leg_id": "28",
+    "lot_number": 1,
+    "expected_quantity": 1271
+  },
+  {
+    "id": "spl_7_18",
+    "shipment_id": "7",
+    "leg_id": "18",
+    "lot_number": 1,
+    "expected_quantity": 1245
+  },
+  {
+    "id": "spl_8_77",
+    "shipment_id": "8",
+    "leg_id": "77",
+    "lot_number": 3,
+    "expected_quantity": 748
+  },
+  {
+    "id": "spl_8_57",
+    "shipment_id": "8",
+    "leg_id": "57",
+    "lot_number": 1,
+    "expected_quantity": 2320
+  },
+  {
+    "id": "spl_9_77",
+    "shipment_id": "9",
+    "leg_id": "77",
+    "lot_number": 4,
+    "expected_quantity": 1207
+  },
+  {
+    "id": "spl_9_45",
+    "shipment_id": "9",
+    "leg_id": "45",
+    "lot_number": 3,
+    "expected_quantity": 1909
   }
 ]

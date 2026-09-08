@@ -49,6 +49,8 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  // in-progress inline edits of the carrier reference # (per shipment id); absent = not edited
+  const [carrierRefEdits, setCarrierRefEdits] = useState<Record<string, string>>({});
 
   // Season + Active/All filter (default: current season + in-flight shipments).
   const seasonOptions = useMemo(() => seasonsFrom(shipments), [shipments]);
@@ -66,7 +68,7 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
     const q = search.trim().toLowerCase();
     if (!q) return scoped;
     return scoped.filter((s) =>
-      [s.shipment_number, s.booking_number, s.supplier_name, s.destination_facility, s.bl_no, ...s.po_numbers]
+      [s.shipment_number, s.booking_number, s.supplier_name, s.destination_facility, s.bl_no, s.carrier_reference, ...s.po_numbers]
         .some((v) => (v || '').toLowerCase().includes(q)),
     );
   }, [sorted, search, season, scope]);
@@ -85,6 +87,22 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
     router.refresh();
   }
 
+  // Inline save of a carrier reference # (on blur / Enter). No-op if unchanged.
+  async function saveCarrierRef(sh: MainlineShipment) {
+    const draft = carrierRefEdits[sh.id];
+    if (draft === undefined) return;                       // never edited this cell
+    const next = draft.trim();
+    const dropDraft = () => setCarrierRefEdits((p) => { const n = { ...p }; delete n[sh.id]; return n; });
+    if (next === (sh.carrier_reference ?? '')) { dropDraft(); return; }   // unchanged
+    setBusyId(sh.id);
+    const res = await updateMainlineShipment(sh.id, { carrier_reference: next || null });
+    setBusyId(null);
+    if (res?.error) { toast.error(res.error); return; }    // keep the draft so the edit isn't lost
+    dropDraft();
+    toast.success('Carrier reference updated');
+    router.refresh();
+  }
+
   const columns: ShipColumn[] = [
     { key: 'shipment', label: 'Shipment', render: (s) => (
       <Link href={`/mainline/shipments/${s.id}`} className="text-primary hover:underline font-medium" onClick={(e) => e.stopPropagation()}>{s.shipment_number}</Link>
@@ -100,6 +118,18 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
     { key: 'pos', label: 'POs', render: (s) => <span className="text-xs">{s.po_numbers.length} PO{s.po_numbers.length === 1 ? '' : 's'}: {s.po_numbers.join(', ') || '—'}</span> },
     { key: 'total_qty', label: 'Total Qty', align: 'right', render: (s) => <span className="tabular-nums">{s.total_expected_quantity.toLocaleString()}</span> },
     { key: 'bl_no', label: 'BL No', defaultVisible: false, render: (s) => dim(s.bl_no) },
+    { key: 'courier', label: 'Carrier', render: (s) => dim(s.courier) },
+    { key: 'carrier_reference', label: 'Carrier Ref #', stopClick: true, render: (s) => (
+      <Input
+        className="h-8 w-40"
+        placeholder="—"
+        value={carrierRefEdits[s.id] ?? (s.carrier_reference ?? '')}
+        disabled={busyId === s.id}
+        onChange={(e) => setCarrierRefEdits((p) => ({ ...p, [s.id]: e.target.value }))}
+        onBlur={() => saveCarrierRef(s)}
+        onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+      />
+    ) },
     { key: 'pol_port', label: 'POL', defaultVisible: false, render: (s) => dim(s.pol_port) },
     { key: 'pod_port', label: 'POD', defaultVisible: false, render: (s) => dim(s.pod_port) },
     { key: 'coo', label: 'COO', defaultVisible: false, render: (s) => dim(s.coo.join(', ')) },

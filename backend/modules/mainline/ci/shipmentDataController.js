@@ -21,6 +21,7 @@ const { suppliers: SupplierModel } = require('../../../models/MasterDataModel');
 const BaseModel = require('../../../models/BaseModel');
 const documentService = require('./documentService');
 const { linesForBooking } = require('./ciLines');
+const { assertBookingVisible } = require('../vendorAccess');
 
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
 const num = (v) => { const n = Number(v); return isFinite(n) && v !== '' && v !== null ? n : null; };
@@ -155,6 +156,7 @@ async function uploadShipmentData(req, res) {
 
 // GET /mainline/bookings/:id/documents — list generated docs, enriched with po scope.
 async function getDocuments(req, res) {
+  await assertBookingVisible(req, req.params.id);
   const [docs, legs] = await Promise.all([MainlineDocumentModel.read(), MainlineLegModel.readLegs()]);
   const legPo = new Map(legs.map((l) => [l.id, l.po_number]));
   const mine = docs.filter((d) => d.booking_id === req.params.id).map((d) => ({

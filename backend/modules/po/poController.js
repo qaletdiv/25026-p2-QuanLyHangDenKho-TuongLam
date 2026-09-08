@@ -9,8 +9,17 @@ const PoMasterModel = require('./PoMasterModel');
 const PoOrderModel  = require('./PoOrderModel');
 const LegReadModel  = require('./LegReadModel');
 const BaseModel     = require('../../models/BaseModel');
+const { resolveVendorSupplierId } = require('../../utils/vendorScope');
+// pure date helper only — reused so the "expected ATA = E-DEL + 5" rule has ONE
+// definition shared with /reports/mainline rather than a second copy here.
+const { addDays } = require('../mainline/reports/transitTimeService');
 
 const notFound = (msg) => { const e = new Error(msg); e.statusCode = 404; throw e; };
+
+// Vendor row scoping for every read in this file. Reads use onUnlinked:'deny', so a
+// vendor account that resolves to no supplier sees an empty order book rather than
+// a 403 on a page load.
+const scopeOf = (req) => resolveVendorSupplierId(req.user, { onUnlinked: 'deny' });
 
 // id → name lookup from a master-data file
 const nameMap = (rows, key = 'name') => new Map((Array.isArray(rows) ? rows : []).map((r) => [r.id, r[key]]));
@@ -27,14 +36,41 @@ const lifecycleOf = (legCount, splitOrders, orderCount) =>
   : splitOrders === orderCount ? 'split'
   : 'partial';
 
-async function loadAll() {
-  const [masters, orders, orderLines, legs, legLines] = await Promise.all([
+// loadAll(vendorSupplierId) — the SINGLE scoping point for the whole PO read path.
+//
+// supplier_id lives only on po_masters, and every read here already joins through
+// it, so filtering the five source tables once here scopes every handler at once:
+// the list endpoints return only the vendor's rows, and getOne/getLeg fall through
+// to their existing notFound() — a 404 rather than a 403, which is deliberate. A 403
+// would confirm that a TRN or leg id exists, letting a vendor enumerate other
+// suppliers' PO numbers; 404 is indistinguishable from "no such record".
+//
+// Pass null (staff) to disable scoping. Masters with a null supplier_id are excluded
+// for vendors, which is correct — an unattributed master is not theirs.
+async function loadAll(vendorSupplierId) {
+  const [allMasters, allOrders, allOrderLines, allLegs, allLegLines] = await Promise.all([
     PoMasterModel.read(),
     PoOrderModel.readOrders(),
     PoOrderModel.readOrderLines(),
     LegReadModel.readLegs(),
     LegReadModel.readLegLines(),
   ]);
+
+  let masters = allMasters, orders = allOrders, orderLines = allOrderLines,
+      legs = allLegs, legLines = allLegLines;
+
+  if (vendorSupplierId != null) {
+    const mine = String(vendorSupplierId);
+    masters = allMasters.filter((m) => m.supplier_id != null && String(m.supplier_id) === mine);
+    const trns = new Set(masters.map((m) => m.trn_number));
+    orders = allOrders.filter((o) => trns.has(o.trn_number));
+    const poNumbers = new Set(orders.map((o) => o.po_number));
+    orderLines = allOrderLines.filter((l) => poNumbers.has(l.po_number));
+    legs = allLegs.filter((l) => poNumbers.has(l.po_number));
+    const legIds = new Set(legs.map((l) => l.id));
+    legLines = allLegLines.filter((ll) => legIds.has(ll.leg_id));
+  }
+
   return {
     masters, orders, orderLines, legs, legLines,
     ordersByTrn:   groupBy(orders, 'trn_number'),
@@ -52,7 +88,7 @@ async function loadAll() {
 // not bookable. `lifecycle` = 'split' | 'forecast'.
 async function getLegs(req, res) {
   const [d, modes, incoterms, facilities, channels, suppliers, seasons] = await Promise.all([
-    loadAll(),
+    loadAll(await scopeOf(req)),
     new BaseModel('modes.json').read(),
     new BaseModel('incoterms.json').read(),
     new BaseModel('migrated/warehouse_facilities.json').read(),
@@ -128,7 +164,7 @@ async function getLegs(req, res) {
 
 // GET /po — list every master with derived rollups + lifecycle state.
 async function getAll(req, res) {
-  const d = await loadAll();
+  const d = await loadAll(await scopeOf(req));
   const result = d.masters.map((m) => {
     const myOrders = d.ordersByTrn[m.trn_number] || [];
     let legCount = 0, ordered = 0, splitOrders = 0;
@@ -155,7 +191,7 @@ async function getAll(req, res) {
 async function getOne(req, res) {
   const { trn } = req.params;
   const [d, facilities, channels, modes, suppliers, seasons] = await Promise.all([
-    loadAll(),
+    loadAll(await scopeOf(req)),
     new BaseModel('migrated/warehouse_facilities.json').read(),
     new BaseModel('migrated/allocation_channels.json').read(),
     new BaseModel('modes.json').read(),
@@ -207,15 +243,34 @@ async function getOne(req, res) {
 
 // GET /po/leg-lines — EVERY SKU allocation across all legs, enriched with PO/leg
 // context + SKU descriptions. Feeds the "item lines" download on the PO list.
+//
+// Dates come from TWO grains and are kept in SEPARATE columns, never merged:
+//   PLANNED — crd / e_del / etd_pol_planned, from the WIP-owned leg.
+//   ACTUAL  — etd_pol / eta_pod / e_del_actual / cargo_received_date / ata, from
+//             the shipment(s) the leg was loaded onto (mainline_shipment_legs).
+// Overwriting the planned value with the actual would erase the very slip the
+// report exists to show, so both are emitted side by side.
+//
+// GRAIN IS PRESERVED: one row per (leg, SKU), as before. A leg may span several
+// shipments (live: 2 of 86), and fanning out would repeat allocated_qty — which is
+// per (leg, SKU) — on every fanned row, silently inflating any sum of that column.
+// So the leg's shipments are AGGREGATED into one date window instead:
+//   departure = EARLIEST etd_pol (the first box left)
+//   arrival   = LATEST eta_pod / cargo_received_date / ata / e_del (the leg is not
+//               fully delivered until the last box lands)
+// shipment_count + shipment_numbers keep that aggregation visible rather than
+// hiding it. ISO date strings compare lexicographically, so min/max need no parsing.
 async function getAllLegLines(req, res) {
-  const [d, modes, facilities, channels, suppliers, seasons, skus] = await Promise.all([
-    loadAll(),
+  const [d, modes, facilities, channels, suppliers, seasons, skus, shipments, shipLegs] = await Promise.all([
+    loadAll(await scopeOf(req)),
     new BaseModel('modes.json').read(),
     new BaseModel('migrated/warehouse_facilities.json').read(),
     new BaseModel('migrated/allocation_channels.json').read(),
     new BaseModel('suppliers.json').read(),
     new BaseModel('migrated/seasons.json').read(),
     new BaseModel('migrated/product_skus.json').read(),
+    new BaseModel('migrated/mainline_shipments.json').read(),
+    new BaseModel('migrated/mainline_shipment_legs.json').read(),
   ]);
   const modeName = nameMap(modes), facName = nameMap(facilities), chanName = nameMap(channels);
   const supName = nameMap(suppliers), seasonName = nameMap(seasons, 'code');
@@ -224,11 +279,34 @@ async function getAllLegLines(req, res) {
   const legById = new Map(d.legs.map((l) => [l.id, l]));
   const skuByCode = new Map(skus.map((s) => [s.sku_code, s]));
 
+  // leg_id → aggregated shipment dates. Built over ALL shipments deliberately: the
+  // ROW LIST (d.legLines) is already vendor-scoped by loadAll, and this is lookup
+  // context — pruning it would blank dates rather than hide rows.
+  const shipById = new Map((Array.isArray(shipments) ? shipments : []).map((s) => [s.id, s]));
+  const shipDatesByLeg = new Map();
+  for (const j of (Array.isArray(shipLegs) ? shipLegs : [])) {
+    const s = shipById.get(j.shipment_id);
+    if (!s) continue;
+    const agg = shipDatesByLeg.get(j.leg_id) || { numbers: [], count: 0 };
+    agg.count += 1;
+    if (s.shipment_number) agg.numbers.push(s.shipment_number);
+    // earliest departure, latest everything downstream
+    if (s.etd_pol && (!agg.etd_pol || s.etd_pol < agg.etd_pol)) agg.etd_pol = s.etd_pol;
+    for (const k of ['eta_pod', 'e_del', 'cargo_received_date', 'ata']) {
+      if (s[k] && (!agg[k] || s[k] > agg[k])) agg[k] = s[k];
+    }
+    shipDatesByLeg.set(j.leg_id, agg);
+  }
+
   const rows = d.legLines.map((ll) => {
     const leg = legById.get(ll.leg_id) || {};
     const order = orderByPo.get(leg.po_number) || {};
     const master = masterByTrn.get(order.trn_number) || {};
     const sku = skuByCode.get(ll.sku_code) || {};
+    const ship = shipDatesByLeg.get(ll.leg_id) || null;
+    // Expected ATA = best-known E-DEL + 5, derived never stored — the actual E-DEL
+    // once shipped, else the leg's plan. Same basis rule as /reports/mainline.
+    const bestEDel = (ship && ship.e_del) || leg.e_del || null;
     return {
       po_number:           leg.po_number || null,
       trn_number:          order.trn_number || null,
@@ -237,8 +315,19 @@ async function getAllLegLines(req, res) {
       mode:                modeName.get(leg.mode_id) || null,
       receiving_warehouse: facName.get(order.facility_id) || null,
       allocation_channel:  chanName.get(order.allocation_channel_id) || null,
+      // planned (leg / WIP)
       crd:                 leg.crd || null,
       e_del:               leg.e_del || null,
+      etd_pol_planned:     leg.etd_pol || null,
+      // actual (shipment)
+      shipment_numbers:    ship && ship.numbers.length ? ship.numbers.join(', ') : null,
+      shipment_count:      ship ? ship.count : 0,
+      etd_pol:             (ship && ship.etd_pol) || null,
+      eta_pod:             (ship && ship.eta_pod) || null,
+      e_del_actual:        (ship && ship.e_del) || null,
+      cargo_received_date: (ship && ship.cargo_received_date) || null,
+      expected_ata:        addDays(bestEDel, 5),
+      ata:                 (ship && ship.ata) || null,
       leg_id:              ll.leg_id,
       sku_code:            ll.sku_code,
       item_name:           sku.item_name || null,
@@ -257,7 +346,7 @@ async function getAllLegLines(req, res) {
 async function getLeg(req, res) {
   const { id } = req.params;
   const [d, modes, incoterms, facilities, channels, suppliers, seasons, skus] = await Promise.all([
-    loadAll(),
+    loadAll(await scopeOf(req)),
     new BaseModel('modes.json').read(),
     new BaseModel('incoterms.json').read(),
     new BaseModel('migrated/warehouse_facilities.json').read(),

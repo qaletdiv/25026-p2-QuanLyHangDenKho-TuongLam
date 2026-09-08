@@ -48666,130 +48666,160 @@
     "allocated_qty": 35
   },
   {
-    "id": "mll_77_TCM6667-6566-L",
+    "id": "mll_77_TCW6244-6472-L",
     "leg_id": "77",
-    "sku_code": "TCM6667-6566-L",
-    "allocated_qty": 52
+    "sku_code": "TCW6244-6472-L",
+    "allocated_qty": 38
   },
   {
-    "id": "mll_77_TCM6667-6566-M",
+    "id": "mll_77_TCW6244-6472-M",
     "leg_id": "77",
-    "sku_code": "TCM6667-6566-M",
-    "allocated_qty": 39
+    "sku_code": "TCW6244-6472-M",
+    "allocated_qty": 45
   },
   {
-    "id": "mll_77_TCM6667-6566-S",
+    "id": "mll_77_TCW6244-6472-S",
     "leg_id": "77",
-    "sku_code": "TCM6667-6566-S",
-    "allocated_qty": 11
+    "sku_code": "TCW6244-6472-S",
+    "allocated_qty": 32
   },
   {
-    "id": "mll_77_TCM6667-6566-XL",
+    "id": "mll_77_TCW6244-6472-XL",
     "leg_id": "77",
-    "sku_code": "TCM6667-6566-XL",
+    "sku_code": "TCW6244-6472-XL",
     "allocated_qty": 27
   },
   {
-    "id": "mll_77_TCM6667-6566-XXL",
+    "id": "mll_77_TCW6244-6472-XS",
     "leg_id": "77",
-    "sku_code": "TCM6667-6566-XXL",
-    "allocated_qty": 12
+    "sku_code": "TCW6244-6472-XS",
+    "allocated_qty": 11
   },
   {
-    "id": "mll_77_TCM6667-6235-XXL",
+    "id": "mll_77_TCW6613-6573-L",
     "leg_id": "77",
-    "sku_code": "TCM6667-6235-XXL",
-    "allocated_qty": 14
+    "sku_code": "TCW6613-6573-L",
+    "allocated_qty": 41
   },
   {
-    "id": "mll_77_TCM6667-6235-S",
+    "id": "mll_77_TCW6613-6573-M",
     "leg_id": "77",
-    "sku_code": "TCM6667-6235-S",
-    "allocated_qty": 12
+    "sku_code": "TCW6613-6573-M",
+    "allocated_qty": 52
   },
   {
-    "id": "mll_77_TCM6667-6567-L",
+    "id": "mll_77_TCW6613-6573-S",
     "leg_id": "77",
-    "sku_code": "TCM6667-6567-L",
-    "allocated_qty": 72
+    "sku_code": "TCW6613-6573-S",
+    "allocated_qty": 30
   },
   {
-    "id": "mll_77_TCM6667-6567-M",
+    "id": "mll_77_TCW6613-6573-XL",
     "leg_id": "77",
-    "sku_code": "TCM6667-6567-M",
-    "allocated_qty": 53
+    "sku_code": "TCW6613-6573-XL",
+    "allocated_qty": 25
   },
   {
-    "id": "mll_77_TCM6667-6567-S",
+    "id": "mll_77_TCW6613-6573-XS",
     "leg_id": "77",
-    "sku_code": "TCM6667-6567-S",
-    "allocated_qty": 15
+    "sku_code": "TCW6613-6573-XS",
+    "allocated_qty": 10
   },
   {
-    "id": "mll_77_TCM6667-6567-XL",
+    "id": "mll_77_TCW6613-6235-L",
     "leg_id": "77",
-    "sku_code": "TCM6667-6567-XL",
+    "sku_code": "TCW6613-6235-L",
     "allocated_qty": 37
   },
   {
-    "id": "mll_77_TCM6667-6567-XXL",
+    "id": "mll_77_TCW6613-6235-M",
     "leg_id": "77",
-    "sku_code": "TCM6667-6567-XXL",
-    "allocated_qty": 18
+    "sku_code": "TCW6613-6235-M",
+    "allocated_qty": 50
   },
   {
-    "id": "mll_77_TCM6689-6357-XL",
+    "id": "mll_77_TCW6613-6235-S",
     "leg_id": "77",
-    "sku_code": "TCM6689-6357-XL",
-    "allocated_qty": 63
+    "sku_code": "TCW6613-6235-S",
+    "allocated_qty": 31
   },
   {
-    "id": "mll_77_TCM6689-6357-M",
+    "id": "mll_77_TCW6613-6235-XL",
     "leg_id": "77",
-    "sku_code": "TCM6689-6357-M",
-    "allocated_qty": 71
+    "sku_code": "TCW6613-6235-XL",
+    "allocated_qty": 24
   },
   {
-    "id": "mll_77_TCM6689-6357-L",
+    "id": "mll_77_TCW6613-6559-L",
     "leg_id": "77",
-    "sku_code": "TCM6689-6357-L",
-    "allocated_qty": 83
+    "sku_code": "TCW6613-6559-L",
+    "allocated_qty": 44
+  },
+  {
+    "id": "mll_77_TCW6613-6559-M",
+    "leg_id": "77",
+    "sku_code": "TCW6613-6559-M",
+    "allocated_qty": 56
+  },
+  {
+    "id": "mll_77_TCW6613-6559-S",
+    "leg_id": "77",
+    "sku_code": "TCW6613-6559-S",
+    "allocated_qty": 36
+  },
+  {
+    "id": "mll_77_TCW6613-6559-XL",
+    "leg_id": "77",
+    "sku_code": "TCW6613-6559-XL",
+    "allocated_qty": 25
+  },
+  {
+    "id": "mll_77_TCW6613-6559-XS",
+    "leg_id": "77",
+    "sku_code": "TCW6613-6559-XS",
+    "allocated_qty": 14
+  },
+  {
+    "id": "mll_77_TCW6613-6235-XS",
+    "leg_id": "77",
+    "sku_code": "TCW6613-6235-XS",
+    "allocated_qty": 12
+  },
+  {
+    "id": "mll_77_TCM6661-6709-L",
+    "leg_id": "77",
+    "sku_code": "TCM6661-6709-L",
+    "allocated_qty": 30
+  },
+  {
+    "id": "mll_77_TCM6661-6709-M",
+    "leg_id": "77",
+    "sku_code": "TCM6661-6709-M",
+    "allocated_qty": 21
+  },
+  {
+    "id": "mll_77_TCM6661-6709-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6661-6709-XL",
+    "allocated_qty": 25
+  },
+  {
+    "id": "mll_77_TCM6661-6709-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6661-6709-XXL",
+    "allocated_qty": 8
   },
   {
     "id": "mll_77_TCM6665-6235-L",
     "leg_id": "77",
     "sku_code": "TCM6665-6235-L",
-    "allocated_qty": 52
-  },
-  {
-    "id": "mll_77_TCM6667-6235-L",
-    "leg_id": "77",
-    "sku_code": "TCM6667-6235-L",
-    "allocated_qty": 60
-  },
-  {
-    "id": "mll_77_TCM6667-6235-M",
-    "leg_id": "77",
-    "sku_code": "TCM6667-6235-M",
-    "allocated_qty": 47
-  },
-  {
-    "id": "mll_77_TCM6667-6235-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6667-6235-XL",
-    "allocated_qty": 31
+    "allocated_qty": 59
   },
   {
     "id": "mll_77_TCM6665-6235-M",
     "leg_id": "77",
     "sku_code": "TCM6665-6235-M",
-    "allocated_qty": 39
-  },
-  {
-    "id": "mll_77_TCM6692-6358-L",
-    "leg_id": "77",
-    "sku_code": "TCM6692-6358-L",
-    "allocated_qty": 83
+    "allocated_qty": 43
   },
   {
     "id": "mll_77_TCM6665-6235-S",
@@ -48801,61 +48831,523 @@
     "id": "mll_77_TCM6665-6235-XL",
     "leg_id": "77",
     "sku_code": "TCM6665-6235-XL",
-    "allocated_qty": 27
+    "allocated_qty": 32
   },
   {
     "id": "mll_77_TCM6665-6235-XXL",
     "leg_id": "77",
     "sku_code": "TCM6665-6235-XXL",
-    "allocated_qty": 12
+    "allocated_qty": 14
+  },
+  {
+    "id": "mll_77_TCM6661-6438-L",
+    "leg_id": "77",
+    "sku_code": "TCM6661-6438-L",
+    "allocated_qty": 49
+  },
+  {
+    "id": "mll_77_TCM6661-6438-M",
+    "leg_id": "77",
+    "sku_code": "TCM6661-6438-M",
+    "allocated_qty": 36
+  },
+  {
+    "id": "mll_77_TCM6661-6438-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6661-6438-XL",
+    "allocated_qty": 27
   },
   {
     "id": "mll_77_TCM6665-6562-L",
     "leg_id": "77",
     "sku_code": "TCM6665-6562-L",
-    "allocated_qty": 40
+    "allocated_qty": 46
   },
   {
     "id": "mll_77_TCM6665-6562-M",
     "leg_id": "77",
     "sku_code": "TCM6665-6562-M",
-    "allocated_qty": 30
+    "allocated_qty": 34
   },
   {
     "id": "mll_77_TCM6665-6562-S",
     "leg_id": "77",
     "sku_code": "TCM6665-6562-S",
-    "allocated_qty": 9
+    "allocated_qty": 10
   },
   {
     "id": "mll_77_TCM6665-6562-XL",
     "leg_id": "77",
     "sku_code": "TCM6665-6562-XL",
-    "allocated_qty": 21
-  },
-  {
-    "id": "mll_77_TCM6692-6358-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6692-6358-XXL",
-    "allocated_qty": 20
+    "allocated_qty": 26
   },
   {
     "id": "mll_77_TCM6665-6562-XXL",
     "leg_id": "77",
     "sku_code": "TCM6665-6562-XXL",
+    "allocated_qty": 11
+  },
+  {
+    "id": "mll_77_TCM6661-6709-S",
+    "leg_id": "77",
+    "sku_code": "TCM6661-6709-S",
     "allocated_qty": 9
   },
   {
-    "id": "mll_77_TCM6692-6358-XL",
+    "id": "mll_77_TCM6661-6438-XXL",
     "leg_id": "77",
-    "sku_code": "TCM6692-6358-XL",
+    "sku_code": "TCM6661-6438-XXL",
+    "allocated_qty": 12
+  },
+  {
+    "id": "mll_77_TCM6661-6438-S",
+    "leg_id": "77",
+    "sku_code": "TCM6661-6438-S",
+    "allocated_qty": 9
+  },
+  {
+    "id": "mll_77_TCM6768-6621-L",
+    "leg_id": "77",
+    "sku_code": "TCM6768-6621-L",
+    "allocated_qty": 80
+  },
+  {
+    "id": "mll_77_TCM6768-6621-M",
+    "leg_id": "77",
+    "sku_code": "TCM6768-6621-M",
+    "allocated_qty": 54
+  },
+  {
+    "id": "mll_77_TCM6768-6621-S",
+    "leg_id": "77",
+    "sku_code": "TCM6768-6621-S",
+    "allocated_qty": 17
+  },
+  {
+    "id": "mll_77_TCM6768-6621-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6768-6621-XL",
     "allocated_qty": 43
   },
   {
-    "id": "mll_77_TCM6692-6358-S",
+    "id": "mll_77_TCM6768-6621-XXL",
     "leg_id": "77",
-    "sku_code": "TCM6692-6358-S",
+    "sku_code": "TCM6768-6621-XXL",
+    "allocated_qty": 18
+  },
+  {
+    "id": "mll_77_TCM6768-6622-L",
+    "leg_id": "77",
+    "sku_code": "TCM6768-6622-L",
+    "allocated_qty": 49
+  },
+  {
+    "id": "mll_77_TCM6768-6622-M",
+    "leg_id": "77",
+    "sku_code": "TCM6768-6622-M",
+    "allocated_qty": 30
+  },
+  {
+    "id": "mll_77_TCM6768-6624-L",
+    "leg_id": "77",
+    "sku_code": "TCM6768-6624-L",
+    "allocated_qty": 70
+  },
+  {
+    "id": "mll_77_TCM6768-6624-M",
+    "leg_id": "77",
+    "sku_code": "TCM6768-6624-M",
+    "allocated_qty": 50
+  },
+  {
+    "id": "mll_77_TCM6768-6624-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6768-6624-XL",
+    "allocated_qty": 35
+  },
+  {
+    "id": "mll_77_TCM6768-6622-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6768-6622-XL",
+    "allocated_qty": 26
+  },
+  {
+    "id": "mll_77_TCM6768-6622-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6768-6622-XXL",
+    "allocated_qty": 11
+  },
+  {
+    "id": "mll_77_TCM6768-6622-S",
+    "leg_id": "77",
+    "sku_code": "TCM6768-6622-S",
+    "allocated_qty": 10
+  },
+  {
+    "id": "mll_77_TCM6768-6624-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6768-6624-XXL",
+    "allocated_qty": 15
+  },
+  {
+    "id": "mll_77_TCM6768-6624-S",
+    "leg_id": "77",
+    "sku_code": "TCM6768-6624-S",
+    "allocated_qty": 12
+  },
+  {
+    "id": "mll_77_TCM6575-2884-L",
+    "leg_id": "77",
+    "sku_code": "TCM6575-2884-L",
+    "allocated_qty": 64
+  },
+  {
+    "id": "mll_77_TCM6575-2884-M",
+    "leg_id": "77",
+    "sku_code": "TCM6575-2884-M",
+    "allocated_qty": 46
+  },
+  {
+    "id": "mll_77_TCM6575-2884-S",
+    "leg_id": "77",
+    "sku_code": "TCM6575-2884-S",
+    "allocated_qty": 12
+  },
+  {
+    "id": "mll_77_TCM6575-2884-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6575-2884-XL",
+    "allocated_qty": 36
+  },
+  {
+    "id": "mll_77_TCM6575-6440-L",
+    "leg_id": "77",
+    "sku_code": "TCM6575-6440-L",
+    "allocated_qty": 84
+  },
+  {
+    "id": "mll_77_TCM6575-6440-M",
+    "leg_id": "77",
+    "sku_code": "TCM6575-6440-M",
+    "allocated_qty": 67
+  },
+  {
+    "id": "mll_77_TCM6575-6440-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6575-6440-XL",
+    "allocated_qty": 41
+  },
+  {
+    "id": "mll_77_TCM6575-6440-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6575-6440-XXL",
+    "allocated_qty": 22
+  },
+  {
+    "id": "mll_77_TCM6575-6440-S",
+    "leg_id": "77",
+    "sku_code": "TCM6575-6440-S",
+    "allocated_qty": 19
+  },
+  {
+    "id": "mll_77_TCM6575-2884-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6575-2884-XXL",
+    "allocated_qty": 14
+  },
+  {
+    "id": "mll_77_TCM6663-6437-L",
+    "leg_id": "77",
+    "sku_code": "TCM6663-6437-L",
+    "allocated_qty": 28
+  },
+  {
+    "id": "mll_77_TCM6663-6437-M",
+    "leg_id": "77",
+    "sku_code": "TCM6663-6437-M",
+    "allocated_qty": 15
+  },
+  {
+    "id": "mll_77_TCM6663-6437-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6663-6437-XL",
+    "allocated_qty": 14
+  },
+  {
+    "id": "mll_77_TCM6663-6437-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6663-6437-XXL",
+    "allocated_qty": 5
+  },
+  {
+    "id": "mll_77_TCM6663-6437-S",
+    "leg_id": "77",
+    "sku_code": "TCM6663-6437-S",
+    "allocated_qty": 6
+  },
+  {
+    "id": "mll_77_TCM6663-6457-L",
+    "leg_id": "77",
+    "sku_code": "TCM6663-6457-L",
+    "allocated_qty": 1
+  },
+  {
+    "id": "mll_77_TCM6663-6457-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6663-6457-XL",
+    "allocated_qty": 2
+  },
+  {
+    "id": "mll_77_TCM6663-6457-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6663-6457-XXL",
+    "allocated_qty": 1
+  },
+  {
+    "id": "mll_77_TCM4546-6352-L",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6352-L",
+    "allocated_qty": 107
+  },
+  {
+    "id": "mll_77_TCM4546-6352-M",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6352-M",
+    "allocated_qty": 90
+  },
+  {
+    "id": "mll_77_TCM4546-6352-XL",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6352-XL",
+    "allocated_qty": 61
+  },
+  {
+    "id": "mll_77_TCM4546-6352-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6352-XXL",
+    "allocated_qty": 25
+  },
+  {
+    "id": "mll_77_TCM4546-6350-L",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6350-L",
+    "allocated_qty": 105
+  },
+  {
+    "id": "mll_77_TCM4546-6350-M",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6350-M",
+    "allocated_qty": 90
+  },
+  {
+    "id": "mll_77_TCM4546-6350-XL",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6350-XL",
+    "allocated_qty": 62
+  },
+  {
+    "id": "mll_77_TCM4546-6350-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6350-XXL",
     "allocated_qty": 23
+  },
+  {
+    "id": "mll_77_TCM4546-6351-L",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6351-L",
+    "allocated_qty": 40
+  },
+  {
+    "id": "mll_77_TCM4546-6351-M",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6351-M",
+    "allocated_qty": 35
+  },
+  {
+    "id": "mll_77_TCM4546-6351-XL",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6351-XL",
+    "allocated_qty": 24
+  },
+  {
+    "id": "mll_77_TCM4546-6351-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6351-XXL",
+    "allocated_qty": 9
+  },
+  {
+    "id": "mll_77_TCM4546-6349-L",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6349-L",
+    "allocated_qty": 110
+  },
+  {
+    "id": "mll_77_TCM4546-6349-M",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6349-M",
+    "allocated_qty": 95
+  },
+  {
+    "id": "mll_77_TCM4546-6349-S",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6349-S",
+    "allocated_qty": 26
+  },
+  {
+    "id": "mll_77_TCM4546-6349-XL",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6349-XL",
+    "allocated_qty": 66
+  },
+  {
+    "id": "mll_77_TCM4546-6351-S",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6351-S",
+    "allocated_qty": 9
+  },
+  {
+    "id": "mll_77_TCM4546-6349-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6349-XXL",
+    "allocated_qty": 26
+  },
+  {
+    "id": "mll_77_TCM4546-6350-S",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6350-S",
+    "allocated_qty": 24
+  },
+  {
+    "id": "mll_77_TCM4546-6352-S",
+    "leg_id": "77",
+    "sku_code": "TCM4546-6352-S",
+    "allocated_qty": 23
+  },
+  {
+    "id": "mll_77_TCM4652-6348-L",
+    "leg_id": "77",
+    "sku_code": "TCM4652-6348-L",
+    "allocated_qty": 89
+  },
+  {
+    "id": "mll_77_TCM4652-6348-M",
+    "leg_id": "77",
+    "sku_code": "TCM4652-6348-M",
+    "allocated_qty": 76
+  },
+  {
+    "id": "mll_77_TCM4652-6348-XL",
+    "leg_id": "77",
+    "sku_code": "TCM4652-6348-XL",
+    "allocated_qty": 53
+  },
+  {
+    "id": "mll_77_TCM4652-6348-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM4652-6348-XXL",
+    "allocated_qty": 20
+  },
+  {
+    "id": "mll_77_TCM4652-6343-L",
+    "leg_id": "77",
+    "sku_code": "TCM4652-6343-L",
+    "allocated_qty": 54
+  },
+  {
+    "id": "mll_77_TCM4652-6343-M",
+    "leg_id": "77",
+    "sku_code": "TCM4652-6343-M",
+    "allocated_qty": 48
+  },
+  {
+    "id": "mll_77_TCM4652-6343-S",
+    "leg_id": "77",
+    "sku_code": "TCM4652-6343-S",
+    "allocated_qty": 14
+  },
+  {
+    "id": "mll_77_TCM4652-6343-XL",
+    "leg_id": "77",
+    "sku_code": "TCM4652-6343-XL",
+    "allocated_qty": 33
+  },
+  {
+    "id": "mll_77_TCM4652-6343-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM4652-6343-XXL",
+    "allocated_qty": 12
+  },
+  {
+    "id": "mll_77_TCM4652-6347-L",
+    "leg_id": "77",
+    "sku_code": "TCM4652-6347-L",
+    "allocated_qty": 83
+  },
+  {
+    "id": "mll_77_TCM4652-6347-M",
+    "leg_id": "77",
+    "sku_code": "TCM4652-6347-M",
+    "allocated_qty": 72
+  },
+  {
+    "id": "mll_77_TCM4652-6347-S",
+    "leg_id": "77",
+    "sku_code": "TCM4652-6347-S",
+    "allocated_qty": 20
+  },
+  {
+    "id": "mll_77_TCM4652-6347-XL",
+    "leg_id": "77",
+    "sku_code": "TCM4652-6347-XL",
+    "allocated_qty": 49
+  },
+  {
+    "id": "mll_77_TCM4652-6347-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM4652-6347-XXL",
+    "allocated_qty": 18
+  },
+  {
+    "id": "mll_77_TCM4652-2012-L",
+    "leg_id": "77",
+    "sku_code": "TCM4652-2012-L",
+    "allocated_qty": 27
+  },
+  {
+    "id": "mll_77_TCM4652-2012-M",
+    "leg_id": "77",
+    "sku_code": "TCM4652-2012-M",
+    "allocated_qty": 25
+  },
+  {
+    "id": "mll_77_TCM4652-2012-XL",
+    "leg_id": "77",
+    "sku_code": "TCM4652-2012-XL",
+    "allocated_qty": 15
+  },
+  {
+    "id": "mll_77_TCM4652-2012-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM4652-2012-XXL",
+    "allocated_qty": 8
+  },
+  {
+    "id": "mll_77_TCM4652-6348-S",
+    "leg_id": "77",
+    "sku_code": "TCM4652-6348-S",
+    "allocated_qty": 20
+  },
+  {
+    "id": "mll_77_TCM4652-2012-S",
+    "leg_id": "77",
+    "sku_code": "TCM4652-2012-S",
+    "allocated_qty": 6
+  },
+  {
+    "id": "mll_77_TCM6692-6358-L",
+    "leg_id": "77",
+    "sku_code": "TCM6692-6358-L",
+    "allocated_qty": 83
   },
   {
     "id": "mll_77_TCM6692-6358-M",
@@ -48864,154 +49356,226 @@
     "allocated_qty": 54
   },
   {
-    "id": "mll_77_TCM6689-6357-XXL",
+    "id": "mll_77_TCM6692-6358-S",
     "leg_id": "77",
-    "sku_code": "TCM6689-6357-XXL",
+    "sku_code": "TCM6692-6358-S",
     "allocated_qty": 23
   },
   {
-    "id": "mll_77_TCM6689-6357-S",
+    "id": "mll_77_TCM6692-6358-XL",
     "leg_id": "77",
-    "sku_code": "TCM6689-6357-S",
-    "allocated_qty": 18
-  },
-  {
-    "id": "mll_77_TCM6689-6356-S",
-    "leg_id": "77",
-    "sku_code": "TCM6689-6356-S",
-    "allocated_qty": 12
-  },
-  {
-    "id": "mll_77_TCM6689-6355-S",
-    "leg_id": "77",
-    "sku_code": "TCM6689-6355-S",
-    "allocated_qty": 14
-  },
-  {
-    "id": "mll_77_TCM6689-6356-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6689-6356-XXL",
-    "allocated_qty": 12
-  },
-  {
-    "id": "mll_77_TCM6689-6356-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6689-6356-XL",
-    "allocated_qty": 31
-  },
-  {
-    "id": "mll_77_TCM6689-6356-M",
-    "leg_id": "77",
-    "sku_code": "TCM6689-6356-M",
-    "allocated_qty": 36
-  },
-  {
-    "id": "mll_77_TCM6689-6356-L",
-    "leg_id": "77",
-    "sku_code": "TCM6689-6356-L",
-    "allocated_qty": 42
-  },
-  {
-    "id": "mll_77_TCM6689-6355-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6689-6355-XXL",
-    "allocated_qty": 16
-  },
-  {
-    "id": "mll_77_TCM6689-6355-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6689-6355-XL",
-    "allocated_qty": 40
-  },
-  {
-    "id": "mll_77_TCM6689-6355-M",
-    "leg_id": "77",
-    "sku_code": "TCM6689-6355-M",
-    "allocated_qty": 47
-  },
-  {
-    "id": "mll_77_TCM6689-6355-L",
-    "leg_id": "77",
-    "sku_code": "TCM6689-6355-L",
-    "allocated_qty": 55
-  },
-  {
-    "id": "mll_77_TCW6716-6309-M",
-    "leg_id": "77",
-    "sku_code": "TCW6716-6309-M",
-    "allocated_qty": 121
-  },
-  {
-    "id": "mll_77_TCM6948-6345-S",
-    "leg_id": "77",
-    "sku_code": "TCM6948-6345-S",
-    "allocated_qty": 15
-  },
-  {
-    "id": "mll_77_TCM6948-6345-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6948-6345-XXL",
-    "allocated_qty": 14
-  },
-  {
-    "id": "mll_77_TCM6948-6345-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6948-6345-XL",
-    "allocated_qty": 39
-  },
-  {
-    "id": "mll_77_TCM6948-6345-M",
-    "leg_id": "77",
-    "sku_code": "TCM6948-6345-M",
-    "allocated_qty": 56
-  },
-  {
-    "id": "mll_77_TCM6948-6345-L",
-    "leg_id": "77",
-    "sku_code": "TCM6948-6345-L",
-    "allocated_qty": 65
-  },
-  {
-    "id": "mll_77_TCW6716-6309-L",
-    "leg_id": "77",
-    "sku_code": "TCW6716-6309-L",
-    "allocated_qty": 66
-  },
-  {
-    "id": "mll_77_TCW6716-6309-XL",
-    "leg_id": "77",
-    "sku_code": "TCW6716-6309-XL",
+    "sku_code": "TCM6692-6358-XL",
     "allocated_qty": 43
   },
   {
-    "id": "mll_77_TCW6716-6309-S",
+    "id": "mll_77_TCM6692-6358-XXL",
     "leg_id": "77",
-    "sku_code": "TCW6716-6309-S",
+    "sku_code": "TCM6692-6358-XXL",
+    "allocated_qty": 20
+  },
+  {
+    "id": "mll_77_TCW5971-6413-L",
+    "leg_id": "77",
+    "sku_code": "TCW5971-6413-L",
+    "allocated_qty": 27
+  },
+  {
+    "id": "mll_77_TCW5971-6413-M",
+    "leg_id": "77",
+    "sku_code": "TCW5971-6413-M",
+    "allocated_qty": 38
+  },
+  {
+    "id": "mll_77_TCW5971-6413-S",
+    "leg_id": "77",
+    "sku_code": "TCW5971-6413-S",
+    "allocated_qty": 37
+  },
+  {
+    "id": "mll_77_TCW5971-6413-XL",
+    "leg_id": "77",
+    "sku_code": "TCW5971-6413-XL",
+    "allocated_qty": 16
+  },
+  {
+    "id": "mll_77_TCW5971-6413-XS",
+    "leg_id": "77",
+    "sku_code": "TCW5971-6413-XS",
+    "allocated_qty": 12
+  },
+  {
+    "id": "mll_77_TCW6653-3567-L",
+    "leg_id": "77",
+    "sku_code": "TCW6653-3567-L",
+    "allocated_qty": 48
+  },
+  {
+    "id": "mll_77_TCW6653-3567-M",
+    "leg_id": "77",
+    "sku_code": "TCW6653-3567-M",
+    "allocated_qty": 44
+  },
+  {
+    "id": "mll_77_TCW6653-3567-S",
+    "leg_id": "77",
+    "sku_code": "TCW6653-3567-S",
+    "allocated_qty": 25
+  },
+  {
+    "id": "mll_77_TCW6653-3567-XL",
+    "leg_id": "77",
+    "sku_code": "TCW6653-3567-XL",
+    "allocated_qty": 18
+  },
+  {
+    "id": "mll_77_TCW6653-3567-XS",
+    "leg_id": "77",
+    "sku_code": "TCW6653-3567-XS",
+    "allocated_qty": 13
+  },
+  {
+    "id": "mll_77_TCM6285-6553-L",
+    "leg_id": "77",
+    "sku_code": "TCM6285-6553-L",
+    "allocated_qty": 29
+  },
+  {
+    "id": "mll_77_TCM6285-6553-M",
+    "leg_id": "77",
+    "sku_code": "TCM6285-6553-M",
+    "allocated_qty": 19
+  },
+  {
+    "id": "mll_77_TCM6285-6553-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6285-6553-XL",
+    "allocated_qty": 18
+  },
+  {
+    "id": "mll_77_TCM6285-6553-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6285-6553-XXL",
+    "allocated_qty": 8
+  },
+  {
+    "id": "mll_77_TCM6658-6532-L",
+    "leg_id": "77",
+    "sku_code": "TCM6658-6532-L",
+    "allocated_qty": 8
+  },
+  {
+    "id": "mll_77_TCM6658-6532-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6658-6532-XL",
+    "allocated_qty": 2
+  },
+  {
+    "id": "mll_77_TCM6658-6532-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6658-6532-XXL",
+    "allocated_qty": 1
+  },
+  {
+    "id": "mll_77_TCM6285-6551-L",
+    "leg_id": "77",
+    "sku_code": "TCM6285-6551-L",
+    "allocated_qty": 71
+  },
+  {
+    "id": "mll_77_TCM6285-6551-M",
+    "leg_id": "77",
+    "sku_code": "TCM6285-6551-M",
+    "allocated_qty": 52
+  },
+  {
+    "id": "mll_77_TCM6280-6432-L",
+    "leg_id": "77",
+    "sku_code": "TCM6280-6432-L",
     "allocated_qty": 56
   },
   {
-    "id": "mll_77_TCW6716-6309-XS",
+    "id": "mll_77_TCM6280-6432-M",
     "leg_id": "77",
-    "sku_code": "TCW6716-6309-XS",
-    "allocated_qty": 21
+    "sku_code": "TCM6280-6432-M",
+    "allocated_qty": 38
   },
   {
-    "id": "mll_77_TCM6768-6622-XL",
+    "id": "mll_77_TCM6280-6432-XL",
     "leg_id": "77",
-    "sku_code": "TCM6768-6622-XL",
-    "allocated_qty": 21
+    "sku_code": "TCM6280-6432-XL",
+    "allocated_qty": 31
   },
   {
-    "id": "mll_77_TCM6768-6621-XXL",
+    "id": "mll_77_TCM6280-6432-S",
     "leg_id": "77",
-    "sku_code": "TCM6768-6621-XXL",
+    "sku_code": "TCM6280-6432-S",
+    "allocated_qty": 9
+  },
+  {
+    "id": "mll_77_TCM6285-6553-S",
+    "leg_id": "77",
+    "sku_code": "TCM6285-6553-S",
+    "allocated_qty": 7
+  },
+  {
+    "id": "mll_77_TCM6658-6532-S",
+    "leg_id": "77",
+    "sku_code": "TCM6658-6532-S",
+    "allocated_qty": 2
+  },
+  {
+    "id": "mll_77_TCM6285-6551-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6285-6551-XL",
+    "allocated_qty": 40
+  },
+  {
+    "id": "mll_77_TCM6285-6551-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6285-6551-XXL",
+    "allocated_qty": 17
+  },
+  {
+    "id": "mll_77_TCM6280-6432-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6280-6432-XXL",
     "allocated_qty": 14
   },
   {
-    "id": "mll_77_TCM6768-6622-L",
+    "id": "mll_77_TCM6658-6459-L",
     "leg_id": "77",
-    "sku_code": "TCM6768-6622-L",
-    "allocated_qty": 40
+    "sku_code": "TCM6658-6459-L",
+    "allocated_qty": 46
+  },
+  {
+    "id": "mll_77_TCM6658-6459-M",
+    "leg_id": "77",
+    "sku_code": "TCM6658-6459-M",
+    "allocated_qty": 29
+  },
+  {
+    "id": "mll_77_TCM6658-6459-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6658-6459-XL",
+    "allocated_qty": 22
+  },
+  {
+    "id": "mll_77_TCM6658-6459-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6658-6459-XXL",
+    "allocated_qty": 13
+  },
+  {
+    "id": "mll_77_TCM6658-6459-S",
+    "leg_id": "77",
+    "sku_code": "TCM6658-6459-S",
+    "allocated_qty": 7
+  },
+  {
+    "id": "mll_77_TCM6285-6551-S",
+    "leg_id": "77",
+    "sku_code": "TCM6285-6551-S",
+    "allocated_qty": 11
   },
   {
     "id": "mll_77_TCW6743-6372-L",
@@ -49032,22 +49596,10 @@
     "allocated_qty": 82
   },
   {
-    "id": "mll_77_TCM6768-6624-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6768-6624-XL",
-    "allocated_qty": 32
-  },
-  {
     "id": "mll_77_TCW6743-6372-XL",
     "leg_id": "77",
     "sku_code": "TCW6743-6372-XL",
     "allocated_qty": 35
-  },
-  {
-    "id": "mll_77_TCM6768-6624-M",
-    "leg_id": "77",
-    "sku_code": "TCM6768-6624-M",
-    "allocated_qty": 46
   },
   {
     "id": "mll_77_TCW6743-6369-L",
@@ -49074,64 +49626,10 @@
     "allocated_qty": 42
   },
   {
-    "id": "mll_77_TCM6768-6621-M",
-    "leg_id": "77",
-    "sku_code": "TCM6768-6621-M",
-    "allocated_qty": 48
-  },
-  {
-    "id": "mll_77_TCM6768-6624-L",
-    "leg_id": "77",
-    "sku_code": "TCM6768-6624-L",
-    "allocated_qty": 61
-  },
-  {
-    "id": "mll_77_TCW6653-3567-XS",
-    "leg_id": "77",
-    "sku_code": "TCW6653-3567-XS",
-    "allocated_qty": 13
-  },
-  {
-    "id": "mll_77_TCW6653-3567-XL",
-    "leg_id": "77",
-    "sku_code": "TCW6653-3567-XL",
-    "allocated_qty": 18
-  },
-  {
     "id": "mll_77_TCW6743-6369-XS",
     "leg_id": "77",
     "sku_code": "TCW6743-6369-XS",
     "allocated_qty": 41
-  },
-  {
-    "id": "mll_77_TCW6653-3567-S",
-    "leg_id": "77",
-    "sku_code": "TCW6653-3567-S",
-    "allocated_qty": 25
-  },
-  {
-    "id": "mll_77_TCW6653-3567-M",
-    "leg_id": "77",
-    "sku_code": "TCW6653-3567-M",
-    "allocated_qty": 44
-  },
-  {
-    "id": "mll_77_TCW6653-3567-L",
-    "leg_id": "77",
-    "sku_code": "TCW6653-3567-L",
-    "allocated_qty": 48
-  },
-  {
-    "id": "mll_77_TCM6768-6622-M",
-    "leg_id": "77",
-    "sku_code": "TCM6768-6622-M",
-    "allocated_qty": 30
-  },
-  {
-    "id": "mll_77_TCM6768-6621-S",
-    "leg_id": "77",
-    "sku_code": "TCM6768-6621-S",
-    "allocated_qty": 12
   },
   {
     "id": "mll_77_TCW6743-6369-XL",
@@ -49140,190 +49638,304 @@
     "allocated_qty": 34
   },
   {
-    "id": "mll_77_TCM6768-6621-L",
+    "id": "mll_77_TCM6689-6357-L",
     "leg_id": "77",
-    "sku_code": "TCM6768-6621-L",
+    "sku_code": "TCM6689-6357-L",
+    "allocated_qty": 83
+  },
+  {
+    "id": "mll_77_TCM6689-6357-M",
+    "leg_id": "77",
+    "sku_code": "TCM6689-6357-M",
+    "allocated_qty": 71
+  },
+  {
+    "id": "mll_77_TCM6689-6357-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6689-6357-XL",
     "allocated_qty": 63
   },
   {
-    "id": "mll_77_TCM6768-6624-S",
+    "id": "mll_77_TCM6689-6355-L",
     "leg_id": "77",
-    "sku_code": "TCM6768-6624-S",
-    "allocated_qty": 12
+    "sku_code": "TCM6689-6355-L",
+    "allocated_qty": 55
   },
   {
-    "id": "mll_77_TCM6768-6624-XXL",
+    "id": "mll_77_TCM6689-6355-M",
     "leg_id": "77",
-    "sku_code": "TCM6768-6624-XXL",
-    "allocated_qty": 14
-  },
-  {
-    "id": "mll_77_TCM6768-6621-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6768-6621-XL",
-    "allocated_qty": 33
-  },
-  {
-    "id": "mll_77_TCM6768-6622-S",
-    "leg_id": "77",
-    "sku_code": "TCM6768-6622-S",
-    "allocated_qty": 9
-  },
-  {
-    "id": "mll_77_TCM6768-6622-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6768-6622-XXL",
-    "allocated_qty": 9
-  },
-  {
-    "id": "mll_77_TCW6611-6467-M",
-    "leg_id": "77",
-    "sku_code": "TCW6611-6467-M",
-    "allocated_qty": 48
-  },
-  {
-    "id": "mll_77_TCW6611-6483-XS",
-    "leg_id": "77",
-    "sku_code": "TCW6611-6483-XS",
-    "allocated_qty": 12
-  },
-  {
-    "id": "mll_77_TCW6611-6483-XL",
-    "leg_id": "77",
-    "sku_code": "TCW6611-6483-XL",
-    "allocated_qty": 28
-  },
-  {
-    "id": "mll_77_TCW6611-6483-S",
-    "leg_id": "77",
-    "sku_code": "TCW6611-6483-S",
-    "allocated_qty": 34
-  },
-  {
-    "id": "mll_77_TCW6611-6483-M",
-    "leg_id": "77",
-    "sku_code": "TCW6611-6483-M",
-    "allocated_qty": 57
-  },
-  {
-    "id": "mll_77_TCW6611-6483-L",
-    "leg_id": "77",
-    "sku_code": "TCW6611-6483-L",
-    "allocated_qty": 46
-  },
-  {
-    "id": "mll_77_TCW6611-6467-XS",
-    "leg_id": "77",
-    "sku_code": "TCW6611-6467-XS",
-    "allocated_qty": 11
-  },
-  {
-    "id": "mll_77_TCW6611-6467-XL",
-    "leg_id": "77",
-    "sku_code": "TCW6611-6467-XL",
-    "allocated_qty": 25
-  },
-  {
-    "id": "mll_77_TCW6611-6467-S",
-    "leg_id": "77",
-    "sku_code": "TCW6611-6467-S",
-    "allocated_qty": 30
-  },
-  {
-    "id": "mll_77_TCW6611-6467-L",
-    "leg_id": "77",
-    "sku_code": "TCW6611-6467-L",
-    "allocated_qty": 39
-  },
-  {
-    "id": "mll_77_TCW6610-6456-XS",
-    "leg_id": "77",
-    "sku_code": "TCW6610-6456-XS",
-    "allocated_qty": 3
-  },
-  {
-    "id": "mll_77_TCW6610-6456-XL",
-    "leg_id": "77",
-    "sku_code": "TCW6610-6456-XL",
-    "allocated_qty": 9
-  },
-  {
-    "id": "mll_77_TCW6614-2884-L",
-    "leg_id": "77",
-    "sku_code": "TCW6614-2884-L",
-    "allocated_qty": 38
-  },
-  {
-    "id": "mll_77_TCW6614-2884-M",
-    "leg_id": "77",
-    "sku_code": "TCW6614-2884-M",
+    "sku_code": "TCM6689-6355-M",
     "allocated_qty": 47
   },
   {
-    "id": "mll_77_TCW6614-2884-S",
+    "id": "mll_77_TCM6689-6355-XL",
     "leg_id": "77",
-    "sku_code": "TCW6614-2884-S",
-    "allocated_qty": 29
+    "sku_code": "TCM6689-6355-XL",
+    "allocated_qty": 40
   },
   {
-    "id": "mll_77_TCW6614-2884-XL",
+    "id": "mll_77_TCM6689-6355-XXL",
     "leg_id": "77",
-    "sku_code": "TCW6614-2884-XL",
-    "allocated_qty": 23
+    "sku_code": "TCM6689-6355-XXL",
+    "allocated_qty": 16
   },
   {
-    "id": "mll_77_TCW6614-6574-L",
+    "id": "mll_77_TCM6689-6356-L",
     "leg_id": "77",
-    "sku_code": "TCW6614-6574-L",
-    "allocated_qty": 18
+    "sku_code": "TCM6689-6356-L",
+    "allocated_qty": 42
   },
   {
-    "id": "mll_77_TCW6614-6574-M",
+    "id": "mll_77_TCM6689-6356-M",
     "leg_id": "77",
-    "sku_code": "TCW6614-6574-M",
-    "allocated_qty": 20
+    "sku_code": "TCM6689-6356-M",
+    "allocated_qty": 36
   },
   {
-    "id": "mll_77_TCW6614-6574-S",
+    "id": "mll_77_TCM6689-6356-XL",
     "leg_id": "77",
-    "sku_code": "TCW6614-6574-S",
-    "allocated_qty": 13
+    "sku_code": "TCM6689-6356-XL",
+    "allocated_qty": 31
   },
   {
-    "id": "mll_77_TCW6614-6574-XL",
+    "id": "mll_77_TCM6689-6356-XXL",
     "leg_id": "77",
-    "sku_code": "TCW6614-6574-XL",
-    "allocated_qty": 10
+    "sku_code": "TCM6689-6356-XXL",
+    "allocated_qty": 12
   },
   {
-    "id": "mll_77_TCW6614-6574-XS",
+    "id": "mll_77_TCM6689-6355-S",
     "leg_id": "77",
-    "sku_code": "TCW6614-6574-XS",
-    "allocated_qty": 4
-  },
-  {
-    "id": "mll_77_TCW6610-6456-S",
-    "leg_id": "77",
-    "sku_code": "TCW6610-6456-S",
-    "allocated_qty": 10
-  },
-  {
-    "id": "mll_77_TCW6610-6456-M",
-    "leg_id": "77",
-    "sku_code": "TCW6610-6456-M",
-    "allocated_qty": 19
-  },
-  {
-    "id": "mll_77_TCW6610-6456-L",
-    "leg_id": "77",
-    "sku_code": "TCW6610-6456-L",
+    "sku_code": "TCM6689-6355-S",
     "allocated_qty": 14
   },
   {
-    "id": "mll_77_TCW6614-2884-XS",
+    "id": "mll_77_TCM6689-6356-S",
     "leg_id": "77",
-    "sku_code": "TCW6614-2884-XS",
+    "sku_code": "TCM6689-6356-S",
+    "allocated_qty": 12
+  },
+  {
+    "id": "mll_77_TCM6689-6357-S",
+    "leg_id": "77",
+    "sku_code": "TCM6689-6357-S",
+    "allocated_qty": 18
+  },
+  {
+    "id": "mll_77_TCM6689-6357-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6689-6357-XXL",
+    "allocated_qty": 23
+  },
+  {
+    "id": "mll_77_TCM6662-2884-L",
+    "leg_id": "77",
+    "sku_code": "TCM6662-2884-L",
+    "allocated_qty": 36
+  },
+  {
+    "id": "mll_77_TCM6662-2884-M",
+    "leg_id": "77",
+    "sku_code": "TCM6662-2884-M",
+    "allocated_qty": 33
+  },
+  {
+    "id": "mll_77_TCM6662-2884-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6662-2884-XL",
+    "allocated_qty": 16
+  },
+  {
+    "id": "mll_77_TCM6660-6459-L",
+    "leg_id": "77",
+    "sku_code": "TCM6660-6459-L",
+    "allocated_qty": 36
+  },
+  {
+    "id": "mll_77_TCM6660-6459-M",
+    "leg_id": "77",
+    "sku_code": "TCM6660-6459-M",
+    "allocated_qty": 39
+  },
+  {
+    "id": "mll_77_TCM6660-6459-S",
+    "leg_id": "77",
+    "sku_code": "TCM6660-6459-S",
+    "allocated_qty": 23
+  },
+  {
+    "id": "mll_77_TCM6660-6459-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6660-6459-XL",
+    "allocated_qty": 19
+  },
+  {
+    "id": "mll_77_TCM6660-6459-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6660-6459-XXL",
+    "allocated_qty": 14
+  },
+  {
+    "id": "mll_77_TCM6662-6460-L",
+    "leg_id": "77",
+    "sku_code": "TCM6662-6460-L",
+    "allocated_qty": 48
+  },
+  {
+    "id": "mll_77_TCM6662-6460-M",
+    "leg_id": "77",
+    "sku_code": "TCM6662-6460-M",
+    "allocated_qty": 57
+  },
+  {
+    "id": "mll_77_TCM6662-6460-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6662-6460-XL",
+    "allocated_qty": 25
+  },
+  {
+    "id": "mll_77_TCM6662-2884-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6662-2884-XXL",
+    "allocated_qty": 11
+  },
+  {
+    "id": "mll_77_TCM6660-6532-L",
+    "leg_id": "77",
+    "sku_code": "TCM6660-6532-L",
+    "allocated_qty": 25
+  },
+  {
+    "id": "mll_77_TCM6660-6532-M",
+    "leg_id": "77",
+    "sku_code": "TCM6660-6532-M",
+    "allocated_qty": 29
+  },
+  {
+    "id": "mll_77_TCM6660-6532-S",
+    "leg_id": "77",
+    "sku_code": "TCM6660-6532-S",
+    "allocated_qty": 17
+  },
+  {
+    "id": "mll_77_TCM6660-6532-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6660-6532-XL",
+    "allocated_qty": 14
+  },
+  {
+    "id": "mll_77_TCM6660-6532-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6660-6532-XXL",
     "allocated_qty": 9
+  },
+  {
+    "id": "mll_77_TCM6660-6460-L",
+    "leg_id": "77",
+    "sku_code": "TCM6660-6460-L",
+    "allocated_qty": 26
+  },
+  {
+    "id": "mll_77_TCM6660-6460-M",
+    "leg_id": "77",
+    "sku_code": "TCM6660-6460-M",
+    "allocated_qty": 30
+  },
+  {
+    "id": "mll_77_TCM6660-6460-S",
+    "leg_id": "77",
+    "sku_code": "TCM6660-6460-S",
+    "allocated_qty": 18
+  },
+  {
+    "id": "mll_77_TCM6660-6460-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6660-6460-XL",
+    "allocated_qty": 14
+  },
+  {
+    "id": "mll_77_TCM6660-6460-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6660-6460-XXL",
+    "allocated_qty": 9
+  },
+  {
+    "id": "mll_77_TCM6662-2884-S",
+    "leg_id": "77",
+    "sku_code": "TCM6662-2884-S",
+    "allocated_qty": 22
+  },
+  {
+    "id": "mll_77_TCM6662-6460-S",
+    "leg_id": "77",
+    "sku_code": "TCM6662-6460-S",
+    "allocated_qty": 32
+  },
+  {
+    "id": "mll_77_TCM6662-6460-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6662-6460-XXL",
+    "allocated_qty": 18
+  },
+  {
+    "id": "mll_77_TCW6343-6470-L",
+    "leg_id": "77",
+    "sku_code": "TCW6343-6470-L",
+    "allocated_qty": 5
+  },
+  {
+    "id": "mll_77_TCW6343-6470-M",
+    "leg_id": "77",
+    "sku_code": "TCW6343-6470-M",
+    "allocated_qty": 7
+  },
+  {
+    "id": "mll_77_TCW6343-6470-S",
+    "leg_id": "77",
+    "sku_code": "TCW6343-6470-S",
+    "allocated_qty": 5
+  },
+  {
+    "id": "mll_77_TCW6343-6470-XS",
+    "leg_id": "77",
+    "sku_code": "TCW6343-6470-XS",
+    "allocated_qty": 2
+  },
+  {
+    "id": "mll_77_TCW6343-6470-XL",
+    "leg_id": "77",
+    "sku_code": "TCW6343-6470-XL",
+    "allocated_qty": 3
+  },
+  {
+    "id": "mll_77_TCW6343-6467-L",
+    "leg_id": "77",
+    "sku_code": "TCW6343-6467-L",
+    "allocated_qty": 9
+  },
+  {
+    "id": "mll_77_TCW6343-6467-M",
+    "leg_id": "77",
+    "sku_code": "TCW6343-6467-M",
+    "allocated_qty": 4
+  },
+  {
+    "id": "mll_77_TCW6343-6467-S",
+    "leg_id": "77",
+    "sku_code": "TCW6343-6467-S",
+    "allocated_qty": 1
+  },
+  {
+    "id": "mll_77_TCW6343-6467-XL",
+    "leg_id": "77",
+    "sku_code": "TCW6343-6467-XL",
+    "allocated_qty": 1
+  },
+  {
+    "id": "mll_77_TCW6343-6467-XS",
+    "leg_id": "77",
+    "sku_code": "TCW6343-6467-XS",
+    "allocated_qty": 4
   },
   {
     "id": "mll_77_TCW6609-2884-L",
@@ -49344,96 +49956,6 @@
     "allocated_qty": 37
   },
   {
-    "id": "mll_77_TCW6613-6235-XS",
-    "leg_id": "77",
-    "sku_code": "TCW6613-6235-XS",
-    "allocated_qty": 12
-  },
-  {
-    "id": "mll_77_TCW6613-6559-XS",
-    "leg_id": "77",
-    "sku_code": "TCW6613-6559-XS",
-    "allocated_qty": 10
-  },
-  {
-    "id": "mll_77_TCW6613-6559-XL",
-    "leg_id": "77",
-    "sku_code": "TCW6613-6559-XL",
-    "allocated_qty": 21
-  },
-  {
-    "id": "mll_77_TCW6613-6559-S",
-    "leg_id": "77",
-    "sku_code": "TCW6613-6559-S",
-    "allocated_qty": 26
-  },
-  {
-    "id": "mll_77_TCW6613-6559-M",
-    "leg_id": "77",
-    "sku_code": "TCW6613-6559-M",
-    "allocated_qty": 42
-  },
-  {
-    "id": "mll_77_TCW6613-6559-L",
-    "leg_id": "77",
-    "sku_code": "TCW6613-6559-L",
-    "allocated_qty": 31
-  },
-  {
-    "id": "mll_77_TCW6613-6235-XL",
-    "leg_id": "77",
-    "sku_code": "TCW6613-6235-XL",
-    "allocated_qty": 24
-  },
-  {
-    "id": "mll_77_TCW6613-6235-S",
-    "leg_id": "77",
-    "sku_code": "TCW6613-6235-S",
-    "allocated_qty": 31
-  },
-  {
-    "id": "mll_77_TCW6613-6235-M",
-    "leg_id": "77",
-    "sku_code": "TCW6613-6235-M",
-    "allocated_qty": 50
-  },
-  {
-    "id": "mll_77_TCW6613-6235-L",
-    "leg_id": "77",
-    "sku_code": "TCW6613-6235-L",
-    "allocated_qty": 37
-  },
-  {
-    "id": "mll_77_TCW6613-6573-XS",
-    "leg_id": "77",
-    "sku_code": "TCW6613-6573-XS",
-    "allocated_qty": 10
-  },
-  {
-    "id": "mll_77_TCW6613-6573-XL",
-    "leg_id": "77",
-    "sku_code": "TCW6613-6573-XL",
-    "allocated_qty": 25
-  },
-  {
-    "id": "mll_77_TCW6613-6573-S",
-    "leg_id": "77",
-    "sku_code": "TCW6613-6573-S",
-    "allocated_qty": 30
-  },
-  {
-    "id": "mll_77_TCW6613-6573-M",
-    "leg_id": "77",
-    "sku_code": "TCW6613-6573-M",
-    "allocated_qty": 52
-  },
-  {
-    "id": "mll_77_TCW6613-6573-L",
-    "leg_id": "77",
-    "sku_code": "TCW6613-6573-L",
-    "allocated_qty": 41
-  },
-  {
     "id": "mll_77_TCW6609-2884-XS",
     "leg_id": "77",
     "sku_code": "TCW6609-2884-XS",
@@ -49443,13 +49965,13 @@
     "id": "mll_77_TCW6609-6454-L",
     "leg_id": "77",
     "sku_code": "TCW6609-6454-L",
-    "allocated_qty": 18
+    "allocated_qty": 21
   },
   {
     "id": "mll_77_TCW6609-6454-M",
     "leg_id": "77",
     "sku_code": "TCW6609-6454-M",
-    "allocated_qty": 33
+    "allocated_qty": 35
   },
   {
     "id": "mll_77_TCW6609-6454-S",
@@ -49506,202 +50028,364 @@
     "allocated_qty": 17
   },
   {
-    "id": "mll_77_TCW5937-6483-L",
+    "id": "mll_77_TCM4619-6436-L",
     "leg_id": "77",
-    "sku_code": "TCW5937-6483-L",
-    "allocated_qty": 18
-  },
-  {
-    "id": "mll_77_TCW5937-6483-XS",
-    "leg_id": "77",
-    "sku_code": "TCW5937-6483-XS",
-    "allocated_qty": 5
-  },
-  {
-    "id": "mll_77_TCW5937-6471-XL",
-    "leg_id": "77",
-    "sku_code": "TCW5937-6471-XL",
-    "allocated_qty": 28
-  },
-  {
-    "id": "mll_77_TCW5937-6471-XS",
-    "leg_id": "77",
-    "sku_code": "TCW5937-6471-XS",
-    "allocated_qty": 13
-  },
-  {
-    "id": "mll_77_TCW5937-6471-S",
-    "leg_id": "77",
-    "sku_code": "TCW5937-6471-S",
-    "allocated_qty": 36
-  },
-  {
-    "id": "mll_77_TCW5937-6471-M",
-    "leg_id": "77",
-    "sku_code": "TCW5937-6471-M",
+    "sku_code": "TCM4619-6436-L",
     "allocated_qty": 59
   },
   {
-    "id": "mll_77_TCW5937-6471-L",
+    "id": "mll_77_TCM4619-6436-M",
     "leg_id": "77",
-    "sku_code": "TCW5937-6471-L",
-    "allocated_qty": 48
+    "sku_code": "TCM4619-6436-M",
+    "allocated_qty": 39
   },
   {
-    "id": "mll_77_TCW5937-6483-XL",
+    "id": "mll_77_TCM4619-6436-XL",
     "leg_id": "77",
-    "sku_code": "TCW5937-6483-XL",
+    "sku_code": "TCM4619-6436-XL",
+    "allocated_qty": 29
+  },
+  {
+    "id": "mll_77_TCM4619-6436-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM4619-6436-XXL",
+    "allocated_qty": 12
+  },
+  {
+    "id": "mll_77_TCM4619-0164-L",
+    "leg_id": "77",
+    "sku_code": "TCM4619-0164-L",
+    "allocated_qty": 17
+  },
+  {
+    "id": "mll_77_TCM4619-0164-M",
+    "leg_id": "77",
+    "sku_code": "TCM4619-0164-M",
+    "allocated_qty": 2
+  },
+  {
+    "id": "mll_77_TCM4619-0164-XL",
+    "leg_id": "77",
+    "sku_code": "TCM4619-0164-XL",
+    "allocated_qty": 13
+  },
+  {
+    "id": "mll_77_TCM4619-6507-L",
+    "leg_id": "77",
+    "sku_code": "TCM4619-6507-L",
+    "allocated_qty": 71
+  },
+  {
+    "id": "mll_77_TCM4619-6507-M",
+    "leg_id": "77",
+    "sku_code": "TCM4619-6507-M",
+    "allocated_qty": 52
+  },
+  {
+    "id": "mll_77_TCM4619-6507-S",
+    "leg_id": "77",
+    "sku_code": "TCM4619-6507-S",
+    "allocated_qty": 16
+  },
+  {
+    "id": "mll_77_TCM4619-6507-XL",
+    "leg_id": "77",
+    "sku_code": "TCM4619-6507-XL",
+    "allocated_qty": 36
+  },
+  {
+    "id": "mll_77_TCM4619-0164-S",
+    "leg_id": "77",
+    "sku_code": "TCM4619-0164-S",
+    "allocated_qty": 3
+  },
+  {
+    "id": "mll_77_TCM6667-6235-L",
+    "leg_id": "77",
+    "sku_code": "TCM6667-6235-L",
+    "allocated_qty": 60
+  },
+  {
+    "id": "mll_77_TCM6667-6235-M",
+    "leg_id": "77",
+    "sku_code": "TCM6667-6235-M",
+    "allocated_qty": 49
+  },
+  {
+    "id": "mll_77_TCM6667-6235-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6667-6235-XL",
+    "allocated_qty": 33
+  },
+  {
+    "id": "mll_77_TCM4619-6507-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM4619-6507-XXL",
+    "allocated_qty": 14
+  },
+  {
+    "id": "mll_77_TCM6667-6566-L",
+    "leg_id": "77",
+    "sku_code": "TCM6667-6566-L",
+    "allocated_qty": 52
+  },
+  {
+    "id": "mll_77_TCM6667-6566-M",
+    "leg_id": "77",
+    "sku_code": "TCM6667-6566-M",
+    "allocated_qty": 39
+  },
+  {
+    "id": "mll_77_TCM6667-6566-S",
+    "leg_id": "77",
+    "sku_code": "TCM6667-6566-S",
     "allocated_qty": 11
   },
   {
-    "id": "mll_77_TCW5937-6483-S",
+    "id": "mll_77_TCM6667-6566-XL",
     "leg_id": "77",
-    "sku_code": "TCW5937-6483-S",
+    "sku_code": "TCM6667-6566-XL",
+    "allocated_qty": 28
+  },
+  {
+    "id": "mll_77_TCM6667-6566-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6667-6566-XXL",
+    "allocated_qty": 13
+  },
+  {
+    "id": "mll_77_TCM4619-0164-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM4619-0164-XXL",
+    "allocated_qty": 3
+  },
+  {
+    "id": "mll_77_TCM6667-6235-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6667-6235-XXL",
+    "allocated_qty": 15
+  },
+  {
+    "id": "mll_77_TCM4619-6436-S",
+    "leg_id": "77",
+    "sku_code": "TCM4619-6436-S",
+    "allocated_qty": 12
+  },
+  {
+    "id": "mll_77_TCM6667-6235-S",
+    "leg_id": "77",
+    "sku_code": "TCM6667-6235-S",
     "allocated_qty": 14
+  },
+  {
+    "id": "mll_77_TCM6667-6567-L",
+    "leg_id": "77",
+    "sku_code": "TCM6667-6567-L",
+    "allocated_qty": 79
+  },
+  {
+    "id": "mll_77_TCM6667-6567-M",
+    "leg_id": "77",
+    "sku_code": "TCM6667-6567-M",
+    "allocated_qty": 57
+  },
+  {
+    "id": "mll_77_TCM6667-6567-S",
+    "leg_id": "77",
+    "sku_code": "TCM6667-6567-S",
+    "allocated_qty": 17
+  },
+  {
+    "id": "mll_77_TCM6667-6567-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6667-6567-XL",
+    "allocated_qty": 41
+  },
+  {
+    "id": "mll_77_TCM6667-6567-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6667-6567-XXL",
+    "allocated_qty": 20
+  },
+  {
+    "id": "mll_77_TCW5937-6483-L",
+    "leg_id": "77",
+    "sku_code": "TCW5937-6483-L",
+    "allocated_qty": 20
   },
   {
     "id": "mll_77_TCW5937-6483-M",
     "leg_id": "77",
     "sku_code": "TCW5937-6483-M",
+    "allocated_qty": 34
+  },
+  {
+    "id": "mll_77_TCW5937-6483-S",
+    "leg_id": "77",
+    "sku_code": "TCW5937-6483-S",
+    "allocated_qty": 24
+  },
+  {
+    "id": "mll_77_TCW5937-6483-XL",
+    "leg_id": "77",
+    "sku_code": "TCW5937-6483-XL",
     "allocated_qty": 20
   },
   {
-    "id": "mll_77_TCW5971-6413-XS",
+    "id": "mll_77_TCW5937-2884-L",
     "leg_id": "77",
-    "sku_code": "TCW5971-6413-XS",
-    "allocated_qty": 12
+    "sku_code": "TCW5937-2884-L",
+    "allocated_qty": 51
   },
   {
-    "id": "mll_77_TCW5971-6413-XL",
+    "id": "mll_77_TCW5937-2884-M",
     "leg_id": "77",
-    "sku_code": "TCW5971-6413-XL",
-    "allocated_qty": 16
+    "sku_code": "TCW5937-2884-M",
+    "allocated_qty": 59
   },
   {
-    "id": "mll_77_TCW5971-6413-S",
+    "id": "mll_77_TCW5937-2884-S",
     "leg_id": "77",
-    "sku_code": "TCW5971-6413-S",
+    "sku_code": "TCW5937-2884-S",
     "allocated_qty": 37
   },
   {
-    "id": "mll_77_TCW6244-6472-L",
+    "id": "mll_77_TCW5937-2884-XS",
     "leg_id": "77",
-    "sku_code": "TCW6244-6472-L",
-    "allocated_qty": 34
+    "sku_code": "TCW5937-2884-XS",
+    "allocated_qty": 16
   },
   {
-    "id": "mll_77_TCW6244-6472-M",
+    "id": "mll_77_TCW5937-6471-L",
     "leg_id": "77",
-    "sku_code": "TCW6244-6472-M",
-    "allocated_qty": 43
+    "sku_code": "TCW5937-6471-L",
+    "allocated_qty": 62
   },
   {
-    "id": "mll_77_TCW6244-6472-S",
+    "id": "mll_77_TCW5937-6471-M",
     "leg_id": "77",
-    "sku_code": "TCW6244-6472-S",
-    "allocated_qty": 25
+    "sku_code": "TCW5937-6471-M",
+    "allocated_qty": 89
   },
   {
-    "id": "mll_77_TCW6244-6472-XL",
+    "id": "mll_77_TCW5937-6471-S",
     "leg_id": "77",
-    "sku_code": "TCW6244-6472-XL",
-    "allocated_qty": 21
+    "sku_code": "TCW5937-6471-S",
+    "allocated_qty": 50
   },
   {
-    "id": "mll_77_TCW6244-6472-XS",
+    "id": "mll_77_TCW5937-6471-XS",
     "leg_id": "77",
-    "sku_code": "TCW6244-6472-XS",
-    "allocated_qty": 8
+    "sku_code": "TCW5937-6471-XS",
+    "allocated_qty": 19
   },
   {
-    "id": "mll_77_TCW5971-6413-L",
+    "id": "mll_77_TCW6614-2884-L",
     "leg_id": "77",
-    "sku_code": "TCW5971-6413-L",
-    "allocated_qty": 27
+    "sku_code": "TCW6614-2884-L",
+    "allocated_qty": 41
   },
   {
-    "id": "mll_77_TCW5971-6413-M",
+    "id": "mll_77_TCW6614-2884-M",
     "leg_id": "77",
-    "sku_code": "TCW5971-6413-M",
-    "allocated_qty": 38
+    "sku_code": "TCW6614-2884-M",
+    "allocated_qty": 47
   },
   {
-    "id": "mll_77_TCM6659-6541-M",
+    "id": "mll_77_TCW6614-2884-S",
     "leg_id": "77",
-    "sku_code": "TCM6659-6541-M",
-    "allocated_qty": 44
+    "sku_code": "TCW6614-2884-S",
+    "allocated_qty": 29
   },
   {
-    "id": "mll_77_TCM6659-6541-L",
+    "id": "mll_77_TCW6614-2884-XL",
     "leg_id": "77",
-    "sku_code": "TCM6659-6541-L",
-    "allocated_qty": 58
-  },
-  {
-    "id": "mll_77_TCM6659-6542-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6659-6542-XL",
-    "allocated_qty": 34
-  },
-  {
-    "id": "mll_77_TCM6659-6542-M",
-    "leg_id": "77",
-    "sku_code": "TCM6659-6542-M",
-    "allocated_qty": 49
-  },
-  {
-    "id": "mll_77_TCM6659-6542-L",
-    "leg_id": "77",
-    "sku_code": "TCM6659-6542-L",
-    "allocated_qty": 65
-  },
-  {
-    "id": "mll_77_TCM6659-6540-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6659-6540-XXL",
-    "allocated_qty": 12
-  },
-  {
-    "id": "mll_77_TCM6659-6540-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6659-6540-XL",
-    "allocated_qty": 27
-  },
-  {
-    "id": "mll_77_TCM6659-6540-S",
-    "leg_id": "77",
-    "sku_code": "TCM6659-6540-S",
-    "allocated_qty": 11
-  },
-  {
-    "id": "mll_77_TCM6659-6540-M",
-    "leg_id": "77",
-    "sku_code": "TCM6659-6540-M",
-    "allocated_qty": 39
-  },
-  {
-    "id": "mll_77_TCM6659-6540-L",
-    "leg_id": "77",
-    "sku_code": "TCM6659-6540-L",
-    "allocated_qty": 52
-  },
-  {
-    "id": "mll_77_TCM6948-6346-M",
-    "leg_id": "77",
-    "sku_code": "TCM6948-6346-M",
-    "allocated_qty": 88
-  },
-  {
-    "id": "mll_77_TCM6948-6346-S",
-    "leg_id": "77",
-    "sku_code": "TCM6948-6346-S",
+    "sku_code": "TCW6614-2884-XL",
     "allocated_qty": 23
   },
   {
-    "id": "mll_77_TCM6948-6346-XL",
+    "id": "mll_77_TCW5937-6471-XL",
     "leg_id": "77",
-    "sku_code": "TCM6948-6346-XL",
-    "allocated_qty": 60
+    "sku_code": "TCW5937-6471-XL",
+    "allocated_qty": 38
+  },
+  {
+    "id": "mll_77_TCW6614-6574-L",
+    "leg_id": "77",
+    "sku_code": "TCW6614-6574-L",
+    "allocated_qty": 25
+  },
+  {
+    "id": "mll_77_TCW6614-6574-M",
+    "leg_id": "77",
+    "sku_code": "TCW6614-6574-M",
+    "allocated_qty": 33
+  },
+  {
+    "id": "mll_77_TCW6614-6574-S",
+    "leg_id": "77",
+    "sku_code": "TCW6614-6574-S",
+    "allocated_qty": 18
+  },
+  {
+    "id": "mll_77_TCW6614-6574-XL",
+    "leg_id": "77",
+    "sku_code": "TCW6614-6574-XL",
+    "allocated_qty": 14
+  },
+  {
+    "id": "mll_77_TCW6614-6574-XS",
+    "leg_id": "77",
+    "sku_code": "TCW6614-6574-XS",
+    "allocated_qty": 5
+  },
+  {
+    "id": "mll_77_TCW5937-6483-XS",
+    "leg_id": "77",
+    "sku_code": "TCW5937-6483-XS",
+    "allocated_qty": 13
+  },
+  {
+    "id": "mll_77_TCW6614-2884-XS",
+    "leg_id": "77",
+    "sku_code": "TCW6614-2884-XS",
+    "allocated_qty": 10
+  },
+  {
+    "id": "mll_77_TCW5937-2884-XL",
+    "leg_id": "77",
+    "sku_code": "TCW5937-2884-XL",
+    "allocated_qty": 24
+  },
+  {
+    "id": "mll_77_TCW5937-6571-L",
+    "leg_id": "77",
+    "sku_code": "TCW5937-6571-L",
+    "allocated_qty": 10
+  },
+  {
+    "id": "mll_77_TCW5937-6571-M",
+    "leg_id": "77",
+    "sku_code": "TCW5937-6571-M",
+    "allocated_qty": 15
+  },
+  {
+    "id": "mll_77_TCM6345-6293-L",
+    "leg_id": "77",
+    "sku_code": "TCM6345-6293-L",
+    "allocated_qty": 65
+  },
+  {
+    "id": "mll_77_TCM6345-6293-M",
+    "leg_id": "77",
+    "sku_code": "TCM6345-6293-M",
+    "allocated_qty": 43
+  },
+  {
+    "id": "mll_77_TCM6345-6293-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6345-6293-XL",
+    "allocated_qty": 33
   },
   {
     "id": "mll_77_TCM6345-6293-S",
@@ -49713,7 +50397,7 @@
     "id": "mll_77_TCM6345-6293-XXL",
     "leg_id": "77",
     "sku_code": "TCM6345-6293-XXL",
-    "allocated_qty": 13
+    "allocated_qty": 15
   },
   {
     "id": "mll_77_TCM6345-6303-L",
@@ -49734,16 +50418,10 @@
     "allocated_qty": 11
   },
   {
-    "id": "mll_77_TCM6948-6346-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6948-6346-XXL",
-    "allocated_qty": 22
-  },
-  {
     "id": "mll_77_TCM6345-6303-XL",
     "leg_id": "77",
     "sku_code": "TCM6345-6303-XL",
-    "allocated_qty": 31
+    "allocated_qty": 32
   },
   {
     "id": "mll_77_TCM6345-6303-XXL",
@@ -49755,7 +50433,7 @@
     "id": "mll_77_TCM6345-2012-L",
     "leg_id": "77",
     "sku_code": "TCM6345-2012-L",
-    "allocated_qty": 80
+    "allocated_qty": 86
   },
   {
     "id": "mll_77_TCM6345-2012-M",
@@ -49767,7 +50445,7 @@
     "id": "mll_77_TCM6345-2012-XL",
     "leg_id": "77",
     "sku_code": "TCM6345-2012-XL",
-    "allocated_qty": 42
+    "allocated_qty": 48
   },
   {
     "id": "mll_77_TCM6345-2012-S",
@@ -49779,13 +50457,13 @@
     "id": "mll_77_TCM6345-2012-XXL",
     "leg_id": "77",
     "sku_code": "TCM6345-2012-XXL",
-    "allocated_qty": 19
+    "allocated_qty": 22
   },
   {
     "id": "mll_77_TCM6284-6505-L",
     "leg_id": "77",
     "sku_code": "TCM6284-6505-L",
-    "allocated_qty": 81
+    "allocated_qty": 89
   },
   {
     "id": "mll_77_TCM6284-6505-M",
@@ -49803,7 +50481,7 @@
     "id": "mll_77_TCM6284-6505-XL",
     "leg_id": "77",
     "sku_code": "TCM6284-6505-XL",
-    "allocated_qty": 43
+    "allocated_qty": 49
   },
   {
     "id": "mll_77_TCM6284-6505-XXL",
@@ -49815,7 +50493,7 @@
     "id": "mll_77_TCM6284-6460-L",
     "leg_id": "77",
     "sku_code": "TCM6284-6460-L",
-    "allocated_qty": 40
+    "allocated_qty": 42
   },
   {
     "id": "mll_77_TCM6284-6460-M",
@@ -49845,7 +50523,7 @@
     "id": "mll_77_TCM6284-6708-L",
     "leg_id": "77",
     "sku_code": "TCM6284-6708-L",
-    "allocated_qty": 85
+    "allocated_qty": 94
   },
   {
     "id": "mll_77_TCM6284-6708-M",
@@ -49863,49 +50541,31 @@
     "id": "mll_77_TCM6284-6708-XL",
     "leg_id": "77",
     "sku_code": "TCM6284-6708-XL",
-    "allocated_qty": 44
+    "allocated_qty": 48
   },
   {
     "id": "mll_77_TCM6284-6708-XXL",
     "leg_id": "77",
     "sku_code": "TCM6284-6708-XXL",
-    "allocated_qty": 20
+    "allocated_qty": 23
   },
   {
     "id": "mll_77_TCM6949-6436-L",
     "leg_id": "77",
     "sku_code": "TCM6949-6436-L",
-    "allocated_qty": 70
+    "allocated_qty": 86
   },
   {
     "id": "mll_77_TCM6949-6436-M",
     "leg_id": "77",
     "sku_code": "TCM6949-6436-M",
-    "allocated_qty": 52
-  },
-  {
-    "id": "mll_77_TCM6345-6293-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6345-6293-XL",
-    "allocated_qty": 30
-  },
-  {
-    "id": "mll_77_TCM6345-6293-M",
-    "leg_id": "77",
-    "sku_code": "TCM6345-6293-M",
-    "allocated_qty": 43
-  },
-  {
-    "id": "mll_77_TCM6345-6293-L",
-    "leg_id": "77",
-    "sku_code": "TCM6345-6293-L",
-    "allocated_qty": 58
+    "allocated_qty": 54
   },
   {
     "id": "mll_77_TCM6949-6436-XL",
     "leg_id": "77",
     "sku_code": "TCM6949-6436-XL",
-    "allocated_qty": 38
+    "allocated_qty": 53
   },
   {
     "id": "mll_77_TCM6949-6436-S",
@@ -49923,19 +50583,13 @@
     "id": "mll_77_TCM6949-6714-M",
     "leg_id": "77",
     "sku_code": "TCM6949-6714-M",
-    "allocated_qty": 16
+    "allocated_qty": 18
   },
   {
     "id": "mll_77_TCM6949-6714-XL",
     "leg_id": "77",
     "sku_code": "TCM6949-6714-XL",
-    "allocated_qty": 12
-  },
-  {
-    "id": "mll_77_TCM6659-6542-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6659-6542-XXL",
-    "allocated_qty": 17
+    "allocated_qty": 15
   },
   {
     "id": "mll_77_TCM6949-6714-XXL",
@@ -49947,7 +50601,37 @@
     "id": "mll_77_TCM6949-6435-L",
     "leg_id": "77",
     "sku_code": "TCM6949-6435-L",
-    "allocated_qty": 56
+    "allocated_qty": 61
+  },
+  {
+    "id": "mll_77_TCM6949-6435-M",
+    "leg_id": "77",
+    "sku_code": "TCM6949-6435-M",
+    "allocated_qty": 42
+  },
+  {
+    "id": "mll_77_TCM6949-6435-S",
+    "leg_id": "77",
+    "sku_code": "TCM6949-6435-S",
+    "allocated_qty": 16
+  },
+  {
+    "id": "mll_77_TCM6949-6435-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6949-6435-XL",
+    "allocated_qty": 35
+  },
+  {
+    "id": "mll_77_TCM6949-6435-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6949-6435-XXL",
+    "allocated_qty": 15
+  },
+  {
+    "id": "mll_77_TCM6949-6436-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6949-6436-XXL",
+    "allocated_qty": 24
   },
   {
     "id": "mll_77_TCM6949-6714-S",
@@ -49956,28 +50640,256 @@
     "allocated_qty": 4
   },
   {
-    "id": "mll_77_TCM6949-6436-XXL",
+    "id": "mll_77_TCW6716-6309-L",
     "leg_id": "77",
-    "sku_code": "TCM6949-6436-XXL",
-    "allocated_qty": 17
+    "sku_code": "TCW6716-6309-L",
+    "allocated_qty": 66
   },
   {
-    "id": "mll_77_TCM6949-6435-XXL",
+    "id": "mll_77_TCW6716-6309-M",
     "leg_id": "77",
-    "sku_code": "TCM6949-6435-XXL",
-    "allocated_qty": 14
+    "sku_code": "TCW6716-6309-M",
+    "allocated_qty": 121
   },
   {
-    "id": "mll_77_TCM6949-6435-XL",
+    "id": "mll_77_TCW6716-6309-S",
     "leg_id": "77",
-    "sku_code": "TCM6949-6435-XL",
+    "sku_code": "TCW6716-6309-S",
+    "allocated_qty": 56
+  },
+  {
+    "id": "mll_77_TCW6716-6309-XL",
+    "leg_id": "77",
+    "sku_code": "TCW6716-6309-XL",
+    "allocated_qty": 43
+  },
+  {
+    "id": "mll_77_TCW6716-6309-XS",
+    "leg_id": "77",
+    "sku_code": "TCW6716-6309-XS",
+    "allocated_qty": 21
+  },
+  {
+    "id": "mll_77_TCW6610-6456-L",
+    "leg_id": "77",
+    "sku_code": "TCW6610-6456-L",
+    "allocated_qty": 20
+  },
+  {
+    "id": "mll_77_TCW6610-6456-M",
+    "leg_id": "77",
+    "sku_code": "TCW6610-6456-M",
+    "allocated_qty": 26
+  },
+  {
+    "id": "mll_77_TCW6610-6456-S",
+    "leg_id": "77",
+    "sku_code": "TCW6610-6456-S",
+    "allocated_qty": 10
+  },
+  {
+    "id": "mll_77_TCW6610-6456-XL",
+    "leg_id": "77",
+    "sku_code": "TCW6610-6456-XL",
+    "allocated_qty": 15
+  },
+  {
+    "id": "mll_77_TCW6610-6456-XS",
+    "leg_id": "77",
+    "sku_code": "TCW6610-6456-XS",
+    "allocated_qty": 4
+  },
+  {
+    "id": "mll_77_TCW6611-6467-L",
+    "leg_id": "77",
+    "sku_code": "TCW6611-6467-L",
+    "allocated_qty": 45
+  },
+  {
+    "id": "mll_77_TCW6611-6467-M",
+    "leg_id": "77",
+    "sku_code": "TCW6611-6467-M",
+    "allocated_qty": 53
+  },
+  {
+    "id": "mll_77_TCW6611-6467-S",
+    "leg_id": "77",
+    "sku_code": "TCW6611-6467-S",
     "allocated_qty": 30
   },
   {
-    "id": "mll_77_TCM6949-6435-S",
+    "id": "mll_77_TCW6611-6467-XL",
     "leg_id": "77",
-    "sku_code": "TCM6949-6435-S",
+    "sku_code": "TCW6611-6467-XL",
+    "allocated_qty": 31
+  },
+  {
+    "id": "mll_77_TCW6611-6467-XS",
+    "leg_id": "77",
+    "sku_code": "TCW6611-6467-XS",
+    "allocated_qty": 11
+  },
+  {
+    "id": "mll_77_TCW6611-6483-L",
+    "leg_id": "77",
+    "sku_code": "TCW6611-6483-L",
+    "allocated_qty": 46
+  },
+  {
+    "id": "mll_77_TCW6611-6483-M",
+    "leg_id": "77",
+    "sku_code": "TCW6611-6483-M",
+    "allocated_qty": 57
+  },
+  {
+    "id": "mll_77_TCW6611-6483-S",
+    "leg_id": "77",
+    "sku_code": "TCW6611-6483-S",
+    "allocated_qty": 34
+  },
+  {
+    "id": "mll_77_TCW6611-6483-XL",
+    "leg_id": "77",
+    "sku_code": "TCW6611-6483-XL",
+    "allocated_qty": 28
+  },
+  {
+    "id": "mll_77_TCW6611-6483-XS",
+    "leg_id": "77",
+    "sku_code": "TCW6611-6483-XS",
     "allocated_qty": 12
+  },
+  {
+    "id": "mll_77_TCM6948-6345-L",
+    "leg_id": "77",
+    "sku_code": "TCM6948-6345-L",
+    "allocated_qty": 65
+  },
+  {
+    "id": "mll_77_TCM6948-6345-M",
+    "leg_id": "77",
+    "sku_code": "TCM6948-6345-M",
+    "allocated_qty": 56
+  },
+  {
+    "id": "mll_77_TCM6948-6345-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6948-6345-XL",
+    "allocated_qty": 39
+  },
+  {
+    "id": "mll_77_TCM6948-6346-L",
+    "leg_id": "77",
+    "sku_code": "TCM6948-6346-L",
+    "allocated_qty": 101
+  },
+  {
+    "id": "mll_77_TCM6948-6346-M",
+    "leg_id": "77",
+    "sku_code": "TCM6948-6346-M",
+    "allocated_qty": 88
+  },
+  {
+    "id": "mll_77_TCM6948-6346-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6948-6346-XL",
+    "allocated_qty": 60
+  },
+  {
+    "id": "mll_77_TCM6948-6346-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6948-6346-XXL",
+    "allocated_qty": 22
+  },
+  {
+    "id": "mll_77_TCM6948-6345-S",
+    "leg_id": "77",
+    "sku_code": "TCM6948-6345-S",
+    "allocated_qty": 15
+  },
+  {
+    "id": "mll_77_TCM6948-6346-S",
+    "leg_id": "77",
+    "sku_code": "TCM6948-6346-S",
+    "allocated_qty": 23
+  },
+  {
+    "id": "mll_77_TCM6948-6345-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6948-6345-XXL",
+    "allocated_qty": 14
+  },
+  {
+    "id": "mll_77_TCM6659-6540-L",
+    "leg_id": "77",
+    "sku_code": "TCM6659-6540-L",
+    "allocated_qty": 52
+  },
+  {
+    "id": "mll_77_TCM6659-6540-M",
+    "leg_id": "77",
+    "sku_code": "TCM6659-6540-M",
+    "allocated_qty": 39
+  },
+  {
+    "id": "mll_77_TCM6659-6540-S",
+    "leg_id": "77",
+    "sku_code": "TCM6659-6540-S",
+    "allocated_qty": 11
+  },
+  {
+    "id": "mll_77_TCM6659-6540-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6659-6540-XL",
+    "allocated_qty": 27
+  },
+  {
+    "id": "mll_77_TCM6659-6540-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6659-6540-XXL",
+    "allocated_qty": 12
+  },
+  {
+    "id": "mll_77_TCM6659-6542-L",
+    "leg_id": "77",
+    "sku_code": "TCM6659-6542-L",
+    "allocated_qty": 65
+  },
+  {
+    "id": "mll_77_TCM6659-6542-M",
+    "leg_id": "77",
+    "sku_code": "TCM6659-6542-M",
+    "allocated_qty": 49
+  },
+  {
+    "id": "mll_77_TCM6659-6542-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6659-6542-XL",
+    "allocated_qty": 34
+  },
+  {
+    "id": "mll_77_TCM6659-6541-L",
+    "leg_id": "77",
+    "sku_code": "TCM6659-6541-L",
+    "allocated_qty": 58
+  },
+  {
+    "id": "mll_77_TCM6659-6541-M",
+    "leg_id": "77",
+    "sku_code": "TCM6659-6541-M",
+    "allocated_qty": 48
+  },
+  {
+    "id": "mll_77_TCM6659-6541-XL",
+    "leg_id": "77",
+    "sku_code": "TCM6659-6541-XL",
+    "allocated_qty": 34
+  },
+  {
+    "id": "mll_77_TCM6659-6541-XXL",
+    "leg_id": "77",
+    "sku_code": "TCM6659-6541-XXL",
+    "allocated_qty": 14
   },
   {
     "id": "mll_77_TCM6659-6541-S",
@@ -49992,778 +50904,10 @@
     "allocated_qty": 12
   },
   {
-    "id": "mll_77_TCM6949-6435-M",
+    "id": "mll_77_TCM6659-6542-XXL",
     "leg_id": "77",
-    "sku_code": "TCM6949-6435-M",
-    "allocated_qty": 42
-  },
-  {
-    "id": "mll_77_TCM6948-6346-L",
-    "leg_id": "77",
-    "sku_code": "TCM6948-6346-L",
-    "allocated_qty": 101
-  },
-  {
-    "id": "mll_77_TCM6659-6541-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6659-6541-XXL",
-    "allocated_qty": 14
-  },
-  {
-    "id": "mll_77_TCM6659-6541-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6659-6541-XL",
-    "allocated_qty": 32
-  },
-  {
-    "id": "mll_77_TCM6575-6440-M",
-    "leg_id": "77",
-    "sku_code": "TCM6575-6440-M",
-    "allocated_qty": 54
-  },
-  {
-    "id": "mll_77_TCM6662-6460-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6662-6460-XXL",
-    "allocated_qty": 18
-  },
-  {
-    "id": "mll_77_TCM6662-6460-S",
-    "leg_id": "77",
-    "sku_code": "TCM6662-6460-S",
-    "allocated_qty": 32
-  },
-  {
-    "id": "mll_77_TCM6662-2884-S",
-    "leg_id": "77",
-    "sku_code": "TCM6662-2884-S",
-    "allocated_qty": 18
-  },
-  {
-    "id": "mll_77_TCM6660-6460-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6660-6460-XXL",
-    "allocated_qty": 9
-  },
-  {
-    "id": "mll_77_TCM6660-6460-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6660-6460-XL",
-    "allocated_qty": 14
-  },
-  {
-    "id": "mll_77_TCM6660-6460-S",
-    "leg_id": "77",
-    "sku_code": "TCM6660-6460-S",
-    "allocated_qty": 18
-  },
-  {
-    "id": "mll_77_TCM6660-6460-M",
-    "leg_id": "77",
-    "sku_code": "TCM6660-6460-M",
-    "allocated_qty": 30
-  },
-  {
-    "id": "mll_77_TCM6660-6460-L",
-    "leg_id": "77",
-    "sku_code": "TCM6660-6460-L",
-    "allocated_qty": 26
-  },
-  {
-    "id": "mll_77_TCM6660-6532-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6660-6532-XXL",
-    "allocated_qty": 8
-  },
-  {
-    "id": "mll_77_TCM6660-6532-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6660-6532-XL",
-    "allocated_qty": 13
-  },
-  {
-    "id": "mll_77_TCM6660-6532-S",
-    "leg_id": "77",
-    "sku_code": "TCM6660-6532-S",
+    "sku_code": "TCM6659-6542-XXL",
     "allocated_qty": 17
-  },
-  {
-    "id": "mll_77_TCM6660-6532-M",
-    "leg_id": "77",
-    "sku_code": "TCM6660-6532-M",
-    "allocated_qty": 29
-  },
-  {
-    "id": "mll_77_TCM6660-6532-L",
-    "leg_id": "77",
-    "sku_code": "TCM6660-6532-L",
-    "allocated_qty": 25
-  },
-  {
-    "id": "mll_77_TCM6662-2884-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6662-2884-XXL",
-    "allocated_qty": 9
-  },
-  {
-    "id": "mll_77_TCM6662-6460-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6662-6460-XL",
-    "allocated_qty": 25
-  },
-  {
-    "id": "mll_77_TCM6662-6460-M",
-    "leg_id": "77",
-    "sku_code": "TCM6662-6460-M",
-    "allocated_qty": 57
-  },
-  {
-    "id": "mll_77_TCM6662-6460-L",
-    "leg_id": "77",
-    "sku_code": "TCM6662-6460-L",
-    "allocated_qty": 48
-  },
-  {
-    "id": "mll_77_TCM6660-6459-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6660-6459-XXL",
-    "allocated_qty": 12
-  },
-  {
-    "id": "mll_77_TCM6660-6459-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6660-6459-XL",
-    "allocated_qty": 19
-  },
-  {
-    "id": "mll_77_TCM6660-6459-S",
-    "leg_id": "77",
-    "sku_code": "TCM6660-6459-S",
-    "allocated_qty": 23
-  },
-  {
-    "id": "mll_77_TCM6660-6459-M",
-    "leg_id": "77",
-    "sku_code": "TCM6660-6459-M",
-    "allocated_qty": 39
-  },
-  {
-    "id": "mll_77_TCM6660-6459-L",
-    "leg_id": "77",
-    "sku_code": "TCM6660-6459-L",
-    "allocated_qty": 34
-  },
-  {
-    "id": "mll_77_TCM6662-2884-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6662-2884-XL",
-    "allocated_qty": 13
-  },
-  {
-    "id": "mll_77_TCM6662-2884-M",
-    "leg_id": "77",
-    "sku_code": "TCM6662-2884-M",
-    "allocated_qty": 33
-  },
-  {
-    "id": "mll_77_TCM6662-2884-L",
-    "leg_id": "77",
-    "sku_code": "TCM6662-2884-L",
-    "allocated_qty": 27
-  },
-  {
-    "id": "mll_77_TCM6285-6551-S",
-    "leg_id": "77",
-    "sku_code": "TCM6285-6551-S",
-    "allocated_qty": 11
-  },
-  {
-    "id": "mll_77_TCM6658-6459-S",
-    "leg_id": "77",
-    "sku_code": "TCM6658-6459-S",
-    "allocated_qty": 6
-  },
-  {
-    "id": "mll_77_TCM6658-6459-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6658-6459-XXL",
-    "allocated_qty": 10
-  },
-  {
-    "id": "mll_77_TCM6658-6459-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6658-6459-XL",
-    "allocated_qty": 20
-  },
-  {
-    "id": "mll_77_TCM6658-6459-M",
-    "leg_id": "77",
-    "sku_code": "TCM6658-6459-M",
-    "allocated_qty": 29
-  },
-  {
-    "id": "mll_77_TCM6658-6459-L",
-    "leg_id": "77",
-    "sku_code": "TCM6658-6459-L",
-    "allocated_qty": 42
-  },
-  {
-    "id": "mll_77_TCM6280-6432-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6280-6432-XXL",
-    "allocated_qty": 13
-  },
-  {
-    "id": "mll_77_TCM6285-6551-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6285-6551-XXL",
-    "allocated_qty": 17
-  },
-  {
-    "id": "mll_77_TCM6285-6551-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6285-6551-XL",
-    "allocated_qty": 37
-  },
-  {
-    "id": "mll_77_TCM6285-6553-S",
-    "leg_id": "77",
-    "sku_code": "TCM6285-6553-S",
-    "allocated_qty": 6
-  },
-  {
-    "id": "mll_77_TCM6280-6432-S",
-    "leg_id": "77",
-    "sku_code": "TCM6280-6432-S",
-    "allocated_qty": 9
-  },
-  {
-    "id": "mll_77_TCM6280-6432-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6280-6432-XL",
-    "allocated_qty": 28
-  },
-  {
-    "id": "mll_77_TCM6280-6432-M",
-    "leg_id": "77",
-    "sku_code": "TCM6280-6432-M",
-    "allocated_qty": 38
-  },
-  {
-    "id": "mll_77_TCM6280-6432-L",
-    "leg_id": "77",
-    "sku_code": "TCM6280-6432-L",
-    "allocated_qty": 53
-  },
-  {
-    "id": "mll_77_TCM6285-6551-M",
-    "leg_id": "77",
-    "sku_code": "TCM6285-6551-M",
-    "allocated_qty": 50
-  },
-  {
-    "id": "mll_77_TCM6285-6551-L",
-    "leg_id": "77",
-    "sku_code": "TCM6285-6551-L",
-    "allocated_qty": 71
-  },
-  {
-    "id": "mll_77_TCM6285-6553-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6285-6553-XXL",
-    "allocated_qty": 6
-  },
-  {
-    "id": "mll_77_TCM6285-6553-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6285-6553-XL",
-    "allocated_qty": 13
-  },
-  {
-    "id": "mll_77_TCM6285-6553-M",
-    "leg_id": "77",
-    "sku_code": "TCM6285-6553-M",
-    "allocated_qty": 18
-  },
-  {
-    "id": "mll_77_TCM6285-6553-L",
-    "leg_id": "77",
-    "sku_code": "TCM6285-6553-L",
-    "allocated_qty": 25
-  },
-  {
-    "id": "mll_77_TCM6663-6437-S",
-    "leg_id": "77",
-    "sku_code": "TCM6663-6437-S",
-    "allocated_qty": 6
-  },
-  {
-    "id": "mll_77_TCM6663-6437-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6663-6437-XXL",
-    "allocated_qty": 3
-  },
-  {
-    "id": "mll_77_TCM6663-6437-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6663-6437-XL",
-    "allocated_qty": 10
-  },
-  {
-    "id": "mll_77_TCM6663-6437-M",
-    "leg_id": "77",
-    "sku_code": "TCM6663-6437-M",
-    "allocated_qty": 14
-  },
-  {
-    "id": "mll_77_TCM6663-6437-L",
-    "leg_id": "77",
-    "sku_code": "TCM6663-6437-L",
-    "allocated_qty": 24
-  },
-  {
-    "id": "mll_77_TCM6575-2884-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6575-2884-XXL",
-    "allocated_qty": 14
-  },
-  {
-    "id": "mll_77_TCM6575-6440-S",
-    "leg_id": "77",
-    "sku_code": "TCM6575-6440-S",
-    "allocated_qty": 14
-  },
-  {
-    "id": "mll_77_TCM6575-6440-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6575-6440-XXL",
-    "allocated_qty": 17
-  },
-  {
-    "id": "mll_77_TCM6575-6440-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6575-6440-XL",
-    "allocated_qty": 37
-  },
-  {
-    "id": "mll_77_TCM6575-6440-L",
-    "leg_id": "77",
-    "sku_code": "TCM6575-6440-L",
-    "allocated_qty": 72
-  },
-  {
-    "id": "mll_77_TCM6575-2884-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6575-2884-XL",
-    "allocated_qty": 32
-  },
-  {
-    "id": "mll_77_TCM6575-2884-S",
-    "leg_id": "77",
-    "sku_code": "TCM6575-2884-S",
-    "allocated_qty": 12
-  },
-  {
-    "id": "mll_77_TCM6575-2884-M",
-    "leg_id": "77",
-    "sku_code": "TCM6575-2884-M",
-    "allocated_qty": 46
-  },
-  {
-    "id": "mll_77_TCM6575-2884-L",
-    "leg_id": "77",
-    "sku_code": "TCM6575-2884-L",
-    "allocated_qty": 61
-  },
-  {
-    "id": "mll_77_TCM6661-6438-S",
-    "leg_id": "77",
-    "sku_code": "TCM6661-6438-S",
-    "allocated_qty": 9
-  },
-  {
-    "id": "mll_77_TCM6661-6438-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6661-6438-XXL",
-    "allocated_qty": 10
-  },
-  {
-    "id": "mll_77_TCM6661-6709-S",
-    "leg_id": "77",
-    "sku_code": "TCM6661-6709-S",
-    "allocated_qty": 6
-  },
-  {
-    "id": "mll_77_TCM6661-6438-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6661-6438-XL",
-    "allocated_qty": 24
-  },
-  {
-    "id": "mll_77_TCM6661-6438-M",
-    "leg_id": "77",
-    "sku_code": "TCM6661-6438-M",
-    "allocated_qty": 34
-  },
-  {
-    "id": "mll_77_TCM6661-6438-L",
-    "leg_id": "77",
-    "sku_code": "TCM6661-6438-L",
-    "allocated_qty": 45
-  },
-  {
-    "id": "mll_77_TCM6661-6709-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM6661-6709-XXL",
-    "allocated_qty": 7
-  },
-  {
-    "id": "mll_77_TCM6661-6709-XL",
-    "leg_id": "77",
-    "sku_code": "TCM6661-6709-XL",
-    "allocated_qty": 15
-  },
-  {
-    "id": "mll_77_TCM6661-6709-M",
-    "leg_id": "77",
-    "sku_code": "TCM6661-6709-M",
-    "allocated_qty": 21
-  },
-  {
-    "id": "mll_77_TCM6661-6709-L",
-    "leg_id": "77",
-    "sku_code": "TCM6661-6709-L",
-    "allocated_qty": 27
-  },
-  {
-    "id": "mll_77_TCM4619-6507-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM4619-6507-XXL",
-    "allocated_qty": 14
-  },
-  {
-    "id": "mll_77_TCM4619-6436-S",
-    "leg_id": "77",
-    "sku_code": "TCM4619-6436-S",
-    "allocated_qty": 11
-  },
-  {
-    "id": "mll_77_TCM4546-6351-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6351-XXL",
-    "allocated_qty": 9
-  },
-  {
-    "id": "mll_77_TCM4546-6351-XL",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6351-XL",
-    "allocated_qty": 24
-  },
-  {
-    "id": "mll_77_TCM4546-6351-M",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6351-M",
-    "allocated_qty": 35
-  },
-  {
-    "id": "mll_77_TCM4546-6351-L",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6351-L",
-    "allocated_qty": 40
-  },
-  {
-    "id": "mll_77_TCM4546-6350-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6350-XXL",
-    "allocated_qty": 23
-  },
-  {
-    "id": "mll_77_TCM4546-6350-XL",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6350-XL",
-    "allocated_qty": 62
-  },
-  {
-    "id": "mll_77_TCM4546-6350-M",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6350-M",
-    "allocated_qty": 90
-  },
-  {
-    "id": "mll_77_TCM4546-6350-L",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6350-L",
-    "allocated_qty": 105
-  },
-  {
-    "id": "mll_77_TCM4546-6352-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6352-XXL",
-    "allocated_qty": 25
-  },
-  {
-    "id": "mll_77_TCM4546-6352-XL",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6352-XL",
-    "allocated_qty": 61
-  },
-  {
-    "id": "mll_77_TCM4546-6352-M",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6352-M",
-    "allocated_qty": 90
-  },
-  {
-    "id": "mll_77_TCM4546-6352-L",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6352-L",
-    "allocated_qty": 107
-  },
-  {
-    "id": "mll_77_TCM4619-6507-XL",
-    "leg_id": "77",
-    "sku_code": "TCM4619-6507-XL",
-    "allocated_qty": 33
-  },
-  {
-    "id": "mll_77_TCM4619-6507-S",
-    "leg_id": "77",
-    "sku_code": "TCM4619-6507-S",
-    "allocated_qty": 12
-  },
-  {
-    "id": "mll_77_TCM4619-6507-M",
-    "leg_id": "77",
-    "sku_code": "TCM4619-6507-M",
-    "allocated_qty": 47
-  },
-  {
-    "id": "mll_77_TCM4619-6507-L",
-    "leg_id": "77",
-    "sku_code": "TCM4619-6507-L",
-    "allocated_qty": 62
-  },
-  {
-    "id": "mll_77_TCM4619-6436-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM4619-6436-XXL",
-    "allocated_qty": 12
-  },
-  {
-    "id": "mll_77_TCM4619-6436-XL",
-    "leg_id": "77",
-    "sku_code": "TCM4619-6436-XL",
-    "allocated_qty": 26
-  },
-  {
-    "id": "mll_77_TCM4619-6436-M",
-    "leg_id": "77",
-    "sku_code": "TCM4619-6436-M",
-    "allocated_qty": 37
-  },
-  {
-    "id": "mll_77_TCM4619-6436-L",
-    "leg_id": "77",
-    "sku_code": "TCM4619-6436-L",
-    "allocated_qty": 51
-  },
-  {
-    "id": "mll_77_TCM4652-2012-S",
-    "leg_id": "77",
-    "sku_code": "TCM4652-2012-S",
-    "allocated_qty": 6
-  },
-  {
-    "id": "mll_77_TCM4652-6348-S",
-    "leg_id": "77",
-    "sku_code": "TCM4652-6348-S",
-    "allocated_qty": 20
-  },
-  {
-    "id": "mll_77_TCM4652-2012-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM4652-2012-XXL",
-    "allocated_qty": 8
-  },
-  {
-    "id": "mll_77_TCM4652-2012-XL",
-    "leg_id": "77",
-    "sku_code": "TCM4652-2012-XL",
-    "allocated_qty": 15
-  },
-  {
-    "id": "mll_77_TCM4652-2012-M",
-    "leg_id": "77",
-    "sku_code": "TCM4652-2012-M",
-    "allocated_qty": 25
-  },
-  {
-    "id": "mll_77_TCM4652-2012-L",
-    "leg_id": "77",
-    "sku_code": "TCM4652-2012-L",
-    "allocated_qty": 27
-  },
-  {
-    "id": "mll_77_TCM4652-6347-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM4652-6347-XXL",
-    "allocated_qty": 18
-  },
-  {
-    "id": "mll_77_TCM4652-6347-XL",
-    "leg_id": "77",
-    "sku_code": "TCM4652-6347-XL",
-    "allocated_qty": 49
-  },
-  {
-    "id": "mll_77_TCM4652-6347-S",
-    "leg_id": "77",
-    "sku_code": "TCM4652-6347-S",
-    "allocated_qty": 20
-  },
-  {
-    "id": "mll_77_TCM4652-6347-M",
-    "leg_id": "77",
-    "sku_code": "TCM4652-6347-M",
-    "allocated_qty": 72
-  },
-  {
-    "id": "mll_77_TCM4652-6347-L",
-    "leg_id": "77",
-    "sku_code": "TCM4652-6347-L",
-    "allocated_qty": 83
-  },
-  {
-    "id": "mll_77_TCM4652-6343-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM4652-6343-XXL",
-    "allocated_qty": 12
-  },
-  {
-    "id": "mll_77_TCM4652-6343-XL",
-    "leg_id": "77",
-    "sku_code": "TCM4652-6343-XL",
-    "allocated_qty": 33
-  },
-  {
-    "id": "mll_77_TCM4652-6343-S",
-    "leg_id": "77",
-    "sku_code": "TCM4652-6343-S",
-    "allocated_qty": 14
-  },
-  {
-    "id": "mll_77_TCM4652-6343-M",
-    "leg_id": "77",
-    "sku_code": "TCM4652-6343-M",
-    "allocated_qty": 48
-  },
-  {
-    "id": "mll_77_TCM4652-6343-L",
-    "leg_id": "77",
-    "sku_code": "TCM4652-6343-L",
-    "allocated_qty": 54
-  },
-  {
-    "id": "mll_77_TCM4652-6348-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM4652-6348-XXL",
-    "allocated_qty": 20
-  },
-  {
-    "id": "mll_77_TCM4652-6348-XL",
-    "leg_id": "77",
-    "sku_code": "TCM4652-6348-XL",
-    "allocated_qty": 53
-  },
-  {
-    "id": "mll_77_TCM4652-6348-M",
-    "leg_id": "77",
-    "sku_code": "TCM4652-6348-M",
-    "allocated_qty": 76
-  },
-  {
-    "id": "mll_77_TCM4652-6348-L",
-    "leg_id": "77",
-    "sku_code": "TCM4652-6348-L",
-    "allocated_qty": 89
-  },
-  {
-    "id": "mll_77_TCM4546-6352-S",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6352-S",
-    "allocated_qty": 23
-  },
-  {
-    "id": "mll_77_TCM4546-6350-S",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6350-S",
-    "allocated_qty": 24
-  },
-  {
-    "id": "mll_77_TCM4546-6349-XXL",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6349-XXL",
-    "allocated_qty": 26
-  },
-  {
-    "id": "mll_77_TCM4546-6351-S",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6351-S",
-    "allocated_qty": 9
-  },
-  {
-    "id": "mll_77_TCM4546-6349-XL",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6349-XL",
-    "allocated_qty": 66
-  },
-  {
-    "id": "mll_77_TCM4546-6349-S",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6349-S",
-    "allocated_qty": 26
-  },
-  {
-    "id": "mll_77_TCM4546-6349-M",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6349-M",
-    "allocated_qty": 95
-  },
-  {
-    "id": "mll_77_TCM4546-6349-L",
-    "leg_id": "77",
-    "sku_code": "TCM4546-6349-L",
-    "allocated_qty": 110
-  },
-  {
-    "id": "mll_77_TCW5937-2884-XS",
-    "leg_id": "77",
-    "sku_code": "TCW5937-2884-XS",
-    "allocated_qty": 11
-  },
-  {
-    "id": "mll_77_TCW5937-2884-S",
-    "leg_id": "77",
-    "sku_code": "TCW5937-2884-S",
-    "allocated_qty": 31
-  },
-  {
-    "id": "mll_77_TCW5937-2884-M",
-    "leg_id": "77",
-    "sku_code": "TCW5937-2884-M",
-    "allocated_qty": 49
-  },
-  {
-    "id": "mll_77_TCW5937-2884-XL",
-    "leg_id": "77",
-    "sku_code": "TCW5937-2884-XL",
-    "allocated_qty": 24
-  },
-  {
-    "id": "mll_77_TCW5937-2884-L",
-    "leg_id": "77",
-    "sku_code": "TCW5937-2884-L",
-    "allocated_qty": 40
   },
   {
     "id": "mll_78_TCM6522-0451-L",

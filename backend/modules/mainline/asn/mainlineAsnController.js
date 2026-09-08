@@ -20,6 +20,7 @@ const MainlineCiModel = require('../ci/MainlineCiModel');
 const MainlinePackingModel = require('../packing/MainlinePackingModel');
 const { linesForBooking } = require('../ci/ciLines');
 const { suppliers: SupplierModel } = require('../../../models/MasterDataModel');
+const { assertShipmentVisible } = require('../vendorAccess');
 
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
 
@@ -70,6 +71,7 @@ async function generateAsn(req, res) {
 }
 
 async function getAsn(req, res) {
+  await assertShipmentVisible(req, req.params.id);
   const asns = await MainlineAsnModel.read();
   const mine = asns.filter((a) => a.shipment_id === req.params.id);
   if (!mine.length) err('No ASN found for this shipment', 404);

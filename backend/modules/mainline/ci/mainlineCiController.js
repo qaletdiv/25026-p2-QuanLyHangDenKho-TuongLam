@@ -13,6 +13,7 @@ const MainlineCiModel = require('./MainlineCiModel');
 const MainlineBookingModel = require('../bookings/MainlineBookingModel');
 const MainlinePackingModel = require('../packing/MainlinePackingModel');
 const { linesForBooking } = require('./ciLines');
+const { assertBookingVisible } = require('../vendorAccess');
 
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
 
@@ -27,7 +28,10 @@ function tallies(myLines) {
   };
 }
 
-async function _bookingOr404(id) {
+// Existence + vendor visibility in one gate, so a vendor probing another supplier's
+// booking id gets the same 404 as a nonexistent one. Guards the CI read AND confirm.
+async function _bookingOr404(req, id) {
+  await assertBookingVisible(req, id);
   const bookings = await MainlineBookingModel.readBookings();
   const b = bookings.find((x) => x.id === id);
   if (!b) err('Booking not found', 404);
@@ -35,7 +39,7 @@ async function _bookingOr404(id) {
 }
 
 async function getCi(req, res) {
-  await _bookingOr404(req.params.id);
+  await _bookingOr404(req, req.params.id);
   const [invoices, cartons] = await Promise.all([MainlineCiModel.readInvoices(), MainlinePackingModel.read()]);
   const ci = invoices.find((i) => i.booking_id === req.params.id);
   if (!ci) err('No commercial invoice for this booking', 404);
@@ -44,7 +48,7 @@ async function getCi(req, res) {
 }
 
 async function confirmCi(req, res) {
-  await _bookingOr404(req.params.id);
+  await _bookingOr404(req, req.params.id);
   const [invoices, cartons] = await Promise.all([MainlineCiModel.readInvoices(), MainlinePackingModel.read()]);
   const ci = invoices.find((i) => i.booking_id === req.params.id);
   if (!ci) err('No commercial invoice to confirm', 400);

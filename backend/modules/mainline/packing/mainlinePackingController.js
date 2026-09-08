@@ -5,6 +5,7 @@
 const MainlinePackingModel = require('./MainlinePackingModel');
 const MainlineBookingModel = require('../bookings/MainlineBookingModel');
 const MainlineLegModel = require('../legs/MainlineLegModel');
+const { assertBookingVisible } = require('../vendorAccess');
 
 function summarize(cartons) {
   const seen = new Set();
@@ -34,6 +35,7 @@ function summarize(cartons) {
 }
 
 async function getPacking(req, res) {
+  await assertBookingVisible(req, req.params.id);
   const [bookings, legs, allCartons] = await Promise.all([
     MainlineBookingModel.readBookings(), MainlineLegModel.readLegs(), MainlinePackingModel.read(),
   ]);

@@ -120,11 +120,51 @@
     "category": "shipment"
   },
   {
-    "id": "sms_exception",
-    "name": "Exception",
-    "color": "#EF4444",
+    "id": "sms_received",
+    "name": "Received",
+    "color": "#059669",
     "sort_order": 6,
     "module": "sms",
     "category": "shipment"
+  },
+  {
+    "id": "sms_exception",
+    "name": "Exception",
+    "color": "#EF4444",
+    "sort_order": 7,
+    "module": "sms",
+    "category": "shipment"
+  },
+  {
+    "id": "sms_bk_pending",
+    "name": "Booking Pending",
+    "color": "#F59E0B",
+    "sort_order": 1,
+    "module": "sms",
+    "category": "booking"
+  },
+  {
+    "id": "sms_bk_approved",
+    "name": "Booking Approved",
+    "color": "#3B82F6",
+    "sort_order": 2,
+    "module": "sms",
+    "category": "booking"
+  },
+  {
+    "id": "sms_bk_rejected",
+    "name": "Rejected",
+    "color": "#DC2626",
+    "sort_order": 3,
+    "module": "sms",
+    "category": "booking"
+  },
+  {
+    "id": "sms_bk_cancelled",
+    "name": "Cancelled",
+    "color": "#EF4444",
+    "sort_order": 4,
+    "module": "sms",
+    "category": "booking"
   }
 ]

@@ -16,5 +16,59 @@
     "source": "shipment_data",
     "status": "confirmed",
     "confirmed_at": "2026-07-29T16:26:33.725Z"
+  },
+  {
+    "id": "ci_4",
+    "booking_id": "4",
+    "invoice_number": "INV-4",
+    "invoice_date": "2026-07-30",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmed_at": "2026-07-30T17:41:14.037Z"
+  },
+  {
+    "id": "ci_5",
+    "booking_id": "5",
+    "invoice_number": "INV-5",
+    "invoice_date": "2026-07-30",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmed_at": "2026-07-30T18:25:19.842Z"
+  },
+  {
+    "id": "ci_6",
+    "booking_id": "6",
+    "invoice_number": "INV-6",
+    "invoice_date": "2026-08-10",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmed_at": "2026-08-10T17:57:19.534Z"
+  },
+  {
+    "id": "ci_7",
+    "booking_id": "7",
+    "invoice_number": "INV-7",
+    "invoice_date": "2026-08-10",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmed_at": "2026-08-10T18:28:45.849Z"
+  },
+  {
+    "id": "ci_8",
+    "booking_id": "8",
+    "invoice_number": "INV-8",
+    "invoice_date": "2026-08-25",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmed_at": "2026-08-26T19:56:01.477Z"
+  },
+  {
+    "id": "ci_9",
+    "booking_id": "9",
+    "invoice_number": "INV-9",
+    "invoice_date": "2026-08-31",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmed_at": "2026-08-31T18:59:10.157Z"
   }
 ]

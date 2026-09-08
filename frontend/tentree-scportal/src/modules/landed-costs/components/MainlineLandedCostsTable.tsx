@@ -15,7 +15,7 @@ import { useSession } from '@/components/providers/SessionProvider';
 import DataTable, { type DataColumn } from '@/modules/mainline/components/DataTable';
 import {
   postMainlineLandedCost, previewMainlineNetsuite, unpostLandedCost,
-  confirmMainlineReceiptMatch, clearMainlineReceiptMatch, manualMainlineReceiptMatch,
+  confirmMainlineReceiptMatch, clearMainlineReceiptMatch, rejectMainlineReceiptMatch, manualMainlineReceiptMatch,
 } from '@/modules/landed-costs/actions';
 import type { MainlineLandedCostRow, MainlineLandedCostMatch, MainlineLandedCostSplit } from '@/modules/landed-costs/types';
 
@@ -35,6 +35,7 @@ type Line = {
   ci_value: number;
   freight: number;
   duty: number;
+  commission: number;
   posted: MainlineLandedCostSplit['posted'];
   m?: MainlineLandedCostMatch;
   row: MainlineLandedCostRow;
@@ -44,7 +45,11 @@ type Line = {
 function postBlockReason(l: Line): string | null {
   const r = l.row;
   if (!r.has_shipping_data) return 'Upload packing data first (needed for the CI-value split)';
-  if (!r.has_amounts) return 'Enter freight & duty on the shipment first';
+  // An ESTIMATE basis (FedEx/DHL) is postable as soon as there is a CI value and a
+  // rate — there is no invoice to wait for. Only a FORWARDER shipment can be
+  // "awaiting actual".
+  if (r.is_estimate && !r.has_amounts) return 'No mainline landed-cost rate configured — set one in Settings → Landed Cost Rates';
+  if (r.awaiting_actual) return 'Enter freight & duty on the shipment first';
   if (!l.m || !l.m.netsuite_ir_id) return 'No Item Receipt matched — add the IR # first';
   if (!l.m.confirmed) return 'Confirm the IR match first';
   if (!r.push_enabled) return 'NetSuite push is not enabled on the server';
@@ -87,7 +92,7 @@ export default function MainlineLandedCostsTable({ rows }: { rows: MainlineLande
     return r.split.map((s) => ({
       key: `${r.shipment_id}|${s.po_number}`,
       shipment_id: r.shipment_id, shipment_number: r.shipment_number, mode: r.mode, ship_date: r.ship_date,
-      po_number: s.po_number, ci_value: s.ci_value, freight: s.freight, duty: s.duty, posted: s.posted,
+      po_number: s.po_number, ci_value: s.ci_value, freight: s.freight, duty: s.duty, commission: s.commission, posted: s.posted,
       m: matchByPo.get(s.po_number), row: r,
     }));
   }), [visibleRows]);
@@ -133,6 +138,17 @@ export default function MainlineLandedCostsTable({ rows }: { rows: MainlineLande
     toast.success('Match cleared');
     router.refresh();
   }
+  // ✗ — "this is not the IR for this PO on this shipment". Recorded, so the
+  // suggestion does not come back on the next read; the matcher offers the next one.
+  async function rejectMatch(m: MainlineLandedCostMatch, shipmentId: string) {
+    if (!m.receipt_id) return;
+    setBusy(shipmentId);
+    const res = await rejectMainlineReceiptMatch(m.receipt_id, shipmentId);
+    setBusy(null);
+    if (res?.error) return void toast.error(res.error);
+    toast.success(`Rejected ${irLabel(m)} for ${m.po_number}`);
+    router.refresh();
+  }
   async function manualAdd(shipmentId: string, poNumber: string) {
     const key = `${shipmentId}|${poNumber}`;
     const val = (manualIr[key] || '').trim();
@@ -172,11 +188,17 @@ export default function MainlineLandedCostsTable({ rows }: { rows: MainlineLande
       return (
         <span className="inline-flex flex-wrap items-center gap-2">
           <span className="text-muted-foreground">{irLabel(m)}{m.ambiguous ? ' ⚠' : ''}</span>
+          <span className="text-muted-foreground text-[10px]">({m.confidence})</span>
           {canEdit && (
             <>
-              <Button size="sm" variant="outline" className="h-6" disabled={busy !== null} onClick={() => confirmMatch(m, l.shipment_id)}>
-                Confirm <span className="text-muted-foreground ml-1">({m.confidence})</span>
-              </Button>
+              {/* the suggestion is answered either way: ✓ accept, ✗ reject (recorded,
+                  so the matcher offers the next candidate instead of this one) */}
+              <Button size="sm" variant="outline" className="h-6 w-6 p-0 text-emerald-600 dark:text-emerald-400"
+                disabled={busy !== null} title={`Confirm ${irLabel(m)} for ${m.po_number}`}
+                onClick={() => confirmMatch(m, l.shipment_id)}><Check className="h-3.5 w-3.5" /></Button>
+              <Button size="sm" variant="outline" className="h-6 w-6 p-0 text-red-600 dark:text-red-400"
+                disabled={busy !== null} title={`Reject — ${irLabel(m)} is not the receipt for this PO`}
+                onClick={() => rejectMatch(m, l.shipment_id)}><X className="h-3.5 w-3.5" /></Button>
               {/* override the auto-suggested IR — decline it and set the correct one */}
               <span className="inline-flex items-center gap-1" title="Wrong IR? Type the correct IR number (e.g. IR65473) to override this suggestion">
                 <Input value={manualIr[key] || ''} onChange={(e) => setManualIr((s) => ({ ...s, [key]: e.target.value }))} placeholder="IR #" className="h-6 w-24 text-xs" disabled={busy !== null} />
@@ -201,6 +223,17 @@ export default function MainlineLandedCostsTable({ rows }: { rows: MainlineLande
       <Link href={`/mainline/shipments/${l.shipment_id}`} className="text-primary hover:underline font-mono text-xs font-medium">{l.shipment_number || `Shipment ${l.shipment_id}`}</Link>
     ) },
     { key: 'mode', label: 'Mode', accessor: (l) => l.mode, render: (l) => dim(l.mode) },
+    { key: 'courier', label: 'Carrier', defaultVisible: false, accessor: (l) => l.row.courier, render: (l) => dim(l.row.courier) },
+    // Which basis produced these figures. A FedEx/DHL shipment has no traceable
+    // freight & duty invoice, so it is estimated from the CI value at the module rate.
+    { key: 'basis', label: 'Basis', accessor: (l) => l.row.basis, render: (l) => (
+      l.row.is_estimate
+        ? <Badge variant="outline" className="border-amber-500/40 text-amber-600 dark:text-amber-400"
+            title={`Estimated from the commercial-invoice value at ${l.row.estimate.freight_pct}% freight / ${l.row.estimate.duty_pct}% duty — ${l.row.courier ?? 'this carrier'} does not invoice them separately`}>
+            Estimate {l.row.estimate.freight_pct}/{l.row.estimate.duty_pct}
+          </Badge>
+        : <span className="text-muted-foreground text-xs">Actual</span>
+    ) },
     { key: 'ship_date', label: 'Ship Date', accessor: (l) => l.ship_date, render: (l) => dim(l.ship_date) },
     { key: 'po_number', label: 'PO', accessor: (l) => l.po_number, render: (l) => <span className="font-medium text-xs">{l.po_number}</span> },
     { key: 'ir', label: 'Item Receipt', accessor: (l) => l.m?.netsuite_ir_tranid ?? '', render: (l) => matchControl(l) },
@@ -208,13 +241,18 @@ export default function MainlineLandedCostsTable({ rows }: { rows: MainlineLande
     { key: 'ci_value', label: 'CI Value', align: 'right', accessor: (l) => l.ci_value, render: (l) => <span className="tabular-nums">{usd(l.ci_value)}</span> },
     { key: 'freight', label: 'Freight', align: 'right', accessor: (l) => l.freight, render: (l) => <span className="tabular-nums">{l.row.has_amounts ? usd(l.freight) : DASH}</span> },
     { key: 'duty', label: 'Duty', align: 'right', accessor: (l) => l.duty, render: (l) => <span className="tabular-nums">{l.row.has_amounts ? usd(l.duty) : DASH}</span> },
-    { key: 'status', label: 'Status', accessor: (l) => l.posted ? 'Posted' : !l.row.has_shipping_data ? 'No packing' : !l.row.has_amounts ? 'No amounts' : 'Pending', render: (l) => (
+    { key: 'commission', label: 'Commission', align: 'right', accessor: (l) => l.commission, render: (l) => (
+      l.commission > 0 ? <span className="tabular-nums">{usd(l.commission)}</span> : <span className="text-muted-foreground">{DASH}</span>
+    ) },
+    // "No amounts" only makes sense on the ACTUAL basis — an estimate has nothing to
+    // wait for, so `awaiting_actual` (not `!has_amounts`) is what gates it now.
+    { key: 'status', label: 'Status', accessor: (l) => l.posted ? 'Posted' : !l.row.has_shipping_data ? 'No packing' : l.row.awaiting_actual ? 'Awaiting invoices' : 'Pending', render: (l) => (
       l.posted
         ? <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400"><Check className="h-3 w-3 mr-1" />Posted</Badge>
         : !l.row.has_shipping_data
           ? <Badge variant="outline" className="border-amber-500/40 text-amber-600 dark:text-amber-400">No packing</Badge>
-          : !l.row.has_amounts
-            ? <Badge variant="outline" className="border-amber-500/40 text-amber-600 dark:text-amber-400">No amounts</Badge>
+          : l.row.awaiting_actual
+            ? <Badge variant="outline" className="border-amber-500/40 text-amber-600 dark:text-amber-400" title="Freight & duty invoices from the forwarder have not been entered on the shipment yet">Awaiting invoices</Badge>
             : <Badge variant="outline" className="text-muted-foreground">Pending</Badge>
     ) },
     { key: 'action', label: 'Action', align: 'right', sortable: false, accessor: () => '', render: (l) => {
@@ -271,8 +309,9 @@ export default function MainlineLandedCostsTable({ rows }: { rows: MainlineLande
               </div>
               <pre className="bg-muted/50 rounded-md p-3 text-xs overflow-x-auto max-h-[50vh]">{JSON.stringify(preview.data.payloads, null, 2)}</pre>
               <p className="text-xs text-muted-foreground">
-                One Item Receipt per PO. Duty → landedCosts category 2, Freight → category 5, allocated by value;
-                shipping method = Sea/Air by mode. This is what <strong>Post</strong> sends. Freight &amp; duty are entered on the shipment.
+                One Item Receipt per PO. Duty → landedCosts category 2, Freight → category 5, Commission → category 7
+                (only for suppliers with a commission rate, e.g. Pratibha), allocated by value; shipping method = Sea/Air
+                by mode. This is what <strong>Post</strong> sends. Freight &amp; duty are entered on the shipment.
               </p>
             </div>
           )}

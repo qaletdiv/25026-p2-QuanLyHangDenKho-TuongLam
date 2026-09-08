@@ -14,8 +14,11 @@
 // to ARRIVE at its destination facility, split into mutually-exclusive parts so
 // the totals reconcile:
 //   1. shipment legs      → bucketed by the shipment's expected-delivery week
-//                           (E-DEL); rows already received (ATA filled) are IN
-//                           already, so they're excluded from the incoming pipeline.
+//                           (E-DEL); rows already received are IN already, so they
+//                           are excluded from the incoming pipeline. "Received" =
+//                           the ATA derived from NetSuite Item Receipts
+//                           (receipts/ataLoader), the same source the shipment list
+//                           and the KPI report use.
 //                           Cartons = confirmed distinct cartons from the packing
 //                           list for that (booking, leg).
 //   2. remainder (unshipped: booking-pending + awaiting-booking) → projected onto
@@ -24,6 +27,7 @@
 // All derived at read-time; nothing stored.
 
 const BaseModel = require('../../../models/BaseModel');
+const { loadAtaByShipment, effectiveAta } = require('../receipts/ataLoader');
 
 const readM = (f) => new BaseModel(`migrated/${f}.json`).read().catch(() => []);
 
@@ -44,6 +48,10 @@ async function getMainlineForecast(req, res) {
       readM('mainline_bookings'), readM('mainline_booking_po_legs'),
       readM('mainline_shipments'), readM('mainline_shipment_legs'), readM('mainline_packing_cartons'),
     ]);
+
+  // "Already received" is decided by the DERIVED ATA (NetSuite Item Receipts via
+  // the shared resolver), not the hand-entered `ata` column — see step 1 below.
+  const ataMatch = await loadAtaByShipment({ shipments, shipLegs, legs });
 
   const orderByPo = new Map(orders.map((o) => [o.po_number, o]));
   const facName   = new Map(facilities.map((f) => [f.id, f.name]));
@@ -99,7 +107,10 @@ async function getMainlineForecast(req, res) {
       const ship = shipById.get(j.shipment_id) || {};
       const qty = Number(j.expected_quantity) || 0;
       counted += qty;
-      if (ship.ata) continue;   // already received — not "incoming"
+      // Already received → in stock, not incoming. `counted` is incremented FIRST
+      // (above), so excluding the leg here removes it from the pipeline without
+      // letting step 2 re-project it as unshipped remainder.
+      if (effectiveAta(ataMatch, ship).ata) continue;
       const date = ship.e_del || ship.eta_pod || ship.etd_pol || null;
       const facility = facName.get(ship.facility_id) || orderFacility;
       bucket(date, facility, orderChannel, qty, cartonCount(ship.booking_id, leg.id));

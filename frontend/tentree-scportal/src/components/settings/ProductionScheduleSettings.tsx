@@ -4,10 +4,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getProductionSchedules, updateProductionSchedules, createSeason } from '@/app/actions/master-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { CalendarClock, Plus } from 'lucide-react';
 import { EditLockActions } from './EditLockActions';
+import { SettingsTable, type SettingsColumn } from './SettingsTable';
 
 type ScheduleRow = { season_id: string; season: string; ontime_by: string | null; atrisk_by: string | null };
 
@@ -60,6 +60,20 @@ export function ProductionScheduleSettings() {
 
   if (isLoading) return <div className="p-4 text-sm text-muted-foreground italic">Loading production schedules...</div>;
 
+  const dateCol = (key: 'ontime_by' | 'atrisk_by', label: string): SettingsColumn<ScheduleRow> => ({
+    key, label,
+    accessor: (r) => r[key] ?? '',
+    cell: (r) => (
+      <Input type="date" value={r[key] ?? ''} onChange={(e) => setField(r.season_id, key, e.target.value)} className="h-8 text-sm w-44" />
+    ),
+  });
+
+  const columns: SettingsColumn<ScheduleRow>[] = [
+    { key: 'season', label: 'Season', cellClassName: 'font-medium', cell: (r) => r.season },
+    dateCol('ontime_by', 'On Time — deliver by'),
+    dateCol('atrisk_by', 'At Risk — deliver by'),
+  ];
+
   return (
     <div className="space-y-4 bg-card p-4 sm:p-6 rounded-xl border shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -91,33 +105,14 @@ export function ProductionScheduleSettings() {
         later is <span className="font-medium text-red-600">Late</span>. Use <span className="font-medium">Add Season</span> to record next
         season&apos;s schedule before its POs arrive — seasons from PO/WIP syncs also appear here automatically.
       </p>
-      <fieldset disabled={!editing} className="m-0 p-0 min-w-0 border rounded-md overflow-hidden [&_input:disabled]:opacity-100 [&_input:disabled]:cursor-default [&_input:disabled]:border-transparent [&_input:disabled]:bg-transparent [&_input:disabled]:shadow-none">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow>
-              <TableHead>Season</TableHead>
-              <TableHead>On Time — deliver by</TableHead>
-              <TableHead>At Risk — deliver by</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.length === 0 && (
-              <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-6">No seasons yet — sync POs first</TableCell></TableRow>
-            )}
-            {rows.map((r) => (
-              <TableRow key={r.season_id}>
-                <TableCell className="p-2 font-medium">{r.season}</TableCell>
-                <TableCell className="p-2">
-                  <Input type="date" value={r.ontime_by ?? ''} onChange={(e) => setField(r.season_id, 'ontime_by', e.target.value)} className="h-8 text-sm w-44" />
-                </TableCell>
-                <TableCell className="p-2">
-                  <Input type="date" value={r.atrisk_by ?? ''} onChange={(e) => setField(r.season_id, 'atrisk_by', e.target.value)} className="h-8 text-sm w-44" />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </fieldset>
+      <SettingsTable
+        rows={rows}
+        columns={columns}
+        rowKey={(r) => r.season_id}
+        disabled={!editing}
+        storageKey="settings-production-schedules-colorder"
+        emptyText="No seasons yet — sync POs first"
+      />
     </div>
   );
 }

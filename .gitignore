@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...but the template must be committed: it is the only place that documents the
+# REQUIRED vars (JWT_SECRET — the server refuses to boot without it). It holds
+# placeholders only, never real values.
+!.env.example
 
 # vercel
 .vercel

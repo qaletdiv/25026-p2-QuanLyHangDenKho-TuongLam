@@ -106,5 +106,329 @@
     "file_url": "/uploads/pl_1785342393639_3_PO04786.xlsx",
     "invoice_number": "INV-3-PO04786-260729",
     "generated_at": "2026-07-29T16:26:33.725Z"
+  },
+  {
+    "id": "doc_4_ALL_ci",
+    "booking_id": "4",
+    "leg_id": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1785433273898_4_ALL.xlsx",
+    "invoice_number": "INV-4-ALL-260730",
+    "generated_at": "2026-07-30T17:41:13.962Z"
+  },
+  {
+    "id": "doc_4_ALL_pl",
+    "booking_id": "4",
+    "leg_id": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1785433273898_4_ALL.xlsx",
+    "invoice_number": "INV-4-ALL-260730",
+    "generated_at": "2026-07-30T17:41:13.962Z"
+  },
+  {
+    "id": "doc_4_PO04728_ci",
+    "booking_id": "4",
+    "leg_id": "77",
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1785433273898_4_PO04728.xlsx",
+    "invoice_number": "INV-4-PO04728-260730",
+    "generated_at": "2026-07-30T17:41:13.999Z"
+  },
+  {
+    "id": "doc_4_PO04728_pl",
+    "booking_id": "4",
+    "leg_id": "77",
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1785433273898_4_PO04728.xlsx",
+    "invoice_number": "INV-4-PO04728-260730",
+    "generated_at": "2026-07-30T17:41:13.999Z"
+  },
+  {
+    "id": "doc_4_PO04756_ci",
+    "booking_id": "4",
+    "leg_id": "45",
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1785433273898_4_PO04756.xlsx",
+    "invoice_number": "INV-4-PO04756-260730",
+    "generated_at": "2026-07-30T17:41:14.037Z"
+  },
+  {
+    "id": "doc_4_PO04756_pl",
+    "booking_id": "4",
+    "leg_id": "45",
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1785433273898_4_PO04756.xlsx",
+    "invoice_number": "INV-4-PO04756-260730",
+    "generated_at": "2026-07-30T17:41:14.037Z"
+  },
+  {
+    "id": "doc_5_ALL_ci",
+    "booking_id": "5",
+    "leg_id": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1785435919719_5_ALL.xlsx",
+    "invoice_number": "INV-5-ALL-260730",
+    "generated_at": "2026-07-30T18:25:19.772Z"
+  },
+  {
+    "id": "doc_5_ALL_pl",
+    "booking_id": "5",
+    "leg_id": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1785435919719_5_ALL.xlsx",
+    "invoice_number": "INV-5-ALL-260730",
+    "generated_at": "2026-07-30T18:25:19.772Z"
+  },
+  {
+    "id": "doc_5_PO04731_ci",
+    "booking_id": "5",
+    "leg_id": "73",
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1785435919719_5_PO04731.xlsx",
+    "invoice_number": "INV-5-PO04731-260730",
+    "generated_at": "2026-07-30T18:25:19.802Z"
+  },
+  {
+    "id": "doc_5_PO04731_pl",
+    "booking_id": "5",
+    "leg_id": "73",
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1785435919719_5_PO04731.xlsx",
+    "invoice_number": "INV-5-PO04731-260730",
+    "generated_at": "2026-07-30T18:25:19.802Z"
+  },
+  {
+    "id": "doc_5_PO04759_ci",
+    "booking_id": "5",
+    "leg_id": "38",
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1785435919719_5_PO04759.xlsx",
+    "invoice_number": "INV-5-PO04759-260730",
+    "generated_at": "2026-07-30T18:25:19.842Z"
+  },
+  {
+    "id": "doc_5_PO04759_pl",
+    "booking_id": "5",
+    "leg_id": "38",
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1785435919719_5_PO04759.xlsx",
+    "invoice_number": "INV-5-PO04759-260730",
+    "generated_at": "2026-07-30T18:25:19.842Z"
+  },
+  {
+    "id": "doc_6_ALL_ci",
+    "booking_id": "6",
+    "leg_id": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1786384639027_6_ALL.xlsx",
+    "invoice_number": "INV-6-ALL-260810",
+    "generated_at": "2026-08-10T17:57:19.292Z"
+  },
+  {
+    "id": "doc_6_ALL_pl",
+    "booking_id": "6",
+    "leg_id": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1786384639027_6_ALL.xlsx",
+    "invoice_number": "INV-6-ALL-260810",
+    "generated_at": "2026-08-10T17:57:19.292Z"
+  },
+  {
+    "id": "doc_6_PO04728_ci",
+    "booking_id": "6",
+    "leg_id": "77",
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1786384639027_6_PO04728.xlsx",
+    "invoice_number": "INV-6-PO04728-260810",
+    "generated_at": "2026-08-10T17:57:19.424Z"
+  },
+  {
+    "id": "doc_6_PO04728_pl",
+    "booking_id": "6",
+    "leg_id": "77",
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1786384639027_6_PO04728.xlsx",
+    "invoice_number": "INV-6-PO04728-260810",
+    "generated_at": "2026-08-10T17:57:19.424Z"
+  },
+  {
+    "id": "doc_6_PO04756_ci",
+    "booking_id": "6",
+    "leg_id": "45",
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1786384639027_6_PO04756.xlsx",
+    "invoice_number": "INV-6-PO04756-260810",
+    "generated_at": "2026-08-10T17:57:19.534Z"
+  },
+  {
+    "id": "doc_6_PO04756_pl",
+    "booking_id": "6",
+    "leg_id": "45",
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1786384639027_6_PO04756.xlsx",
+    "invoice_number": "INV-6-PO04756-260810",
+    "generated_at": "2026-08-10T17:57:19.534Z"
+  },
+  {
+    "id": "doc_7_ALL_ci",
+    "booking_id": "7",
+    "leg_id": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1786386525537_7_ALL.xlsx",
+    "invoice_number": "INV-7-ALL-260810",
+    "generated_at": "2026-08-10T18:28:45.692Z"
+  },
+  {
+    "id": "doc_7_ALL_pl",
+    "booking_id": "7",
+    "leg_id": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1786386525537_7_ALL.xlsx",
+    "invoice_number": "INV-7-ALL-260810",
+    "generated_at": "2026-08-10T18:28:45.692Z"
+  },
+  {
+    "id": "doc_7_PO04770_ci",
+    "booking_id": "7",
+    "leg_id": "28",
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1786386525537_7_PO04770.xlsx",
+    "invoice_number": "INV-7-PO04770-260810",
+    "generated_at": "2026-08-10T18:28:45.777Z"
+  },
+  {
+    "id": "doc_7_PO04770_pl",
+    "booking_id": "7",
+    "leg_id": "28",
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1786386525537_7_PO04770.xlsx",
+    "invoice_number": "INV-7-PO04770-260810",
+    "generated_at": "2026-08-10T18:28:45.777Z"
+  },
+  {
+    "id": "doc_7_PO04783_ci",
+    "booking_id": "7",
+    "leg_id": "18",
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1786386525537_7_PO04783.xlsx",
+    "invoice_number": "INV-7-PO04783-260810",
+    "generated_at": "2026-08-10T18:28:45.849Z"
+  },
+  {
+    "id": "doc_7_PO04783_pl",
+    "booking_id": "7",
+    "leg_id": "18",
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1786386525537_7_PO04783.xlsx",
+    "invoice_number": "INV-7-PO04783-260810",
+    "generated_at": "2026-08-10T18:28:45.849Z"
+  },
+  {
+    "id": "doc_8_ALL_ci",
+    "booking_id": "8",
+    "leg_id": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1787774161383_8_ALL.xlsx",
+    "invoice_number": "INV-8-ALL-260826",
+    "generated_at": "2026-08-26T19:56:01.429Z"
+  },
+  {
+    "id": "doc_8_ALL_pl",
+    "booking_id": "8",
+    "leg_id": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1787774161383_8_ALL.xlsx",
+    "invoice_number": "INV-8-ALL-260826",
+    "generated_at": "2026-08-26T19:56:01.429Z"
+  },
+  {
+    "id": "doc_8_PO04728_ci",
+    "booking_id": "8",
+    "leg_id": "77",
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1787774161383_8_PO04728.xlsx",
+    "invoice_number": "INV-8-PO04728-260826",
+    "generated_at": "2026-08-26T19:56:01.462Z"
+  },
+  {
+    "id": "doc_8_PO04728_pl",
+    "booking_id": "8",
+    "leg_id": "77",
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1787774161383_8_PO04728.xlsx",
+    "invoice_number": "INV-8-PO04728-260826",
+    "generated_at": "2026-08-26T19:56:01.462Z"
+  },
+  {
+    "id": "doc_8_PO04746_ci",
+    "booking_id": "8",
+    "leg_id": "57",
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1787774161383_8_PO04746.xlsx",
+    "invoice_number": "INV-8-PO04746-260826",
+    "generated_at": "2026-08-26T19:56:01.477Z"
+  },
+  {
+    "id": "doc_8_PO04746_pl",
+    "booking_id": "8",
+    "leg_id": "57",
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1787774161383_8_PO04746.xlsx",
+    "invoice_number": "INV-8-PO04746-260826",
+    "generated_at": "2026-08-26T19:56:01.477Z"
+  },
+  {
+    "id": "doc_9_ALL_ci",
+    "booking_id": "9",
+    "leg_id": null,
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1788202749961_9_ALL.xlsx",
+    "invoice_number": "INV-9-ALL-260831",
+    "generated_at": "2026-08-31T18:59:10.028Z"
+  },
+  {
+    "id": "doc_9_ALL_pl",
+    "booking_id": "9",
+    "leg_id": null,
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1788202749961_9_ALL.xlsx",
+    "invoice_number": "INV-9-ALL-260831",
+    "generated_at": "2026-08-31T18:59:10.028Z"
+  },
+  {
+    "id": "doc_9_PO04728_ci",
+    "booking_id": "9",
+    "leg_id": "77",
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1788202749961_9_PO04728.xlsx",
+    "invoice_number": "INV-9-PO04728-260831",
+    "generated_at": "2026-08-31T18:59:10.107Z"
+  },
+  {
+    "id": "doc_9_PO04728_pl",
+    "booking_id": "9",
+    "leg_id": "77",
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1788202749961_9_PO04728.xlsx",
+    "invoice_number": "INV-9-PO04728-260831",
+    "generated_at": "2026-08-31T18:59:10.107Z"
+  },
+  {
+    "id": "doc_9_PO04756_ci",
+    "booking_id": "9",
+    "leg_id": "45",
+    "doc_type": "commercial_invoice",
+    "file_url": "/uploads/ci_1788202749961_9_PO04756.xlsx",
+    "invoice_number": "INV-9-PO04756-260831",
+    "generated_at": "2026-08-31T18:59:10.157Z"
+  },
+  {
+    "id": "doc_9_PO04756_pl",
+    "booking_id": "9",
+    "leg_id": "45",
+    "doc_type": "packing_list",
+    "file_url": "/uploads/pl_1788202749961_9_PO04756.xlsx",
+    "invoice_number": "INV-9-PO04756-260831",
+    "generated_at": "2026-08-31T18:59:10.157Z"
   }
 ]

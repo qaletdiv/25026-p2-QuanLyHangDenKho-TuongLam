@@ -10,6 +10,7 @@ const ItemReceiptModel = require('../receipts/MainlineItemReceiptModel');
 const BaseModel = require('../../../models/BaseModel');
 const { deriveAllCiLines } = require('../ci/ciLines');
 const { compute, reconcilePo, reconcileLeg } = require('./fulfillmentService');
+const { assertTrnVisible, assertPoNumberVisible, assertLegVisible } = require('../vendorAccess');
 
 async function _ctx() {
   const [masters, orders, orderLines, legs, legLines, invoices, cartons, receipts, receiptLines, modes] = await Promise.all([
@@ -26,6 +27,7 @@ async function _ctx() {
 // GET /mainline/fulfillment/:trn — TRN-grained three-way match.
 async function getFulfillment(req, res) {
   const { trn } = req.params;
+  await assertTrnVisible(req, trn, `PO master not found: ${trn}`);
   const c = await _ctx();
   if (!c.masters.some((m) => m.trn_number === trn)) {
     const e = new Error(`PO master not found: ${trn}`); e.statusCode = 404; throw e;
@@ -37,6 +39,7 @@ async function getFulfillment(req, res) {
 // ordered / shipped / received / remaining / variance per SKU).
 async function getPoReconcile(req, res) {
   const { poNumber } = req.params;
+  await assertPoNumberVisible(req, poNumber, `PO not found: ${poNumber}`);
   const c = await _ctx();
   if (!c.orders.some((o) => o.po_number === poNumber)) {
     const e = new Error(`PO not found: ${poNumber}`); e.statusCode = 404; throw e;
@@ -48,6 +51,7 @@ async function getPoReconcile(req, res) {
 // shipped / received scoped to the leg, with receipts split across the PO's legs.
 async function getLegReconcile(req, res) {
   const { legId } = req.params;
+  await assertLegVisible(req, legId, `PO leg not found: ${legId}`);
   const c = await _ctx();
   const result = reconcileLeg(legId, c);
   if (!result) { const e = new Error(`PO leg not found: ${legId}`); e.statusCode = 404; throw e; }

@@ -2,7 +2,7 @@
 
 import { fetchApi } from '@/lib/api';
 import { revalidatePath } from 'next/cache';
-import type { LandedCostRate, SmsLandedCostResponse, MainlineLandedCostRow } from './types';
+import type { LandedCostRate, LandedCostCommission, SmsLandedCostResponse, MainlineLandedCostRow } from './types';
 
 const revalidateLandedCosts = () => revalidatePath('/landed-costs', 'layout');
 
@@ -14,6 +14,19 @@ export async function getLandedCostRates(): Promise<LandedCostRate[]> {
 
 export async function updateLandedCostRates(rates: LandedCostRate[]) {
   const res = await fetchApi('/landed-costs/rates', { method: 'PUT', body: JSON.stringify(rates) });
+  if (res?.error) return { error: res.error as string };
+  revalidateLandedCosts();
+  return { success: true as const };
+}
+
+// ─── Commission rates (per-supplier %; SMS + mainline kept SEPARATE) ──────────
+export async function getCommissionRates(module: 'sms' | 'mainline'): Promise<LandedCostCommission[]> {
+  const data = await fetchApi(`/landed-costs/${module}/commissions`);
+  return Array.isArray(data) ? data : [];
+}
+
+export async function updateCommissionRates(module: 'sms' | 'mainline', rows: LandedCostCommission[]) {
+  const res = await fetchApi(`/landed-costs/${module}/commissions`, { method: 'PUT', body: JSON.stringify(rows) });
   if (res?.error) return { error: res.error as string };
   revalidateLandedCosts();
   return { success: true as const };
@@ -51,6 +64,18 @@ export async function unpostLandedCost(id: string) {
 // Writes sms_item_receipts.matched_shipment_id via the SMS module (SMS owns it).
 export async function confirmReceiptMatch(receiptId: string, shipmentId: string) {
   const res = await fetchApi(`/sms/receipts/${encodeURIComponent(receiptId)}/match`, {
+    method: 'POST', body: JSON.stringify({ shipment_id: shipmentId }),
+  });
+  if (res?.error) return { error: res.error as string };
+  revalidateLandedCosts();
+  return { success: true as const };
+}
+
+// Reject a SUGGESTED match — the ✗ next to ✓. Persisted (the match is derived per
+// read, so an unstored "no" would be re-suggested on refresh); the matcher then
+// offers the next candidate, or the manual IR-# box when there is none.
+export async function rejectReceiptMatch(receiptId: string, shipmentId: string) {
+  const res = await fetchApi(`/sms/receipts/${encodeURIComponent(receiptId)}/reject`, {
     method: 'POST', body: JSON.stringify({ shipment_id: shipmentId }),
   });
   if (res?.error) return { error: res.error as string };
@@ -100,6 +125,14 @@ export async function previewMainlineNetsuite(shipmentId: string) {
 // IR match (mainline module owns the receipt table)
 export async function confirmMainlineReceiptMatch(receiptId: string, shipmentId: string) {
   const res = await fetchApi(`/mainline/receipts/${encodeURIComponent(receiptId)}/match`, {
+    method: 'POST', body: JSON.stringify({ shipment_id: shipmentId }),
+  });
+  if (res?.error) return { error: res.error as string };
+  revalidateLandedCosts();
+  return { success: true as const };
+}
+export async function rejectMainlineReceiptMatch(receiptId: string, shipmentId: string) {
+  const res = await fetchApi(`/mainline/receipts/${encodeURIComponent(receiptId)}/reject`, {
     method: 'POST', body: JSON.stringify({ shipment_id: shipmentId }),
   });
   if (res?.error) return { error: res.error as string };

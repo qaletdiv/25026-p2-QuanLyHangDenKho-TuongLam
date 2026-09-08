@@ -49,3 +49,10 @@ export const SHIPMENT_TABS: ModuleTab[] = [
   { href: '/mainline/shipments', label: 'Mainline' },
   { href: '/sms/shipments', label: 'SMS' },
 ];
+
+// SMS gained an OPTIONAL booking step 2026-08-07 (courier consignments reserve no
+// space, so most SMS shipments still have no booking) — hence the tab strip here too.
+export const BOOKING_TABS: ModuleTab[] = [
+  { href: '/mainline/bookings', label: 'Mainline' },
+  { href: '/sms/bookings', label: 'SMS' },
+];

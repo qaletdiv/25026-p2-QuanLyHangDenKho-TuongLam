@@ -28,5 +28,70 @@
     "booking_status_id": "bk_approved",
     "submitted_at": "2026-04-23T00:00:00.000Z",
     "approved_at": "2026-07-29T15:52:23.659Z"
+  },
+  {
+    "id": "4",
+    "booking_number": "BKG-4",
+    "supplier_id": "3",
+    "incoterm_id": null,
+    "cargo_ready_date": "2026-04-29",
+    "booking_status_id": "bk_approved",
+    "submitted_at": "2026-07-29T00:00:00.000Z",
+    "approved_at": "2026-07-30T17:36:05.079Z"
+  },
+  {
+    "id": "5",
+    "booking_number": "BKG-5",
+    "supplier_id": "9",
+    "incoterm_id": null,
+    "cargo_ready_date": "2026-04-24",
+    "booking_status_id": "bk_approved",
+    "submitted_at": "2026-04-24T00:00:00.000Z",
+    "approved_at": "2026-07-30T17:54:45.521Z",
+    "overbooked": true
+  },
+  {
+    "id": "6",
+    "booking_number": "BKG-6",
+    "supplier_id": "3",
+    "incoterm_id": null,
+    "cargo_ready_date": "2026-04-29",
+    "booking_status_id": "bk_approved",
+    "submitted_at": "2026-04-29T00:00:00.000Z",
+    "approved_at": "2026-08-10T17:27:15.897Z"
+  },
+  {
+    "id": "7",
+    "booking_number": "BKG-7",
+    "supplier_id": "14",
+    "incoterm_id": null,
+    "cargo_ready_date": "2026-06-04",
+    "booking_status_id": "bk_approved",
+    "submitted_at": "2026-05-15T00:00:00.000Z",
+    "approved_at": "2026-08-10T18:23:55.342Z"
+  },
+  {
+    "id": "8",
+    "booking_number": "BKG-8",
+    "supplier_id": "3",
+    "incoterm_id": null,
+    "courier_id": "c3",
+    "cargo_ready_date": "2026-05-31",
+    "booking_status_id": "bk_approved",
+    "submitted_at": "2026-05-13T00:00:00.000Z",
+    "approved_at": "2026-08-25T22:50:58.040Z",
+    "overbooked": true
+  },
+  {
+    "id": "9",
+    "booking_number": "BKG-9",
+    "supplier_id": "3",
+    "incoterm_id": null,
+    "courier_id": null,
+    "cargo_ready_date": "2026-04-29",
+    "booking_status_id": "bk_approved",
+    "submitted_at": "2026-08-31T00:00:00.000Z",
+    "approved_at": "2026-08-31T18:58:52.632Z",
+    "overbooked": true
   }
 ]

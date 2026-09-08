@@ -87,10 +87,11 @@ function overbookWarnings(requestedLegs, { capacities, bookedByLeg, legPo }) {
 // booking, but we derive the distinct set defensively (joined) plus per-leg mode.
 // Season is DERIVED (leg → po_order → po_master → season code) for the season
 // filter — a booking normally has one season; the distinct set is joined defensively.
-function enrichBookings(bookings, { bookingLegs, legs, suppliers, modes = [], orders = [], masters = [], seasons = [], idToStatusName }) {
+function enrichBookings(bookings, { bookingLegs, legs, suppliers, modes = [], orders = [], masters = [], seasons = [], couriers = [], idToStatusName }) {
   const supName = new Map(suppliers.map((s) => [s.id, s.name]));
   const legById = new Map(legs.map((l) => [l.id, l]));
   const modeName = new Map(modes.map((m) => [m.id, m.name]));
+  const courierName = new Map(couriers.map((cr) => [cr.id, cr.name]));
   const orderByPo = new Map(orders.map((o) => [o.po_number, o]));
   const masterByTrn = new Map(masters.map((m) => [m.trn_number, m]));
   const seasonCode = new Map(seasons.map((s) => [s.id, s.code]));
@@ -114,6 +115,9 @@ function enrichBookings(bookings, { bookingLegs, legs, suppliers, modes = [], or
     return {
       ...b,
       supplier_name: supName.get(b.supplier_id) || null,
+      // PLANNED carrier (name JOINED, never stored). Null on bookings made before
+      // 2026-08-24 and on any booking that did not name one.
+      courier: courierName.get(b.courier_id) || null,
       booking_status: idToStatusName.get(b.booking_status_id) || null,
       mode: [...new Set(po_legs.map((l) => l.mode).filter(Boolean))].join(', ') || null,
       season: seasonSet.join(', ') || null,

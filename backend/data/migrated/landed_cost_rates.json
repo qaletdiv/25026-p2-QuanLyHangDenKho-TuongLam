@@ -4,5 +4,11 @@
     "module": "sms",
     "freight_pct": 40,
     "duty_pct": 25
+  },
+  {
+    "id": "lcr_mainline",
+    "module": "mainline",
+    "freight_pct": 40,
+    "duty_pct": 25
   }
 ]

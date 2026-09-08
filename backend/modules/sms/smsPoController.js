@@ -6,21 +6,46 @@
 // Writes come from the SMS NetSuite sync (phase 4) — POs are not hand-edited.
 
 const M = require('./SmsModels');
-const { poRollups, reconcilePo, deriveStatus } = require('./smsService');
+const { poRollups, reconcilePo, deriveStatus, priceByPoSku } = require('./smsService');
+const { receivedByShipment } = require('./receiptMatch');
+const { resolveVendorSupplierId } = require('../../utils/vendorScope');
 
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
 
-async function _ctx() {
-  const [pos, poLines, shipments, shipmentPos, trackingEvents, receipts, receiptLines, packingCartons,
-         codeRows, statuses, suppliers, seasons, facilities, channels, skus] = await Promise.all([
+// _ctx(vendorSupplierId) — the single scoping point for the SMS PO read path.
+//
+// sms_pos.supplier_id is direct, so `pos` is a straight filter. `poLines` MUST be
+// filtered too: getAllLines maps over every line and joins the PO, so an unfiltered
+// line whose PO isn't the vendor's would still emit its po_number, sku_code and
+// ordered qty (with the joined names blank) — a real leak of another supplier's SKUs.
+//
+// The remaining tables (shipments, junction, receipts, cartons) stay WHOLE on
+// purpose: they are lookup context keyed by po_number, read only for the PO
+// currently being enriched, so scoping `pos` already bounds what can be returned —
+// and pruning them would break the ordered/shipped/received rollups.
+async function _ctx(vendorSupplierId) {
+  const [allPos, allPoLines, shipments, shipmentPos, trackingEvents, receipts, receiptLines, packingCartons,
+         codeRows, statuses, suppliers, seasons, facilities, channels, skus, rejections] = await Promise.all([
     M.pos.read(), M.poLines.read(), M.shipments.read(), M.shipmentPos.read(),
     M.trackingEvents.read().catch(() => []), M.receipts.read().catch(() => []), M.receiptLines.read().catch(() => []),
     M.packingCartons.read().catch(() => []),
     M.courierStatusMap.read().catch(() => []), M.statuses.read(),
     M.suppliers.read().catch(() => []), M.seasons.read(), M.facilities.read(), M.allocationChannels.read().catch(() => []), M.skus.read(),
+    M.receiptRejections.read().catch(() => []),
   ]);
+  let pos = allPos, poLines = allPoLines;
+  if (vendorSupplierId != null) {
+    const mine = String(vendorSupplierId);
+    pos = allPos.filter((p) => String(p.supplier_id) === mine);
+    const poNumbers = new Set(pos.map((p) => p.po_number));
+    poLines = allPoLines.filter((l) => poNumbers.has(l.po_number));
+  }
+
   return {
     pos, poLines, shipments, shipmentPos, trackingEvents, receipts, receiptLines, packingCartons,
+    // per-lot NetSuite Item Receipt attribution → the derived 'Received' status
+    // (built over the WHOLE junction — see the note above on unscoped context)
+    received: receivedByShipment({ junctions: shipmentPos, cartons: packingCartons, receipts, receiptLines, shipments, rejections }),
     codeMap: new Map(codeRows.map((r) => [`${r.courier_id}|${r.courier_code}`, r.status_id])),
     statusNameById: new Map(statuses.map((s) => [s.id, s.name])),
     supName: new Map(suppliers.map((s) => [s.id, s.name])),
@@ -55,13 +80,13 @@ function enrichPo(po, c, rollups) {
 }
 
 async function getAll(req, res) {
-  const c = await _ctx();
+  const c = await _ctx(await resolveVendorSupplierId(req.user, { onUnlinked: 'deny' }));
   const rollups = poRollups(c);
   res.json(c.pos.map((po) => enrichPo(po, c, rollups)));
 }
 
 async function getOne(req, res) {
-  const c = await _ctx();
+  const c = await _ctx(await resolveVendorSupplierId(req.user, { onUnlinked: 'deny' }));
   const po = c.pos.find((p) => p.po_number === req.params.poNumber);
   if (!po) err('SMS PO not found', 404);
   const rollups = poRollups(c);
@@ -92,7 +117,8 @@ async function getOne(req, res) {
         tracking_number: s.tracking_number || null,
         courier_id: s.courier_id || null,
         ship_date: s.ship_date || null,
-        ...deriveStatus(s, c.eventsByShipment, c.codeMap, c.statusNameById),
+        ...deriveStatus(s, c.eventsByShipment, c.codeMap, c.statusNameById, c.received),
+        received_date: (c.received.get(j.shipment_id) || {}).receipt_date ?? null,
       };
     });
 
@@ -101,7 +127,11 @@ async function getOne(req, res) {
   // not on the PO) — such rows have no order line, so item name falls back to the
   // SKU master and price to the shipped carton's unit price (then the master list).
   const reconciliation = reconcilePo(po.po_number, c);
-  const priceByLine = new Map(c.poLines.filter((l) => l.po_number === po.po_number).map((l) => [l.sku_code, l.unit_price]));
+  // Same deterministic pick as the packing upload (smsService.priceByPoSku) — a SKU
+  // can appear on several NS PO lines at different prices, so last-row-wins would
+  // show a different price here than the CI used.
+  const myPrices = priceByPoSku(c.poLines.filter((l) => l.po_number === po.po_number));
+  const priceByLine = new Map([...myPrices].map(([k, v]) => [k.split('|')[1], v]));
   const priceByCarton = new Map();
   c.packingCartons.filter((k) => k.po_number === po.po_number)
     .forEach((k) => { if (k.unit_price != null && !priceByCarton.has(k.sku_code)) priceByCarton.set(k.sku_code, k.unit_price); });
@@ -122,7 +152,7 @@ async function getOne(req, res) {
 // GET /sms/po-lines — EVERY SKU order line across all SMS POs, enriched with PO
 // context + SKU descriptions. Feeds the "item lines" download on the PO list.
 async function getAllLines(req, res) {
-  const c = await _ctx();
+  const c = await _ctx(await resolveVendorSupplierId(req.user, { onUnlinked: 'deny' }));
   const poByNumber = new Map(c.pos.map((p) => [p.po_number, p]));
   const rows = c.poLines.map((l) => {
     const po = poByNumber.get(l.po_number) || {};

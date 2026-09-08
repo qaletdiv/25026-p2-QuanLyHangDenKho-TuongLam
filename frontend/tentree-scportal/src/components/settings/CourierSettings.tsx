@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getCouriers, updateCouriers } from '@/app/actions/master-data';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Trash2, Truck } from 'lucide-react';
 import { EditLockActions } from './EditLockActions';
+import { SettingsTable, type SettingsColumn } from './SettingsTable';
 
 export function CourierSettings() {
   const [couriers, setCouriers] = useState<any[]>([]);
@@ -47,6 +47,21 @@ export function CourierSettings() {
 
   if (isLoading) return <div className="p-4 text-sm text-muted-foreground italic">Loading couriers...</div>;
 
+  const columns: SettingsColumn<any>[] = [
+    {
+      key: 'name', label: 'Courier Name',
+      cell: (c) => <Input value={c.name} onChange={(e) => updateItem(c.id, 'name', e.target.value)} className="h-8 text-sm" />,
+    },
+    {
+      key: 'actions', label: '', sortable: false, movable: false, headClassName: 'w-[50px]',
+      cell: (c) => (
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeItem(c.id)}>
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-4 bg-card p-4 sm:p-6 rounded-xl border shadow-sm">
       <div className="flex items-center justify-between">
@@ -56,30 +71,14 @@ export function CourierSettings() {
         </div>
         <EditLockActions editing={editing} onEdit={() => setEditing(true)} onCancel={handleCancel} onAdd={addItem} onSave={handleSave} />
       </div>
-      <fieldset disabled={!editing} className="m-0 p-0 min-w-0 border rounded-md overflow-hidden [&_input:disabled]:opacity-100 [&_input:disabled]:cursor-default [&_input:disabled]:border-transparent [&_input:disabled]:bg-transparent [&_input:disabled]:shadow-none">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow>
-              <TableHead>Courier Name</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {couriers.map((c) => (
-              <TableRow key={c.id}>
-                <TableCell className="p-2">
-                  <Input value={c.name} onChange={(e) => updateItem(c.id, 'name', e.target.value)} className="h-8 text-sm" />
-                </TableCell>
-                <TableCell className="p-2">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeItem(c.id)}>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </fieldset>
+      <SettingsTable
+        rows={couriers}
+        columns={columns}
+        rowKey={(c) => c.id}
+        disabled={!editing}
+        storageKey="settings-couriers-colorder"
+        emptyText="No couriers yet — click Edit then Add."
+      />
     </div>
   );
 }

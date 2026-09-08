@@ -28,7 +28,7 @@ const DRY = process.argv.includes('--dry');
 const readJson = (p) => { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return []; } };
 const legacy = (f) => readJson(path.join(DATA, f));
 const migrated = (f) => readJson(path.join(OUT, f));
-const norm = (s) => (s == null ? '' : String(s).trim().toLowerCase().replace(/\s+/g, ' '));
+const { norm, supplierKey } = require('../utils/nameKey');
 
 // ---------------------------------------------------------------------------
 //  Load
@@ -87,9 +87,11 @@ function seasonId(code) {
   return row.id;
 }
 
+// supplierKey, not norm — punctuation variants ("Co Ltd" / "Co., Ltd.") are the
+// same vendor; matching on norm is what minted the duplicate rows merged 2026-08-12.
 function supplierId(name) {
   if (!name) return null;
-  const existing = suppliers.find((s) => norm(s.name) === norm(name));
+  const existing = suppliers.find((s) => supplierKey(s.name) === supplierKey(name));
   if (existing) return existing.id;
   const nextId = String(suppliers.reduce((mx, s) => Math.max(mx, Number(s.id) || 0), 0) + 1);
   suppliers.push({ id: nextId, name: String(name).trim() }); bump('suppliers');
@@ -113,14 +115,18 @@ function facilityIdOf(warehouseName) {
   return fac.id;
 }
 
-// SMS shipment status vocabulary (module='sms')
+// SMS shipment status vocabulary (module='sms'). 'Received' is DERIVED only (a
+// NetSuite Item Receipt attributed to the lot — see smsService.deriveStatus); it
+// is never a courier scan code and never a manual selection, but it needs a row
+// here so the name/colour join and the master-data list know about it.
 const SMS_STATUSES = [
   { id: 'sms_label_created',    name: 'Label Created',    color: '#9CA3AF', sort_order: 1 },
   { id: 'sms_picked_up',        name: 'Picked Up',        color: '#3B82F6', sort_order: 2 },
   { id: 'sms_in_transit',       name: 'In Transit',       color: '#8B5CF6', sort_order: 3 },
   { id: 'sms_out_for_delivery', name: 'Out for Delivery', color: '#06B6D4', sort_order: 4 },
   { id: 'sms_delivered',        name: 'Delivered',        color: '#10B981', sort_order: 5 },
-  { id: 'sms_exception',        name: 'Exception',        color: '#EF4444', sort_order: 6 },
+  { id: 'sms_received',         name: 'Received',         color: '#059669', sort_order: 6 },
+  { id: 'sms_exception',        name: 'Exception',        color: '#EF4444', sort_order: 7 },
 ];
 SMS_STATUSES.forEach((s) => {
   if (!statuses.some((x) => x.id === s.id)) {

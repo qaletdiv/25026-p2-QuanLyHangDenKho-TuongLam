@@ -256,8 +256,13 @@ async function importWip(req, res) {
     SkuModel.write(skuResult.skus),
   ]);
 
-  // R2 reconciliation against the (now possibly bootstrapped) order lines.
-  const recon = reconcile(boot.orderLines, result.legs, result.legLines);
+  // R2 reconciliation against the (now possibly bootstrapped) order lines, SCOPED TO
+  // THE UPLOADED POs — an import response should describe the import. Unscoped, a
+  // single-PO sheet reported every (po, sku) divergence in the whole order book
+  // (2,640 on live data, of which 171 were the upload), with no baseline shown, so
+  // there was no way to tell what the upload itself had caused.
+  const uploadedPos = new Set(parsedPOs.map((p) => p.po_number).filter(Boolean));
+  const recon = reconcile(boot.orderLines, result.legs, result.legLines, { poNumbers: uploadedPos });
 
   res.json({
     ...result.stats,
@@ -266,7 +271,12 @@ async function importWip(req, res) {
     total: parsedPOs.length,
     parse_errors: errors,
     warnings: [...new Set([...result.warnings, ...resolvers.warnings])],
-    reconciliation: { mismatch_count: recon.mismatches.length, checked: recon.checked, mismatches: recon.mismatches.slice(0, 100) },
+    reconciliation: {
+      mismatch_count: recon.mismatches.length,
+      checked: recon.checked,
+      po_numbers: [...uploadedPos],   // lets the client name the PO when the sheet held just one
+      mismatches: recon.mismatches.slice(0, 100),
+    },
   });
 }
 

@@ -9,7 +9,7 @@
 const M = require('./LandedCostModels');
 const svc = require('./landedCostService');
 const ns = require('./netsuiteLandedCost');
-const { resolveForShipment, matchPo } = require('../sms/receiptMatch');   // pure helpers (no SMS writes)
+const { resolveForShipment } = require('../sms/receiptMatch');   // pure helper (no SMS writes)
 
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
 const monthOf = (isoDate) => (isoDate && /^\d{4}-\d{2}/.test(isoDate) ? isoDate.slice(0, 7) : null);
@@ -24,23 +24,38 @@ async function putRates(req, res) {
   res.json(await M.rates.read().catch(() => []));
 }
 
+// ─── Commission rates (per-supplier % of CI; SMS + mainline kept SEPARATE) ────
+// e.g. Pratibha (supplier 9) = 1.5%. Whole-table replace, one endpoint per module
+// so the two paths never share a table (per Lam, 2026-07-30).
+async function getSmsCommissions(req, res) { res.json(await M.smsCommissions.read().catch(() => [])); }
+async function putSmsCommissions(req, res) { await M.smsCommissions.write(req.body); res.json(await M.smsCommissions.read().catch(() => [])); }
+async function getMlCommissions(req, res)  { res.json(await M.mlCommissions.read().catch(() => [])); }
+async function putMlCommissions(req, res)  { await M.mlCommissions.write(req.body); res.json(await M.mlCommissions.read().catch(() => [])); }
+
 // ─── SMS landed-cost read model ──────────────────────────────────────────────
 async function _smsCtx() {
-  const [shipments, junctions, pos, cartons, rates, posted, suppliers, facilities, seasons, couriers, receipts, receiptLines] = await Promise.all([
+  const [shipments, junctions, pos, cartons, rates, posted, suppliers, facilities, seasons, couriers, modes, receipts, receiptLines, commissions, rejections] = await Promise.all([
     M.smsShipments.read().catch(() => []), M.smsShipmentPos.read().catch(() => []),
     M.smsPos.read().catch(() => []), M.packingCartons.read().catch(() => []),
     M.rates.read().catch(() => []), M.landedCosts.read().catch(() => []),
     M.suppliers.read().catch(() => []), M.facilities.read().catch(() => []), M.seasons.read().catch(() => []),
-    M.couriers.read().catch(() => []),
+    M.couriers.read().catch(() => []), M.modes.read().catch(() => []),
     M.smsReceipts.read().catch(() => []), M.smsReceiptLines.read().catch(() => []),
+    M.smsCommissions.read().catch(() => []),
+    M.smsRejections.read().catch(() => []),
   ]);
   return {
-    shipments, junctions, pos, cartons, posted, receipts, receiptLines,
+    shipments, junctions, pos, cartons, posted, receipts, receiptLines, rejections,
     smsRate: rates.find((r) => r.module === 'sms') || null,
+    // per-supplier commission % (e.g. Pratibha 1.5%) — SMS's OWN table
+    commPctBySupplier: new Map(commissions.map((cm) => [String(cm.supplier_id), Number(cm.commission_pct) || 0])),
     poByNumber: new Map(pos.map((p) => [p.po_number, p])),
     supName: new Map(suppliers.map((s) => [s.id, s.name])),
     facName: new Map(facilities.map((f) => [f.id, f.name])),
     courierName: new Map(couriers.map((cr) => [cr.id, cr.name])),
+    // Sea / Air / Courier — the shipment's actual mode, which the NS push maps to
+    // custbody16. Null on a vendor-entered parcel (falls back to COURIER there).
+    modeName: new Map(modes.map((m) => [m.id, m.name])),
     seasonCode: new Map(seasons.map((s) => [s.id, s.code])),
     cartonsByShipment: cartons.reduce((m, c) => ((m[c.shipment_id] = m[c.shipment_id] || []).push(c), m), {}),
     postedBySms: new Map(posted.filter((p) => p.module === 'sms').map((p) => [p.shipment_id, p])),
@@ -60,11 +75,46 @@ function _row(s, c) {
   const myPos = c.junctions.filter((j) => j.shipment_id === s.id).map((j) => j.po_number);
 
   const estimate = svc.estimate(ci_value, c.smsRate);
+
+  // BASIS (2026-08-07). A BOOKED SMS consignment behaves like mainline: freight and
+  // duty are ACTUALS off the broker/courier bill, typed on the shipment — no rate,
+  // no estimate. An unbooked (vendor-entered) consignment keeps the CI × rate
+  // estimate. Both are DERIVED here; which one a posted row used is recoverable
+  // from the snapshot (rate null ⟺ actual).
+  const is_booked = !!s.booking_id;
+  const actual = is_booked
+    ? { freight: s.freight != null ? Number(s.freight) : null, duty: s.duty != null ? Number(s.duty) : null }
+    : null;
+  const has_actuals = is_booked && actual.freight != null && actual.duty != null;
+  // booked but the bill hasn't arrived — NOT postable (would post $0)
+  const awaiting_actual = is_booked && !has_actuals;
+
+  // Commission — per-supplier % of each PO's CI value (e.g. Pratibha 1.5%). SMS
+  // path only; computed inline here (no shared helper). A PO with no commission
+  // rate for its supplier contributes 0. The total is frozen at post time (like
+  // freight/duty) and re-split across the commission-eligible POs at read.
+  const entries = [...poValues.entries()];                       // [ [po, ci_value], ... ]
+  const commPct = (po) => c.commPctBySupplier.get(String((c.poByNumber.get(po) || {}).supplier_id)) || 0;
+  const commWeights = entries.map(([po, val]) => (commPct(po) ? val : 0));   // only eligible POs weighted
+  const commissionEstimate = svc.round2(entries.reduce((a, [po, val]) => a + val * commPct(po) / 100, 0));
+
   const post = c.postedBySms.get(s.id) || null;
 
-  // the EFFECTIVE amounts drive the per-PO split: posted snapshot if posted, else live estimate
-  const eff = post ? { freight: post.freight, duty: post.duty } : { freight: estimate.freight, duty: estimate.duty };
-  const split = svc.splitByPo(poValues, eff.freight, eff.duty);
+  // The EFFECTIVE amounts drive the per-PO split: posted snapshot if posted, else
+  // the live basis — ACTUALS for a booked consignment (0 until the bill is entered),
+  // the rate estimate for an unbooked one. Commission is a % of goods value either
+  // way, so it is unaffected by the booking.
+  const live = is_booked
+    ? { freight: actual.freight || 0, duty: actual.duty || 0 }
+    : { freight: estimate.freight, duty: estimate.duty };
+  const eff = post
+    ? { freight: post.freight, duty: post.duty, commission: post.commission != null ? Number(post.commission) : commissionEstimate }
+    : { freight: live.freight, duty: live.duty, commission: commissionEstimate };
+  const commParts = svc.splitByValue(eff.commission, commWeights);
+  const split = svc.splitByPo(poValues, eff.freight, eff.duty)
+    .map((sp, i) => ({ ...sp, commission: commParts[i] }));
+  const commission = svc.round2(split.reduce((a, x) => a + (x.commission || 0), 0));
+  estimate.commission = commissionEstimate;
 
   const supplierSet = [...new Set(myPos.map((po) => c.supName.get((c.poByNumber.get(po) || {}).supplier_id)).filter(Boolean))];
   const seasonSet = [...new Set(myPos.map((po) => c.seasonCode.get((c.poByNumber.get(po) || {}).season_id)).filter(Boolean))];
@@ -72,7 +122,8 @@ function _row(s, c) {
   // Per-PO Item Receipt match (target of the landed-cost push): resolved IR +
   // whether the shipment↔IR link has been human-confirmed (matched_shipment_id).
   const match = resolveForShipment(s.id, myPos, {
-    junctions: c.junctions, cartons: c.cartons, receipts: c.receipts, receiptLines: c.receiptLines, shipments: c.shipments,
+    junctions: c.junctions, cartons: c.cartons, receipts: c.receipts, receiptLines: c.receiptLines,
+    shipments: c.shipments, rejections: c.rejections,
   }).map((r) => ({
     po_number: r.po_number,
     receipt_id: r.target?.receipt_id || null,                    // sms_item_receipts.id (for confirm)
@@ -98,12 +149,22 @@ function _row(s, c) {
     season: seasonSet.join(', ') || null,
     facility: c.facName.get(s.facility_id) || null,
     courier: c.courierName.get(s.courier_id) || null,
+    mode: c.modeName.get(s.mode_id) || null,
     pos: myPos,
     has_shipping_data: myCartons.length > 0,
     ci_value,
-    estimate,                        // live estimate from current rate
+    // basis (derived): 'actual' for a booked consignment, 'estimate' otherwise
+    is_booked,
+    booking_id: s.booking_id || null,
+    basis: is_booked ? 'actual' : 'estimate',
+    actual,                          // {freight, duty} off the bill — null when unbooked
+    has_actuals,
+    awaiting_actual,                 // booked, bill not yet entered → not postable
+    customs_entry_number: s.customs_entry_number || null,
+    estimate,                        // live estimate from current rate (incl. commission total)
+    commission,                      // effective commission total (posted snapshot or estimate)
     posted: post,                    // null until posted
-    split,                           // per-PO split of the effective amounts
+    split,                           // per-PO split of the effective amounts (incl. commission)
     match,                           // per-PO Item Receipt match (for confirm + push)
     ir_resolved,                     // every PO has a target IR
     matched,                         // every PO's IR match is confirmed
@@ -131,7 +192,12 @@ async function pushToNetsuite(s, row) {
   if (unconfirmed.length) err(`Confirm the IR match first for: ${unconfirmed.join(', ')}.`, 422);
 
   const irByPo = new Map(row.match.map((m) => [m.po_number, m.netsuite_ir_id]));
-  const payloads = ns.buildPayloads({ module: 'sms', tracking_number: row.tracking_number, courier: row.courier, split: row.split });
+  const payloads = ns.buildPayloads({
+    module: 'sms', tracking_number: row.tracking_number, courier: row.courier,
+    customs_entry_number: row.customs_entry_number,   // booked consignments carry a real entry #
+    mode: row.mode,                                   // → custbody16; null (unbooked) = COURIER
+    split: row.split,
+  });
   const pushed = [];
   for (const p of payloads) pushed.push({ po_number: p.po_number, internal_id: irByPo.get(p.po_number), ...(await ns.pushOne(irByPo.get(p.po_number), p.body)) });
   return pushed;
@@ -146,24 +212,35 @@ async function postSms(req, res) {
   const s = c.shipments.find((x) => x.id === req.params.shipmentId);
   if (!s) err('SMS shipment not found', 404);
   if (c.postedBySms.has(s.id)) err('Landed cost already posted for this shipment — unpost first to re-post', 409);
-  if (!c.smsRate) err('No SMS landed-cost rate configured — set one in Settings → Landed Cost Rates', 400);
 
   const row = _row(s, c);
   if (!row.has_shipping_data) err('Upload shipping data first — landed cost needs the commercial-invoice value', 400);
+  // A booked consignment posts ACTUALS; an unbooked one posts the rate estimate.
+  if (row.is_booked) {
+    if (row.awaiting_actual) {
+      err('Enter the actual freight and duty from the bill on the shipment before posting this booked consignment', 422);
+    }
+  } else if (!c.smsRate) {
+    err('No SMS landed-cost rate configured — set one in Settings → Landed Cost Rates', 400);
+  }
 
   // push FIRST — if NetSuite rejects, persist nothing (posted ⟺ pushed).
   const pushed = await pushToNetsuite(s, row);
 
   const now = new Date().toISOString();
+  // Snapshot the basis actually used. Rate pcts are NULL for a booked consignment —
+  // that absence IS the record of "these were actuals off the bill", so no extra
+  // column is needed to tell the two apart later.
   const record = {
     id: `lc_sms_${s.id}`,
     module: 'sms',
     shipment_id: s.id,
     invoice_value: row.ci_value,
-    freight_pct: row.estimate.freight_pct,
-    duty_pct: row.estimate.duty_pct,
-    freight: row.estimate.freight,
-    duty: row.estimate.duty,
+    freight_pct: row.is_booked ? null : row.estimate.freight_pct,
+    duty_pct: row.is_booked ? null : row.estimate.duty_pct,
+    freight: row.is_booked ? row.actual.freight : row.estimate.freight,
+    duty: row.is_booked ? row.actual.duty : row.estimate.duty,
+    commission: row.commission,   // frozen commission total (per-supplier %, e.g. Pratibha)
     posted_by: req.user?.id || null,
     posted_at: now,
     netsuite_pushed_at: now,   // atomic "when pushed" fact (null = posted, not pushed)
@@ -191,6 +268,8 @@ async function netsuitePreviewSms(req, res) {
     module: 'sms',
     tracking_number: row.tracking_number,
     courier: row.courier,
+    customs_entry_number: row.customs_entry_number,   // booked consignments carry a real entry #
+    mode: row.mode,                                   // → custbody16; null (unbooked) = COURIER
     split: row.split,
   }).map((p) => ({ ...p, target_receipt: matchByPo.get(p.po_number) || null }));
 
@@ -228,18 +307,34 @@ async function netsuitePushSms(req, res) {
 // and posts (which pushes to NetSuite). Everything is derived at read; posting
 // snapshots into landed_costs (module='mainline').
 async function _mainlineCtx() {
-  const [shipments, shipmentLegs, poLegs, poOrders, cartons, receipts, receiptLines, posted, facilities, modes] = await Promise.all([
+  const [shipments, shipmentLegs, poLegs, poOrders, cartons, receipts, receiptLines, posted, facilities, modes, poMasters, commissions, rejections, couriers, rates] = await Promise.all([
     M.mlShipments.read().catch(() => []), M.mlShipmentLegs.read().catch(() => []), M.mlPoLegs.read().catch(() => []),
     M.poOrders.read().catch(() => []), M.mlPackingCartons.read().catch(() => []),
     M.mlReceipts.read().catch(() => []), M.mlReceiptLines.read().catch(() => []),
     M.landedCosts.read().catch(() => []), M.facilities.read().catch(() => []), M.modes.read().catch(() => []),
+    M.poMasters.read().catch(() => []), M.mlCommissions.read().catch(() => []),
+    M.mlRejections.read().catch(() => []),
+    M.couriers.read().catch(() => []), M.rates.read().catch(() => []),
   ]);
+  // PO → supplier resolves via po_orders.trn_number → po_masters.supplier_id
+  // (mainline po_orders carry no supplier; it lives at the master level).
+  const supByTrn = new Map(poMasters.map((m) => [m.trn_number, m.supplier_id]));
   return {
     mlShipments: shipments, mlShipmentLegs: shipmentLegs, mlPackingCartons: cartons,
-    mlReceipts: receipts, mlReceiptLines: receiptLines, posted,
+    mlReceipts: receipts, mlReceiptLines: receiptLines, mlRejections: rejections, posted,
     poByLeg: new Map(poLegs.map((l) => [l.id, l.po_number])),
+    supplierByPo: new Map(poOrders.map((o) => [o.po_number, supByTrn.get(o.trn_number) || null])),
+    // per-supplier commission % (e.g. Pratibha 1.5%) — mainline's OWN table
+    commPctBySupplier: new Map(commissions.map((cm) => [String(cm.supplier_id), Number(cm.commission_pct) || 0])),
     facName: new Map(facilities.map((f) => [f.id, f.name])),
     modeName: new Map(modes.map((m) => [m.id, m.name])),
+    // Carrier drives the mainline BASIS (2026-08-24). A carrier that does not invoice
+    // freight & duty separately (FedEx/DHL) leaves finance nothing to trace, so the
+    // landed cost is ESTIMATED from the commercial-invoice value; a forwarder (Ceva)
+    // does invoice them, so the typed actuals are used. SMS is untouched — it keeps
+    // its own booked/unbooked rule and its own path.
+    courierById: new Map(couriers.map((cr) => [cr.id, cr])),
+    mlRate: rates.find((r) => r.module === 'mainline') || null,
     // per-PO posted snapshots (new model: one landed_cost per shipment+PO) + legacy
     // shipment-level snapshots (no po_number) that still mark all the shipment's POs posted
     postedByMlPo: new Map(posted.filter((p) => p.module === 'mainline' && p.po_number).map((p) => [`${p.shipment_id}|${p.po_number}`, p])),
@@ -249,65 +344,23 @@ async function _mainlineCtx() {
   };
 }
 
-// Resolve the target IR per PO for a mainline shipment. A PO can have several IRs
-// (e.g. its air lot received separately from its sea lot); picking the FIRST one
-// mis-targets the landed cost. So we match by QUANTITY then SEQUENCE across ALL of
-// the PO's shipments (same signal hierarchy as SMS — see receiptMatch.js): an IR
-// whose received qty equals this shipment's carried qty wins, then positional
-// pairing for leftovers. A human confirmation (matched_shipment_id) overrides both.
-function resolveMainlineReceipts(shipmentId, poNumbers, c) {
-  const { mlReceipts: receipts, mlReceiptLines: receiptLines, mlShipmentLegs: shipmentLegs, mlShipments: shipments, poByLeg } = c;
-  const qtyByReceipt = receiptLines.reduce((m, l) => ((m[l.receipt_id] = (m[l.receipt_id] || 0) + (Number(l.qty) || 0)), m), {});
-  const shipById = new Map(shipments.map((s) => [s.id, s]));
-
-  return poNumbers.map((po) => {
-    // every mainline shipment carrying this PO, with the qty that shipment carries
-    const shipsForPo = shipmentLegs.filter((j) => poByLeg.get(j.leg_id) === po).map((j) => {
-      const s = shipById.get(j.shipment_id) || {};
-      return { shipment_id: j.shipment_id, lot_number: j.lot_number, ship_date: s.ata || s.eta_pod || null, shipped_pcs: Number(j.expected_quantity) || 0 };
-    });
-    const irsForPo = receipts.filter((r) => r.po_number === po).map((r) => ({
-      receipt_id: r.id, netsuite_ir_id: r.netsuite_ir_id, netsuite_ir_tranid: r.netsuite_ir_tranid || null,
-      receipt_date: r.receipt_date, qty: qtyByReceipt[r.id] || 0, matched_shipment_id: r.matched_shipment_id || null,
-    }));
-
-    // confirmed matches lock first, then quantity/sequence auto-match the rest
-    const assignments = [];
-    const lockedIr = new Set(), lockedShip = new Set();
-    for (const r of irsForPo) {
-      const ship = r.matched_shipment_id && shipsForPo.find((s) => s.shipment_id === r.matched_shipment_id);
-      if (!ship) continue;
-      assignments.push({ shipment_id: ship.shipment_id, receipt_id: r.receipt_id, netsuite_ir_id: r.netsuite_ir_id,
-        netsuite_ir_tranid: r.netsuite_ir_tranid, receipt_date: r.receipt_date, shipped_pcs: ship.shipped_pcs,
-        receipt_qty: r.qty, method: 'confirmed', confidence: 'high', confirmed: true });
-      lockedIr.add(r.receipt_id); lockedShip.add(ship.shipment_id);
-    }
-    const freeShips = shipsForPo.filter((s) => !lockedShip.has(s.shipment_id));
-    const freeIrs = irsForPo.filter((r) => !lockedIr.has(r.receipt_id));
-    for (const a of matchPo(freeShips, freeIrs)) assignments.push({ ...a, confirmed: false });
-
-    const t = assignments.find((a) => a.shipment_id === shipmentId) || null;
-    return {
-      po_number: po,
-      receipt_id: t ? t.receipt_id : null,
-      netsuite_ir_id: t ? t.netsuite_ir_id : null,
-      netsuite_ir_tranid: t ? t.netsuite_ir_tranid : null,
-      receipt_date: t ? t.receipt_date : null,
-      receipt_qty: t ? t.receipt_qty : null,
-      method: t ? t.method : 'unmatched',
-      confidence: t ? t.confidence : 'low',
-      confirmed: !!(t && t.confirmed),
-      ambiguous: irsForPo.length > 1 && !(t && t.confirmed),
-    };
-  });
-}
+// Resolve the target IR per PO for a mainline shipment. Moved to
+// modules/mainline/receipts/mainlineReceiptMatch.js so the ATA derivation in
+// mainlineShipmentService uses the SAME attribution instead of its own date-FIFO
+// (which disagreed on 12 of 17 shipment-legs). Behaviour here is unchanged.
+const { resolveMainlineReceipts } = require('../mainline/receipts/mainlineReceiptMatch');
 
 function _mlRow(s, c) {
   const legIds = new Set(c.mlShipmentLegs.filter((x) => x.shipment_id === s.id).map((x) => x.leg_id));
   const myPos = [...new Set([...legIds].map((lid) => c.poByLeg.get(lid)).filter(Boolean))];
 
-  // CI value per PO from this shipment's packing cartons (Σ pcs × unit_price / total_usd)
-  const myCartons = c.mlPackingCartons.filter((k) => legIds.has(k.leg_id));
+  // CI value per PO from this shipment's packing cartons (Σ pcs × unit_price / total_usd).
+  // Scope on BOOKING + leg, never the leg alone: a leg is (po_number + mode + crd), so
+  // the SAME leg is re-booked for every lot of that PO (leg 77 = PO04728 sits on bookings
+  // 4, 6, 8, 9). Filtering on leg_id only summed EVERY lot's cartons into EVERY shipment
+  // carrying that PO — inflating the CI value and, because the per-PO freight/duty split
+  // is a CI-value share, mis-apportioning the amounts that get pushed to the Item Receipt.
+  const myCartons = c.mlPackingCartons.filter((k) => k.booking_id === s.booking_id && legIds.has(k.leg_id));
   const poValues = new Map();
   myCartons.forEach((k) => {
     const po = c.poByLeg.get(k.leg_id);
@@ -320,25 +373,58 @@ function _mlRow(s, c) {
 
   const entered_freight = s.freight != null ? Number(s.freight) : null;
   const entered_duty = s.duty != null ? Number(s.duty) : null;
-  const has_amounts = entered_freight != null && entered_duty != null;
 
-  // Per-PO split of the ENTERED totals (the estimate). Posting is PER PO: a posted PO
-  // overrides its share with the snapshot; the rest stay derived from the entered totals.
-  const enteredSplit = svc.splitByPo(poValues, entered_freight || 0, entered_duty || 0);
+  // ── BASIS (2026-08-24), keyed on the CARRIER ────────────────────────────────
+  // Shipped with FedEx/DHL → finance never receives a separate freight & duty
+  // invoice, so there is nothing to trace and the landed cost is ESTIMATED as
+  // CI value × landed_cost_rates(module='mainline'). Shipped with a forwarder →
+  // it does invoice both separately, so the typed actuals are used.
+  //
+  // A shipment with NO carrier resolves to 'actual' — that is every row created
+  // before this change, so their figures and their posted snapshots are untouched.
+  // The rule is DERIVED here per read; nothing stores a basis column.
+  const courier = c.courierById.get(s.courier_id) || null;
+  const is_estimate = !!courier && courier.provides_cost_invoices === false;
+  const estimate = svc.estimate(ci_value, c.mlRate);
+
+  // On the estimate basis the rate figure IS the answer — typed amounts are refused
+  // upstream (mainlineShipmentController.update), so there is no second truth to
+  // reconcile here, and `has_amounts` is satisfied by the estimate itself.
+  const has_amounts = is_estimate
+    ? !!c.mlRate && has_shipping_data          // needs a rate AND a CI value to estimate from
+    : entered_freight != null && entered_duty != null;
+  // Forwarder shipment whose invoices have not arrived → not postable (would post $0).
+  const awaiting_actual = !is_estimate && !has_amounts;
+
+  // Commission — per-supplier % of each PO's CI value (e.g. Pratibha 1.5%). Mainline
+  // path only; computed inline here (no shared helper). Independent of the entered
+  // freight/duty (it is a % of CI). Frozen per PO in the snapshot on Post.
+  const commPct = (po) => c.commPctBySupplier.get(String(c.supplierByPo.get(po))) || 0;
+
+  // Per-PO split of the LIVE totals for this basis: the CI × rate estimate for a
+  // FedEx/DHL shipment, the typed actuals for a forwarder one. Posting is PER PO:
+  // a posted PO overrides its share with the snapshot; the rest stay derived.
+  const live = is_estimate
+    ? { freight: estimate.freight, duty: estimate.duty }
+    : { freight: entered_freight || 0, duty: entered_duty || 0 };
+  const enteredSplit = svc.splitByPo(poValues, live.freight, live.duty);
   const match = resolveMainlineReceipts(s.id, myPos, c);
   const split = enteredSplit.map((sp) => {
     const rec = c.postedByMlPo.get(`${s.id}|${sp.po_number}`) || c.postedByMlShip.get(s.id) || null;
     const perPo = rec && rec.po_number;   // a per-PO snapshot carries its own amounts
+    const liveCommission = svc.round2((sp.ci_value || 0) * commPct(sp.po_number) / 100);
     return {
       po_number: sp.po_number,
       ci_value: sp.ci_value,
       freight: perPo ? rec.freight : sp.freight,
       duty: perPo ? rec.duty : sp.duty,
+      commission: perPo && rec.commission != null ? Number(rec.commission) : liveCommission,
       posted: rec ? { id: rec.id, posted_at: rec.posted_at, netsuite_pushed_at: rec.netsuite_pushed_at } : null,
     };
   });
   const freight = svc.round2(split.reduce((a, x) => a + (x.freight || 0), 0));
   const duty = svc.round2(split.reduce((a, x) => a + (x.duty || 0), 0));
+  const commission = svc.round2(split.reduce((a, x) => a + (x.commission || 0), 0));
   const posted_count = split.filter((x) => x.posted).length;
 
   const ir_resolved = match.length > 0 && match.every((m) => m.netsuite_ir_id);
@@ -354,11 +440,20 @@ function _mlRow(s, c) {
     facility: c.facName.get(s.facility_id) || null,
     // customs entry number is now its OWN field on the shipment (not the BL number)
     customs_entry_number: s.customs_entry_number || null,
+    // carrier + the basis it implies (both DERIVED; no basis column is stored —
+    // freight_pct NULL on the posted snapshot is what records "these were actuals")
+    courier: courier ? courier.name : null,
+    courier_id: s.courier_id || null,
+    carrier_reference: s.carrier_reference || null,
+    basis: is_estimate ? 'estimate' : 'actual',
+    is_estimate,
+    estimate,                        // live CI × rate figure (freight_pct/duty_pct included)
+    awaiting_actual,                 // forwarder shipment, invoices not in yet → not postable
     pos: myPos,
     has_shipping_data,
     ci_value,
     entered_freight, entered_duty, has_amounts,
-    freight, duty,
+    freight, duty, commission,
     posted_count, all_posted: split.length > 0 && posted_count === split.length,
     split,
     match,
@@ -400,14 +495,22 @@ async function postMainline(req, res) {
   if (!sp) err(`PO ${poNumber} is not on shipment ${s.id}`, 404);
   if (sp.posted) err(`Landed cost already posted for ${poNumber} — unpost first to re-post`, 409);
   if (!row.has_shipping_data) err('Upload packing data first — the CI value is needed for the per-PO split', 400);
-  if (!row.has_amounts) err('Enter freight and duty on the shipment first', 400);
+  if (row.is_estimate && !row.has_amounts) {
+    err('No mainline landed-cost rate configured — set one in Settings → Landed Cost Rates', 400);
+  }
+  if (row.awaiting_actual) err('Enter freight and duty on the shipment first', 400);
 
   const pushed = await pushMainlineOne(s, row, poNumber);
   const now = new Date().toISOString();
   const record = {
     id: `lc_ml_${s.id}_${poNumber}`, module: 'mainline', shipment_id: s.id, po_number: poNumber,
-    invoice_value: sp.ci_value, freight_pct: null, duty_pct: null,   // manual actuals — no rate
-    freight: sp.freight, duty: sp.duty,
+    invoice_value: sp.ci_value,
+    // Snapshot the basis actually used, exactly as the SMS path does: the rate pcts
+    // are NULL for typed actuals, and that absence IS the record of which basis ran.
+    // No `basis` column — it stays derivable from the snapshot.
+    freight_pct: row.is_estimate ? row.estimate.freight_pct : null,
+    duty_pct: row.is_estimate ? row.estimate.duty_pct : null,
+    freight: sp.freight, duty: sp.duty, commission: sp.commission,   // commission frozen per PO
     posted_by: req.user?.id || null, posted_at: now, netsuite_pushed_at: now,
   };
   await M.landedCosts.write([...c.posted, record]);
@@ -455,6 +558,7 @@ async function unpost(req, res) {
 
 module.exports = {
   getRates, putRates,
+  getSmsCommissions, putSmsCommissions, getMlCommissions, putMlCommissions,
   getSms, postSms, netsuitePreviewSms, netsuitePushSms,
   getMainline, postMainline, netsuitePreviewMainline, netsuitePushMainline,
   unpost,

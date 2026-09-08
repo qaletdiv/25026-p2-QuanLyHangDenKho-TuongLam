@@ -23,7 +23,10 @@
 //                    standard transit time (transit_time_standards) lands LATER
 //                    than the stated E-DEL, the later date is graded.
 //   • kpi_status   — the flattened cascade the manager's tables pivot on:
-//                    Received (actual ATA filled) → Delivered → timeliness.
+//                    Received (actual ATA known) → Delivered → timeliness. ATA is
+//                    DERIVED from NetSuite Item Receipts (receipts/ataLoader), the
+//                    same source the shipment list and transit report use — not the
+//                    hand-entered `ata` column, which is set on almost nothing.
 //
 // `reason` is a human-readable explanation of the grade (cutoff comparison, the
 // not-booked/not-approved state, the slipped transit segment, achievability).
@@ -32,6 +35,7 @@
 const BaseModel = require('../../../models/BaseModel');
 const status = require('../statuses');
 const transit = require('./transitTimeService');
+const { loadAtaByShipment, effectiveAta } = require('../receipts/ataLoader');
 
 const read = (f) => new BaseModel(`${f}.json`).read().catch(() => []);
 const readM = (f) => read(`migrated/${f}`);
@@ -103,15 +107,26 @@ async function getMainlineReport(req, res) {
   ]);
   await Promise.all([...statusIds].map(async (id) => statusName.set(id, await status.nameForId(id))));
 
-  // Pre-compute per-shipment transit facts: earliest CRD across its legs,
-  // per-segment durations, and segments that ran over their standard.
+  // Pre-compute per-shipment transit facts: earliest CRD across its legs, the
+  // effective ATA, per-segment durations, and segments that ran over their standard.
+  //
+  // ATA is the arrival date the whole `kpi_status` cascade turns on ("Received"
+  // beats every timeliness grade), and it is DERIVED from NetSuite Item Receipts by
+  // the shared resolver — not read off the header column, which is a manual
+  // stopgap set on 1 of 9 live shipments. Reading the column made 8 received
+  // consignments report as still in flight, and graded them on E-DEL as if their
+  // arrival were still a question.
   const legById = new Map(d.legs.map((l) => [l.id, l]));
+  const ataMatch = await loadAtaByShipment({ shipments: d.shipments, shipLegs: d.shipLegs, legs: d.legs });
   const shipFacts = new Map(d.shipments.map((s) => {
     const crds = (d.shipLegs.filter((j) => j.shipment_id === s.id))
       .map((j) => (legById.get(j.leg_id) || {}).crd).filter(Boolean).sort();
     const crd = crds[0] || null;
-    const durations = transit.segmentDurations(s, crd);
-    return [s.id, { crd, durations, slipped: transit.slippedSegments(durations, s.mode_id, stdByMode) }];
+    const { ata, ata_source } = effectiveAta(ataMatch, s);
+    // the E-DEL → ATA segment is graded off the effective date too, so a slipped
+    // "DC → NetSuite Receive" can actually surface in a row's reason
+    const durations = transit.segmentDurations({ ...s, ata }, crd);
+    return [s.id, { crd, ata, ata_source, durations, slipped: transit.slippedSegments(durations, s.mode_id, stdByMode) }];
   }));
 
   const rows = [];
@@ -139,16 +154,17 @@ async function getMainlineReport(req, res) {
     // 1 — shipment rows (actual)
     for (const j of shipLegsByLeg[leg.id] || []) {
       const ship  = shipById.get(j.shipment_id) || {};
-      const facts = shipFacts.get(j.shipment_id) || { slipped: [] };
+      const facts = shipFacts.get(j.shipment_id) || { slipped: [], ata: null, ata_source: null };
       const qty   = Number(j.expected_quantity) || 0;
       counted += qty;
       const progress   = statusName.get(ship.status_id) || null;
       const timeliness = timelinessFor(ship.e_del, sched);
+      const ata        = facts.ata;   // derived (Item Receipt) → header column, see shipFacts
 
       let reason;
-      if (ship.ata) {
-        const lateBy = transit.daysBetween(transit.addDays(ship.e_del, 5), ship.ata);
-        reason = `Received ${ship.ata}` + (lateBy != null ? (lateBy > 0 ? ` — ${lateBy}d after expected ATA` : ' — within expected ATA') : '');
+      if (ata) {
+        const lateBy = transit.daysBetween(transit.addDays(ship.e_del, 5), ata);
+        reason = `Received ${ata}` + (lateBy != null ? (lateBy > 0 ? ` — ${lateBy}d after expected ATA` : ' — within expected ATA') : '');
       } else {
         reason = `${progress || 'Shipped'} on ${ship.shipment_number || j.shipment_id} — ${timelinessClause(ship.e_del, sched, timeliness)}`;
         const worst = facts.slipped[0];
@@ -173,9 +189,10 @@ async function getMainlineReport(req, res) {
         date_basis:      'actual',
         e_del:           ship.e_del || null,
         expected_ata:    transit.addDays(ship.e_del, 5),   // derived, never stored
-        ata:             ship.ata || null,
+        ata,
+        ata_source:      facts.ata_source,
         timeliness,
-        kpi_status:      kpiStatusFor(ship.ata, progress, timeliness),
+        kpi_status:      kpiStatusFor(ata, progress, timeliness),
         reason,
       });
     }
@@ -271,11 +288,23 @@ async function getTransitTimes(req, res) {
   const orderByPo  = new Map(orders.map((o) => [o.po_number, o]));
   const stdByMode  = transit.standardsByMode(standards);
 
+  // ATA = the day the goods landed in NetSuite, DERIVED from Item Receipts by the
+  // one shared resolver — the same call mainlineShipmentService makes, so the
+  // report and the shipment list can never disagree about when a consignment
+  // arrived. Without it this report read the raw `ata` COLUMN, which is a manual
+  // back-fill and is set on 1 of 9 shipments, so `DC → NetSuite Receive` and
+  // `CRD → ATA` were blank on everything that had in fact been received.
+  // Precedence and source labelling live in effectiveAta (one rule, all consumers).
+  const ataMatch = await loadAtaByShipment({ shipments, shipLegs, legs });
+
   const shipmentRows = shipments.map((s) => {
     const myLegs = shipLegs.filter((j) => j.shipment_id === s.id).map((j) => legById.get(j.leg_id) || {});
     const crd = myLegs.map((l) => l.crd).filter(Boolean).sort()[0] || null;
     const coo = [...new Set(myLegs.map((l) => (orderByPo.get(l.po_number) || {}).coo_country).filter(Boolean))].join(', ') || null;
-    const durations = transit.segmentDurations(s, crd);
+    const { ata, ata_source } = effectiveAta(ataMatch, s);
+    // Both remaining segments hang off ATA, so they are computed from the EFFECTIVE
+    // date, not the column.
+    const durations = transit.segmentDurations({ ...s, ata }, crd);
     return {
       shipment_id:     s.id,
       shipment_number: s.shipment_number || null,
@@ -288,8 +317,17 @@ async function getTransitTimes(req, res) {
       crd,
       cargo_received_date: s.cargo_received_date || null,
       etd_pol: s.etd_pol || null, eta_pod: s.eta_pod || null,
-      e_del: s.e_del || null, ata: s.ata || null,
+      e_del: s.e_del || null,
+      ata,
+      // 'manual' = typed on the shipment header, 'netsuite' = attributed Item
+      // Receipt(s). Shown in the CRD → ATA tooltip so a reader can tell which
+      // arrival date a duration was measured to.
+      ata_source,
       durations,
+      // end-to-end CRD → ATA, same yardstick as the lane row's `total` (NOT Σ
+      // durations — a missing intermediate date nulls its segments while the
+      // end-to-end span is still known).
+      total_days: transit.daysBetween(crd, ata),
       slipped: transit.slippedSegments(durations, s.mode_id, stdByMode),
     };
   });

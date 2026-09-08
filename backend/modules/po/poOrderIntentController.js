@@ -6,12 +6,14 @@
 
 const PoMasterModel = require('./PoMasterModel');
 const PoOrderModel  = require('./PoOrderModel');
+const { assertTrnVisible } = require('../mainline/vendorAccess');
 
 const notFound = (msg) => { const e = new Error(msg); e.statusCode = 404; throw e; };
 
 // GET /po/:trn/order-intent
 async function getOrderIntent(req, res) {
   const { trn } = req.params;
+  await assertTrnVisible(req, trn, `PO master not found: ${trn}`);
   const [masters, orders, orderLines] = await Promise.all([
     PoMasterModel.read(),
     PoOrderModel.readOrders(),

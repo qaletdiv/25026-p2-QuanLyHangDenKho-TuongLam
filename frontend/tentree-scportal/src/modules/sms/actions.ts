@@ -6,7 +6,7 @@
 
 import { fetchApi } from '@/lib/api';
 import { revalidatePath } from 'next/cache';
-import type { SmsPo, SmsPoDetail, SmsShipment, SmsDocument, FacilityOption, CourierOption, SmsReportRow, SmsForecastRow } from './types';
+import type { SmsPo, SmsPoDetail, SmsShipment, SmsBooking, SmsDocument, FacilityOption, CourierOption, IncotermOption, ModeOption, SmsReportRow, SmsForecastRow } from './types';
 
 const revalidateSms = () => revalidatePath('/sms', 'layout');
 
@@ -50,6 +50,66 @@ export async function getSmsPoLines(): Promise<Record<string, unknown>[]> {
 // ─── The SMS-only NetSuite sync (unrelated to the deactivated mainline one) ──
 export async function syncSmsNetsuite() {
   const result = await fetchApi('/sms/sync/netsuite', { method: 'POST', body: '{}' });
+  revalidateSms();
+  return result;
+}
+
+// ─── Bookings (OPTIONAL authorization step) ─────────────────────────────────
+// Vendor submits → Logistics approves → approval creates draft shipment(s). Most
+// SMS consignments still skip this entirely (vendor enters the shipment directly).
+export async function getSmsBookings(): Promise<SmsBooking[]> {
+  const data = await fetchApi('/sms/bookings');
+  return Array.isArray(data) ? data : [];
+}
+export async function getSmsBooking(id: string): Promise<SmsBooking | null> {
+  const data = await fetchApi(`/sms/bookings/${encodeURIComponent(id)}`);
+  if (!data || data.error) return null;
+  return data;
+}
+export async function createSmsBooking(data: {
+  supplier_id: string;
+  incoterm_id?: string | null;
+  // Both REQUIRED by the server: approve copies them onto the draft consignment,
+  // and the mode is what reaches NetSuite as the shipping method.
+  courier_id: string;
+  mode_id: string;
+  cargo_ready_date?: string | null;
+  pos: Array<{ po_number: string; lot_number?: number | null; units: number; cartons?: number | null; weight_kg?: number | null; cbm?: number | null }>;
+  force_overbook?: boolean;
+}) {
+  const result = await fetchApi('/sms/bookings', { method: 'POST', body: JSON.stringify(data) });
+  const overbook = parse409(result, 'overbook_warning');   // soft — the dialog offers to force
+  if (overbook) return overbook;
+  revalidateSms();
+  return result;
+}
+export async function updateSmsBooking(id: string, data: Record<string, unknown>) {
+  const result = await fetchApi(`/sms/bookings/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(data) });
+  const overbook = parse409(result, 'overbook_warning');
+  if (overbook) return overbook;
+  revalidateSms();
+  return result;
+}
+// Approve creates one DRAFT shipment per destination facility (no tracking yet).
+export async function approveSmsBooking(id: string) {
+  const result = await fetchApi(`/sms/bookings/${encodeURIComponent(id)}/approve`, { method: 'POST', body: '{}' });
+  revalidateSms();
+  return result;
+}
+export async function rejectSmsBooking(id: string) {
+  const result = await fetchApi(`/sms/bookings/${encodeURIComponent(id)}/reject`, { method: 'POST', body: '{}' });
+  revalidateSms();
+  return result;
+}
+// Cancel is the way out of an APPROVED booking: deletes its untracked drafts.
+// Blocked (409) once anything under it has actually shipped.
+export async function cancelSmsBooking(id: string) {
+  const result = await fetchApi(`/sms/bookings/${encodeURIComponent(id)}/cancel`, { method: 'POST', body: '{}' });
+  revalidateSms();
+  return result;
+}
+export async function deleteSmsBooking(id: string) {
+  const result = await fetchApi(`/sms/bookings/${encodeURIComponent(id)}`, { method: 'DELETE' });
   revalidateSms();
   return result;
 }
@@ -124,5 +184,15 @@ export async function getSmsCouriers(): Promise<CourierOption[]> {
 }
 export async function getSmsFacilities(): Promise<FacilityOption[]> {
   const data = await fetchApi('/master-data/warehouse-facilities');
+  return Array.isArray(data) ? data : [];
+}
+export async function getSmsIncoterms(): Promise<IncotermOption[]> {
+  const data = await fetchApi('/master-data/incoterms');
+  return Array.isArray(data) ? data : [];
+}
+// Sea / Air / Courier — the booking's planned mode and the shipment's actual one.
+// It is what the landed-cost push maps to the NetSuite shipping method (custbody16).
+export async function getSmsModes(): Promise<ModeOption[]> {
+  const data = await fetchApi('/master-data/modes');
   return Array.isArray(data) ? data : [];
 }

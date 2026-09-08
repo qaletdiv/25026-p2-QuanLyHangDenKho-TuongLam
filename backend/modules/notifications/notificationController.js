@@ -9,22 +9,16 @@
 
 const BaseModel = require('../../models/BaseModel');
 const svc = require('./notificationService');
+const { resolveVendorSupplierId } = require('../../utils/vendorScope');
 
 const readM = (f) => new BaseModel(`migrated/${f}.json`).read().catch(() => []);   // normalized tables
 const read  = (f) => new BaseModel(`${f}.json`).read().catch(() => []);            // legacy master data (data/ root)
 const SeenModel = new BaseModel('notification_seen.json');
 
-const norm = (s) => (s == null ? '' : String(s).trim().toLowerCase().replace(/\s+/g, ' '));
-
-// Resolve a Vendor's supplier_id via users.json → suppliers.json (JWT has no
-// supplier). Non-vendors are unscoped (null). suppliers/users live in data/ root.
-async function vendorSupplierId(user) {
-  if (!user || user.role !== 'Vendor') return null;
-  const [users, suppliers] = await Promise.all([read('users'), read('suppliers')]);
-  const u = users.find((x) => x.id === user.id);
-  const sup = u?.supplier ? suppliers.find((s) => norm(s.name) === norm(u.supplier)) : null;
-  return sup ? sup.id : '__no_supplier__';   // sentinel → vendor sees nothing (never matches)
-}
+// Resolve a Vendor's supplier_id (utils/vendorScope — one copy, was four).
+// Read path, so onUnlinked:'deny' → the NO_SUPPLIER sentinel matches no row and
+// the bell renders empty, rather than 403-ing the whole top bar.
+const vendorSupplierId = (user) => resolveVendorSupplierId(user, { onUnlinked: 'deny' });
 
 async function loadData() {
   const [legs, legLines, orders, masters, bookings, bookingLegs, statuses, suppliers,

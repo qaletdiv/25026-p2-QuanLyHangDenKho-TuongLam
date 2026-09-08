@@ -9,7 +9,19 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import type { PoLegDetail as PoLegDetailT, PoReconcile } from '@/modules/mainline/types';
+import type { PoLegDetail as PoLegDetailT, PoReconcile, LegShipment } from '@/modules/mainline/types';
+
+const DASH = '—';
+// Same palette as ShipmentsTable / ShipmentDetail so one status reads identically
+// wherever it appears.
+const STATUS_STYLES: Record<string, string> = {
+  'Ready to Ship': 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  'In Transit': 'bg-violet-500/10 text-violet-600 border-violet-500/20',
+  'At Port': 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20',
+  'Delivered': 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+  'Received': 'bg-emerald-600/10 text-emerald-700 border-emerald-600/20',
+  'Cancelled': 'bg-red-500/10 text-red-600 border-red-500/20',
+};
 
 function Meta({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -31,7 +43,7 @@ function Stat({ label, value }: { label: string; value: number }) {
 
 // One PO leg (air/sea split): the SKUs the vendor must produce + the component-PO
 // reconcile (ordered vs shipped vs received, from NetSuite Item Receipts).
-export default function PoLegDetail({ leg, reconcile }: { leg: PoLegDetailT; reconcile: PoReconcile | null }) {
+export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: PoLegDetailT; reconcile: PoReconcile | null; shipments?: LegShipment[] }) {
   const router = useRouter();
   const [showAll, setShowAll] = useState(false);
   const itemBySku = new Map(leg.line_items.map((li) => [li.sku_code, li]));
@@ -74,10 +86,61 @@ export default function PoLegDetail({ leg, reconcile }: { leg: PoLegDetailT; rec
           <Meta label="Allocation Channel" value={leg.allocation_channel} />
           <Meta label="COO" value={leg.coo} />
           <Meta label="Incoterm" value={leg.incoterm} />
-          <Meta label="CRD" value={leg.crd} />
+          {/* The WIP target. The per-shipment "CRD (actual)" in the Shipments table
+              below is a different date — they disagree on most live rows. */}
+          <Meta label="CRD (target)" value={leg.crd} />
           <Meta label="E-DEL" value={leg.e_del} />
         </div>
       </Card>
+
+      {/* ── consignments carrying this leg (lots) ──
+          Mirrors the SMS PO detail's lot table. Quantities are the SHIPPED actuals
+          from the shipping-data upload, so this agrees with the commercial invoice
+          rather than with the booked quantity. */}
+      <section className="space-y-2">
+        <h2 className="text-sm font-medium text-muted-foreground">
+          Shipments ({shipments.length} lot{shipments.length === 1 ? '' : 's'})
+        </h2>
+        <Card className="overflow-x-auto">
+          <Table className="bg-card">
+            <TableHeader>
+              <TableRow className="bg-card/80 hover:bg-card/80">
+                <TableHead>Lot</TableHead>
+                <TableHead>Carrier Shipment #</TableHead>
+                <TableHead>CRD (actual)</TableHead>
+                <TableHead className="text-right">Shipped Qty</TableHead>
+                <TableHead className="text-right">Shipped Cartons</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {shipments.length === 0 ? (
+                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Not shipped yet — a shipment appears here once the booking for this leg is approved.</TableCell></TableRow>
+              ) : shipments.map((s) => (
+                <TableRow key={`${s.shipment_id}-${s.lot_number}`} className="border-border hover:bg-muted/30">
+                  {/* The lot carries the link, not the carrier ref — the ref is blank on
+                      more than half the live rows and the row must stay navigable. */}
+                  <TableCell className="font-medium">
+                    <Link href={`/mainline/shipments/${s.shipment_id}`} className="text-primary hover:underline">
+                      Lot {s.lot_number ?? DASH}
+                    </Link>
+                    {s.shipment_number && <span className="ml-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/70">{s.shipment_number}</span>}
+                  </TableCell>
+                  {/* Blank when the forwarder hasn't given a reference. No fallback to
+                      BL or SHP-N: a substitute here would read as a carrier ref. */}
+                  <TableCell className="font-mono text-xs">{s.carrier_shipment_number ?? DASH}</TableCell>
+                  <TableCell className="text-muted-foreground">{s.crd_actual ?? DASH}</TableCell>
+                  <TableCell className="text-right tabular-nums">{s.shipped_qty != null ? s.shipped_qty.toLocaleString() : DASH}</TableCell>
+                  <TableCell className="text-right tabular-nums">{s.shipped_cartons != null ? s.shipped_cartons.toLocaleString() : DASH}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={cn(STATUS_STYLES[s.status || ''])}>{s.status ?? DASH}</Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
+      </section>
 
       {recRows.length > 0 && (
         <section className="space-y-2">

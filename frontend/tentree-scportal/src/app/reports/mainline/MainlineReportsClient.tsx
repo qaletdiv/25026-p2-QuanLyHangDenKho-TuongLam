@@ -19,7 +19,18 @@ const ITEM_COLS = [
   { key: 'po_number', label: 'PO Number' }, { key: 'trn_number', label: 'TRN' },
   { key: 'supplier', label: 'Supplier' }, { key: 'season', label: 'Season' }, { key: 'mode', label: 'Mode' },
   { key: 'receiving_warehouse', label: 'Destination' }, { key: 'allocation_channel', label: 'Channel' },
-  { key: 'crd', label: 'CRD' }, { key: 'e_del', label: 'E-DEL' }, { key: 'leg_id', label: 'Leg ID' },
+  // planned (leg / WIP) and actual (shipment) dates sit side by side — see
+  // poController.getAllLegLines; merging them would hide the slip.
+  { key: 'crd', label: 'CRD' }, { key: 'e_del', label: 'E-DEL (planned)' },
+  // NOTE: the leg's planned etd_pol IS on the API payload as `etd_pol_planned`, but
+  // it is null on all 86 legs — the WIP sheets in use never supply it — so it is
+  // left out here rather than shipping a column that is blank in every row.
+  { key: 'shipment_numbers', label: 'Shipment(s)' }, { key: 'shipment_count', label: 'Shipment Count' },
+  { key: 'etd_pol', label: 'ETD POL (actual)' }, { key: 'eta_pod', label: 'ETA POD' },
+  { key: 'e_del_actual', label: 'E-DEL (actual)' },
+  { key: 'cargo_received_date', label: 'Received at Port' },
+  { key: 'expected_ata', label: 'Expected ATA' }, { key: 'ata', label: 'ATA' },
+  { key: 'leg_id', label: 'Leg ID' },
   { key: 'sku_code', label: 'SKU' }, { key: 'item_name', label: 'Item' }, { key: 'style_color', label: 'Style/Color' },
   { key: 'size', label: 'Size' }, { key: 'allocated_qty', label: 'Allocated Qty' }, { key: 'unit_price', label: 'Unit Price' },
 ];

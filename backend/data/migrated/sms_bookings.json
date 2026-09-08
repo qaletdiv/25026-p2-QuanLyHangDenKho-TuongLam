@@ -1,0 +1,60 @@
+[
+  {
+    "id": "smsbk_1",
+    "booking_number": "SMS-B-1",
+    "supplier_id": "14",
+    "incoterm_id": "i5",
+    "cargo_ready_date": "2026-07-28",
+    "booking_status_id": "sms_bk_approved",
+    "submitted_at": "2026-08-18T22:35:18.792Z",
+    "approved_at": "2026-08-18T22:35:31.967Z"
+  },
+  {
+    "id": "smsbk_2",
+    "booking_number": "SMS-B-2",
+    "supplier_id": "15",
+    "incoterm_id": "i5",
+    "courier_id": "c3",
+    "mode_id": "m2",
+    "cargo_ready_date": "2026-07-26",
+    "booking_status_id": "sms_bk_approved",
+    "submitted_at": "2026-08-24T19:38:58.122Z",
+    "approved_at": "2026-08-24T19:39:09.222Z"
+  },
+  {
+    "id": "smsbk_3",
+    "booking_number": "SMS-B-3",
+    "supplier_id": "14",
+    "incoterm_id": "i5",
+    "courier_id": "c3",
+    "mode_id": "m2",
+    "cargo_ready_date": "2026-07-28",
+    "booking_status_id": "sms_bk_approved",
+    "submitted_at": "2026-08-31T19:56:34.336Z",
+    "approved_at": "2026-08-31T19:57:12.693Z"
+  },
+  {
+    "id": "smsbk_4",
+    "booking_number": "SMS-B-4",
+    "supplier_id": "14",
+    "incoterm_id": "i5",
+    "courier_id": "c3",
+    "mode_id": "m2",
+    "cargo_ready_date": "2026-07-28",
+    "booking_status_id": "sms_bk_approved",
+    "submitted_at": "2026-08-31T20:06:45.434Z",
+    "approved_at": "2026-08-31T20:07:28.086Z"
+  },
+  {
+    "id": "smsbk_5",
+    "booking_number": "SMS-B-5",
+    "supplier_id": "3",
+    "incoterm_id": "i5",
+    "courier_id": "c3",
+    "mode_id": "m2",
+    "cargo_ready_date": "2026-08-14",
+    "booking_status_id": "sms_bk_approved",
+    "submitted_at": "2026-09-02T16:22:41.131Z",
+    "approved_at": "2026-09-02T16:25:22.746Z"
+  }
+]

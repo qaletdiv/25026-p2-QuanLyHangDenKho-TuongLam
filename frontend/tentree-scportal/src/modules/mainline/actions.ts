@@ -7,9 +7,9 @@
 import { fetchApi } from '@/lib/api';
 import { revalidatePath } from 'next/cache';
 import type {
-  PoMasterSummary, PoMasterDetail, PoLegDetail, OrderIntent, PoLegRow,
+  PoMasterSummary, PoMasterDetail, PoLegDetail, OrderIntent, PoLegRow, LegShipment,
   MainlineBooking, MainlineShipment, CommercialInvoice, Fulfillment, PoReconcile, PackingSummary, PackingByPo,
-  PortOption, ContainerTypeOption, MainlineReportRow, TransitTimesReport,
+  PortOption, ContainerTypeOption, CourierOption, MainlineReportRow, TransitTimesReport,
 } from './types';
 
 // ─── Season KPI report (PO-leg-grained, full order book) ─────────────────────
@@ -31,6 +31,12 @@ export async function getPorts(): Promise<PortOption[]> {
 }
 export async function getContainerTypes(): Promise<ContainerTypeOption[]> {
   const data = await fetchApi('/master-data/container-types');
+  return Array.isArray(data) ? data : [];
+}
+// Carriers — parcel couriers AND freight forwarders. `provides_cost_invoices`
+// decides the mainline landed-cost basis (actual off invoices vs CI-value estimate).
+export async function getCarriers(): Promise<CourierOption[]> {
+  const data = await fetchApi('/master-data/couriers');
   return Array.isArray(data) ? data : [];
 }
 
@@ -63,6 +69,14 @@ export async function getPoLeg(legId: string): Promise<PoLegDetail | null> {
   const data = await fetchApi(`/po/legs/${encodeURIComponent(legId)}`);
   if (!data || data.error) return null;
   return data;
+}
+
+// The consignments carrying one PO leg — the leg-grained answer to "where did this
+// ship?". Keyed on the leg, not the TRN: on a TRN a shipment recurs under each leg
+// it carries and the quantities double-count.
+export async function getMainlineLegShipments(legId: string): Promise<LegShipment[]> {
+  const data = await fetchApi(`/mainline/legs/${encodeURIComponent(legId)}/shipments`);
+  return Array.isArray(data) ? data : [];
 }
 
 export async function getOrderIntent(trn: string): Promise<OrderIntent | null> {
@@ -101,6 +115,9 @@ export async function createMainlineBooking(data: {
   supplier_id: string;
   po_legs: Array<{ leg_id: string; units?: number; cartons?: number; weight_kg?: number; cbm?: number }>;
   incoterm_id?: string;
+  // PLANNED carrier, optional. Copied onto the shipment at approve, where it decides
+  // whether the landed cost is the actual off invoices or a CI-value estimate.
+  courier_id?: string | null;
   cargo_ready_date?: string;
   booking_date?: string;
   force_overbook?: boolean;

@@ -1,6 +1,15 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'tentree-dev-secret-2026';
+// No fallback by design. A hardcoded default would live in source control, which
+// means anyone who has ever seen the repo could forge an Admin token — so refuse
+// to boot instead. Set JWT_SECRET in backend/.env (see .env.example).
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error(
+        'JWT_SECRET is not set. Generate one and add it to backend/.env:\n' +
+        "  node -e \"console.log(require('crypto').randomBytes(48).toString('base64url'))\""
+    );
+}
 
 function requireAuth(req, res, next) {
     const authHeader = req.headers['authorization'];

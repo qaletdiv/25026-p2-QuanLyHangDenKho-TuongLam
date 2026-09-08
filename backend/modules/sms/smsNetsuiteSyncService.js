@@ -19,7 +19,7 @@ const M = require('./SmsModels');
 const integrationService = require('../../services/integrationService');
 const { splitWarehouseName, channelIdByName } = require('../po/warehouseFacility');
 
-const norm = (s) => (s == null ? '' : String(s).trim().toLowerCase().replace(/\s+/g, ' '));
+const { norm, supplierKey } = require('../../utils/nameKey');
 
 // NS location string → { facility name, channel name }. The location conflates a
 // physical facility with an allocation channel (Reserved / First); SMS keeps BOTH.
@@ -46,15 +46,20 @@ function buildUpserts(nsPos, nsReceipts, existing) {
   const warnings = [];
   const added = { suppliers: 0, seasons: 0 };
 
-  const supByName = new Map(suppliers.map((s) => [norm(s.name), s]));
+  // Suppliers match on supplierKey, NOT norm: NetSuite spells the vendor
+  // "Best Star Fashions Co., Ltd." where the master data holds "Best Star Fashions
+  // Co Ltd". Under norm those differ, so this insert-if-not-found path minted a
+  // second row for the same vendor (six such pairs, merged 2026-08-12) and split
+  // one supplier across two ids in reports, filters and the G1 booking guard.
+  const supByName = new Map(suppliers.map((s) => [supplierKey(s.name), s]));
   const seasonByCode = new Map(seasons.map((s) => [norm(s.code), s]));
   const facByName = new Map(facilities.map((f) => [norm(f.name), f]));
   let nextSupId = suppliers.reduce((mx, s) => Math.max(mx, Number(s.id) || 0), 0);
 
   const supplierId = (name, ctx) => {
     if (!name) return null;
-    let s = supByName.get(norm(name));
-    if (!s) { s = { id: String(++nextSupId), name: String(name).trim() }; suppliers.push(s); supByName.set(norm(name), s); added.suppliers++; }
+    let s = supByName.get(supplierKey(name));
+    if (!s) { s = { id: String(++nextSupId), name: String(name).trim() }; suppliers.push(s); supByName.set(supplierKey(name), s); added.suppliers++; }
     return s.id;
   };
   const seasonId = (code) => {
@@ -103,12 +108,25 @@ function buildUpserts(nsPos, nsReceipts, existing) {
     });
     posUpserted++;
 
+    // IDENTITY = the NetSuite transaction LINE, not (po_number, sku_code).
+    // NetSuite legitimately puts one item on several PO lines (split by receipt
+    // date / location, or a price-correction line), so (po, sku) is NOT a
+    // determinant — PO04792 carries 54 SKUs × 3 lines each, and PO04697 has the
+    // same SKU at two different prices. Keying the row on `netsuite_line_id`
+    // (a) makes the id STABLE across syncs — `spol_${++lineSeq}` renumbered every
+    // row on every sync, so the PK churned constantly — and (b) gives Postgres a
+    // real unique column to enforce. Consumers only ever aggregate per PO or per
+    // (po, sku), so keeping both lines is lossless. Rows synced before this change
+    // keep their old `spol_N` id and a null netsuite_line_id until their PO is
+    // re-synced; Postgres allows multiple NULLs in a unique index, so both shapes
+    // load. Fallback to the sequence only if NetSuite gave us no line id at all.
     linesByPo[po.po_number] = (po.line_items || []).map((li) => ({
-      id: `spol_${++lineSeq}`,
+      id: li.netsuite_line_id ? `spol_ns_${li.netsuite_line_id}` : `spol_${++lineSeq}`,
       po_number: po.po_number,
       sku_code: li.sku_code,
       ordered_qty: Number(li.expected_qty) || 0,
       unit_price: Number(li.unit_price) || null,
+      netsuite_line_id: li.netsuite_line_id || null,
     }));
     linesUpserted += linesByPo[po.po_number].length;
 

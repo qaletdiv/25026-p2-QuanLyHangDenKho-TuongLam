@@ -5,6 +5,11 @@ import { redirect } from 'next/navigation';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
 
+// Cookies are HTTPS-only in production and plain-HTTP-tolerant in dev. Hardcoding
+// `secure: false` (the previous value) meant the session cookie and the JWT would
+// travel in cleartext even once deployed behind TLS.
+const SECURE_COOKIES = process.env.NODE_ENV === 'production';
+
 export async function login(formData: any) {
   const { email, password } = formData;
 
@@ -34,14 +39,14 @@ export async function login(formData: any) {
         path: '/',
         maxAge: 86400, // 24 hours — matches JWT expiry
         sameSite: 'lax',
-        secure: false // Local dev friendly
+        secure: SECURE_COOKIES,
       });
     }
 
     // Store user session — maxAge matches JWT expiry (24h) so session and token expire together
     cookieStore.set('session', JSON.stringify({ ...user, token: token ?? null }), {
       httpOnly: true, // Server-only, accessed via SessionProvider
-      secure: false, // Local dev friendly
+      secure: SECURE_COOKIES,
       maxAge: 86400, // 24 hours — matches JWT expiry in authController
       path: '/',
       sameSite: 'lax'

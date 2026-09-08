@@ -15,8 +15,10 @@
 //   custbody_tt_customs_entry_number  = customs entry # (mainline)
 //                                       | "<courier> <tracking#>" e.g. "FedEx 8742…" (SMS)
 //   custbody16 (shipping method)      = { id } into custom LIST customlist718 —
-//                                       SMS always COURIER (id 6); mainline → SEA
-//                                       (1) / AIR (2) by PO mode
+//                                       mapped from the shipment's MODE for BOTH
+//                                       modules: SEA (1) / AIR (2) / COURIER (6).
+//                                       SMS falls back to COURIER when no mode is
+//                                       set, which is every vendor-entered parcel.
 //   landedCostMethod                  = { id: 'VALUE' }   (allocate by value; the
 //                                       record ships defaulted to 'WEIGHT')
 //   landedCosts.items[]              = one line per cost category with `amount`:
@@ -29,16 +31,37 @@
 // NOT flat `landedcostamountN` body fields (those are undefined on the REST record).
 // NOTE: custbody16 is a custom LIST (customlist718: SEA=1, AIR=2, TRUCK=4,
 // COURIER=6, EXPRESS=107, …), so it takes the option's INTERNAL ID, not a string.
-// SMS always tags COURIER (per Lam, verified 2026-07-22).
+//
+// SMS used to tag COURIER unconditionally (per Lam, verified 2026-07-22). That held
+// while SMS was courier-only, but SMS BOOKINGS (2026-08-07) introduced consignments
+// that clear customs formally and can move by Ceva sea/air — those were still being
+// posted as COURIER. Since 2026-08-24 the booking states its carrier AND mode, the
+// mode rides onto the shipment at approve, and this maps it. No mode (every
+// vendor-entered parcel) still means COURIER, so the original flow is unchanged.
 
 // Cost-category internal ids (overridable via env if the account differs).
 const CATEGORY_DUTY = process.env.NS_LC_CATEGORY_DUTY || '2';
 const CATEGORY_FREIGHT = process.env.NS_LC_CATEGORY_FREIGHT || '5';
+// Commission → landedcostamount7 → cost category id 7 (same amountN→categoryN
+// convention as duty/freight). Only emitted when a split row carries commission
+// (i.e. the PO's supplier has a commission rate, e.g. Pratibha 1.5%). Confirm
+// against the account's costcategory table like the others were.
+const CATEGORY_COMMISSION = process.env.NS_LC_CATEGORY_COMMISSION || '7';
 
 // custbody16 shipping-method LIST (customlist718) option ids.
 const SHIPMETHOD_COURIER = process.env.NS_SHIPMETHOD_COURIER_ID || '6';
 const SHIPMETHOD_SEA = process.env.NS_SHIPMETHOD_SEA_ID || '1';
 const SHIPMETHOD_AIR = process.env.NS_SHIPMETHOD_AIR_ID || '2';
+
+// modes.json name → customlist718 option id. Order matters only in that 'Sea' is
+// tested before 'Air'; the two names don't overlap, but keep it explicit.
+function shipMethodId(mode) {
+  if (!mode) return null;
+  if (/sea|ocean/i.test(mode)) return SHIPMETHOD_SEA;
+  if (/air/i.test(mode)) return SHIPMETHOD_AIR;
+  if (/courier|parcel|express/i.test(mode)) return SHIPMETHOD_COURIER;
+  return null;
+}
 
 const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 
@@ -47,30 +70,32 @@ const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 // `split[]`: [{ po_number, ci_value, freight, duty }]
 function buildPayloads(input) {
   const isSms = input.module === 'sms';
-  // SMS: prefix the courier so the customs-entry field reads e.g. "FedEx 874201930996".
-  const customsEntry = isSms
-    ? ([input.courier, input.tracking_number].filter(Boolean).join(' ') || null)
-    : (input.customs_entry_number || null);
+  // A REAL customs entry number always wins — mainline always has one, and since
+  // 2026-08-07 a BOOKED SMS consignment can carry one too (it clears customs
+  // formally). Only an unbooked courier shipment has no entry: there we fall back
+  // to courier + tracking, so the field reads e.g. "FedEx 874201930996".
+  const customsEntry = input.customs_entry_number
+    || (isSms ? ([input.courier, input.tracking_number].filter(Boolean).join(' ') || null) : null);
 
   return (input.split || []).map((s) => {
+    const items = [
+      { category: { id: CATEGORY_DUTY }, amount: round2(s.duty) },      // Duty
+      { category: { id: CATEGORY_FREIGHT }, amount: round2(s.freight) }, // Freight
+    ];
+    // Commission — only when this PO carries one (supplier-scoped; e.g. Pratibha).
+    const commission = round2(s.commission);
+    if (commission > 0) items.push({ category: { id: CATEGORY_COMMISSION }, amount: commission }); // Commission
     const body = {
       memo: s.po_number,
       custbody_tt_customs_entry_number: customsEntry,
       landedCostMethod: { id: 'VALUE' },
-      landedCosts: {
-        items: [
-          { category: { id: CATEGORY_DUTY }, amount: round2(s.duty) },      // Duty
-          { category: { id: CATEGORY_FREIGHT }, amount: round2(s.freight) }, // Freight
-        ],
-      },
+      landedCosts: { items },
     };
-    // shipping-method list (customlist718): SMS always COURIER; mainline → SEA/AIR.
-    if (isSms) {
-      body.custbody16 = { id: SHIPMETHOD_COURIER };
-    } else if (input.mode) {
-      const id = /sea|ocean/i.test(input.mode) ? SHIPMETHOD_SEA : /air/i.test(input.mode) ? SHIPMETHOD_AIR : null;
-      if (id) body.custbody16 = { id };
-    }
+    // shipping-method list (customlist718), mapped from the shipment's actual mode.
+    // SMS falls back to COURIER (an unbooked parcel carries no mode); mainline
+    // always has one, and a mode it can't map is left off rather than guessed.
+    const id = shipMethodId(input.mode) || (isSms ? SHIPMETHOD_COURIER : null);
+    if (id) body.custbody16 = { id };
     return { po_number: s.po_number, ci_value: s.ci_value, body };
   });
 }
@@ -106,4 +131,4 @@ async function pushOne(internalId, body) {
   return { status: res.status, internalId };
 }
 
-module.exports = { buildPayloads, targetDescriptor, pushEnabled, pushOne, round2 };
+module.exports = { buildPayloads, targetDescriptor, pushEnabled, pushOne, round2, shipMethodId };

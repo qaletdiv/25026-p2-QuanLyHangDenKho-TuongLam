@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getSuppliers, updateSuppliers } from '@/app/actions/master-data';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Trash2, Users } from 'lucide-react';
 import { EditLockActions } from './EditLockActions';
+import { SettingsTable, type SettingsColumn } from './SettingsTable';
 
 export function SupplierSettings() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -47,6 +47,26 @@ export function SupplierSettings() {
 
   if (isLoading) return <div className="p-4 text-sm text-muted-foreground italic">Loading suppliers...</div>;
 
+  const textCol = (key: string, label: string): SettingsColumn<any> => ({
+    key, label,
+    cell: (s) => <Input value={s[key] || ''} onChange={(e) => updateItem(s.id, key, e.target.value)} className="h-8 text-sm" />,
+  });
+
+  const columns: SettingsColumn<any>[] = [
+    textCol('name', 'Name'),
+    textCol('country', 'Country'),
+    textCol('address', 'Address'),
+    textCol('port_of_loading', 'Port of Loading'),
+    {
+      key: 'actions', label: '', sortable: false, movable: false, headClassName: 'w-[50px]',
+      cell: (s) => (
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeItem(s.id)}>
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-4 bg-card p-4 sm:p-6 rounded-xl border shadow-sm">
       <div className="flex items-center justify-between">
@@ -56,42 +76,14 @@ export function SupplierSettings() {
         </div>
         <EditLockActions editing={editing} onEdit={() => setEditing(true)} onCancel={handleCancel} onAdd={addItem} onSave={handleSave} />
       </div>
-      <fieldset disabled={!editing} className="m-0 p-0 min-w-0 border rounded-md overflow-hidden [&_input:disabled]:opacity-100 [&_input:disabled]:cursor-default [&_input:disabled]:border-transparent [&_input:disabled]:bg-transparent [&_input:disabled]:shadow-none">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Country</TableHead>
-              <TableHead>Address</TableHead>
-              <TableHead>Port of Loading</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {suppliers.map((s) => (
-              <TableRow key={s.id}>
-                <TableCell className="p-2">
-                  <Input value={s.name} onChange={(e) => updateItem(s.id, 'name', e.target.value)} className="h-8 text-sm" />
-                </TableCell>
-                <TableCell className="p-2">
-                  <Input value={s.country} onChange={(e) => updateItem(s.id, 'country', e.target.value)} className="h-8 text-sm" />
-                </TableCell>
-                <TableCell className="p-2">
-                  <Input value={s.address || ''} onChange={(e) => updateItem(s.id, 'address', e.target.value)} className="h-8 text-sm" />
-                </TableCell>
-                <TableCell className="p-2">
-                  <Input value={s.port_of_loading || ''} onChange={(e) => updateItem(s.id, 'port_of_loading', e.target.value)} className="h-8 text-sm" />
-                </TableCell>
-                <TableCell className="p-2">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeItem(s.id)}>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </fieldset>
+      <SettingsTable
+        rows={suppliers}
+        columns={columns}
+        rowKey={(s) => s.id}
+        disabled={!editing}
+        storageKey="settings-suppliers-colorder"
+        emptyText="No suppliers yet — click Edit then Add."
+      />
     </div>
   );
 }

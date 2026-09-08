@@ -5,5 +5,12 @@
     "file_url": "/uploads/asn_1785342463875_BKG-3.xlsx",
     "status": "sent",
     "generated_at": "2026-07-29T16:27:43.885Z"
+  },
+  {
+    "id": "545d4186-b0a0-4f2d-b9d5-8a0a234d7a79",
+    "shipment_id": "8",
+    "file_url": "/uploads/asn_1787698417182_BKG-8.xlsx",
+    "status": "sent",
+    "generated_at": "2026-08-25T22:53:37.193Z"
   }
 ]

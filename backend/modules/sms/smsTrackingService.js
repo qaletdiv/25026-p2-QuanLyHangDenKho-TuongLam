@@ -19,7 +19,10 @@ const norm = (s) => (s == null ? '' : String(s).trim().toLowerCase());
 // Terminal statuses never change again, so there is nothing left to poll — a
 // Delivered consignment is done. Exception stays active (it can still resolve).
 // Keeps FedEx call volume flat as delivered-shipment history grows.
-const TERMINAL_STATUS_IDS = new Set(['sms_delivered']);
+// 'sms_received' (Delivered + a NetSuite Item Receipt) is listed for completeness:
+// this poll doesn't pass the receipt map to deriveStatus, so a received
+// consignment reads back as Delivered here and is skipped either way.
+const TERMINAL_STATUS_IDS = new Set(['sms_delivered', 'sms_received']);
 
 // ---- pure core (unit-testable) ----------------------------------------------
 // trackResults: fedexService.track() output. Returns { newEvents, perShipment }.

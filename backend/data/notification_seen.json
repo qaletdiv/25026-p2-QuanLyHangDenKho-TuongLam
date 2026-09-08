@@ -1,12 +1,12 @@
 [
   null,
   [
-    "sms_tracking_exception:21",
     "sms_overship:PO04805",
     "sms_overship:PO04820",
-    "sms_overdue:PO04789",
     "sms_overdue:PO04790",
     "sms_overdue:PO04791",
+    "sms_overdue:PO04793",
+    "sms_overdue:PO04794",
     "sms_overdue:PO04795",
     "sms_overdue:PO04799",
     "sms_overdue:PO04800",
@@ -20,9 +20,7 @@
     "sms_overdue:PO04814",
     "sms_overdue:PO04815",
     "sms_overdue:PO04816",
-    "sms_overdue:PO04817",
     "sms_overdue:PO04818",
-    "sms_overdue:PO04819",
     "sms_overdue:PO04821",
     "sms_overdue:PO04822",
     "sms_overdue:PO04823",
@@ -110,7 +108,8 @@
     "sms_overdue:PO04598",
     "sms_overdue:PO04602",
     "sms_overdue:PO04603",
-    "sms_overdue:PO04604"
+    "sms_overdue:PO04604",
+    "booking_pending:8"
   ],
   [
     "sms_overship:PO04805",

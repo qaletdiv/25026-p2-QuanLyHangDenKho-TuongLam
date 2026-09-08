@@ -21,6 +21,12 @@ async function _shipmentPos(shipmentId) {
   return new Set(lg.filter((l) => legIds.has(l.id)).map((l) => l.po_number));
 }
 
+// Drop any rejection of this (receipt, shipment) pair — confirming it is the
+// opposite assertion, so both can never stand. Also the undo path: re-adding the IR
+// by hand un-rejects it. Returns the surviving rows (caller writes once).
+const withoutRejection = (rejections, receiptId, shipmentId) =>
+  rejections.filter((x) => !(x.receipt_id === receiptId && x.shipment_id === shipmentId));
+
 // keep at most ONE confirmed IR per (shipment, PO)
 function unmatchSiblings(receipts, r, shipmentId) {
   receipts.forEach((x) => {
@@ -43,7 +49,46 @@ async function setMatch(req, res) {
   r.confirmed_by = req.user?.id || null;
   r.confirmed_at = new Date().toISOString();
   await M.writeReceipts(receipts);
+  const rejections = await M.readRejections().catch(() => []);
+  const kept = withoutRejection(rejections, r.id, shipment_id);
+  if (kept.length !== rejections.length) await M.writeRejections(kept);
   res.json(r);
+}
+
+// POST /mainline/receipts/:id/reject { shipment_id } — the human says this suggested
+// IR is NOT the one for this shipment's PO. Stored, because the match is derived per
+// read: an unstored "no" would be re-suggested on the next refresh. The matcher then
+// offers the next candidate, or falls through to manual IR-# entry.
+async function rejectMatch(req, res) {
+  const { shipment_id } = req.body || {};
+  if (!shipment_id) err("'shipment_id' is required", 400);
+  const receipts = await M.readReceipts();
+  const r = receipts.find((x) => x.id === req.params.id);
+  if (!r) err('Item receipt not found', 404);
+  if (!(await _shipmentPos(shipment_id)).has(r.po_number)) err(`Shipment ${shipment_id} does not carry PO ${r.po_number}`, 400);
+  // rejecting a pair that is currently CONFIRMED also withdraws the confirmation
+  if (r.matched_shipment_id === shipment_id) {
+    r.matched_shipment_id = null; r.confirmed_by = null; r.confirmed_at = null;
+    await M.writeReceipts(receipts);
+  }
+  const rejections = await M.readRejections().catch(() => []);
+  if (!rejections.some((x) => x.receipt_id === r.id && x.shipment_id === shipment_id)) {
+    const seq = rejections.reduce((mx, x) => Math.max(mx, +String(x.id).replace(/\D/g, '') || 0), 0) + 1;
+    rejections.push({ id: `mrej_${seq}`, receipt_id: r.id, shipment_id,
+      rejected_by: req.user?.id || null, rejected_at: new Date().toISOString() });
+    await M.writeRejections(rejections);
+  }
+  res.json({ receipt_id: r.id, shipment_id, rejected: true });
+}
+
+// DELETE /mainline/receipts/:id/reject?shipment_id=… — undo a rejection.
+async function unrejectMatch(req, res) {
+  const shipment_id = req.body?.shipment_id || req.query.shipment_id;
+  if (!shipment_id) err("'shipment_id' is required", 400);
+  const rejections = await M.readRejections().catch(() => []);
+  const kept = withoutRejection(rejections, req.params.id, shipment_id);
+  if (kept.length !== rejections.length) await M.writeRejections(kept);
+  res.json({ receipt_id: req.params.id, shipment_id, rejected: false });
 }
 
 // DELETE /mainline/receipts/:id/match
@@ -81,7 +126,10 @@ async function manualMatch(req, res) {
   r.confirmed_by = req.user?.id || null;
   r.confirmed_at = new Date().toISOString();
   await M.writeReceipts(receipts);
+  const rejections = await M.readRejections().catch(() => []);
+  const kept = withoutRejection(rejections, r.id, shipment_id);
+  if (kept.length !== rejections.length) await M.writeRejections(kept);
   res.json(r);
 }
 
-module.exports = { setMatch, clearMatch, manualMatch };
+module.exports = { setMatch, clearMatch, manualMatch, rejectMatch, unrejectMatch };

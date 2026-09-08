@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Check, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,7 +17,7 @@ import { createMainlineBooking, approveMainlineBooking, deleteMainlineBooking } 
 import DataTable, { type DataColumn } from './DataTable';
 import ConfirmDialog from './ConfirmDialog';
 import { SeasonScopeFilter, seasonsFrom, applySeasonScope, type Scope } from '@/components/SeasonScopeFilter';
-import type { MainlineBooking, PoMasterSummary, PoLegRow } from '@/modules/mainline/types';
+import type { MainlineBooking, PoMasterSummary, PoLegRow, CourierOption } from '@/modules/mainline/types';
 
 // A booking's work is done once it's Approved (it has spawned its shipment) or
 // terminal (Cancelled/Rejected). "Active" = still Pending approval.
@@ -33,8 +33,11 @@ const STATUS_STYLES: Record<string, string> = {
 
 type RowInput = { units?: string; cartons?: string; weight?: string; cbm?: string };
 
-export default function BookingsTable({ bookings, masters, legs, initialNewSupplier = null }: {
-  bookings: MainlineBooking[]; masters: PoMasterSummary[]; legs: PoLegRow[]; initialNewSupplier?: string | null;
+// base-ui Select cannot hold an empty-string value, so 'no carrier chosen' needs a sentinel.
+const NO_CARRIER = '__none__';
+
+export default function BookingsTable({ bookings, masters, legs, couriers = [], initialNewSupplier = null }: {
+  bookings: MainlineBooking[]; masters: PoMasterSummary[]; legs: PoLegRow[]; couriers?: CourierOption[]; initialNewSupplier?: string | null;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -51,8 +54,10 @@ export default function BookingsTable({ bookings, masters, legs, initialNewSuppl
     [bookings, season, scope],
   );
 
-  // create-dialog state
+  // create-dialog state. Read `effectiveSupplierId`, never `supplierId` directly —
+  // see the auto-select note below.
   const [supplierId, setSupplierId] = useState('');
+  const [courierId, setCourierId] = useState('');      // planned carrier (optional)
   const [bookingDate, setBookingDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [rows, setRows] = useState<Record<string, RowInput>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -70,6 +75,14 @@ export default function BookingsTable({ bookings, masters, legs, initialNewSuppl
     return [...m.entries()].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
   }, [masters, legs]);
 
+  // `/po` is vendor-scoped server-side (poController.loadAll), so a Vendor login sees
+  // exactly ONE bookable supplier here — and had to click a one-option dropdown to
+  // reveal their own legs. Auto-select in that case. DERIVED rather than a
+  // useEffect+setState: the effect form trips this repo's react-hooks
+  // /set-state-in-effect rule, and derivation can't fall out of sync with `suppliers`.
+  const effectiveSupplierId = supplierId || (suppliers.length === 1 ? suppliers[0].id : '');
+  const selectedCarrier = couriers.find((c) => c.id === courierId) || null;
+
   const bookedByLeg = useMemo(() => {
     const m = new Map<string, number>();
     bookings.forEach((b) => {
@@ -81,8 +94,8 @@ export default function BookingsTable({ bookings, masters, legs, initialNewSuppl
   const remainingOf = (l: PoLegRow) => l.expected_qty - (bookedByLeg.get(l.id) || 0);
 
   const supplierLegs = useMemo(
-    () => (supplierId ? legs.filter((l) => trnSupplier.get(l.trn_number || '') === supplierId) : []),
-    [legs, supplierId, trnSupplier]
+    () => (effectiveSupplierId ? legs.filter((l) => trnSupplier.get(l.trn_number || '') === effectiveSupplierId) : []),
+    [legs, effectiveSupplierId, trnSupplier]
   );
 
   const setField = (legId: string, field: keyof RowInput, value: string) =>
@@ -107,7 +120,7 @@ export default function BookingsTable({ bookings, masters, legs, initialNewSuppl
   const modesSel = [...new Set(selectedRows.map((l) => l.mode ?? '—'))];
   const consignmentConflict = selectedRows.length > 1 && (destinations.length > 1 || modesSel.length > 1);
 
-  function resetForm() { setSupplierId(''); setRows({}); setWarning(null); setBookingDate(new Date().toISOString().slice(0, 10)); }
+  function resetForm() { setSupplierId(''); setCourierId(''); setRows({}); setWarning(null); setBookingDate(new Date().toISOString().slice(0, 10)); }
 
   // "Book Now" on the PO masters table lands here with ?new=<supplier_id> —
   // open the create dialog with that supplier preselected.
@@ -120,10 +133,10 @@ export default function BookingsTable({ bookings, masters, legs, initialNewSuppl
   }, [initialNewSupplier]);
 
   async function submit(force = false) {
-    if (!supplierId || selected.length === 0) { toast.error('Pick a supplier and enter units on at least one PO'); return; }
+    if (!effectiveSupplierId || selected.length === 0) { toast.error('Pick a supplier and enter units on at least one PO'); return; }
     if (consignmentConflict) { toast.error('Multiple POs can be booked together only when they share one destination and one mode.'); return; }
     setSubmitting(true);
-    const res = await createMainlineBooking({ supplier_id: supplierId, booking_date: bookingDate || undefined, po_legs: selected, force_overbook: force });
+    const res = await createMainlineBooking({ supplier_id: effectiveSupplierId, courier_id: courierId || null, booking_date: bookingDate || undefined, po_legs: selected, force_overbook: force });
     setSubmitting(false);
     if (res?.overbook_warning) { setWarning(res); return; }
     if (res?.error) { toast.error(res.error); return; }
@@ -211,16 +224,39 @@ export default function BookingsTable({ bookings, masters, legs, initialNewSuppl
             <p className="text-sm text-muted-foreground">Single PO, or multiple POs from the same supplier (G1). Cartons / gross weight are booking estimates for the freight forwarder — actuals come from the CI &amp; packing list.</p>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label>Supplier</Label>
-                <Select value={supplierId} onValueChange={(v) => { setSupplierId(v ?? ''); setRows({}); setWarning(null); }}>
+                <Select value={effectiveSupplierId} onValueChange={(v) => { setSupplierId(v ?? ''); setRows({}); setWarning(null); }}>
+                  {/* Label rendered directly in the trigger, per the Radix Select
+                      gotcha in CLAUDE.md. The SelectValue render-prop this replaced
+                      never showed its placeholder: `value` is '' (not null/undefined)
+                      before a pick, so the function ran, found no match and returned
+                      '' — an empty trigger with no hint of what to do. */}
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a supplier">
-                      {(value: string | null) => suppliers.find((s) => s.id === value)?.name ?? value}
-                    </SelectValue>
+                    <span className={cn(!effectiveSupplierId && 'text-muted-foreground')}>
+                      {suppliers.find((s) => s.id === effectiveSupplierId)?.name || 'Select a supplier'}
+                    </span>
                   </SelectTrigger>
                   <SelectContent className="max-h-72 min-w-[16rem] sm:min-w-[28rem]">{suppliers.map((s) => <SelectItem key={s.id} value={s.id} className="whitespace-nowrap">{s.name}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              {/* PLANNED carrier — "book with FedEx/DHL, or book with a forwarder".
+                  Optional: not always decided at submission, and correctable on the
+                  shipment. Approval copies it onto the shipment it creates, where it
+                  decides whether the landed cost is an actual or a CI estimate. */}
+              <div className="space-y-1.5">
+                <Label>Carrier <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                <Select value={courierId || NO_CARRIER} onValueChange={(v) => setCourierId(v === NO_CARRIER ? '' : (v ?? ''))}>
+                  <SelectTrigger className="w-full">
+                    <span className={cn(!courierId && 'text-muted-foreground')}>
+                      {couriers.find((c) => c.id === courierId)?.name || 'Decide later'}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NO_CARRIER}>Decide later</SelectItem>
+                    {couriers.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
@@ -228,8 +264,16 @@ export default function BookingsTable({ bookings, masters, legs, initialNewSuppl
                 <Input type="date" value={bookingDate} onChange={(e) => setBookingDate(e.target.value)} />
               </div>
             </div>
+            {selectedCarrier && selectedCarrier.provides_cost_invoices === false && (
+              <p className="text-xs text-amber-600 dark:text-amber-400">
+                {/* explicit {' '} — this toolchain drops the literal space that follows
+                    an expression, rendering "FedExdoes not invoice…" */}
+                {selectedCarrier.name}{' '}does not invoice freight &amp; duty separately, so this shipment&apos;s landed cost will be
+                estimated from the commercial-invoice value rather than typed from invoices.
+              </p>
+            )}
 
-            {supplierId && (
+            {effectiveSupplierId && (
               <div className="space-y-1.5">
                 <Label>POs / legs — enter units to include ({selected.length} selected)</Label>
                 <div className="max-h-[55vh] overflow-auto rounded-md border border-border">
@@ -265,7 +309,7 @@ export default function BookingsTable({ bookings, masters, legs, initialNewSuppl
                             <TableCell className="text-muted-foreground whitespace-nowrap">{l.allocation_channel ?? '—'}</TableCell>
                             <TableCell className="text-muted-foreground whitespace-nowrap">{l.crd ?? '—'}</TableCell>
                             <TableCell className="text-right tabular-nums whitespace-nowrap">
-                              <span className={cn(remaining <= 0 ? 'text-red-500' : 'text-emerald-600')}>{remaining.toLocaleString()}</span>
+                              <span className="text-red-600">{remaining.toLocaleString()}</span>
                               <span className="text-muted-foreground"> / {l.expected_qty.toLocaleString()}</span>
                             </TableCell>
                             <TableCell className="text-right">

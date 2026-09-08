@@ -1545,5 +1545,18 @@
     "facility_id": "fac_direct_tentree",
     "allocation_channel_id": null,
     "netsuite_id": "32625209"
+  },
+  {
+    "po_number": "PO04844",
+    "trn_number": "TRN_3167",
+    "supplier_id": "7",
+    "season_id": "season_fw27",
+    "hod": "2026-07-24",
+    "expected_received_date": "2026-08-01",
+    "ship_method": "SEA",
+    "approval_status": "Approved",
+    "facility_id": "fac_direct_tentree",
+    "allocation_channel_id": null,
+    "netsuite_id": "33920347"
   }
 ]

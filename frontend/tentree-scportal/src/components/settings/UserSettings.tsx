@@ -8,8 +8,8 @@ import { useSession } from '@/components/providers/SessionProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SettingsTable, type SettingsColumn } from './SettingsTable';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Plus, Trash2, Save, UserCog, KeyRound, Eye, EyeOff, Pencil, Check } from 'lucide-react';
@@ -163,6 +163,90 @@ export function UserSettings() {
 
   if (isLoading) return <div className="p-4 text-sm text-muted-foreground italic">Loading users...</div>;
 
+  // Columns sort on the value currently SHOWN (pending inline edit if any).
+  const columns: SettingsColumn<any>[] = [
+    {
+      key: 'name', label: 'Name',
+      accessor: (u) => getEdit(u.id, 'name', u.name),
+      cell: (u) => (
+        <Input value={getEdit(u.id, 'name', u.name)} onChange={e => setEdit(u.id, 'name', e.target.value)} className="h-8 text-sm" />
+      ),
+    },
+    {
+      key: 'email', label: 'Email',
+      accessor: (u) => getEdit(u.id, 'email', u.email),
+      cell: (u) => (
+        <Input value={getEdit(u.id, 'email', u.email)} onChange={e => setEdit(u.id, 'email', e.target.value)} className="h-8 text-sm" />
+      ),
+    },
+    {
+      key: 'role', label: 'Role',
+      accessor: (u) => getEdit(u.id, 'role', u.role),
+      cell: (u) => (u.id === sessionUser?.id ? (
+        <Badge variant="outline" className={`text-xs ${roleBadgeClass[u.role] || ''}`}>{u.role}</Badge>
+      ) : (
+        <Select value={getEdit(u.id, 'role', u.role)} onValueChange={v => setEdit(u.id, 'role', v)}>
+          <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {roleOptions.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      )),
+    },
+    {
+      key: 'supplier', label: 'Supplier',
+      accessor: (u) => getEdit(u.id, 'supplier', u.supplier || ''),
+      cell: (u) => (getEdit(u.id, 'role', u.role) === 'Vendor' ? (
+        <Select
+          value={getEdit(u.id, 'supplier', u.supplier || '')}
+          onValueChange={v => setEdit(u.id, 'supplier', v)}
+          disabled={u.id === sessionUser?.id}
+        >
+          <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Select supplier" /></SelectTrigger>
+          <SelectContent>
+            {suppliers.map((s: any) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      ) : (
+        <span className="text-xs text-muted-foreground">—</span>
+      )),
+    },
+    {
+      key: 'actions', label: 'Actions', sortable: false, movable: false, headClassName: 'w-[130px]',
+      cell: (u) => (!editing ? <span className="text-xs text-muted-foreground">—</span> : (
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost" size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-primary"
+            title="Reset password"
+            onClick={() => { setResetTarget(u); setNewPassword(''); }}
+          >
+            <KeyRound className="w-3.5 h-3.5" />
+          </Button>
+          <Button
+            variant="ghost" size="icon"
+            className="h-8 w-8 text-primary"
+            title="Save changes"
+            disabled={!isDirty(u.id) || savingId === u.id}
+            onClick={() => handleSave(u)}
+          >
+            <Save className="w-3.5 h-3.5" />
+          </Button>
+          {u.id !== sessionUser?.id && (
+            <Button
+              variant="ghost" size="icon"
+              className="h-8 w-8 text-destructive"
+              title="Delete user"
+              onClick={() => handleDelete(u)}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
+      )),
+    },
+  ];
+
   return (
     <div className="space-y-4 bg-card p-4 sm:p-6 rounded-xl border shadow-sm">
       <div className="flex items-center justify-between">
@@ -188,119 +272,15 @@ export function UserSettings() {
         </div>
       </div>
 
-      <fieldset disabled={!editing} className="m-0 p-0 min-w-0 border rounded-md overflow-hidden [&_input:disabled]:opacity-100 [&_input:disabled]:cursor-default [&_input:disabled]:border-transparent [&_input:disabled]:bg-transparent [&_input:disabled]:shadow-none">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Supplier</TableHead>
-              <TableHead className="w-[130px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map(u => {
-              const isSelf = u.id === sessionUser?.id;
-              const role = getEdit(u.id, 'role', u.role);
-              return (
-                <TableRow key={u.id} className={isSelf ? 'bg-primary/5' : ''}>
-                  <TableCell className="p-2">
-                    <Input
-                      value={getEdit(u.id, 'name', u.name)}
-                      onChange={e => setEdit(u.id, 'name', e.target.value)}
-                      className="h-8 text-sm"
-                    />
-                  </TableCell>
-                  <TableCell className="p-2">
-                    <Input
-                      value={getEdit(u.id, 'email', u.email)}
-                      onChange={e => setEdit(u.id, 'email', e.target.value)}
-                      className="h-8 text-sm"
-                    />
-                  </TableCell>
-                  <TableCell className="p-2">
-                    {isSelf ? (
-                      <Badge variant="outline" className={`text-xs ${roleBadgeClass[u.role] || ''}`}>
-                        {u.role}
-                      </Badge>
-                    ) : (
-                      <Select value={role} onValueChange={v => setEdit(u.id, 'role', v)}>
-                        <SelectTrigger className="h-8 text-sm">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {roleOptions.map(r => (
-                            <SelectItem key={r} value={r}>{r}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </TableCell>
-                  <TableCell className="p-2">
-                    {role === 'Vendor' ? (
-                      <Select
-                        value={getEdit(u.id, 'supplier', u.supplier || '')}
-                        onValueChange={v => setEdit(u.id, 'supplier', v)}
-                        disabled={isSelf}
-                      >
-                        <SelectTrigger className="h-8 text-sm">
-                          <SelectValue placeholder="Select supplier" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {suppliers.map((s: any) => (
-                            <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="p-2">
-                    {editing ? (
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-primary"
-                          title="Reset password"
-                          onClick={() => { setResetTarget(u); setNewPassword(''); }}
-                        >
-                          <KeyRound className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-primary"
-                          title="Save changes"
-                          disabled={!isDirty(u.id) || savingId === u.id}
-                          onClick={() => handleSave(u)}
-                        >
-                          <Save className="w-3.5 h-3.5" />
-                        </Button>
-                        {!isSelf && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive"
-                            title="Delete user"
-                            onClick={() => handleDelete(u)}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </fieldset>
+      <SettingsTable
+        rows={users}
+        columns={columns}
+        rowKey={(u) => u.id}
+        disabled={!editing}
+        storageKey="settings-users-colorder"
+        emptyText="No users yet."
+        rowClassName={(u) => (u.id === sessionUser?.id ? 'bg-primary/5' : undefined)}
+      />
 
       {/* ── Add User dialog ── */}
       {/* modal={false}: the Base-UI Selects portal to <body>, outside Radix's focus

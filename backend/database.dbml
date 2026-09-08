@@ -64,6 +64,11 @@
 //  SHARED REFERENCE / MASTER DATA  (used by BOTH modules)
 // ===========================================================================
 
+// `name` unique is enforced case/punctuation-INSENSITIVELY (utils/nameKey.supplierKey):
+// NetSuite spells vendors "Best Star Fashions Co., Ltd." where the master data holds
+// "Best Star Fashions Co Ltd" — one vendor, so one row. Six such duplicate pairs were
+// merged 2026-08-12. In Postgres: a functional unique index over the same expression
+// (the key is derived from `name` — never a stored column).
 Table suppliers {                       // resolves supplier-fact duplication (PO.coo, vendor_name)
   id            varchar [pk]
   name          varchar [unique, not null]
@@ -115,9 +120,21 @@ Table container_types {
   name varchar [unique, not null]   // FCL / LCL
 }
 
+// Carriers, despite the name — the table holds parcel couriers (FedEx, DHL) AND
+// freight forwarders (Ceva). Renaming it to `carriers` is deferred debt: every SMS
+// reference would move with it.
 Table couriers {                        // SMS-leaning but shared lookup
   id   varchar [pk]
   name varchar [unique, not null]
+  // Does finance receive SEPARATE freight & duty invoices from this carrier?
+  //   true  (forwarders, e.g. Ceva) → landed cost is the ACTUAL off those invoices
+  //   false (parcel couriers, FedEx/DHL) → no traceable invoice, so landed cost is
+  //         ESTIMATED as commercial-invoice value × landed_cost_rates
+  // The flag lives HERE because it is a property of the carrier, not of any one
+  // shipment — so the basis stays DERIVED per read and no transaction row stores it.
+  // Read by the MAINLINE landed-cost path only; SMS keeps its own booked/unbooked
+  // rule (the two modules' landed-cost paths stay separate by design).
+  provides_cost_invoices boolean [default: true]
 }
 
 Table modes {                           // Sea FCL / Air / Courier
@@ -276,6 +293,12 @@ Table mainline_bookings {               // no copied supplier/po labels — all 
   supplier_id   varchar [ref: > suppliers.id]          // single source (was vendor_name + supplier)
   incoterm_id   varchar [ref: > incoterms.id]
   cargo_ready_date date
+  // PLANNED carrier — the commercial decision the booking IS ("book with FedEx/DHL,
+  // or book with a freight forwarder"). Copied onto the shipment at approve.
+  // NOT the same fact as mainline_shipments.courier_id, which is what ACTUALLY
+  // carried it — same plan-vs-actual split as booked units vs shipped units. The
+  // variance is derived at read, never stored.
+  courier_id    varchar [ref: > couriers.id]
   booking_status_id varchar [ref: > statuses.id]
   submitted_at  timestamp
   approved_at   timestamp
@@ -363,6 +386,20 @@ Table mainline_shipments {
   pol_port_id   varchar [ref: > ports.id]                 // Departure Port
   pod_port_id   varchar [ref: > ports.id]                 // Arrival Port
   bl_no         varchar                                   // ocean bill of lading number
+  // ACTUAL carrier for this conveyance (stamped from the booking at approve,
+  // correctable after). Drives the landed-cost BASIS via couriers
+  // .provides_cost_invoices: a FedEx/DHL shipment is estimated from the CI value,
+  // a forwarder shipment uses the actual freight/duty typed below.
+  // NULL on rows created before 2026-08-24 → treated as ACTUAL, so historical
+  // shipments and their posted landed costs are unaffected.
+  courier_id    varchar [ref: > couriers.id]
+  // The carrier's OWN reference for this shipment. Was `ceva_shipment_number`,
+  // which hardcoded one carrier's name into the schema — the carrier is now data
+  // (courier_id above), so the column no longer names it. Distinct from
+  // `shipment_number` (SHP-N), which is the portal's own sequence.
+  carrier_reference varchar                                // manually entered
+  customs_entry_number varchar                            // customs clearance entry #, manually entered
+                                                          // (pushed as custbody_tt_customs_entry_number)
   // SHARED ocean logistics dates — edited once for the whole consignment:
   etd_pol       date
   eta_pod       date
@@ -408,6 +445,25 @@ Table mainline_item_receipts {
   confirmed_by       varchar              // user id
   confirmed_at       timestamp
 }
+// The NEGATIVE of matched_shipment_id: a suggested (receipt × shipment) pair a
+// human explicitly rejected ("✗ — that is not the IR for this PO"). Stored because
+// the suggestion is DERIVED per read — an unrecorded "no" would be re-suggested on
+// the next refresh. Excluded from both auto-match passes, so the next-best candidate
+// surfaces instead. Own table, not a column: one IR can be rejected against several
+// of its PO's shipments, which on the receipt row would be a repeating group.
+// Mutually exclusive with matched_shipment_id for the same pair (the controllers
+// clear one when the other is asserted).
+Table mainline_receipt_match_rejections {
+  id          varchar [pk]
+  receipt_id  varchar [not null, ref: > mainline_item_receipts.id]
+  shipment_id varchar [not null, ref: > mainline_shipments.id]
+  rejected_by varchar              // user id
+  rejected_at timestamp
+  indexes {
+    (receipt_id, shipment_id) [unique]
+  }
+}
+
 Table mainline_item_receipt_lines {      // per-SKU received qty (from the NS IR lines)
   id         varchar [pk]
   receipt_id varchar [not null, ref: > mainline_item_receipts.id]
@@ -468,22 +524,93 @@ Table sms_pos {                         // SMS purchase order (one NetSuite PO, 
   netsuite_id   varchar [unique]
 }
 
-Table sms_po_lines {                    // NetSuite-owned per-SKU ordered qty
-  id            varchar [pk]
-  po_number     varchar [not null, ref: > sms_pos.po_number]
-  sku_code      varchar [ref: > product_skus.sku_code]
-  ordered_qty   integer
-  unit_price    decimal
+// NetSuite-owned per-SKU ordered qty. GRAIN = the NetSuite transaction LINE, which
+// is NOT the same as (po_number, sku_code): NetSuite legitimately repeats one item
+// across several PO lines (split by receipt date / location, or a price-correction
+// line). Live proof: PO04792 = 54 SKUs × 3 lines each, PO04697 has one SKU at both
+// 26.25 and 49. (po_number, sku_code) was declared unique here until 2026-08-14 and
+// 57 key groups violated it, so the index could never have been created.
+// `netsuite_line_id` is that true identity — the SuiteQL already selected it
+// (integrationService `tl.id AS line_id`); the sync just wasn't storing it.
+// Rows synced before the fix carry a null netsuite_line_id, and Postgres permits
+// multiple NULLs in a unique index, so old and new rows both load; each PO's rows
+// gain their ids on its next sync (lines are rebuilt wholesale per PO).
+// Every consumer aggregates per PO or per (po, sku) — see smsService.priceByPoSku
+// for the deterministic price pick when one (po, sku) spans several lines.
+Table sms_po_lines {
+  id               varchar [pk]          // spol_ns_<netsuite_line_id> (stable across syncs)
+  po_number        varchar [not null, ref: > sms_pos.po_number]
+  sku_code         varchar [ref: > product_skus.sku_code]
+  ordered_qty      integer
+  unit_price       decimal               // per NS LINE; may differ between lines of one SKU
+  netsuite_line_id varchar [unique]      // transactionline.id — the real identity; null on pre-2026-08-14 rows
 
   indexes {
-    (po_number, sku_code) [unique]
+    (po_number, sku_code)                // lookup only — NOT unique, see the note above
+  }
+}
+
+// SMS BOOKING (added 2026-08-07) — an OPTIONAL authorization step. Courier
+// consignments need no space reservation, so most SMS shipments are still entered
+// by the vendor with NO booking (booking_id IS NULL — the original flow, unchanged).
+// A booking exists when the consignment is planned/authorized up front: it gates
+// approval, and it marks the shipment as one that carries a formal customs entry
+// (actual freight/duty from the broker bill — see sms_shipments below).
+// Vendor submits → Logistics approves; approval creates one DRAFT shipment per
+// destination facility (tracking number filled in later, when the box ships).
+Table sms_bookings {
+  id                varchar [pk]
+  booking_number    varchar [unique, not null]        // own sequence (SMS-B-N)
+  supplier_id       varchar [ref: > suppliers.id]     // G1: one supplier per booking
+  incoterm_id       varchar [ref: > incoterms.id]     // nullable — courier terms are often DAP/DDP
+  cargo_ready_date  date                              // the SMS CRD (HOD-aligned)
+  // Carrier + mode are PLANNED here and copied onto the draft shipment at approve
+  // (2026-08-24). They used to not exist: approve hardcoded FedEx, and the landed
+  // -cost push then tagged every SMS receipt COURIER. A booked consignment clears
+  // customs formally and may well move by Ceva sea/air, so both are explicit.
+  // They are INDEPENDENT — Ceva runs both sea and air, so carrier cannot derive mode.
+  courier_id        varchar [ref: > couriers.id]      // FedEx / DHL / Ceva
+  mode_id           varchar [ref: > modes.id]         // Sea / Air / Courier — drives NS custbody16
+  booking_status_id varchar [ref: > statuses.id]      // statuses WHERE module='sms', category='booking'
+  submitted_at      timestamp
+  approved_at       timestamp
+}
+
+// Junction (M:N booking ↔ PO-lot). Mirrors mainline_booking_po_legs, but keys on
+// (po_number, lot_number): SMS has NO air/sea legs — sms_pos IS the bookable grain,
+// so there is no leg surrogate to reference.
+// units here = BOOKED qty; sms_shipment_pos.units = SHIPPED qty. Two different
+// facts (the variance is derived at read, never stored).
+// "A lot sits on at most ONE ACTIVE booking" is a CONTROLLER GUARD, not an index:
+// a Cancelled/Rejected booking must leave the lot re-bookable.
+Table sms_booking_pos {
+  id          varchar [pk]
+  booking_id  varchar [not null, ref: > sms_bookings.id]
+  po_number   varchar [not null, ref: > sms_pos.po_number]
+  lot_number  integer [not null]
+  units       integer [not null]
+  cartons     integer
+  weight_kg   decimal
+  cbm         decimal
+
+  indexes {
+    (booking_id, po_number, lot_number) [unique]
   }
 }
 
 Table sms_shipments {                   // ONE physical consignment = one tracking number
   id              varchar [pk]
-  courier_id      varchar [not null]    // → couriers master data (FedEx / DHL / …)
-  tracking_number varchar [unique]      // the courier's key; tracking poll joins on it
+  courier_id      varchar [not null]    // → couriers master data (FedEx / DHL / Ceva)
+  // Shipping mode (2026-08-24). NULLABLE and normally null: a vendor-entered
+  // consignment is a courier parcel by definition, and the landed-cost push falls
+  // back to COURIER when this is null — so the unbooked flow is untouched. It is
+  // SET on a booked consignment (copied from sms_bookings.mode_id at approve),
+  // where the box may actually be a Ceva sea/air movement, and it is what the
+  // NetSuite push maps to custbody16 (SEA / AIR / COURIER).
+  mode_id         varchar [ref: > modes.id]
+  tracking_number varchar [unique]      // the courier's key; tracking poll joins on it.
+                                        // NULLABLE + null-exempt from the unique check:
+                                        // a booking-approved DRAFT has no number yet.
   ship_date       date
   facility_id     varchar [ref: > warehouse_facilities.id]   // destination
   manual_status_id varchar [ref: > statuses.id]  // vendor/logistics fallback while the
@@ -495,6 +622,20 @@ Table sms_shipments {                   // ONE physical consignment = one tracki
   created_at      timestamp
   // NO cartons/units here — those are per-PO facts on sms_shipment_pos;
   // consignment totals are DERIVED (Σ junction), never stored.
+
+  // ── BOOKED consignments (added 2026-08-07) — all nullable; null on the
+  //    vendor-entered flow, which is unchanged.
+  booking_id      varchar [ref: > sms_bookings.id]   // NULL = vendor-entered, no booking
+  // One customs entry per physical consignment — same functional dependency
+  // mainline_shipments carries. Freight/duty here are ACTUALS off the broker /
+  // courier bill, typed once (NO rate, NO estimate — mainline behaviour).
+  // Unbooked SMS shipments keep the DERIVED CI × landed_cost_rates estimate.
+  customs_entry_number varchar
+  duty            decimal
+  freight         decimal
+  // NOT stored: invoice_value. Mainline types it in; SMS DERIVES CI value as
+  // Σ(pcs × unit_price) over sms_packing_cartons, so storing it would duplicate
+  // a derivable fact. The posted snapshot in landed_costs still records it.
 }
 
 Table sms_shipment_pos {                // junction: which PO-lots the consignment carries.
@@ -549,6 +690,19 @@ Table sms_item_receipts {               // NetSuite Item Receipts (warehouse-sid
   confirmed_at   timestamp
 }
 
+// The NEGATIVE of matched_shipment_id — see mainline_receipt_match_rejections for
+// the reasoning. Kept as SMS's own table (no transactional table is shared).
+Table sms_receipt_match_rejections {
+  id          varchar [pk]
+  receipt_id  varchar [not null, ref: > sms_item_receipts.id]
+  shipment_id varchar [not null, ref: > sms_shipments.id]
+  rejected_by varchar              // user id
+  rejected_at timestamp
+  indexes {
+    (receipt_id, shipment_id) [unique]
+  }
+}
+
 Table sms_item_receipt_lines {          // per-SKU received qty (from the NS IR lines)
   id         varchar [pk]
   receipt_id varchar [not null, ref: > sms_item_receipts.id]
@@ -560,22 +714,41 @@ Table sms_item_receipt_lines {          // per-SKU received qty (from the NS IR 
   }
 }
 
+// The PHYSICAL box. Split out of sms_packing_cartons 2026-08-14 (2NF): these three
+// facts depend on (shipment_id, ctn_number) — a proper subset of that table's
+// (shipment, ctn, sku) key — so storing them per SKU row repeated one carton's
+// weight across up to 30 rows. The uploader wrote the real value on the carton's
+// first line and zeroed the repeats, leaving 103 of 114 cartons self-contradictory,
+// so every total depended on ROW ORDER: reversing the row order changed the packing
+// summary of 25 of 34 consignments, one of them from 246.2 kg to 0. Row order is
+// undefined in SQL, so this had to be fixed before the Postgres migration.
+// Backfill: scripts/split-sms-cartons.js (idempotent, --dry-run, refuses to write
+// on any conflicting non-empty pair). Joined back onto the SKU rows at read by
+// smsService.withCartonFacts. NOTE mainline_packing_cartons still has this shape.
+Table sms_cartons {
+  id               varchar [pk]         // sctn_<shipment>_<ctn>
+  shipment_id      varchar [not null, ref: > sms_shipments.id]
+  ctn_number       integer [not null]
+  net_weight_kgs   decimal
+  gross_weight_kgs decimal
+  measure_cm       varchar              // "L x W x H"
+  indexes { (shipment_id, ctn_number) [unique] }   // ctn_number alone is NOT unique — 14 values repeat across shipments
+}
+
 Table sms_packing_cartons {             // SHIPPING DATA — carton × SKU detail the
   id            varchar [pk]            // vendor uploads (one Excel per consignment).
   shipment_id   varchar [not null, ref: > sms_shipments.id]   // Source of shipped-per-SKU,
   po_number     varchar [not null, ref: > sms_pos.po_number]  // the CI and the packing list.
-  ctn_number    integer
+  ctn_number    integer                 // → sms_cartons (shipment_id, ctn_number)
   sku_code      varchar [ref: > product_skus.sku_code]
   pcs_per_ctn   integer
-  unit_price    decimal                 // snapshot; defaults from sms_po_lines.unit_price
-  net_weight_kgs   decimal              // carton-level (counted once per ctn_number)
-  gross_weight_kgs decimal
-  measure_cm    varchar                 // "L x W x H"
+  unit_price    decimal                 // snapshot; deterministic default from sms_po_lines — smsService.priceByPoSku
   indexes { (shipment_id, ctn_number, sku_code) [unique] }
   // DERIVED, never stored: total_usd (= pcs_per_ctn × unit_price), shipped-per-SKU
   // (Σ pcs by po×sku), packing summary (pcs/cartons/weights/cbm/value). Unlike
   // mainline (which redundantly stores mainline_ci_line_items), SMS derives the
   // CI line items from these cartons at read-time.
+  // Carton weight/measure live in sms_cartons — NOT here (see that table).
 }
 
 Table sms_documents {                   // generated CI + packing-list artifacts
@@ -589,13 +762,18 @@ Table sms_documents {                   // generated CI + packing-list artifacts
 }
 
 // DERIVED, never stored (same rule as mainline): shipment status (latest
-// tracking event via courier_status_map, fallback manual_status_id), courier
-// ETA (estimatedDeliveryTimeWindow from the poll), consignment totals
-// (Σ junction units/cartons), per-PO fulfillment ("2 of 3 lots shipped"),
-// reconciliation ordered (sms_po_lines) vs shipped (Σ sms_shipment_pos.units)
-// vs received (Σ sms_item_receipt_lines) + variance, timeliness vs sms_pos.hod.
-// New statuses rows: module='sms', category='shipment' — Label Created, Picked
-// Up, In Transit, Out for Delivery, Delivered, Exception.
+// tracking event via courier_status_map, fallback manual_status_id, THEN
+// Delivered → Received when every PO in the box has an sms_item_receipts row
+// attributed to that lot), courier ETA (estimatedDeliveryTimeWindow from the
+// poll), consignment totals (Σ junction units/cartons), per-PO fulfillment
+// ("2 of 3 lots shipped"), reconciliation ordered (sms_po_lines) vs shipped
+// (Σ sms_shipment_pos.units) vs received (Σ sms_item_receipt_lines) + variance,
+// timeliness vs sms_pos.hod.
+// statuses rows: module='sms', category='shipment' — Label Created, Picked Up,
+// In Transit, Out for Delivery, Delivered, Received, Exception. 'Received'
+// (sms_received) is DERIVE-ONLY: no courier_status_map code maps to it and
+// manual_status_id may never hold it (the write route rejects the name) — it
+// exists as a row purely for the name/colour join.
 
 
 // ===========================================================================
@@ -660,6 +838,17 @@ Table landed_cost_rates {
 // invoice_value + freight_pct/duty_pct + freight/duty are the POINT-IN-TIME
 // posted facts (not recomputed after rates change). shipment_id is a soft ref
 // into the module's own shipment table (sms_shipments for module='sms').
+//
+// GRAIN: keyed on the SHIPMENT, never the booking — one physical consignment is
+// one customs entry. An SMS booking spanning 3 tracking numbers = 3 customs
+// entries = 3 rows here (same as mainline, which also keys on shipment).
+//
+// BASIS (2026-08-07) — which source the posted freight/duty came from is DERIVABLE
+// from the row itself, so there is no `basis` column:
+//   • rate snapshot SET   → estimate (CI value × landed_cost_rates).
+//                           Unbooked SMS shipments.
+//   • rate snapshot NULL  → ACTUAL off the bill, read from the shipment row.
+//                           Mainline, and BOOKED SMS shipments.
 Table landed_costs {
   id            varchar [pk]
   module        varchar                               // 'sms' | 'mainline'

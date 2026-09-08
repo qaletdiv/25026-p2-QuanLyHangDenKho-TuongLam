@@ -214,5 +214,125 @@
     "lot_number": 1,
     "units": 30,
     "cartons": null
+  },
+  {
+    "id": "spo_29_PO04790",
+    "shipment_id": "29",
+    "po_number": "PO04790",
+    "lot_number": 2,
+    "units": 145,
+    "cartons": 6
+  },
+  {
+    "id": "spo_30_PO04791",
+    "shipment_id": "30",
+    "po_number": "PO04791",
+    "lot_number": 2,
+    "units": 246,
+    "cartons": 10
+  },
+  {
+    "id": "spo_34_PO04799",
+    "shipment_id": "34",
+    "po_number": "PO04799",
+    "lot_number": 1,
+    "units": 160,
+    "cartons": 6
+  },
+  {
+    "id": "spo_35_PO04799",
+    "shipment_id": "35",
+    "po_number": "PO04799",
+    "lot_number": 2,
+    "units": 4,
+    "cartons": null
+  },
+  {
+    "id": "spo_36_PO04818",
+    "shipment_id": "36",
+    "po_number": "PO04818",
+    "lot_number": 1,
+    "units": 222,
+    "cartons": null
+  },
+  {
+    "id": "spo_37_PO04793",
+    "shipment_id": "37",
+    "po_number": "PO04793",
+    "lot_number": 2,
+    "units": 6,
+    "cartons": 1
+  },
+  {
+    "id": "spo_38_PO04794",
+    "shipment_id": "38",
+    "po_number": "PO04794",
+    "lot_number": 2,
+    "units": 4,
+    "cartons": 1
+  },
+  {
+    "id": "spo_39_PO04795",
+    "shipment_id": "39",
+    "po_number": "PO04795",
+    "lot_number": 2,
+    "units": 9,
+    "cartons": null
+  },
+  {
+    "id": "spo_40_PO04789",
+    "shipment_id": "40",
+    "po_number": "PO04789",
+    "lot_number": 2,
+    "units": 206,
+    "cartons": 9
+  },
+  {
+    "id": "spo_41_PO04817",
+    "shipment_id": "41",
+    "po_number": "PO04817",
+    "lot_number": 2,
+    "units": 274,
+    "cartons": 14
+  },
+  {
+    "id": "spo_42_PO04819",
+    "shipment_id": "42",
+    "po_number": "PO04819",
+    "lot_number": 2,
+    "units": 433,
+    "cartons": 21
+  },
+  {
+    "id": "spo_43_PO04800",
+    "shipment_id": "43",
+    "po_number": "PO04800",
+    "lot_number": 1,
+    "units": 180,
+    "cartons": 7
+  },
+  {
+    "id": "spo_44_PO04823",
+    "shipment_id": "44",
+    "po_number": "PO04823",
+    "lot_number": 1,
+    "units": 125,
+    "cartons": 4
+  },
+  {
+    "id": "spo_45_PO04815",
+    "shipment_id": "45",
+    "po_number": "PO04815",
+    "lot_number": 1,
+    "units": 96,
+    "cartons": 3
+  },
+  {
+    "id": "spo_46_PO04801",
+    "shipment_id": "46",
+    "po_number": "PO04801",
+    "lot_number": 1,
+    "units": 332,
+    "cartons": 13
   }
 ]

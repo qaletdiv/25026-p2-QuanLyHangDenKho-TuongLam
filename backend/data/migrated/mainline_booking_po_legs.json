@@ -43,5 +43,113 @@
     "cartons": 7,
     "weight_kg": 89.35,
     "cbm": 0.44
+  },
+  {
+    "id": "bpl_4_77",
+    "booking_id": "4",
+    "leg_id": "77",
+    "units": 3516,
+    "cartons": 193,
+    "weight_kg": 1806.35,
+    "cbm": 12.91
+  },
+  {
+    "id": "bpl_4_45",
+    "booking_id": "4",
+    "leg_id": "45",
+    "units": 2959,
+    "cartons": 168,
+    "weight_kg": 1621.52,
+    "cbm": 11.11
+  },
+  {
+    "id": "bpl_5_73",
+    "booking_id": "5",
+    "leg_id": "73",
+    "units": 2959,
+    "cartons": 100,
+    "weight_kg": 952,
+    "cbm": 6.3
+  },
+  {
+    "id": "bpl_5_38",
+    "booking_id": "5",
+    "leg_id": "38",
+    "units": 1936,
+    "cartons": 66,
+    "weight_kg": 712.53,
+    "cbm": 2.86
+  },
+  {
+    "id": "bpl_6_77",
+    "booking_id": "6",
+    "leg_id": "77",
+    "units": 7279,
+    "cartons": 132,
+    "weight_kg": null,
+    "cbm": null
+  },
+  {
+    "id": "bpl_6_45",
+    "booking_id": "6",
+    "leg_id": "45",
+    "units": 13065,
+    "cartons": 222,
+    "weight_kg": null,
+    "cbm": null
+  },
+  {
+    "id": "bpl_7_28",
+    "booking_id": "7",
+    "leg_id": "28",
+    "units": 1271,
+    "cartons": 6,
+    "weight_kg": 1012,
+    "cbm": 6
+  },
+  {
+    "id": "bpl_7_18",
+    "booking_id": "7",
+    "leg_id": "18",
+    "units": 1245,
+    "cartons": 6,
+    "weight_kg": 996,
+    "cbm": 6
+  },
+  {
+    "id": "bpl_8_77",
+    "booking_id": "8",
+    "leg_id": "77",
+    "units": 748,
+    "cartons": 37,
+    "weight_kg": 168,
+    "cbm": null
+  },
+  {
+    "id": "bpl_8_57",
+    "booking_id": "8",
+    "leg_id": "57",
+    "units": 2320,
+    "cartons": 45,
+    "weight_kg": 454,
+    "cbm": null
+  },
+  {
+    "id": "bpl_9_77",
+    "booking_id": "9",
+    "leg_id": "77",
+    "units": 1207,
+    "cartons": 105,
+    "weight_kg": 1297.536,
+    "cbm": null
+  },
+  {
+    "id": "bpl_9_45",
+    "booking_id": "9",
+    "leg_id": "45",
+    "units": 1909,
+    "cartons": 170,
+    "weight_kg": 1292.062,
+    "cbm": null
   }
 ]

@@ -1,14 +1,17 @@
 [
   {
     "id": "c1",
-    "name": "FedEx"
+    "name": "FedEx",
+    "provides_cost_invoices": false
   },
   {
     "id": "c2",
-    "name": "DHL"
+    "name": "DHL",
+    "provides_cost_invoices": false
   },
   {
     "id": "c3",
-    "name": "Ceva"
+    "name": "Ceva",
+    "provides_cost_invoices": true
   }
 ]

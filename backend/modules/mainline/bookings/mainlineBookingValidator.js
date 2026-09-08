@@ -22,8 +22,14 @@ const legRef = Joi.object({
   cbm:     Joi.number().min(0).allow(null),
 }).unknown(true);
 
+// PLANNED carrier — optional (not always decided when the vendor submits) and
+// correctable on the shipment afterwards. The controller checks it against
+// couriers.json; that is the real guard, since these schemas are unknown(true).
+const courierId = Joi.string().allow(null, '');
+
 const create = Joi.object({
   supplier_id: Joi.string().min(1).required().messages({ 'any.required': "'supplier_id' is required" }),
+  courier_id: courierId,
   po_legs: Joi.array().items(legRef).min(1).required().messages({
     'array.min': "'po_legs' must contain at least one leg",
     'any.required': "'po_legs' is required",
@@ -36,6 +42,7 @@ const update = Joi.object({
     'any.only': `'booking_status' must be one of: ${MAINLINE_BOOKING_STATUSES.join(', ')}`,
   }),
   cargo_ready_date: isoDate,
+  courier_id: courierId,
   po_legs: Joi.array().items(legRef).allow(null),
 }).unknown(true);
 

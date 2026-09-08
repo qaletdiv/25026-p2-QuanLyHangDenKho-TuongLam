@@ -1,5 +1,15 @@
 # SMS Module — Schema & Build Plan (draft 2026-07-01, NetSuite/FedEx answers 2026-07-02)
 
+> ⚠️ **SUPERSEDED IN ONE RESPECT (2026-08-07): SMS now has an OPTIONAL booking step.**
+> Everywhere below that says the SMS workflow has "no booking" describes the DEFAULT
+> path, which is unchanged — the vendor still enters most consignments directly after
+> handing boxes to the courier. A consignment planned up front now goes through
+> `sms_bookings` / `sms_booking_pos` instead: Vendor submits → Logistics approves →
+> approval creates one DRAFT shipment per destination facility, and that shipment
+> carries a customs entry number plus ACTUAL freight/duty off the broker bill
+> (mainline behaviour, no rate). See **SMS_BOOKING_BUILD_PLAN.md** for the schema,
+> guards, landed-cost basis rule and verification.
+
 ## NetSuite field mapping (CONFIRMED — from Lam, 2026-07-02)
 
 SMS POs come from the same NetSuite transaction table; the discriminator is a
@@ -188,7 +198,22 @@ Table sms_item_receipt_lines {
 - **Timeliness vs HOD** — `po_orders.hod` is the schedule anchor for SMS
   reports (`reports/sms`, later): shipped-after-HOD = late handover.
 - New statuses rows (module='sms', category='shipment'): Label Created,
-  Picked Up, In Transit, Out for Delivery, Delivered, Exception.
+  Picked Up, In Transit, Out for Delivery, Delivered, Received, Exception.
+- **Delivered vs Received** (2026-08-13; gate tightened 2026-08-19): `Delivered` =
+  the courier handed the box over (FedEx scan, or the manual fallback). `Received` =
+  NetSuite holds an Item Receipt for it — the warehouse booked the goods into stock.
+  A Delivered consignment escalates to Received when EVERY PO in the box has a
+  **human-confirmed** IR attributed to that lot (`receiptMatch.receivedByShipment`
+  computes the confirmed → quantity → sequence attribution the Landed Costs page
+  shows and lets you correct; `deriveStatus` requires `confirmed` — so status and
+  landed-cost target can never disagree, and both need the same sign-off).
+  Quantity/sequence matches are suggestions only: they surface on the shipment
+  detail as "Item Receipt found · not confirmed" with a one-click path to confirm,
+  but they leave the status at Delivered so a bad guess can't hide a discrepancy.
+  Derived per read like every other status; `status_source: 'netsuite'` says so,
+  and `received_date`/`received_irs` carry the IR date + document numbers.
+  Only Delivered escalates: an IR against an In-Transit consignment means the
+  tracking or the match is wrong, and silently marking it done would bury that.
 
 ## Build phases
 

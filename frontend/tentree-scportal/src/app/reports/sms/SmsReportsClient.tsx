@@ -35,18 +35,41 @@ const fmt = (n: number) => n.toLocaleString('en-US');
 const pct = (num: number, den: number) => (den > 0 ? Math.round((num / den) * 100) : 0);
 const csv = (v: unknown) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
 
-/* ── fulfillment KPI cascade (mutually exclusive; reconciles to PO total) ──── */
-const KPI_ORDER = ['Overdue', 'Not Shipped', 'Partially Shipped', 'Fully Shipped', 'Received'];
-const KPI_TEXT: Record<string, string> = {
-  'Received':          'text-blue-600',
-  'Fully Shipped':     'text-emerald-600',
-  'Partially Shipped': 'text-amber-600',
-  'Not Shipped':       'text-slate-500',
-  'Overdue':           'text-red-600',
+/* ── fulfillment at UNIT grain (mutually exclusive; reconciles to ordered) ────
+ * Where the units ARE, not which stage their PO is in. The backend's `unitSplit`
+ * guarantees the four fields sum to ordered_qty per PO, so every cell, row total
+ * and grand total reconciles.
+ *
+ * This replaced pivoting on `kpi_status`, which is a PO-level state: summing
+ * ordered_qty by status filed a PO's WHOLE quantity under one label, so Shanghai
+ * Pucci FW27 read "Partially Shipped 230" when 929 of its 937 units had arrived and
+ * only 8 were outstanding. `kpi_status` is still on every row and in the CSV — it
+ * answers "which POs need attention", which is a different question from "where are
+ * the units". */
+const UNIT_ORDER = ['Overdue', 'To Ship', 'In Transit', 'Received'];
+const UNIT_FIELD: Record<string, 'units_overdue' | 'units_to_ship' | 'units_in_transit' | 'units_received'> = {
+  'Overdue':    'units_overdue',      // not shipped and HOD has passed
+  'To Ship':    'units_to_ship',      // not shipped, still inside HOD
+  'In Transit': 'units_in_transit',   // shipped, no Item Receipt yet
+  'Received':   'units_received',     // booked in by NetSuite
 };
-const KPI_COLORS: Record<string, string> = {
-  'Received': '#3B82F6', 'Fully Shipped': '#10B981', 'Partially Shipped': '#F59E0B',
-  'Not Shipped': '#64748B', 'Overdue': '#EF4444',
+const UNIT_TEXT: Record<string, string> = {
+  'Received':   'text-blue-600',
+  'In Transit': 'text-emerald-600',
+  'To Ship':    'text-slate-500',
+  'Overdue':    'text-red-600',
+};
+const UNIT_COLORS: Record<string, string> = {
+  'Received': '#3B82F6', 'In Transit': '#10B981', 'To Ship': '#64748B', 'Overdue': '#EF4444',
+};
+// one row → its unit buckets. Zeros are dropped so empty buckets never render.
+const unitsOf = (r: SmsReportRow): Record<string, number> => {
+  const out: Record<string, number> = {};
+  for (const b of UNIT_ORDER) {
+    const v = r[UNIT_FIELD[b]] ?? 0;
+    if (v) out[b] = v;
+  }
+  return out;
 };
 
 /* ── HOD timeliness ───────────────────────────────────────────────────────── */
@@ -71,17 +94,23 @@ const TOOLTIP_STYLE = {
 };
 
 /* ── donut: units by a categorical field ──────────────────────────────────── */
-function Donut({ title, subtitle, rows, bucketOf, order, colors }: {
+// `splitOf` returns the buckets ONE row contributes to, with its units in each.
+// A PO-level axis (HOD) returns a single bucket carrying the whole ordered qty;
+// the unit-grain axis returns up to four. Same aggregation either way.
+function Donut({ title, subtitle, rows, splitOf, order, colors }: {
   title: string; subtitle: string; rows: SmsReportRow[];
-  bucketOf: (r: SmsReportRow) => string; order: string[]; colors: Record<string, string>;
+  splitOf: (r: SmsReportRow) => Record<string, number>; order: string[]; colors: Record<string, string>;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const data = useMemo(() => {
     const agg: Record<string, number> = {};
-    rows.forEach((r) => { agg[bucketOf(r)] = (agg[bucketOf(r)] || 0) + r.ordered_qty; });
+    rows.forEach((r) => {
+      const s = splitOf(r);
+      for (const b in s) if (s[b]) agg[b] = (agg[b] || 0) + s[b];
+    });
     const cols = [...order.filter((b) => agg[b]), ...Object.keys(agg).filter((b) => !order.includes(b)).sort()];
     return cols.map((b) => ({ name: b, value: agg[b] }));
-  }, [rows, bucketOf, order]);
+  }, [rows, splitOf, order]);
   const total = data.reduce((a, d) => a + d.value, 0);
   const copy = () => copyTable(
     [title, 'Units', '%'],
@@ -134,17 +163,19 @@ function Donut({ title, subtitle, rows, bucketOf, order, colors }: {
 }
 
 /* ── pivot: rows (a category) × buckets, summing units ────────────────────── */
-function PivotTable({ title, subtitle, rowHeader, rows, rowOf, buckets, bucketOf, bucketText }: {
+function PivotTable({ title, subtitle, rowHeader, rows, rowOf, buckets, splitOf, bucketText }: {
   title: string; subtitle: string; rowHeader: string; rows: SmsReportRow[];
   rowOf: (r: SmsReportRow) => string; buckets: string[];
-  bucketOf: (r: SmsReportRow) => string; bucketText: Record<string, string>;
+  splitOf: (r: SmsReportRow) => Record<string, number>; bucketText: Record<string, string>;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const { body, totals, grand } = useMemo(() => {
     const map: Record<string, Record<string, number>> = {};
     rows.forEach((r) => {
       const k = rowOf(r) || 'Unknown';
-      (map[k] = map[k] || {})[bucketOf(r)] = (map[k]?.[bucketOf(r)] || 0) + r.ordered_qty;
+      const m = (map[k] = map[k] || {});
+      const s = splitOf(r);
+      for (const b in s) m[b] = (m[b] || 0) + s[b];
     });
     const keys = Object.keys(map).sort();
     const b = keys.map((k) => {
@@ -153,7 +184,7 @@ function PivotTable({ title, subtitle, rowHeader, rows, rowOf, buckets, bucketOf
     });
     const t = buckets.map((_, i) => b.reduce((a, r) => a + r.cells[i], 0));
     return { body: b, totals: t, grand: t.reduce((a, c) => a + c, 0) };
-  }, [rows, rowOf, buckets, bucketOf]);
+  }, [rows, rowOf, buckets, splitOf]);
 
   const copy = () => copyTable(
     [rowHeader, ...buckets, 'Grand Total'],
@@ -243,23 +274,34 @@ export default function SmsReportsClient({ rows }: { rows: SmsReportRow[] }) {
   const received = sum((r) => r.received_qty);
   const remaining = sum((r) => r.remaining_qty);
 
-  const kpiBuckets = useMemo(() => {
-    const present = new Set<string>(filtered.map((r) => r.kpi_status));
-    return KPI_ORDER.filter((b) => present.has(b));
+  // a unit bucket shows only if some PO has units in it (Σ > 0, not "any row
+  // mentions it") — otherwise an all-zero column would sit there permanently
+  const unitBuckets = useMemo(() => {
+    const total: Record<string, number> = {};
+    filtered.forEach((r) => { const s = unitsOf(r); for (const b in s) total[b] = (total[b] || 0) + s[b]; });
+    return UNIT_ORDER.filter((b) => total[b]);
   }, [filtered]);
   const tlBuckets = useMemo(() => {
     const present = new Set<string>(filtered.map((r) => r.hod_timeliness));
     return TL_ORDER.filter((b) => present.has(b));
   }, [filtered]);
+  // HOD is a PO-level axis: one bucket per row, carrying its whole ordered qty
+  const hodSplit = useMemo(() => (r: SmsReportRow) => ({ [r.hod_timeliness]: r.ordered_qty }), []);
 
   function exportCsv() {
+    // New columns go at the END so existing column positions in anyone's sheet
+    // don't shift. "Shipped (recorded)" + "Shipment Record" are the cleanup
+    // worklist: they differ from Shipped exactly on POs received in NetSuite
+    // with no consignment entered here.
     const headers = ['PO', 'TRN', 'Supplier', 'Season', 'Destination', 'Channel', 'HOD', 'Ship Method',
-      'Ordered', 'Shipped', 'Received', 'Remaining', 'Lots', 'First Ship', 'Fulfillment', 'HOD Timeliness', 'KPI Status'];
+      'Ordered', 'Shipped', 'Received', 'Remaining', 'Lots', 'First Ship', 'Fulfillment', 'HOD Timeliness', 'KPI Status',
+      'Shipped (recorded)', 'Shipment Record'];
     const lines = [headers.join(',')];
     filtered.forEach((r) => lines.push([
       r.po_number, r.trn_number, r.supplier, r.season, facilityLabel(r.facility), r.channel, r.hod, r.ship_method,
       r.ordered_qty, r.shipped_qty, r.received_qty, r.remaining_qty, r.lot_count, r.earliest_ship_date,
       r.fulfillment, r.hod_timeliness, r.kpi_status,
+      r.shipped_recorded_qty ?? '', r.has_shipment_record === false ? 'missing' : 'yes',
     ].map(csv).join(',')));
     const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -337,22 +379,23 @@ export default function SmsReportsClient({ rows }: { rows: SmsReportRow[] }) {
 
         {/* ── Donuts ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Donut title="HOD Timeliness" subtitle="Units by handover status vs HOD"
-                 rows={filtered} bucketOf={(r) => r.hod_timeliness} order={TL_ORDER} colors={TL_COLORS} />
-          <Donut title="Fulfillment" subtitle="Units by fulfillment stage"
-                 rows={filtered} bucketOf={(r) => r.kpi_status} order={KPI_ORDER} colors={KPI_COLORS} />
+          <Donut title="HOD Timeliness" subtitle="Ordered units of POs by handover status vs HOD"
+                 rows={filtered} splitOf={hodSplit} order={TL_ORDER} colors={TL_COLORS} />
+          <Donut title="Fulfillment" subtitle="Units by where they are — received, in transit, still to ship"
+                 rows={filtered} splitOf={unitsOf} order={UNIT_ORDER} colors={UNIT_COLORS} />
         </div>
 
         {/* ── Pivots ── */}
         <PivotTable
-          title="By Supplier" subtitle="Ordered units by fulfillment stage" rowHeader="Supplier"
+          title="By Supplier" subtitle="Units by where they are — each row sums to that supplier's ordered units"
+          rowHeader="Supplier"
           rows={filtered} rowOf={(r) => r.supplier || 'Unknown'}
-          buckets={kpiBuckets} bucketOf={(r) => r.kpi_status} bucketText={KPI_TEXT}
+          buckets={unitBuckets} splitOf={unitsOf} bucketText={UNIT_TEXT}
         />
         <PivotTable
-          title="By Channel" subtitle="Ordered units by HOD timeliness — where the risk is" rowHeader="Channel"
+          title="By Channel" subtitle="Ordered units of POs by HOD timeliness — where the risk is" rowHeader="Channel"
           rows={filtered} rowOf={(r) => r.channel || 'Unassigned'}
-          buckets={tlBuckets} bucketOf={(r) => r.hod_timeliness} bucketText={TL_TEXT}
+          buckets={tlBuckets} splitOf={hodSplit} bucketText={TL_TEXT}
         />
       </div>
     </div>

@@ -11,21 +11,16 @@
 
 const { parseShipmentData } = require('../../services/ciParser');
 const M = require('./SmsModels');
+const svc = require('./smsService');
 const documentService = require('./smsDocumentService');
+const { resolveVendorSupplierId } = require('../../utils/vendorScope');
+const { assertShipmentVisible } = require('./vendorAccess');
 
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
 const num = (v) => { const n = Number(v); return isFinite(n) && v !== '' && v !== null ? n : null; };
-const norm = (s) => (s == null ? '' : String(s).trim().toLowerCase().replace(/\s+/g, ' '));
 
-// vendor scope: JWT carries {id, role} only — resolve supplier via users→suppliers
-async function _vendorSupplierId(user) {
-  if (!user || user.role !== 'Vendor') return null;
-  const [users, suppliers] = await Promise.all([M.users.read(), M.suppliers.read()]);
-  const u = users.find((x) => x.id === user.id);
-  const sup = u?.supplier ? suppliers.find((s) => norm(s.name) === norm(u.supplier)) : null;
-  if (!sup) err('Your vendor account is not linked to a supplier — contact an administrator', 403);
-  return sup.id;
-}
+// Vendor scoping lives in utils/vendorScope (one copy, was four).
+const _vendorSupplierId = (user) => resolveVendorSupplierId(user);
 
 async function uploadShippingData(req, res) {
   if (!req.file) err('No file uploaded. Send Excel as multipart field "file".', 400);
@@ -56,8 +51,11 @@ async function uploadShippingData(req, res) {
   const stray = [...new Set(rows.map((r) => r.po_number).filter(Boolean))].filter((po) => !shipmentPoNumbers.has(po));
   if (stray.length) err(`The file has POs not on this shipment: ${stray.join(', ')}. This consignment carries: ${[...shipmentPoNumbers].join(', ')}.`, 400);
 
-  // default unit price from the NetSuite PO line when the sheet omits it
-  const priceByPoSku = new Map(poLines.map((l) => [`${l.po_number}|${l.sku_code}`, l.unit_price]));
+  // Default unit price from the NetSuite PO line when the sheet omits it. Built by
+  // smsService.priceByPoSku, NOT `new Map(rows.map(...))`: one item can sit on
+  // several NS lines at different prices, and last-row-wins made this value depend
+  // on file/row order — which decides the CI value and therefore the landed cost.
+  const priceByPoSku = svc.priceByPoSku(poLines);
   const skuByCode = new Map(skus.map((s) => [s.sku_code, s]));
 
   // Enrich the SKU master from the sheet — insert SKUs new to the catalogue and
@@ -95,7 +93,10 @@ async function uploadShippingData(req, res) {
     }
   });
 
-  // stored carton facts (total_usd NOT stored — derived from pcs × unit_price)
+  // Stored at (carton × SKU) grain — pieces and price only. total_usd is NOT stored
+  // (derived from pcs × unit_price), and the WEIGHT/MEASURE are not stored here
+  // either: they describe the physical box, so they go to sms_cartons once per
+  // (shipment, ctn_number) — see cartonFacts below and smsService.withCartonFacts.
   const cartons = rows.map((r, i) => {
     const unit_price = num(r.unit_price) ?? num(priceByPoSku.get(`${r.po_number}|${r.sku}`));
     return {
@@ -106,10 +107,29 @@ async function uploadShippingData(req, res) {
       sku_code: r.sku,
       pcs_per_ctn: num(r.pcs_per_ctn),
       unit_price,
-      net_weight_kgs: num(r.net_weight_kgs),
-      gross_weight_kgs: num(r.gross_weight_kgs),
-      measure_cm: r.measure_cm || null,
     };
+  });
+
+  // One row per PHYSICAL carton. A packing sheet repeats the carton's weight on
+  // every SKU line of that carton (and usually zeroes the repeats), so take the
+  // first NON-EMPTY value seen for each field rather than the first row's value —
+  // that is what makes the result independent of the sheet's row order.
+  const cartonFacts = [];
+  const cartonIdx = new Map();
+  rows.forEach((r) => {
+    const ctn = num(r.ctn_number);
+    const key = String(ctn);
+    let k = cartonIdx.get(key);
+    if (!k) {
+      k = { id: `sctn_${shipment.id}_${ctn}`, shipment_id: shipment.id, ctn_number: ctn,
+            net_weight_kgs: null, gross_weight_kgs: null, measure_cm: null };
+      cartonIdx.set(key, k);
+      cartonFacts.push(k);
+    }
+    const n = num(r.net_weight_kgs), g = num(r.gross_weight_kgs);
+    if (k.net_weight_kgs == null && n) k.net_weight_kgs = n;
+    if (k.gross_weight_kgs == null && g) k.gross_weight_kgs = g;
+    if (k.measure_cm == null && r.measure_cm) k.measure_cm = r.measure_cm;
   });
 
   // rows for the generators — carton facts + computed total_usd + descriptive attrs.
@@ -123,7 +143,10 @@ async function uploadShippingData(req, res) {
       po_number: c.po_number, sku: c.sku_code, ctn_number: c.ctn_number,
       pcs_per_ctn: c.pcs_per_ctn || 0, unit_price: c.unit_price || 0,
       total_usd: +(((c.pcs_per_ctn || 0) * (c.unit_price || 0)).toFixed(2)),
-      net_weight_kgs: c.net_weight_kgs, gross_weight_kgs: c.gross_weight_kgs, measure_cm: c.measure_cm,
+      // straight from the parsed sheet row (exactly what `cartons[i]` used to carry
+      // before the carton facts moved to sms_cartons) so the generated CI / packing
+      // list stay byte-identical to what this upload produced before the split
+      net_weight_kgs: num(r.net_weight_kgs), gross_weight_kgs: num(r.gross_weight_kgs), measure_cm: r.measure_cm || null,
       upc: r.upc || sku.upc || '',
       knit_woven: r.knit_woven || sku.knit_woven || '',
       style_description: r.style_description || sku.description || sku.item_name || '',
@@ -140,6 +163,8 @@ async function uploadShippingData(req, res) {
   // persist — replace this shipment's cartons + documents; write the SKU master
   // only when the sheet actually added/backfilled something
   await M.packingCartons.write([...allCartons.filter((c) => c.shipment_id !== shipment.id), ...cartons]);
+  const allCartonFacts = await M.cartons.read().catch(() => []);
+  await M.cartons.write([...allCartonFacts.filter((k) => k.shipment_id !== shipment.id), ...cartonFacts]);
   await M.documents.write([...allDocs.filter((d) => d.shipment_id !== shipment.id), ...docs]);
   if (skusDirty) await M.skus.write(skus);
 
@@ -157,6 +182,7 @@ async function uploadShippingData(req, res) {
 
 // GET /sms/shipments/:id/documents — generated CI/PL files, scope-labelled
 async function getDocuments(req, res) {
+  await assertShipmentVisible(req, req.params.id);
   const docs = (await M.documents.read().catch(() => [])).filter((d) => d.shipment_id === req.params.id);
   res.json(docs.map((d) => ({ ...d, scope: d.po_number || 'Combined (all POs)' })));
 }

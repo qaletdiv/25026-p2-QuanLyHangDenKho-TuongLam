@@ -1,0 +1,543 @@
+[
+  {
+    "id": "ncc_administration_fee",
+    "service": "Administration Fee",
+    "gl": 5204,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_ats_administration",
+    "service": "ATS Administration",
+    "gl": 5211,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_auto_commercial_invoice",
+    "service": "Auto Commercial Invoice",
+    "gl": 5201,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class_us": null,
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_bagging_ops_",
+    "service": "Bagging (Ops)",
+    "gl": 5211,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_call_tags",
+    "service": "Call Tags",
+    "gl": 5207,
+    "gl_desc": "COGS : Distribution/Logistics : Freight Expense - Returns",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_ci_generation",
+    "service": "CI Generation",
+    "gl": 5201,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_ci_maintenance",
+    "service": "CI Maintenance",
+    "gl": 5201,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_covid_19_surcharge",
+    "service": "COVID-19 Surcharge",
+    "gl": 5204,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_cross_dock_carton_handling",
+    "service": "Cross Dock Carton Handling",
+    "gl": 5201,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class_us": "US - Corp",
+    "class_ca": "CA - Whsle",
+    "note": "Leedsworld crossdocks"
+  },
+  {
+    "id": "ncc_cross_dock_carton_receiving",
+    "service": "Cross Dock Carton Receiving",
+    "gl": 5202,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Inbound",
+    "class_us": "US - Corp",
+    "class_ca": "CA - Whsle",
+    "note": "Leedsworld crossdocks"
+  },
+  {
+    "id": "ncc_cross_dock_storage",
+    "service": "Cross Dock Storage",
+    "gl": 5205,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Storage",
+    "class_us": "US - Corp",
+    "class_ca": "CA - Whsle",
+    "note": "Leedsworld crossdocks"
+  },
+  {
+    "id": "ncc_cycle_count",
+    "service": "Cycle Count",
+    "gl": 5204,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_cycle_count_units",
+    "service": "Cycle Count Units",
+    "gl": 5204,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_data_entry_labour",
+    "service": "Data Entry Labour",
+    "gl": 5204,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_edi_labels",
+    "service": "EDI Labels",
+    "gl": 5211,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_edi_transmission",
+    "service": "EDI Transmission",
+    "gl": 5211,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_handling",
+    "service": "Handling",
+    "gl": 5201,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_inbound_freight",
+    "service": "Inbound Freight",
+    "gl": 2057,
+    "gl_desc": "Inventory Related Payable : Freight Clearing",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": "Duty and taxes incorrectly billed to NRI instead of tentree (suppliers via DHLEX)"
+  },
+  {
+    "id": "ncc_inbound_palletization",
+    "service": "Inbound Palletization",
+    "gl": 5202,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Inbound",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_inbound_pallets",
+    "service": "Inbound Pallets",
+    "gl": 5202,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Inbound",
+    "class_us": null,
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_inbound_units_audit",
+    "service": "Inbound Units Audit",
+    "gl": 5202,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Inbound",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_insert",
+    "service": "Insert",
+    "gl": 5211,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_it_time",
+    "service": "IT TIME",
+    "gl": 5204,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_manual_bol",
+    "service": "Manual BOL",
+    "gl": 5211,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_order_cancellation",
+    "service": "Order Cancellation",
+    "gl": 5201,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_order_manual_data_entry",
+    "service": "Order Manual Data Entry",
+    "gl": 5201,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_order_master_pack_carton",
+    "service": "Order Master Pack Carton",
+    "gl": 5201,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class_us": null,
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_order_nonmasterpack",
+    "service": "Order NonMasterPack",
+    "gl": 5201,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class_us": null,
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_order_processing",
+    "service": "Order Processing",
+    "gl": 5201,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_order_restocking",
+    "service": "Order Restocking",
+    "gl": 5204,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_outbound_credit",
+    "service": "Outbound Credit",
+    "gl": 5201,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_outbound_freight",
+    "service": "Outbound Freight",
+    "gl": 5206,
+    "gl_desc": "COGS : Distribution/Logistics : Freight Expense - Outbound",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_outbound_shipment_materials",
+    "service": "Outbound Shipment Materials",
+    "gl": 5210,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Supplies",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_overtime",
+    "service": "Overtime",
+    "gl": 5204,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_overtime_labour",
+    "service": "Overtime Labour",
+    "gl": 5204,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_pallet_prep",
+    "service": "Pallet Prep",
+    "gl": 5201,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class_us": null,
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_pallet_wrap",
+    "service": "Pallet Wrap",
+    "gl": 5210,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Supplies",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_quality_control",
+    "service": "Quality Control",
+    "gl": 5204,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_receipt_mixed_carton_unit",
+    "service": "Receipt Mixed Carton Unit",
+    "gl": 5202,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Inbound",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_receipt_processing",
+    "service": "Receipt Processing",
+    "gl": 5202,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Inbound",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_receiving",
+    "service": "Receiving",
+    "gl": 5202,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Inbound",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_recoverable_materials",
+    "service": "Recoverable Materials",
+    "service_raw": "Recoverable Materials ",
+    "gl": 5205,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Storage",
+    "class_us": "Mobile Mini",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_repackaging",
+    "service": "Repackaging",
+    "gl": 5210,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Supplies",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_replenishment",
+    "service": "Replenishment",
+    "gl": 5205,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Storage",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_restock",
+    "service": "Restock",
+    "gl": 5203,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Returns",
+    "class_us": "US - Online",
+    "class_ca": "CA - Whsle",
+    "note": "Check for wholesale returns in the details tab - majority is usually ecom"
+  },
+  {
+    "id": "ncc_returns",
+    "service": "Returns",
+    "gl": 5203,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Returns",
+    "class_us": "US - Online",
+    "class_ca": "CA - Whsle",
+    "note": "Check for wholesale returns in the details tab - majority is usually ecom"
+  },
+  {
+    "id": "ncc_returns_freight",
+    "service": "Returns Freight",
+    "gl": 5207,
+    "gl_desc": "COGS : Distribution/Logistics : Freight Expense - Returns",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_service_center_labor",
+    "service": "Service Center Labor",
+    "gl": 5203,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Returns",
+    "class_us": "US - Online",
+    "class_ca": "CA - Whsle",
+    "note": "Check for wholesale returns in the details tab - majority is usually ecom"
+  },
+  {
+    "id": "ncc_shipment_cancellation",
+    "service": "Shipment Cancellation",
+    "gl": 5204,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_shop_supplies",
+    "service": "Shop Supplies",
+    "gl": 5210,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Supplies",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_storage",
+    "service": "Storage",
+    "gl": 5205,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Storage",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_storage_carton_shipped",
+    "service": "Storage Carton Shipped",
+    "gl": 5201,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_stripping",
+    "service": "Stripping",
+    "gl": 5211,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_systems_maintenance",
+    "service": "Systems Maintenance",
+    "gl": 5204,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_tagging",
+    "service": "Tagging",
+    "gl": 5211,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_transfer_order_fulfillment_receipt",
+    "service": "Transfer Order fulfillment & receipt",
+    "gl": 5204,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class_us": null,
+    "class_ca": "CA - Online",
+    "note": null
+  },
+  {
+    "id": "ncc_vendor_chargebacks",
+    "service": "Vendor Chargebacks",
+    "gl": 5211,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_vendor_compliance",
+    "service": "Vendor Compliance",
+    "gl": 5211,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_warehouse_labor",
+    "service": "Warehouse Labor",
+    "gl": 5211,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class_us": "US - Whsle",
+    "class_ca": "CA - Whsle",
+    "note": null
+  },
+  {
+    "id": "ncc_warehouse_labour",
+    "service": "Warehouse Labour",
+    "gl": 5204,
+    "gl_desc": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class_us": null,
+    "class_ca": "CA - Whsle",
+    "note": null
+  }
+]

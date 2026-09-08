@@ -1,0 +1,52 @@
+[
+  {
+    "id": "nlo_48872_1710",
+    "invoice_no": "48872",
+    "seq": 1710,
+    "gl": null,
+    "class": "US - Whsle",
+    "note": "wholesale return, resolved by reviewer",
+    "updated_by": "admin@tentree.com",
+    "updated_at": "2026-09-04T21:36:41.168Z"
+  },
+  {
+    "id": "nlo_48872_1711",
+    "invoice_no": "48872",
+    "seq": 1711,
+    "gl": null,
+    "class": "US - Whsle",
+    "note": "wholesale return, resolved by reviewer",
+    "updated_by": "admin@tentree.com",
+    "updated_at": "2026-09-04T21:36:41.300Z"
+  },
+  {
+    "id": "nlo_48872_1744",
+    "invoice_no": "48872",
+    "seq": 1744,
+    "gl": null,
+    "class": "US - Whsle",
+    "note": "wholesale return, resolved by reviewer",
+    "updated_by": "admin@tentree.com",
+    "updated_at": "2026-09-04T21:36:41.423Z"
+  },
+  {
+    "id": "nlo_48872_3751",
+    "invoice_no": "48872",
+    "seq": 3751,
+    "gl": null,
+    "class": "US - Whsle",
+    "note": "wholesale return, resolved by reviewer",
+    "updated_by": "admin@tentree.com",
+    "updated_at": "2026-09-04T21:36:41.652Z"
+  },
+  {
+    "id": "nlo_48872_3762",
+    "invoice_no": "48872",
+    "seq": 3762,
+    "gl": null,
+    "class": "US - Whsle",
+    "note": "wholesale return, resolved by reviewer",
+    "updated_by": "admin@tentree.com",
+    "updated_at": "2026-09-04T21:36:41.772Z"
+  }
+]
