@@ -398,6 +398,165 @@ POs need attention", a different question from "where are the units".
 (`hodSplit` returns one bucket with the whole ordered qty) because HOD grades a PO,
 not individual units.
 
+## Mainline forecast = PLAN vs ACTUAL over the full order book (2026-09-10)
+
+`/forecast` used to answer one question — "what is still incoming?" — with one
+number per week. It now carries the **SAME units on TWO dates** so the page answers
+the planning question directly:
+
+- **plan** — every unit on its PO leg's stated E-DEL. What was ORDERED to happen.
+- **actual** — the best-known date: the derived NetSuite ATA once it has landed,
+  else the **SHIPMENT's** E-DEL once booked and shipped, else the leg E-DEL when
+  nothing has shipped (no better information exists).
+
+The gap between the two IS the slippage. ⚠️ **A unit appears in BOTH series, so
+each totals the whole order book — they are NOT mutually exclusive and must never
+be added together.** Live: plan 264,349 / actual 264,948, W30 planned 69,864 but
+only 37,114 landed there, and **39,867 units arrived in W31/W32/W34/W35 — weeks
+with no plan at all**. 40,468 units slipped later, 2,467 earlier.
+
+- **⚠️ RECEIVED UNITS ARE NOW INCLUDED — the deliberate reversal of the old
+  behaviour.** The controller used to `continue` on any shipment with a derived
+  ATA, because receipted goods are in stock rather than incoming. That made the
+  actual series structurally EMPTY: all 9 mainline shipments are receipted, so
+  there was nothing to compare the plan against (the same root cause as the
+  `cartons: 0` puzzle below). Consequence to know: `/forecast` is the full order
+  book, **NOT an incoming-only view**, and its grand total includes goods already
+  in the warehouse — so the UI leads with **Still to Arrive** (222,013), not the
+  raw total, and `stage` says which is which.
+- **`stage` is the confidence ladder and now all four populate:** `Received` →
+  `In Transit` → `Booking Pending` → `Awaiting Booking`. `Booking Pending` tests
+  the booking's STATUS, the same test `mainlineReportController` step 2 makes —
+  deliberately NOT "a junction row exists", which would label rejected and
+  cancelled bookings as pending.
+- **The unshipped remainder has actual == plan, contributing ZERO slippage.** That
+  is the honest answer: an unbooked leg has not slipped, it has not been committed
+  to yet. Slippage therefore only ever comes from legs that actually shipped.
+- **⚠️ THE TWO GRAND TOTALS DO NOT MATCH (+599), and that is real data.** Plan sums
+  `allocated_qty`; actual sums what shipped plus what is left. The difference is
+  genuine over-shipment on three legs (38 +30, 57 +120, 77 +449). Do not clamp it
+  — an over-ship is something a planner needs to see, and G2 permits it by design.
+- **A week exists if EITHER series lands there**, so a consignment that slipped out
+  of its planned week leaves its plan figure behind in it. That residue is the
+  entire point; without it the comparison would silently self-heal (12 weeks → 17).
+
+### Cartons, and why 0 is usually TRUE
+
+Cartons exist **only on the actual series**. A carton is known once a packing list
+is uploaded, which happens when a consignment SHIPS — a plan has no cartons and an
+unbooked leg has none either. Before received units were included this made every
+week read `cartons: 0`, which looked broken: the carton-bearing window was exactly
+"shipped, not yet received", and it was empty. The join was never wrong — 16 of 17
+shipment legs have matching `(booking_id, leg_id)` carton rows (the miss is
+shipment 1 / leg 50, no upload). ⚠️ **Do NOT estimate cartons from units**: only
+27% of forecast SKUs (726/2,736) have packing history and 622 of 748 packed SKUs
+have an inconsistent `pcs_per_ctn` (range 4–230, median 39, mean 50) — a flat
+divisor would put a confident wrong number into a warehouse capacity plan. The
+Cartons metric hides the Projected/Δ columns instead, since there is no plan
+figure to compare against.
+
+### `backed` — the shipment-grounded foundation (a SUBSET of `actual`)
+
+A third series per week holding only the units a REAL SHIPMENT stands behind
+(stage `Received` or `In Transit`) — i.e. an approved booking, as opposed to a
+date typed on a PO nobody has committed to. Received and In Transit both qualify:
+the evidence is that the shipment EXISTS, not that it has landed.
+⚠️ **`backed` ⊆ `actual`. Never add them.** `backed.units / actual.units` is the
+week's CONFIDENCE and is the honest answer to "does this forecast have a
+foundation?".
+
+**Why it is carried rather than making the forecast shipment-only** (which is
+what Lam initially proposed, and the principle is right): bookings are currently
+recorded RETROSPECTIVELY. Measured 2026-09-15 — median lead time from booking
+approval to the shipment's own E-DEL is **−5 days**; **8 of 9 bookings were
+approved AFTER their E-DEL**, 5 of 9 after the goods had already landed (only
+shipment 1 was booked prospectively, +25 days). So shipment-backed units in the
+FUTURE total **0**, against 42,935 in the past — a shipment-only forecast would
+be a history table with nothing forward in it. Same retrospective-entry pattern
+as SMS (88 of 120 POs have receipts and no portal consignment). **That is a
+PROCESS gap, not a modelling one** — no restructuring makes the shipment table
+predictive while bookings are entered after the fact. Booking-before-ship is the
+stated intent (confirmed by Lam 2026-09-15), so the split is built to tell the
+truth now and become shipment-dominant on its own as discipline moves earlier.
+
+- **UI:** a **Backed** column (units · % of Actual) on every week, a
+  **Shipment-Backed** basis toggle beside Units/Cartons, and the confidence % as
+  a KPI card (it replaced Destinations, which the matrix already shows per row).
+  Live today: **16%** overall, and the booked pipeline runs only to W36.
+- **In backed mode the plan comparison is DROPPED, not recomputed.** `plan` covers
+  every leg, so setting it beside a filtered subset would invent slippage that
+  isn't there. Backed mode answers a different question — "what is actually
+  committed?" — so Projected/Δ/Backed collapse to a single Total, and weeks with
+  nothing booked are omitted rather than rendered as a row of dashes.
+- The drill-down follows the basis (`isBacked` on `stage`), so Σ lines still
+  equals the row it opened in either mode.
+- ⚠️ In the Backed cell the separator between units and percent is **real text
+  (` · `), not margin** — with only a CSS gap the cell's `textContent` reads
+  `"13,744100%"` to a screen reader and to anything copying the table. The Copy
+  buttons on this page make that a correctness issue, not a polish one.
+- **Verified:** `backed` reconciles with its own lines AND all three of its maps,
+  is ≤ `actual` on every week, backed cartons == all cartons (1,452 — cartons
+  only ever exist on shipped units anyway); in the GUI 0 backed>actual
+  violations, backed mode shows 5 weeks summing to 42,935 = footer, drill-down
+  stages are `Received` only, comparison columns correctly dropped.
+
+### Season filter: the rollup is RE-RUN per season, not filtered client-side
+
+`GET /forecast` returns `{ seasons, by_season: { all, FW26, … } }` — the whole
+weekly rollup pre-computed for every season plus the unfiltered view. The
+expensive joins (ATA resolution, receipt matching, carton sets, status lookups)
+run ONCE; only the cheap aggregation loop repeats, so the payload stays small and
+switching is a client-side lookup with no refetch.
+
+**Why not filter client-side** (which is what `/reports/sms/forecast` does): the
+plan series is LEG-grained while `lines[]` is PART-grained, so the browser would
+have had to re-derive the plan and reconcile the two by hand. Re-running the
+server rollup means every series, all three breakdown maps, the cartons, the
+slippage and the drill-down come from the SAME code path as the unfiltered view
+and are exact by construction. Verified by stubbing half the TRN masters onto a
+second season in memory: SS27 12 weeks / FW26 13 / all 17, units **and** cartons
+partition EXACTLY (125,834+138,515 = 264,349 plan; 1,027+425 = 1,452 cartons),
+zero cross-season leakage into any view, and each view still reconciles
+internally.
+
+- Season is DERIVED at read (leg → `po_orders.trn_number` → `po_masters.season_id`
+  → `seasons.code`), per the 3NF rule, and rides on every drill-down line.
+- ⚠️ **`seasons` lists only what the ORDER BOOK holds, never the seasons master.**
+  The master has FW26/SS27/FW27; mainline legs are **100% FW26** today. Defaulting
+  to the newest master season would open the page on an empty forecast — the
+  default is the newest season PRESENT, matching `seasonRank` in
+  `components/SeasonScopeFilter` so this page orders like the lifecycle tables.
+  Consequence: the dropdown offers one real option until SS27/FW27 legs land.
+- The control sits in the PAGE HEADER, not the breakdown toolbar, because it
+  governs the KPIs and the chart as well as the matrix.
+- No Active/All scope toggle here — the equivalent axis is `stage`, and the
+  Still-to-Arrive KPI already separates received from incoming.
+
+### Breakdown grain: supplier is a column, PO# is a drill-down
+
+Cardinality decides this — warehouse 2, supplier 13 (≤5 per week), TRN 25, **PO#
+63 (26 in W26 alone)** against a matrix 2 columns wide. Supplier fits the existing
+layout; PO# is the **row drill-down** under each week. PO# is also the LEAF, not a
+peer axis: `facility_id` and `allocation_channel_id` are `po_orders` attributes,
+one per PO, so PO# subsumes both existing toggles.
+
+- **`lines[]` is keyed to the ACTUAL week**, so Σ `lines.units` === `actual.units`
+  and the drill-down can never disagree with the row it opened. It is deliberately
+  NOT the plan week — the matrix cells are the actual series. Each line carries
+  `plan_date` / `actual_date` / `slip_days`, so the row explains the week's Δ.
+- Top-level `units`/`cartons`/`warehouses`/`warehouse_channels`/`suppliers` are
+  **mirrors of `actual`**, keeping the matrix, the drill-down and the Actual column
+  reading one figure.
+- Chart is two lines: Actual filled + solid, Projected **unfilled, dashed and
+  NEUTRAL-coloured** — two filled areas would imply a sum, and `--chart-1`
+  (#ef4444) / `--chart-2` (#f87171) are both reds in the active theme, so the
+  series would have separated only by dash pattern.
+- **Verified:** Δ arithmetic correct on all 17 weeks; Σ lines === Actual on every
+  week; all three breakdown maps reconcile against BOTH series; footer reads
+  264,349 / 264,948 / +599; W32 drill-down shows Received + SHP-6/7 + planned
+  2026-07-22 → actual 2026-08-05 (+14d) with cartons; Cartons mode hides the
+  comparison; no console errors.
+
 ## Known debt / deferred
 
 - `/forecast` (mainline) now runs on LIVE migrated data via
