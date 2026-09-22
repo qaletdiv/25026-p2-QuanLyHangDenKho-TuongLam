@@ -6,7 +6,7 @@ import { CommissionRatesSettings } from '@/components/settings/CommissionRatesSe
 
 export default function LandedCostRatesPage() {
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto pb-20 space-y-6">
+    <div className="space-y-6">
       <SettingsHeader
         title="Landed Cost Rates"
         description="Freight and duty percentages applied to the commercial-invoice value when estimating landed costs."

@@ -9,6 +9,7 @@
 const M = require('./LandedCostModels');
 const svc = require('./landedCostService');
 const ns = require('./netsuiteLandedCost');
+const xlsx = require('./landedCostExport');            // pure: rows → workbook
 const { resolveForShipment } = require('../sms/receiptMatch');   // pure helper (no SMS writes)
 
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
@@ -470,6 +471,41 @@ async function getMainline(req, res) {
   res.json({ rows });
 }
 
+// ─── Excel export ────────────────────────────────────────────────────────────
+// Finance and Production pull the cost book into a spreadsheet at month end. Built
+// from the SAME rows the page renders, so the file cannot disagree with the screen,
+// and streamed rather than written to disk (nothing to clean up, no stale copy).
+// `?month=YYYY-MM` mirrors the page's own filter; omitted or `all` exports
+// everything, `unscheduled` the rows with no ship date (SMS drafts).
+function _filterMonth(rows, month) {
+  if (!month || month === 'all') return rows;
+  if (month === 'unscheduled') return rows.filter((r) => !r.ship_month);
+  return rows.filter((r) => r.ship_month === month);
+}
+
+async function _sendExport(res, module, rows, month) {
+  const buf = await xlsx.build(module, rows);
+  const scope = !month || month === 'all' ? 'all' : month;
+  const name = `landed-costs_${module}_${scope}.xlsx`;
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', `attachment; filename="${name}"`);
+  res.send(Buffer.from(buf));
+}
+
+async function exportSms(req, res) {
+  const c = await _smsCtx();
+  const rows = c.shipments.map((s) => _row(s, c))
+    .sort((a, b) => String(b.ship_date || '').localeCompare(String(a.ship_date || '')));
+  await _sendExport(res, 'sms', _filterMonth(rows, req.query.month), req.query.month);
+}
+
+async function exportMainline(req, res) {
+  const c = await _mainlineCtx();
+  const rows = c.mlShipments.map((s) => _mlRow(s, c))
+    .sort((a, b) => String(b.ship_date || '').localeCompare(String(a.ship_date || '')));
+  await _sendExport(res, 'mainline', _filterMonth(rows, req.query.month), req.query.month);
+}
+
 // Push ONE PO's landed cost to its Item Receipt (posting is per PO now).
 async function pushMainlineOne(s, row, poNumber) {
   if (!row.push_enabled) err('NetSuite push is DISABLED. Set LANDED_COST_NS_PUSH=enabled on the server to arm it.', 403);
@@ -561,5 +597,6 @@ module.exports = {
   getSmsCommissions, putSmsCommissions, getMlCommissions, putMlCommissions,
   getSms, postSms, netsuitePreviewSms, netsuitePushSms,
   getMainline, postMainline, netsuitePreviewMainline, netsuitePushMainline,
+  exportSms, exportMainline,
   unpost,
 };

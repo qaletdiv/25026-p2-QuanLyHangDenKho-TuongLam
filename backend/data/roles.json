@@ -33,7 +33,6 @@
     "description": "Manage shipments, bookings, and master data",
     "protected": false,
     "permissions": [
-      "purchase_orders",
       "bookings",
       "shipments",
       "reports",
@@ -51,7 +50,8 @@
       "shipment_delete",
       "shipment_import_export",
       "po_edit",
-      "settings_edit"
+      "settings_edit",
+      "purchase_orders"
     ]
   },
   {
@@ -71,7 +71,8 @@
       "booking_approve",
       "booking_delete",
       "shipment_update_status",
-      "shipment_import_export"
+      "shipment_import_export",
+      "landed_costs"
     ]
   },
   {

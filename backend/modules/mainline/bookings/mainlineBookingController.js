@@ -20,6 +20,16 @@ const BaseModel = require('../../../models/BaseModel');
 const status = require('../statuses');
 const svc = require('./mainlineBookingService');
 const { resolveVendorSupplierId } = require('../../../utils/vendorScope');
+const { permissionsForRole } = require('../../../utils/rolePermissions');
+// The SHIPMENT's own cancel guards, reused so a booking-level cancel can never
+// override what the consignment itself would refuse.
+const lifecycle = require('../shipments/shipmentLifecycle');
+
+// Everything else that keys on a booking — cleared by `remove`, which otherwise
+// leaves rows pointing at a booking that is gone.
+const CommercialInvoiceModel = new BaseModel('migrated/mainline_commercial_invoices.json');
+const PackingCartonModel     = new BaseModel('migrated/mainline_packing_cartons.json');
+const DocumentModel          = new BaseModel('migrated/mainline_documents.json');
 
 // FCL/LCL is implied by the Sea mode name; Air/Courier have no container type.
 const containerTypeFromMode = (modeName) => {
@@ -97,6 +107,22 @@ async function create(req, res) {
   // Leg-only guard: every referenced leg must exist (forecast POs have none).
   const missing = po_legs.filter((p) => !legById.has(p.leg_id)).map((p) => p.leg_id);
   if (missing.length) err(`Unknown leg_id(s): ${missing.join(', ')} — PO not split into legs yet (not bookable)`, 400);
+
+  // G4 — NetSuite approval: refuse legs whose PO no supervisor has approved.
+  // Checked before the combination guards because it is a property of the PO
+  // itself, so the message is actionable on its own ("get it approved"), and
+  // HARD — unlike G2 there is no force_ escape hatch (see svc.checkApproved).
+  const appr = svc.checkApproved(po_legs.map((p) => p.leg_id), { legs: ctx.legs, orders: ctx.orders });
+  if (!appr.ok) {
+    const list = appr.offending
+      .map((o) => `${o.po_number ?? o.leg_id} (${o.approval_status})`)
+      .join(', ');
+    err(
+      `Cannot book a purchase order NetSuite has not approved: ${list}. `
+      + 'Have it approved in NetSuite, then run the NetSuite Sync on the Purchase Orders page.',
+      422,
+    );
+  }
 
   // G1 — vendor match: every leg must belong to supplier_id.
   const legSup = svc.legSupplierMap(ctx.legs, ctx.orders, ctx.masters);
@@ -185,6 +211,12 @@ async function _approve(booking, ctx) {
   // The BOOKING becomes "Booking Approved"; the SHIPMENT it spawns starts its own
   // progress pipeline at "Ready to Ship".
   const readyToShipId = await status.idForName('Ready to Ship');
+  // A CANCELLED consignment is not a match for the idempotency check below.
+  // Without this, cancelling a shipment is a dead end: re-approving finds the
+  // cancelled row, creates nothing, and the booking is left Approved with no live
+  // consignment and no way to issue one. Skipping it means re-approve mints a
+  // fresh SHP-N and the cancelled row stays as the record of what happened.
+  const cancelledId = await status.idForName('Cancelled');
 
   // group this booking's legs by physical conveyance = (facility, mode).
   // Same facility + same mode → one shipment (incl. Reserved/First channels);
@@ -205,7 +237,8 @@ async function _approve(booking, ctx) {
   const created = [];
 
   for (const { facility_id, mode_id, items } of groups.values()) {
-    let ship = shipments.find((s) => s.booking_id === booking.id && s.facility_id === facility_id && s.mode_id === mode_id);
+    let ship = shipments.find((s) => s.booking_id === booking.id && s.facility_id === facility_id
+      && s.mode_id === mode_id && s.status_id !== cancelledId);
     if (!ship) {                                            // idempotent re-approve (booking+facility+mode)
       ship = {
         id: String(++nextShipId),
@@ -250,13 +283,52 @@ async function _approve(booking, ctx) {
 }
 
 async function update(req, res) {
-  const ctx = await _loadContext();
+  const [ctx, vendorSid] = await Promise.all([_loadContext(), bookingScope(req)]);
   const idx = ctx.bookings.findIndex((b) => b.id === req.params.id);
   if (idx < 0) err('Booking not found', 404);
 
   const booking = ctx.bookings[idx];
+  // A vendor edits their OWN booking through this route and nobody else's. getAll
+  // and getOne were scoped and this WRITE was not, so a vendor got 404 reading
+  // another supplier's booking and 200 writing it — the read gate said the record
+  // did not exist while the write gate handed it over (verified 2026-09-18).
+  // 404 rather than 403 for the same reason getOne gives: a 403 confirms the id is
+  // real, which is the oracle for enumerating other suppliers' bookings.
+  // `approve` and `remove` are unscoped too, but they are gated on booking_approve
+  // / booking_delete, which no Vendor role holds — latent, not reachable today.
+  if (vendorSid != null && String(booking.supplier_id) !== String(vendorSid)) err('Booking not found', 404);
   const newStatusName = req.body.booking_status;
   const oldStatusName = await status.nameForId(booking.booking_status_id);
+
+  // A STATUS CHANGE HERE IS AN APPROVAL DECISION, so it takes `booking_approve` —
+  // the same key POST /bookings/:id/approve is gated on at the route.
+  //
+  // This route carries `booking_create_mainline` because a Vendor edits their own
+  // booking through it (Cargo Ready, carrier). But `booking_status` is an accepted
+  // field, and moving it to 'Booking Approved' runs the FULL `_approve` below —
+  // stamping approved_at and creating the shipments. So the edit route was a second,
+  // ungated door into approval: a Vendor was refused at POST /approve (403) and then
+  // let through here (200). Verified against the live vendor account, 2026-09-18.
+  //
+  // Gated in the HANDLER, not with requirePermission at the route, because the key
+  // is needed only when the status actually MOVES — a vendor saving Cargo Ready on
+  // their own pending booking must still pass. Cancelled/Rejected are covered too:
+  // they are the same decision answered differently, and cancelling a booking
+  // deletes shipments downstream.
+  if (newStatusName && newStatusName !== oldStatusName) {
+    const granted = await permissionsForRole(req.user?.role);
+    if (!granted.includes('booking_approve')) {
+      err("Permission denied — 'booking_approve' required to change a booking's status", 403);
+    }
+    // ...and the two outcomes that carry guards are not settable here at all.
+    // Cancel cascades to the booking's consignments and has to judge each one;
+    // Reject is Pending-only. Leaving them as free values on this route would be
+    // the same ungated door the approval bypass was.
+    const VIA_ACTION = { Cancelled: 'cancel', Rejected: 'reject' };
+    if (VIA_ACTION[newStatusName]) {
+      err(`Use POST /mainline/bookings/:id/${VIA_ACTION[newStatusName]} — it has guards this route does not`, 400);
+    }
+  }
 
   if (newStatusName) booking.booking_status_id = await status.idForName(newStatusName);
   // Cargo Ready is vendor-editable only while the booking is still pending — once
@@ -304,19 +376,119 @@ async function approve(req, res) {
   res.json({ ...(await _enrich([booking], ctx))[0], shipments_created: created.length });
 }
 
-async function remove(req, res) {
-  const [bookings, bookingLegs, shipments, shipLegs] = await Promise.all([
-    MainlineBookingModel.readBookings(), MainlineBookingModel.readBookingLegs(),
-    MainlineShipmentModel.read(), MainlineShipmentLegModel.read(),
-  ]);
-  if (!bookings.some((b) => b.id === req.params.id)) err('Booking not found', 404);
+// POST /:id/reject — the negative answer to a PENDING booking. Nothing hangs off
+// it yet (shipments are born at approve), so there is nothing to cascade.
+async function reject(req, res) {
+  const ctx = await _loadContext();
+  const idx = ctx.bookings.findIndex((b) => b.id === req.params.id);
+  if (idx < 0) err('Booking not found', 404);
+  const booking = ctx.bookings[idx];
+  const was = await status.nameForId(booking.booking_status_id);
+  if (was !== 'Booking Pending') {
+    err(`Only a Pending booking can be rejected — this one is ${was}. Cancel it instead.`, 409);
+  }
+  booking.booking_status_id = await status.idForName('Rejected');
+  await MainlineBookingModel.writeBookings(ctx.bookings);
+  res.json(await _enrich([booking], ctx).then((r) => r[0]));
+}
 
-  const removedShipIds = new Set(shipments.filter((s) => s.booking_id === req.params.id).map((s) => s.id));
-  await MainlineBookingModel.writeBookings(bookings.filter((b) => b.id !== req.params.id));
-  await MainlineBookingModel.writeBookingLegs(bookingLegs.filter((bl) => bl.booking_id !== req.params.id));
-  await MainlineShipmentModel.write(shipments.filter((s) => s.booking_id !== req.params.id));
-  await MainlineShipmentLegModel.write(shipLegs.filter((j) => !removedShipIds.has(j.shipment_id)));   // cascade junction
+// POST /:id/cancel — the way OUT of a booking, at either end of its life.
+//
+// The cascade is a STATUS, never an erasure: the booking's live consignments are
+// CANCELLED with it, each judged by the same `shipmentLifecycle.cancelBlockers`
+// that guards the shipment's own Cancel button. So a parent cancel can never do
+// something a child would refuse — if one consignment has been handed over,
+// receipted or costed, the whole call is refused and the message names it. That is
+// the same "children first" rule `remove` enforces, expressed for a reversible
+// action rather than a destructive one: cancel leaves every row in place.
+async function cancel(req, res) {
+  const ctx = await _loadContext();
+  const idx = ctx.bookings.findIndex((b) => b.id === req.params.id);
+  if (idx < 0) err('Booking not found', 404);
+  const booking = ctx.bookings[idx];
+
+  const was = await status.nameForId(booking.booking_status_id);
+  if (!['Booking Pending', 'Booking Approved'].includes(was)) {
+    err(`Only a Pending or Approved booking can be cancelled — this one is ${was}`, 409);
+  }
+
+  const [shipments, landedCosts, receipts] = await Promise.all([
+    MainlineShipmentModel.read(),
+    new BaseModel('migrated/landed_costs.json').read().catch(() => []),
+    new BaseModel('migrated/mainline_item_receipts.json').read().catch(() => []),
+  ]);
+  const cancelledId = await status.idForName('Cancelled');
+  const mine = shipments.filter((s) => s.booking_id === booking.id && s.status_id !== cancelledId);
+
+  const blocked = mine
+    .map((s) => ({ s, why: lifecycle.cancelBlockers(s, { landedCosts, receipts }) }))
+    .filter((x) => x.why.length);
+  if (blocked.length) {
+    const detail = blocked.map((x) => `${x.s.shipment_number || x.s.id} (${x.why.join('; ')})`).join(', ');
+    err(`This booking still carries a consignment that cannot be cancelled: ${detail}. `
+      + 'Deal with that consignment first — cancelling the booking must not override its own guards.', 409);
+  }
+
+  booking.booking_status_id = cancelledId;
+  if (mine.length) {
+    await MainlineShipmentModel.write(shipments.map((s) => (mine.some((m) => m.id === s.id)
+      ? { ...s, status_id: cancelledId }
+      : s)));
+  }
+  await MainlineBookingModel.writeBookings(ctx.bookings);
+  res.json({
+    ...(await _enrich([booking], ctx))[0],
+    shipments_cancelled: mine.length,
+  });
+}
+
+// Deleting a booking clears what BELONGS to the booking: the junction, the
+// commercial invoice, the packing cartons and the generated documents. Until the
+// Postgres migration only the junction was cleared — and 8 of the 9 live bookings
+// carry a CI, cartons AND documents, so a delete stranded all three. Those orphans
+// are not inert: CI lines and the packing summary are DERIVED from
+// mainline_packing_cartons per read, so they would have gone on contributing to
+// totals for a booking that no longer existed.
+//
+// It no longer reaches down into the SHIPMENTS — see the guard below. A shipment
+// has a lifecycle and guards of its own (shipmentLifecycle.js), and a parent delete
+// that quietly overrides them is how a posted landed cost or a confirmed NetSuite
+// receipt ends up pointing at nothing.
+async function remove(req, res) {
+  const id = req.params.id;
+  const [bookings, bookingLegs, shipments, invoices, cartons, documents] = await Promise.all([
+    MainlineBookingModel.readBookings(), MainlineBookingModel.readBookingLegs(),
+    MainlineShipmentModel.read(),
+    CommercialInvoiceModel.read(), PackingCartonModel.read(), DocumentModel.read(),
+  ]);
+  if (!bookings.some((b) => b.id === id)) err('Booking not found', 404);
+
+  // CHILDREN FIRST (2026-09-18). This used to delete the booking's shipments as a
+  // cascade, which meant one click on a parent destroyed the consignment, its ASN,
+  // its receipt links, the commercial invoice, the packing cartons and the
+  // generated documents — with no check on whether the goods had already arrived.
+  // Live, that was 10 shipments, 8 CIs, 2,275 cartons, 48 documents and 16
+  // confirmed NetSuite receipt matches sitting behind an unguarded button.
+  //
+  // The cascade BELOW is kept, because the CI, the cartons and the documents really
+  // are artifacts of the booking. What is refused is reaching through the booking
+  // to destroy a SHIPMENT, which owns its own lifecycle and its own guards. Deal
+  // with each consignment on its own page, then the booking is free.
+  const mine = shipments.filter((s) => s.booking_id === id);
+  if (mine.length) {
+    const list = mine.map((s) => s.shipment_number || s.id).join(', ');
+    err(`This booking still has ${mine.length} shipment${mine.length === 1 ? '' : 's'} (${list}) — `
+      + 'cancel and delete those first. Deleting a booking must not reach through and erase a consignment.', 409);
+  }
+
+  // No shipment write and no cascadeShipmentDelete here any more — the guard above
+  // guarantees there is nothing of that kind left to clean up.
+  await MainlineBookingModel.writeBookings(bookings.filter((b) => b.id !== id));
+  await MainlineBookingModel.writeBookingLegs(bookingLegs.filter((bl) => bl.booking_id !== id));
+  await CommercialInvoiceModel.write(invoices.filter((ci) => ci.booking_id !== id));    // cascade CI
+  await PackingCartonModel.write(cartons.filter((c) => c.booking_id !== id));           // cascade shipping data
+  await DocumentModel.write(documents.filter((d) => d.booking_id !== id));              // cascade generated docs
   res.status(204).send();
 }
 
-module.exports = { getAll, getOne, create, update, approve, remove };
+module.exports = { getAll, getOne, create, update, approve, reject, cancel, remove };

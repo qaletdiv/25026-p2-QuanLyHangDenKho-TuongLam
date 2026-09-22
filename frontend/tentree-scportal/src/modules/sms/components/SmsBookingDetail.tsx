@@ -18,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ArrowLeft, Check, X, Ban, Trash2, Pencil, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/components/providers/SessionProvider';
+import { APPROVE_DENIED_HINT, hasPermission } from '@/lib/permissions';
 import ConfirmDialog from '@/modules/mainline/components/ConfirmDialog';
 import { approveSmsBooking, rejectSmsBooking, cancelSmsBooking, deleteSmsBooking, updateSmsBooking } from '@/modules/sms/actions';
 import { SMS_BOOKING_STATUS_STYLES } from './SmsBookingsTable';
@@ -43,7 +44,12 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
 }) {
   const router = useRouter();
   const { user } = useSession();
-  const isVendor = user?.role === 'Vendor';
+  // Was `role === 'Vendor'`, which hid these from the vendor and left the Freight
+  // Forwarder — who holds no booking key either — looking at buttons the API
+  // refuses. Keyed on the permission now, so both are covered and a roles.json
+  // edit moves the UI with it.
+  const canApprove = hasPermission(user, 'booking_approve');
+  const canDelete = hasPermission(user, 'booking_delete');
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState<null | 'approve' | 'reject' | 'cancel' | 'delete'>(null);
 
@@ -211,24 +217,32 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
                 </Button>
               </>
             )}
-            {!isVendor && !edit && (
+            {!edit && (
               <>
+                {/* Approve is the one action a vendor still SEES — disabled, so their
+                    own booking reads as "waiting on logistics" rather than as having
+                    no next step. Reject / Cancel / Delete stay hidden: they say
+                    nothing to someone who cannot take them. Mirrors mainline. */}
                 {isPending && (
                   <>
-                    <Button size="sm" disabled={busy} onClick={() => setConfirm('approve')}>
-                      <Check className="h-4 w-4 mr-1" /> Approve
-                    </Button>
-                    <Button size="sm" variant="outline" disabled={busy} onClick={() => setConfirm('reject')}>
-                      <X className="h-4 w-4 mr-1" /> Reject
-                    </Button>
+                    <span title={canApprove ? undefined : APPROVE_DENIED_HINT} className="inline-block">
+                      <Button size="sm" disabled={busy || !canApprove} onClick={() => setConfirm('approve')}>
+                        <Check className="h-4 w-4 mr-1" /> Approve
+                      </Button>
+                    </span>
+                    {canApprove && (
+                      <Button size="sm" variant="outline" disabled={busy} onClick={() => setConfirm('reject')}>
+                        <X className="h-4 w-4 mr-1" /> Reject
+                      </Button>
+                    )}
                   </>
                 )}
-                {isApproved && (
+                {isApproved && canApprove && (
                   <Button size="sm" variant="outline" disabled={busy} onClick={() => setConfirm('cancel')}>
                     <Ban className="h-4 w-4 mr-1" /> Cancel booking
                   </Button>
                 )}
-                {!isApproved && (
+                {!isApproved && canDelete && (
                   <Button size="sm" variant="ghost" disabled={busy} title="Delete booking" onClick={() => setConfirm('delete')}>
                     <Trash2 className="h-4 w-4 text-red-500" />
                   </Button>

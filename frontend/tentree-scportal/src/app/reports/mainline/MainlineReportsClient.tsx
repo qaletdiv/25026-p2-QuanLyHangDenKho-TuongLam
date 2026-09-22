@@ -29,10 +29,20 @@ const ITEM_COLS = [
   { key: 'etd_pol', label: 'ETD POL (actual)' }, { key: 'eta_pod', label: 'ETA POD' },
   { key: 'e_del_actual', label: 'E-DEL (actual)' },
   { key: 'cargo_received_date', label: 'Received at Port' },
+  // ATA is DERIVED from the attributed NetSuite Item Receipt; the typed column is
+  // only a fallback (set on 1 of 9 live shipments), so `ATA Source` says which rule
+  // produced the date rather than leaving a reconciler to guess.
   { key: 'expected_ata', label: 'Expected ATA' }, { key: 'ata', label: 'ATA' },
+  { key: 'ata_source', label: 'ATA Source' },
   { key: 'leg_id', label: 'Leg ID' },
   { key: 'sku_code', label: 'SKU' }, { key: 'item_name', label: 'Item' }, { key: 'style_color', label: 'Style/Color' },
-  { key: 'size', label: 'Size' }, { key: 'allocated_qty', label: 'Allocated Qty' }, { key: 'unit_price', label: 'Unit Price' },
+  { key: 'size', label: 'Size' }, { key: 'allocated_qty', label: 'Allocated Qty' },
+  // The three quantities sit together so the sheet can be pivoted or differenced
+  // without reordering. Shipped = confirmed CI lines on the leg; Received = the
+  // PO's NetSuite receipts split across its legs (air first, capped at each leg's
+  // allocation) — the same derivation the PO leg page reconciles with.
+  { key: 'shipped_qty', label: 'Shipped Qty' }, { key: 'received_qty', label: 'Received Qty' },
+  { key: 'unit_price', label: 'Unit Price' },
 ];
 
 /* ── KPI buckets (manager's column order) ─────────────────────────── */
@@ -66,7 +76,12 @@ const BUCKET_COLORS: Record<string, string> = {
 };
 // stage = WHERE the qty is (the "why" axis): pre-booking states first, then the
 // shipment pipeline. Rows appear in this order in the Stage × Timeliness pivot.
-const STAGE_ORDER = ['Awaiting Booking', 'Booking Pending', 'Ready to Ship', 'In Transit', 'At Port', 'Delivered', 'Received', 'Cancelled'];
+// Least to most progressed. 'Booked — Not Shipped' is an approved booking whose
+// consignment was cancelled: further along than one still awaiting approval, and
+// behind anything that has actually left. 'Cancelled' stays in the list for older
+// saved views — the report no longer emits it, because a cancelled consignment is
+// reported as its booked-not-shipped units instead.
+const STAGE_ORDER = ['Awaiting Booking', 'Booking Pending', 'Booked — Not Shipped', 'Ready to Ship', 'In Transit', 'At Port', 'Delivered', 'Received', 'Cancelled'];
 const TIMELINESS_ORDER = ['On Time', 'At Risk', 'Late', 'Unknown'];
 
 const fmt = (n: number) => n.toLocaleString();

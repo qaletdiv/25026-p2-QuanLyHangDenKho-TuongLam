@@ -40,11 +40,20 @@ router.post('/bookings',     requirePermission('booking_create_mainline'), valid
 router.get('/bookings/:id',                      asyncWrap(bookingController.getOne));
 router.put('/bookings/:id',  requirePermission('booking_create_mainline'), validate(bookingSchemas.update), asyncWrap(bookingController.update));
 router.post('/bookings/:id/approve', requirePermission('booking_approve'), asyncWrap(bookingController.approve));
+// The two other answers, on the same key — approving, rejecting and cancelling are
+// one decision with three outcomes. Cancel carries a cascade (its live consignments
+// are cancelled with it, each judged by the shipment's own guards), which is why it
+// is a route and not a value on the PUT above.
+router.post('/bookings/:id/reject', requirePermission('booking_approve'), asyncWrap(bookingController.reject));
+router.post('/bookings/:id/cancel', requirePermission('booking_approve'), asyncWrap(bookingController.cancel));
 router.delete('/bookings/:id', requirePermission('booking_delete'),      asyncWrap(bookingController.remove));
 
 // Single-source upload: shipment-data Excel → CI + packing slip (Admin/coordinator)
 router.post('/bookings/:id/shipment-data', requirePermission('shipment_import_export', 'booking_create_mainline'), upload.single('file'), asyncWrap(shipmentDataController.uploadShipmentData));
 router.get('/bookings/:id/documents',            asyncWrap(shipmentDataController.getDocuments));
+// The file itself — REBUILT from current master data, not streamed off disk, so a
+// consignee address or notify party entered after the upload appears on download.
+router.get('/documents/:docId/file',             asyncWrap(shipmentDataController.downloadDocument));
 
 // Commercial invoices (per booking). Line items are derived from packing cartons;
 // the CI is populated by the shipment-data upload above, so there is no manual
@@ -89,6 +98,12 @@ router.get('/shipments',                         asyncWrap(shipmentController.ge
 router.put('/shipments/bulk-status', requirePermission('shipment_update_status'), validate(shipmentSchemas.bulkStatus), asyncWrap(shipmentController.bulkStatus));
 router.get('/shipments/:id',                     asyncWrap(shipmentController.getOne));
 router.put('/shipments/:id', requirePermission('shipment_update_status'), validate(shipmentSchemas.update), asyncWrap(shipmentController.update));
+// Cancel is a STATUS decision (same key as any other status move), delete is an
+// erasure (its own key, which no Vendor or Freight Forwarder holds). Cancel has to
+// be its own route rather than a value on the PUT above: it carries guards, and a
+// gated action beside an ungated field that reaches the same state is exactly the
+// hole the booking approve bypass was.
+router.post('/shipments/:id/cancel', requirePermission('shipment_update_status'), asyncWrap(shipmentController.cancel));
 router.delete('/shipments/:id', requirePermission('shipment_delete'),     asyncWrap(shipmentController.remove));
 
 module.exports = router;

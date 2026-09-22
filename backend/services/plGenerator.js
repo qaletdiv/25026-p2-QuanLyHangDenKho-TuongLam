@@ -2,6 +2,33 @@
 
 const ExcelJS = require('exceljs');
 
+// Multi-line addresses — one line per ROW, see the long note in ciGenerator.js.
+// Same reason: these fields run to eight lines in live data, and a single cell
+// showed only the first.
+const splitLines = (v) => String(v ?? '').split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+
+/** Write `lines` down one column, a row each. @returns the first row AFTER them. */
+function writeLines(ws, col, startRow, lines) {
+    lines.forEach((line, i) => { ws.getCell(`${col}${startRow + i}`).value = line; });
+    return startRow + lines.length;
+}
+
+/** Medium rule around a rectangle, interior untouched — see ciGenerator.outline. */
+function outline(ws, top, left, bottom, right, style = 'medium') {
+    for (let r = top; r <= bottom; r++) {
+        for (let c = left; c <= right; c++) {
+            if (r !== top && r !== bottom && c !== left && c !== right) continue;
+            const cell = ws.getCell(r, c);
+            const b = { ...(cell.border || {}) };
+            if (r === top) b.top = { style };
+            if (r === bottom) b.bottom = { style };
+            if (c === left) b.left = { style };
+            if (c === right) b.right = { style };
+            cell.border = b;
+        }
+    }
+}
+
 /**
  * Generate a formatted Packing List Excel workbook.
  *
@@ -16,11 +43,23 @@ async function generatePL(shipmentData, meta) {
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('Packing List');
 
-    // ── Column widths ────────────────────────────────────────────────────
-    //  A=10  B=18  C=16  D=16  E=25  F=22  G=10  H=12  I=12  J=18
+    // ── Carton table columns ─────────────────────────────────────────────
+    // Declared FIRST because the sheet's right edge derives from them: the info
+    // block sits in the last two, the banner spans all of them, and the medium
+    // rule goes down the last one. Add a column here and everything follows.
+    const colHeaders = [
+        'CTN#', 'PO#', 'SKU#', 'UPC', 'Style Description',
+        'Color Description', 'PCS/CTN', 'N/W (KGS)', 'G/W (KGS)', 'MEASURE (CM)',
+    ];
+    const LAST_COL = colHeaders.length;        // J — the sheet's right edge
+    const INFO_LABEL_COL = LAST_COL - 1;       // I
+
+    //  A=10  B=18  C=16  D=16  E=25  F=22  G=10  H=12  I=18  J=18
+    //  I is wider than "G/W (KGS)" needs because it now also carries the info
+    //  block's labels ("Port of Discharge" is 17 characters).
     ws.columns = [
         { width: 10 }, { width: 18 }, { width: 16 }, { width: 16 }, { width: 25 },
-        { width: 22 }, { width: 10 }, { width: 12 }, { width: 12 }, { width: 18 },
+        { width: 22 }, { width: 10 }, { width: 12 }, { width: 18 }, { width: 18 },
     ];
 
     const bold = { bold: true };
@@ -33,42 +72,59 @@ async function generatePL(shipmentData, meta) {
     ws.getCell('A1').value = meta.vendor_name || '';
     ws.getCell('A1').font = { bold: true, size: 12 };
 
-    ws.getCell('A2').value = meta.vendor_address || '';
-    ws.getCell('H2').value = 'PO #';        ws.getCell('H2').font = bold;
-    ws.getCell('I2').value = meta.po_number || '';
+    // Left column grows with the address; the H/I label stack (rows 2-9) is a
+    // separate column and stays where it is.
+    const afterAddr = writeLines(ws, 'A', 2, splitLines(meta.vendor_address));
+    const contactRow = Math.max(3, afterAddr);
+    ws.getCell(`A${contactRow}`).value = meta.vendor_contact || '';
 
-    ws.getCell('A3').value = meta.vendor_contact || '';
-    ws.getCell('H3').value = 'Invoice #';   ws.getCell('H3').font = bold;
-    ws.getCell('I3').value = meta.invoice_number || '';
-
-    ws.getCell('H4').value = 'Date';        ws.getCell('H4').font = bold;
-    ws.getCell('I4').value = meta.date || new Date().toISOString().slice(0, 10);
-
-    ws.getCell('H5').value = 'Shipping Mode'; ws.getCell('H5').font = bold;
-    ws.getCell('I5').value = meta.shipping_mode || '';
-
-    ws.getCell('H6').value = 'Shipment #';   ws.getCell('H6').font = bold;
-    ws.getCell('I6').value = meta.shipment_number || '';
-
-    ws.getCell('H7').value = 'Port of Loading'; ws.getCell('H7').font = bold;
-    ws.getCell('I7').value = meta.port_of_loading || '';
-
-    ws.getCell('H8').value = 'Port of Discharge'; ws.getCell('H8').font = bold;
-    ws.getCell('I8').value = meta.port_of_discharge || '';
-
-    ws.getCell('H9').value = 'Country of Origin'; ws.getCell('H9').font = bold;
-    ws.getCell('I9').value = meta.country_of_origin || '';
-
-    ws.mergeCells('A10:G10');
-    ws.getCell('A10').value = 'Packing List';
-    ws.getCell('A10').font = { bold: true, size: 13 };
-
-    // ── Column headers (row 12) ──────────────────────────────────────────
-    const colHeaders = [
-        'CTN#', 'PO#', 'SKU#', 'UPC', 'Style Description',
-        'Color Description', 'PCS/CTN', 'N/W (KGS)', 'G/W (KGS)', 'MEASURE (CM)',
+    // Label stack: the LAST TWO COLUMNS, contiguous from row 1, so the block's
+    // right edge is the carton table's right edge. Its own column group, so the
+    // left-hand address block grows past it without disturbing it.
+    const labels = [
+        ['PO #',              meta.po_number],
+        ['Invoice #',         meta.invoice_number],
+        ['Date',              meta.date || new Date().toISOString().slice(0, 10)],
+        ['Shipping Mode',     meta.shipping_mode],
+        ['Shipment #',        meta.shipment_number],
+        ['Port of Loading',   meta.port_of_loading],
+        ['Port of Discharge', meta.port_of_discharge],
+        ['Country of Origin', meta.country_of_origin],
     ];
-    const headerRow = ws.getRow(12);
+    labels.forEach(([label, value], i) => {
+        const r = i + 1;
+        const labelCell = ws.getCell(r, INFO_LABEL_COL);
+        labelCell.value = label;
+        labelCell.font = bold;
+        ws.getCell(r, LAST_COL).value = value || '';
+    });
+    const labelsEnd = labels.length;
+
+    // Banner clears both the left column and the H/I labels, centred across the
+    // sheet's full width (A:J, every carton column).
+    const titleRow = Math.max(labelsEnd + 2, contactRow + 2);
+    ws.mergeCells(titleRow, 1, titleRow, LAST_COL);
+    ws.getCell(`A${titleRow}`).value = 'Packing List';
+    ws.getCell(`A${titleRow}`).font = { bold: true, size: 14 };
+    ws.getCell(`A${titleRow}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+    // ── Consignee / Notify Party ─────────────────────────────────────────
+    // The packing list travels with the goods and is read at the destination, so
+    // it needs the same two blocks as the CI (added 2026-09-16). Same columns, same
+    // one-line-per-row layout, so the two documents read identically.
+    const labelRow = titleRow + 2;
+    ws.getCell(`A${labelRow}`).value = 'Consignee';    ws.getCell(`A${labelRow}`).font = bold;
+    ws.getCell(`D${labelRow}`).value = 'Notify Party'; ws.getCell(`D${labelRow}`).font = bold;
+
+    const blockRow = labelRow + 1;
+    const conLines = [...splitLines(meta.consignee_name), ...splitLines(meta.consignee_address)];
+    const notifyLines = [...splitLines(meta.notify_party_name), ...splitLines(meta.notify_party_address)];
+    writeLines(ws, 'A', blockRow, conLines);
+    writeLines(ws, 'D', blockRow, notifyLines);
+
+    // ── Column headers — directly under the taller block ─────────────────
+    const headerRowNum = blockRow + Math.max(conLines.length, notifyLines.length) + 1;
+    const headerRow = ws.getRow(headerRowNum);
     colHeaders.forEach((h, i) => {
         const cell = headerRow.getCell(i + 1);
         cell.value = h;
@@ -92,8 +148,8 @@ async function generatePL(shipmentData, meta) {
     // Sort carton groups by carton number ascending (by the group's own ctn number)
     const sortedCartons = [...cartonGroups.entries()].sort((a, b) => a[1][0].ctn_number - b[1][0].ctn_number);
 
-    // ── Data rows (row 13+) ──────────────────────────────────────────────
-    let dataRow = 13;
+    // ── Data rows (immediately under the header) ─────────────────────────
+    let dataRow = headerRowNum + 1;
     let totalPcs = 0;
     let totalNetWeight = 0;
     let totalGrossWeight = 0;
@@ -162,6 +218,7 @@ async function generatePL(shipmentData, meta) {
 
     // ── Totals row ───────────────────────────────────────────────────────
     dataRow++; // blank row
+    const totalsRow = dataRow;
     const totRow = ws.getRow(dataRow);
 
     totRow.getCell(1).value = 'TOTAL';
@@ -197,9 +254,21 @@ async function generatePL(shipmentData, meta) {
     dataRow += 4;
     ws.getCell(`G${dataRow}`).value = 'Seller Full Company Name and Address:';
     ws.getCell(`G${dataRow + 1}`).value = (meta.vendor_name || '').toUpperCase();
-    ws.getCell(`G${dataRow + 2}`).value = (meta.vendor_address || '').toUpperCase();
-    dataRow += 5;
-    ws.getCell(`G${dataRow}`).value = '(Authorized Signature/ Company Mark)';
+    const sigEnd = writeLines(ws, 'G', dataRow + 2,
+        splitLines(meta.vendor_address).map((l) => l.toUpperCase()));
+    // Clears the address block instead of a fixed 5 rows down, which a multi-line
+    // address would have overwritten.
+    const lastRow = Math.max(dataRow + 5, sigEnd + 2);
+    ws.getCell(`G${lastRow}`).value = '(Authorized Signature/ Company Mark)';
+
+    // ── Frame ────────────────────────────────────────────────────────────
+    // Drawn LAST, once every row position is known — see ciGenerator for why.
+    // Banner and the Consignee / Notify Party block are deliberately UNBOXED — see
+    // the same note in ciGenerator.
+    outline(ws, 1, INFO_LABEL_COL, labelsEnd, LAST_COL);          // info block
+    outline(ws, 1, 1, labelsEnd, INFO_LABEL_COL - 1);             // seller
+    outline(ws, headerRowNum, 1, totalsRow, LAST_COL);            // carton table
+    outline(ws, 1, 1, lastRow, LAST_COL);                         // the form itself
 
     return wb.xlsx.writeBuffer();
 }

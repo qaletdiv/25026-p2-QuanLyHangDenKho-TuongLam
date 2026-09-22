@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../middleware/auth');
 const { verifyPassword } = require('../utils/passwordUtils');
 const driveStorage = require('../driveStorage');
-const RoleModel = require('../models/RoleModel');
+const { permissionsForRole } = require('../utils/rolePermissions');
 
 async function login(req, res) {
     const { email, password } = req.body;
@@ -17,10 +17,11 @@ async function login(req, res) {
             JWT_SECRET,
             { expiresIn: '24h' }
         );
-        // Inject role permissions so the frontend session carries them without an extra fetch
-        const roles = await RoleModel.read().catch(() => []);
-        const roleData = roles.find(r => r.name === user.role);
-        const permissions = roleData?.permissions || [];
+        // Seed the frontend session with the role's permissions so the first render
+        // has them. This is a SNAPSHOT — it goes stale the moment a role is edited,
+        // which is why the frontend re-resolves them from GET /me per navigation
+        // rather than trusting this copy for access decisions.
+        const permissions = await permissionsForRole(user.role);
         res.json({ ...userWithoutPassword, token, permissions });
     } else {
         const err = new Error('Invalid credentials');

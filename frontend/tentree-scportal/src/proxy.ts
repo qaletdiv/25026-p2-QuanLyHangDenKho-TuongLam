@@ -1,11 +1,24 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { requiredPermissionFor } from '@/lib/pageAccess';
+import { fetchIdentity } from '@/lib/serverIdentity';
 
-// Route gate. Replaces src/middleware.ts, which only checked that a `session` cookie
+// Route gate: authentication AND page-level authorization.
+//
+// It replaced src/middleware.ts, which only checked that a `session` cookie
 // EXISTED — never that it was authentic. Because the cookie's own contents named the
 // role, anyone could hand-craft `session={"role":"Admin",...}` and every page shell
 // would render for them. Now the JWT's SIGNATURE is verified.
+//
+// Authorization was still missing entirely (fixed 2026-09-08): the nav keys are
+// documented as page visibility, but only Sidebar's `can()` read them, so
+// unchecking e.g. `purchase_orders` for Logistics Coordinator hid the link while
+// typing /mainline/purchase-orders still served the page in full. The nav keys are
+// enforced HERE because this is the one place every page request passes through —
+// deep links, refreshes and client navigations alike — and because the backend
+// deliberately keeps /po and /mainline/* auth-only (the Bookings page fetches
+// them, so gating them on `purchase_orders` would break other roles).
 //
 // Renamed middleware.ts → proxy.ts because that is the supported convention in the
 // installed Next (16.2.4): `middleware` is deprecated, and `proxy` runs on the
@@ -72,23 +85,56 @@ function verifyJwt(token: string, secret: string): boolean {
   return true;
 }
 
-export function proxy(request: NextRequest) {
+const toLogin = (request: NextRequest) => {
+  const res = NextResponse.redirect(new URL('/login', request.url));
+  res.cookies.delete('session');
+  res.cookies.delete('auth_token');
+  return res;
+};
+
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('auth_token')?.value;
   const authed = Boolean(SECRET && token && verifyJwt(token, SECRET));
 
   // 1. Unauthenticated on a protected route → /login, clearing the bad cookies so a
   //    forged or expired pair doesn't sit around being re-sent on every request.
-  if (!authed && pathname !== '/login') {
-    const res = NextResponse.redirect(new URL('/login', request.url));
-    res.cookies.delete('session');
-    res.cookies.delete('auth_token');
-    return res;
+  if (!authed && pathname !== '/login') return toLogin(request);
+
+  // 2. Already authenticated and heading to /login → into the app. Via '/', which
+  //    resolves the landing page from the role's own permissions (a hardcoded one
+  //    would bounce off rule 3 for a role that cannot open it).
+  if (authed && pathname === '/login') {
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
-  // 2. Already authenticated and heading to /login → into the app.
-  if (authed && pathname === '/login') {
-    return NextResponse.redirect(new URL('/mainline/shipments', request.url));
+  // 3. Authenticated: does this page need a permission this user doesn't hold?
+  //    Permissions come from the server (GET /me, re-resolved from roles.json),
+  //    NOT from the session cookie — the cookie's copy is a login-time snapshot
+  //    the browser holds, so it is neither current nor trustworthy.
+  const needed = authed ? requiredPermissionFor(pathname) : null;
+  if (needed && token) {
+    const result = await fetchIdentity(token);
+    if (!result.ok) {
+      // The backend rejected the token → treat exactly like a bad cookie.
+      if (result.reason === 'unauthenticated') return toLogin(request);
+      // Backend unreachable: the authorization answer is UNKNOWN. Let the request
+      // through rather than locking every user out of every page during a restart
+      // — the page renders but each of its own fetches fails, so nothing leaks
+      // that the API would not have served anyway.
+      console.error(`[proxy] could not resolve permissions for ${pathname} — backend unavailable; allowing through`);
+    } else if (!result.identity.permissions.includes(needed)) {
+      const res = NextResponse.redirect(new URL('/no-access', request.url));
+      // Which key was missing, so the no-access screen can name it. httpOnly and
+      // short-lived: it is a message to the next server render, not state the
+      // client should hold — and it grants nothing either way, since the gate
+      // re-derives access from the server on every request.
+      res.cookies.set('denied_permission', needed, {
+        path: '/', maxAge: 30, sameSite: 'lax', httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+      });
+      return res;
+    }
   }
 
   return NextResponse.next();

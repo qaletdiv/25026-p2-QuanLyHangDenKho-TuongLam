@@ -1826,28 +1826,6 @@
     "confirmed_at": "2026-08-31T20:12:02.143Z"
   },
   {
-    "id": "sir_167",
-    "netsuite_ir_id": "33874418",
-    "netsuite_ir_tranid": "IR65853",
-    "po_number": "PO04819",
-    "receipt_date": "2026-08-26",
-    "source": "netsuite",
-    "matched_shipment_id": null,
-    "confirmed_by": null,
-    "confirmed_at": null
-  },
-  {
-    "id": "sir_168",
-    "netsuite_ir_id": "33885522",
-    "netsuite_ir_tranid": "IR65894",
-    "po_number": "PO04800",
-    "receipt_date": "2026-08-27",
-    "source": "netsuite",
-    "matched_shipment_id": null,
-    "confirmed_by": null,
-    "confirmed_at": null
-  },
-  {
     "id": "sir_169",
     "netsuite_ir_id": "33917658",
     "netsuite_ir_tranid": "IR65920",
@@ -1886,6 +1864,39 @@
     "netsuite_ir_tranid": "IR65924",
     "po_number": "PO04844",
     "receipt_date": "2026-08-04",
+    "source": "netsuite",
+    "matched_shipment_id": null,
+    "confirmed_by": null,
+    "confirmed_at": null
+  },
+  {
+    "id": "sir_175",
+    "netsuite_ir_id": "34011238",
+    "netsuite_ir_tranid": "IR66023",
+    "po_number": "PO04801",
+    "receipt_date": "2026-09-08",
+    "source": "netsuite",
+    "matched_shipment_id": "46",
+    "confirmed_by": "1",
+    "confirmed_at": "2026-09-10T17:02:06.008Z"
+  },
+  {
+    "id": "sir_176",
+    "netsuite_ir_id": "34013707",
+    "netsuite_ir_tranid": "IR66027",
+    "po_number": "PO04823",
+    "receipt_date": "2026-09-10",
+    "source": "netsuite",
+    "matched_shipment_id": null,
+    "confirmed_by": null,
+    "confirmed_at": null
+  },
+  {
+    "id": "sir_177",
+    "netsuite_ir_id": "34013793",
+    "netsuite_ir_tranid": "IR66026",
+    "po_number": "PO04819",
+    "receipt_date": "2026-09-10",
     "source": "netsuite",
     "matched_shipment_id": null,
     "confirmed_by": null,

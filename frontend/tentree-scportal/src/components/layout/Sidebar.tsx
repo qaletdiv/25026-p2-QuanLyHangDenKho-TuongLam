@@ -7,32 +7,36 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { logout } from '@/app/actions/auth';
 import { useSession } from '@/components/providers/SessionProvider';
+import { NAV_PAGES } from '@/lib/pageAccess';
+import { hasPermission } from '@/lib/permissions';
 
-const navItems = [
-  // Mainline is now served by the normalized module (/mainline + /po). Legacy
-  // /purchase-orders, /bookings, /shipments remain mounted ONLY for SMS until the
-  // SMS module is migrated (Phase 6 = promote mainline, keep legacy for SMS).
-  { name: 'Purchase Orders', href: '/mainline/purchase-orders', icon: ClipboardList, permission: 'purchase_orders', matchPrefix: ['/mainline/purchase-orders', '/sms/purchase-orders'] },
-  { name: 'Bookings',        href: '/mainline/bookings',        icon: FileText,        permission: 'bookings',   matchPrefix: ['/mainline/bookings', '/sms/bookings'] },
-  { name: 'Shipments',       href: '/mainline/shipments',       icon: Package,         permission: 'shipments',  matchPrefix: ['/mainline/shipments', '/sms/shipments'] },
-  // SMS shares the Purchase Orders / Bookings / Shipments entries above via a
-  // Mainline | SMS tab strip on each list page (ModuleTabs) — the two modules are
-  // separate datasets, unified in navigation only. SMS bookings are OPTIONAL
-  // (added 2026-08-07): a courier consignment reserves no space, so most SMS
-  // shipments are still entered directly with no booking; a booking is used when
-  // the consignment is authorized up front and clears customs formally.
-  // Receiving screen removed 2026-07-03 — receipts sync from NetSuite into the PO
-  // reconciliation.
-  { name: 'Reports',         href: '/reports/mainline',   icon: BarChart3,       permission: 'reports', matchPrefix: '/reports' },
-  { name: 'Forecast',        href: '/forecast',           icon: LineChart,       permission: 'forecast' },
+// The nav ROWS (name, href, permission, owned route prefixes) live in
+// lib/pageAccess, which src/proxy.ts also gates on — so a page can't be visible
+// here and ungated there, or hidden here and wide open to a typed URL (which is
+// exactly the bug found 2026-09-08). Only the icons are the sidebar's business.
+//
+// SMS shares the Purchase Orders / Bookings / Shipments entries with mainline via
+// a Mainline | SMS tab strip on each list page (ModuleTabs) — separate datasets,
+// unified in navigation only. Hence one permission covering both route prefixes.
+const NAV_ICONS: Record<string, typeof Package> = {
+  purchase_orders: ClipboardList,
+  bookings: FileText,
+  shipments: Package,
+  reports: BarChart3,
+  forecast: LineChart,
+  contacts: Users,
+  freight: Globe,
+  landed_costs: Coins,
+  all_invoices: ReceiptText,
+};
 
-  { name: 'Contacts',        href: '/contacts',           icon: Users,           permission: 'contacts' },
-  { name: 'Freight Rates',   href: '/freights',           icon: Globe,           permission: 'freight' },
-  { name: 'Landed Costs',    href: '/landed-costs/sms',   icon: Coins,           permission: 'landed_costs', matchPrefix: '/landed-costs' },
-  // 3PL invoice verification. Reuses `landed_costs` (Admin + Logistics) rather
-  // than adding a permission key — same finance audience, no roles.json edit.
-  { name: 'NRI Invoices',    href: '/nri-invoices',       icon: ReceiptText,     permission: 'landed_costs', matchPrefix: '/nri-invoices' },
-];
+const navItems = NAV_PAGES.map((p) => ({
+  name: p.name,
+  href: p.href,
+  icon: NAV_ICONS[p.key] ?? FileText,
+  permission: p.permission,
+  matchPrefix: p.prefixes,
+}));
 
 const masterDataItems = [
   { name: 'Suppliers', href: '/settings/suppliers', icon: Users },
@@ -77,11 +81,12 @@ export default function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: 
 
   if (pathname === '/login') return null;
 
-  const can = (permission: string) => {
-    if (!user) return true; // unauthenticated: let server guard redirect
-    if (!user.permissions) return user.role === 'Admin'; // legacy session: admin sees all
-    return user.permissions.includes(permission);
-  };
+  // Fails CLOSED. This used to return true with no session ("let the server guard
+  // redirect"), which drew the full menu — every module plus Roles and Users — for
+  // a request that had no resolvable identity. The root layout now derives the
+  // session from the verified token via GET /me, so "no user here" means we have
+  // no grounds to show anything; the route gate is what actually admits people.
+  const can = (permission: string) => hasPermission(user, permission);
 
   const filteredItems = navItems.filter(item => can(item.permission));
   const showMasterData = can('settings');
@@ -134,7 +139,9 @@ export default function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: 
       >
       {/* Logo Area */}
       <div className="h-16 flex items-center px-6 border-b border-border bg-card transition-colors duration-300">
-        <Link href="/mainline/purchase-orders" className="flex items-center gap-3 group">
+        {/* '/' resolves the landing page from the role's permissions — pointing the
+            logo at a fixed page sent roles without it to the no-access screen. */}
+        <Link href="/" className="flex items-center gap-3 group">
           <img
             src={isSummer ? "/tentree_black.png" : "/tentree_white.png"}
             alt="Tentree Logo"

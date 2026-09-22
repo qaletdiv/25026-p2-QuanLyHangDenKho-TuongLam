@@ -56,7 +56,10 @@ async function _ctx() {
     // the Delivered/Received done set (stuck in the Active view), and carries a
     // booking-category id that fails a CHECK at the Postgres migration.
     // `category` is what separates the two families — filter on BOTH.
-    smsStatuses: statuses.filter((s) => s.module === 'sms' && s.category === 'shipment'),
+    // 'both' is included because Cancelled serves bookings AND shipments (one row
+    // per module name, same as mainline). It is excluded from the hand-settable
+    // list further down, so widening this does not put it in the dropdown.
+    smsStatuses: statuses.filter((s) => s.module === 'sms' && (s.category === 'shipment' || s.category === 'both')),
     courierName: new Map(couriers.map((cr) => [cr.id, cr.name])),
     // Sea / Air / Courier. Null mode = a plain vendor-entered parcel; the
     // landed-cost push falls back to COURIER, so the unbooked flow is unchanged.
@@ -258,12 +261,19 @@ async function update(req, res) {
   if (req.body.ship_date !== undefined) next.ship_date = req.body.ship_date || null;
   if (req.body.facility_id !== undefined) next.facility_id = req.body.facility_id || null;
   if (req.body.manual_status !== undefined && req.body.manual_status) {
-    // 'Received' is DERIVED from NetSuite Item Receipts and is deliberately NOT
-    // hand-settable — typing it would claim a receipt that doesn't exist. Delivered
-    // is the manual end of the courier scale; Received arrives with the IR.
-    const selectable = c.smsStatuses.filter((s) => s.id !== 'sms_received');
+    // Two statuses are not hand-settable, for opposite reasons.
+    // 'Received' is DERIVED from NetSuite Item Receipts — typing it would claim a
+    // receipt that doesn't exist. 'Cancelled' is a DECISION with guards behind it
+    // (POST /sms/shipments/:id/cancel); leaving it in the free setter would be a
+    // gated action sitting beside an ungated field that reaches the same state.
+    const NOT_BY_HAND = new Set(['sms_received', 'sms_cancelled']);
+    const selectable = c.smsStatuses.filter((s) => !NOT_BY_HAND.has(s.id));
     const st = selectable.find((s) => s.name === req.body.manual_status);
-    if (!st) err(`'manual_status' must be one of: ${selectable.map((s) => s.name).join(', ')} ('Received' is derived from a NetSuite Item Receipt)`, 400);
+    if (!st) {
+      err(req.body.manual_status === 'Cancelled'
+        ? "Use POST /sms/shipments/:id/cancel to cancel a consignment — it has guards this route does not"
+        : `'manual_status' must be one of: ${selectable.map((s) => s.name).join(', ')} ('Received' is derived from a NetSuite Item Receipt)`, 400);
+    }
     next.manual_status_id = st.id;
   }
 
@@ -326,6 +336,15 @@ async function remove(req, res) {
   if (receipts.some((r) => r.matched_shipment_id === s.id)) {
     err('A confirmed item receipt is matched to this shipment — unmatch it first', 400);
   }
+  // A posted landed cost is money already PATCHed onto a live NetSuite Item
+  // Receipt. Deleting the shipment would leave that row pointing at nothing while
+  // the charge stays on the NetSuite record — 38 SMS rows are in that state today.
+  // `landed_costs.shipment_id` is a SOFT ref (no FK), so nothing else catches it.
+  const posted = (await M.landedCosts.read().catch(() => []))
+    .filter((r) => r.module === 'sms' && String(r.shipment_id) === String(s.id));
+  if (posted.length) {
+    err('A landed cost has been posted for this consignment and pushed to NetSuite — unpost it first (Landed Costs page)', 409);
+  }
   await M.shipments.write(shipments.filter((x) => x.id !== s.id));
   await M.shipmentPos.write(shipmentPos.filter((j) => j.shipment_id !== s.id));   // cascade junction
   const events = await M.trackingEvents.read().catch(() => []);                   // cascade tracking log
@@ -344,7 +363,73 @@ async function remove(req, res) {
   if (docs.some((d) => d.shipment_id === s.id)) {
     await M.documents.write(docs.filter((d) => d.shipment_id !== s.id));
   }
+  // A rejected (receipt × shipment) suggestion is an assertion about THIS
+  // shipment, so it goes with it. Missed until the Postgres migration added the
+  // foreign key; one such row exists in live data.
+  const rejections = await M.receiptRejections.read().catch(() => []);
+  if (rejections.some((r) => r.shipment_id === s.id)) {
+    await M.receiptRejections.write(rejections.filter((r) => r.shipment_id !== s.id));
+  }
   res.status(204).send();
 }
 
-module.exports = { getAll, getOne, create, update, remove };
+// POST /:id/cancel — call off a consignment that has NOT been handed over.
+//
+// In practice that means a BOOKING-APPROVED DRAFT: approve creates the shipment
+// row with `tracking_number` null and no ship date, and the vendor fills those in
+// when the box actually goes. Every one of the 37 vendor-entered parcels is typed
+// AFTER handover and carries both, so the guard excludes them without needing a
+// rule about bookings — the evidence already says which is which. That is the same
+// test `smsBookingController.cancel` applies at booking grain ("a shipment that
+// actually went out blocks the cancel — that's history, not a plan").
+//
+// Cancel does NOT touch the booking: the booking still authorizes those lots, and
+// re-approving it issues a fresh draft. Calling off the whole consignment is a
+// decision taken on the booking.
+async function cancel(req, res) {
+  const vendorSupplierId = await _vendorSupplierId(req.user);
+  const c = await _ctx();
+  const idx = c.shipments.findIndex((s) => s.id === req.params.id);
+  if (idx < 0) err('SMS shipment not found', 404);
+  const s = c.shipments[idx];
+
+  // Same ownership test `remove` makes: EVERY PO in the box must be the vendor's,
+  // or a cross-supplier consignment would be actionable by one of its suppliers.
+  if (vendorSupplierId) {
+    const mine = c.shipmentPos.filter((j) => j.shipment_id === s.id)
+      .every((j) => (c.poByNumber.get(j.po_number) || {}).supplier_id === vendorSupplierId);
+    if (!mine) err("This shipment carries another supplier's POs", 403);
+  }
+
+  if (s.manual_status_id === 'sms_cancelled') err('This consignment is already cancelled', 409);
+
+  const [receipts, landedCosts] = await Promise.all([
+    M.receipts.read().catch(() => []), M.landedCosts.read().catch(() => []),
+  ]);
+
+  const why = [];
+  const handover = [];
+  if (s.tracking_number) handover.push(`tracking ${s.tracking_number}`);
+  if (s.ship_date) handover.push(`shipped ${String(s.ship_date).slice(0, 10)}`);
+  if (handover.length) {
+    why.push(`it has already been handed to the carrier (${handover.join(', ')})`);
+  }
+  const confirmed = receipts.filter((r) => r.matched_shipment_id === s.id && r.confirmed_at);
+  if (confirmed.length) {
+    why.push(`NetSuite has ${confirmed.length} confirmed item receipt${confirmed.length === 1 ? '' : 's'} for it`);
+  }
+  const posted = landedCosts.filter((r) => r.module === 'sms' && String(r.shipment_id) === String(s.id));
+  if (posted.length) why.push('its landed cost is posted');
+
+  if (why.length) {
+    err(`This consignment cannot be cancelled because ${why.join('; and ')}.`, 409);
+  }
+
+  const shipments = [...c.shipments];
+  shipments[idx] = { ...s, manual_status_id: 'sms_cancelled' };
+  await M.shipments.write(shipments);
+  const c2 = await _ctx();
+  res.json(_enrich(c2.shipments.find((x) => x.id === s.id), c2));
+}
+
+module.exports = { getAll, getOne, create, update, cancel, remove };

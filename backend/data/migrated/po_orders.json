@@ -1,27 +1,12 @@
 [
   {
-    "po_number": "PO03521",
-    "trn_number": "TRN_4073",
-    "facility_id": null,
-    "allocation_channel_id": "ch_first",
-    "coo_country": null,
-    "netsuite_id": "18581569"
-  },
-  {
-    "po_number": "PO03789",
-    "trn_number": "TRN_1163",
-    "facility_id": null,
-    "allocation_channel_id": null,
-    "coo_country": null,
-    "netsuite_id": "20508637"
-  },
-  {
     "po_number": "PO04722",
     "trn_number": "TRN_2099",
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "31604610"
+    "netsuite_id": "31604610",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04725",
@@ -29,7 +14,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "31604613"
+    "netsuite_id": "31604613",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04728",
@@ -37,7 +23,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "India",
-    "netsuite_id": "31604616"
+    "netsuite_id": "31604616",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04729",
@@ -45,7 +32,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "31604617"
+    "netsuite_id": "31604617",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04730",
@@ -53,7 +41,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "31604618"
+    "netsuite_id": "31604618",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04731",
@@ -61,7 +50,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "India",
-    "netsuite_id": "31604619"
+    "netsuite_id": "31604619",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04732",
@@ -69,7 +59,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "Taiwan, Province of China",
-    "netsuite_id": "31604620"
+    "netsuite_id": "31604620",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04733",
@@ -77,7 +68,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "Indonesia",
-    "netsuite_id": "31604621"
+    "netsuite_id": "31604621",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04735",
@@ -85,7 +77,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "31604623"
+    "netsuite_id": "31604623",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04737",
@@ -93,7 +86,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "31604625"
+    "netsuite_id": "31604625",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04738",
@@ -101,7 +95,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "31604626"
+    "netsuite_id": "31604626",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04742",
@@ -109,7 +104,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "32132862"
+    "netsuite_id": "32132862",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04745",
@@ -117,7 +113,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "32262015"
+    "netsuite_id": "32262015",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04746",
@@ -125,7 +122,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "India",
-    "netsuite_id": "32262016"
+    "netsuite_id": "32262016",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04747",
@@ -133,7 +131,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "32262017"
+    "netsuite_id": "32262017",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04749",
@@ -141,7 +140,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "Indonesia",
-    "netsuite_id": "32262019"
+    "netsuite_id": "32262019",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04751",
@@ -149,7 +149,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "32326557"
+    "netsuite_id": "32326557",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04755",
@@ -157,7 +158,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "32399772"
+    "netsuite_id": "32399772",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04756",
@@ -165,7 +167,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "India",
-    "netsuite_id": "32399773"
+    "netsuite_id": "32399773",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04757",
@@ -173,7 +176,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "32399774"
+    "netsuite_id": "32399774",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04758",
@@ -181,7 +185,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "32399775"
+    "netsuite_id": "32399775",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04759",
@@ -189,7 +194,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "India",
-    "netsuite_id": "32399776"
+    "netsuite_id": "32399776",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04763",
@@ -197,7 +203,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "32399780"
+    "netsuite_id": "32399780",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04764",
@@ -205,7 +212,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "32399781"
+    "netsuite_id": "32399781",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04767",
@@ -213,7 +221,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "32399784"
+    "netsuite_id": "32399784",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04770",
@@ -221,7 +230,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "32399787"
+    "netsuite_id": "32399787",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04771",
@@ -229,7 +239,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "32399788"
+    "netsuite_id": "32399788",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04772",
@@ -237,7 +248,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
     "coo_country": "India",
-    "netsuite_id": "32399789"
+    "netsuite_id": "32399789",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04773",
@@ -245,7 +257,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
     "coo_country": "Taiwan, Province of China",
-    "netsuite_id": "32399790"
+    "netsuite_id": "32399790",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04774",
@@ -253,7 +266,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
     "coo_country": "Indonesia",
-    "netsuite_id": "32399791"
+    "netsuite_id": "32399791",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04776",
@@ -261,7 +275,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "32399793"
+    "netsuite_id": "32399793",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04777",
@@ -269,7 +284,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "32399794"
+    "netsuite_id": "32399794",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04783",
@@ -277,7 +293,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "32399800"
+    "netsuite_id": "32399800",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04784",
@@ -285,7 +302,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "India",
-    "netsuite_id": "32399801"
+    "netsuite_id": "32399801",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04788",
@@ -293,7 +311,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "32399805"
+    "netsuite_id": "32399805",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04825",
@@ -301,7 +320,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "33092088"
+    "netsuite_id": "33092088",
+    "approval_status": "Pending Approval"
   },
   {
     "po_number": "PO04786",
@@ -309,7 +329,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "Indonesia",
-    "netsuite_id": "32399803"
+    "netsuite_id": "32399803",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04761",
@@ -317,7 +338,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "Indonesia",
-    "netsuite_id": "32399778"
+    "netsuite_id": "32399778",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04785",
@@ -325,7 +347,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "Taiwan, Province of China",
-    "netsuite_id": "32399802"
+    "netsuite_id": "32399802",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04787",
@@ -333,7 +356,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "Indonesia",
-    "netsuite_id": "32399804"
+    "netsuite_id": "32399804",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04779",
@@ -341,7 +365,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "Vietnam",
-    "netsuite_id": "32399796"
+    "netsuite_id": "32399796",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04780",
@@ -349,7 +374,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "32399797"
+    "netsuite_id": "32399797",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04781",
@@ -357,7 +383,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "India",
-    "netsuite_id": "32399798"
+    "netsuite_id": "32399798",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04782",
@@ -365,7 +392,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "32399799"
+    "netsuite_id": "32399799",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04775",
@@ -373,7 +401,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
     "coo_country": "Indonesia",
-    "netsuite_id": "32399792"
+    "netsuite_id": "32399792",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04778",
@@ -381,7 +410,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "32399795"
+    "netsuite_id": "32399795",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04769",
@@ -389,7 +419,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "32399786"
+    "netsuite_id": "32399786",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04765",
@@ -397,7 +428,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "32399782"
+    "netsuite_id": "32399782",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04766",
@@ -405,7 +437,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
     "coo_country": "Vietnam",
-    "netsuite_id": "32399783"
+    "netsuite_id": "32399783",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04768",
@@ -413,7 +446,8 @@
     "facility_id": "fac_nri_us",
     "allocation_channel_id": "ch_first",
     "coo_country": "India",
-    "netsuite_id": "32399785"
+    "netsuite_id": "32399785",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04760",
@@ -421,7 +455,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "Taiwan, Province of China",
-    "netsuite_id": "32399777"
+    "netsuite_id": "32399777",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04762",
@@ -429,7 +464,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "Indonesia",
-    "netsuite_id": "32399779"
+    "netsuite_id": "32399779",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04754",
@@ -437,7 +473,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "Vietnam",
-    "netsuite_id": "32399771"
+    "netsuite_id": "32399771",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04752",
@@ -445,7 +482,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "32399769"
+    "netsuite_id": "32399769",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04753",
@@ -453,7 +491,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "32399770"
+    "netsuite_id": "32399770",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04744",
@@ -461,7 +500,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "32262014"
+    "netsuite_id": "32262014",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04748",
@@ -469,7 +509,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "32262018"
+    "netsuite_id": "32262018",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04736",
@@ -477,7 +518,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "Vietnam",
-    "netsuite_id": "31604624"
+    "netsuite_id": "31604624",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04734",
@@ -485,7 +527,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "Indonesia",
-    "netsuite_id": "31604622"
+    "netsuite_id": "31604622",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04727",
@@ -493,7 +536,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "31604615"
+    "netsuite_id": "31604615",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04726",
@@ -501,7 +545,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_first",
     "coo_country": "China",
-    "netsuite_id": "31604614"
+    "netsuite_id": "31604614",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04723",
@@ -509,7 +554,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "China",
-    "netsuite_id": "31604611"
+    "netsuite_id": "31604611",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04724",
@@ -517,7 +563,8 @@
     "facility_id": "fac_nri_ca",
     "allocation_channel_id": "ch_reserved",
     "coo_country": "Vietnam",
-    "netsuite_id": "31604612"
+    "netsuite_id": "31604612",
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04826",
@@ -525,7 +572,8 @@
     "netsuite_id": "33614215",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Pending Approval"
   },
   {
     "po_number": "PO04827",
@@ -533,7 +581,8 @@
     "netsuite_id": "33614216",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Pending Approval"
   },
   {
     "po_number": "PO04828",
@@ -541,7 +590,8 @@
     "netsuite_id": "33616316",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Pending Approval"
   },
   {
     "po_number": "PO04829",
@@ -549,7 +599,8 @@
     "netsuite_id": "33616317",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Pending Approval"
   },
   {
     "po_number": "PO04830",
@@ -557,7 +608,8 @@
     "netsuite_id": "33616816",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Pending Approval"
   },
   {
     "po_number": "PO04831",
@@ -565,7 +617,8 @@
     "netsuite_id": "33616817",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Pending Approval"
   },
   {
     "po_number": "PO04832",
@@ -573,7 +626,8 @@
     "netsuite_id": "33616818",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Pending Approval"
   },
   {
     "po_number": "PO04833",
@@ -581,7 +635,8 @@
     "netsuite_id": "33616819",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Pending Approval"
   },
   {
     "po_number": "PO04834",
@@ -589,7 +644,8 @@
     "netsuite_id": "33616820",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Pending Approval"
   },
   {
     "po_number": "PO04835",
@@ -597,7 +653,8 @@
     "netsuite_id": "33616821",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Pending Approval"
   },
   {
     "po_number": "PO04836",
@@ -605,7 +662,8 @@
     "netsuite_id": "33617416",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Pending Approval"
   },
   {
     "po_number": "PO04837",
@@ -613,7 +671,8 @@
     "netsuite_id": "33617417",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Pending Approval"
   },
   {
     "po_number": "PO04838",
@@ -621,7 +680,8 @@
     "netsuite_id": "33624087",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04839",
@@ -629,7 +689,8 @@
     "netsuite_id": "33624088",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04840",
@@ -637,7 +698,8 @@
     "netsuite_id": "33640702",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Pending Approval"
   },
   {
     "po_number": "PO04841",
@@ -645,7 +707,8 @@
     "netsuite_id": "33759582",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Approved"
   },
   {
     "po_number": "PO04843",
@@ -653,7 +716,8 @@
     "netsuite_id": "33833235",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Pending Approval"
   },
   {
     "po_number": "PO04842",
@@ -661,6 +725,7 @@
     "netsuite_id": "33832831",
     "facility_id": null,
     "allocation_channel_id": null,
-    "coo_country": null
+    "coo_country": null,
+    "approval_status": "Pending Approval"
   }
 ]

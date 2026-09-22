@@ -20,6 +20,7 @@ const integrationService = require('../../services/integrationService');
 const { splitWarehouseName, channelIdByName } = require('../po/warehouseFacility');
 
 const { norm, supplierKey } = require('../../utils/nameKey');
+const { pruneStaleReceipts } = require('../../utils/pruneStaleReceipts');
 
 // NS location string → { facility name, channel name }. The location conflates a
 // physical facility with an allocation channel (Reserved / First); SMS keeps BOTH.
@@ -214,15 +215,32 @@ function buildUpserts(nsPos, nsReceipts, existing) {
     receiptLinesUpserted += ir.lines.length;
   }
 
+  // Receipts NetSuite has DELETED. The loop above only adds and refreshes, so an
+  // IR deleted in NetSuite and replaced by a new one left the portal holding both
+  // and reporting the SUM as received (PO04801: 658 against NetSuite's 329).
+  // Scope = the POs this pull covered, since that is what the receipt query asked
+  // about; see utils/pruneStaleReceipts for what it refuses to touch.
+  const pruned = pruneStaleReceipts({
+    nsReceipts,
+    queriedPoNumbers: new Set(nsPos.map((p) => p.po_number).filter(Boolean)),
+    receipts: outReceipts,
+    receiptLines: outReceiptLines,
+  });
+  const staleReceipts = pruned.removed;
+  staleReceipts.forEach((r) => warnings.push(
+    `Receipt ${r.ir} (${r.po_number}) no longer exists in NetSuite — removed${r.was_confirmed ? ' (it carried a CONFIRMED match)' : ''}`,
+  ));
+
   return {
     pos: [...posByNumber.values()],
     poLines: Object.values(linesByPo).flat(),
-    receipts: outReceipts,
-    receiptLines: outReceiptLines,
+    receipts: pruned.receipts,
+    receiptLines: pruned.receiptLines,
     suppliers, seasons, skus,
     stats: {
       pos_upserted: posUpserted, po_lines_upserted: linesUpserted,
       receipts_upserted: receiptsUpserted, receipt_lines_upserted: receiptLinesUpserted,
+      receipts_removed: staleReceipts,
       skus_added: skusAdded, suppliers_added: added.suppliers, seasons_added: added.seasons,
     },
     warnings,

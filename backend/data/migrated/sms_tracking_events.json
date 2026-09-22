@@ -5622,5 +5622,101 @@
     "courier_code": "AF",
     "description": "At local FedEx facility",
     "location": "RICHMOND, BC, CA"
+  },
+  {
+    "id": "ste_704",
+    "shipment_id": "44",
+    "event_time": "2026-09-08T08:33:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_705",
+    "shipment_id": "44",
+    "event_time": "2026-09-08T06:02:32-07:00",
+    "courier_code": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_706",
+    "shipment_id": "44",
+    "event_time": "2026-09-07T22:06:00-07:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "DELTA, BC, CA"
+  },
+  {
+    "id": "ste_707",
+    "shipment_id": "45",
+    "event_time": "2026-09-08T11:17:00-07:00",
+    "courier_code": "AF",
+    "description": "At local FedEx facility",
+    "location": "RICHMOND, BC, CA"
+  },
+  {
+    "id": "ste_708",
+    "shipment_id": "45",
+    "event_time": "2026-09-09T06:51:00-07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Import",
+    "location": "RICHMOND, BC, CA"
+  },
+  {
+    "id": "ste_709",
+    "shipment_id": "45",
+    "event_time": "2026-09-09T05:05:00-07:00",
+    "courier_code": "SE",
+    "description": "Shipment exception",
+    "location": "RICHMOND, BC, CA"
+  },
+  {
+    "id": "ste_710",
+    "shipment_id": "45",
+    "event_time": "2026-09-09T05:05:00-07:00",
+    "courier_code": "CC",
+    "description": "International shipment release - Import",
+    "location": "RICHMOND, BC, CA"
+  },
+  {
+    "id": "ste_711",
+    "shipment_id": "45",
+    "event_time": "2026-09-10T09:13:00-07:00",
+    "courier_code": "DL",
+    "description": "Delivered",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_712",
+    "shipment_id": "45",
+    "event_time": "2026-09-10T07:22:21-07:00",
+    "courier_code": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_713",
+    "shipment_id": "45",
+    "event_time": "2026-09-10T07:07:39-07:00",
+    "courier_code": "AR",
+    "description": "At local FedEx facility",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_714",
+    "shipment_id": "45",
+    "event_time": "2026-09-10T00:25:00-07:00",
+    "courier_code": "DP",
+    "description": "Departed FedEx hub",
+    "location": "DELTA, BC, CA"
+  },
+  {
+    "id": "ste_715",
+    "shipment_id": "45",
+    "event_time": "2026-09-09T13:18:00-07:00",
+    "courier_code": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "DELTA, BC, CA"
   }
 ]

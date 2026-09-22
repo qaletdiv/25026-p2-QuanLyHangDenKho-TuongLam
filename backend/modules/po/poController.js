@@ -13,6 +13,13 @@ const { resolveVendorSupplierId } = require('../../utils/vendorScope');
 // pure date helper only — reused so the "expected ATA = E-DEL + 5" rule has ONE
 // definition shared with /reports/mainline rather than a second copy here.
 const { addDays } = require('../mainline/reports/transitTimeService');
+// shipped/received per (leg, SKU) for the item-lines export — the SAME derivation
+// the PO leg page reconciles with, so the spreadsheet and the screen agree
+const { legActuals } = require('../mainline/fulfillment/fulfillmentService');
+const { deriveAllCiLines } = require('../mainline/ci/ciLines');
+// ATA is derived from the NetSuite Item Receipts, never the raw column — one
+// precedence rule, shared with the report endpoints
+const { loadAtaByShipment, effectiveAta } = require('../mainline/receipts/ataLoader');
 
 const notFound = (msg) => { const e = new Error(msg); e.statusCode = 404; throw e; };
 
@@ -124,6 +131,11 @@ async function getLegs(req, res) {
       expected_qty,
       sku_count:           (d.legLinesByLeg[leg.id] || []).length,
       lifecycle:           'split',
+      // NetSuite's sign-off state for the PO this leg belongs to ('Pending
+      // Approval' | 'Approved' | null). Stored on the order by the NS sync; carried
+      // here so the list can badge a PO no supervisor has approved yet — until now
+      // an unapproved PO was indistinguishable from an approved one.
+      approval_status:     order.approval_status || null,
       bookable:            true,   // a leg is always bookable (it exists = PO is split)
     };
   });
@@ -152,6 +164,7 @@ async function getLegs(req, res) {
       expected_qty:        lines.reduce((s, l) => s + (l.ordered_qty || 0), 0),
       sku_count:           lines.length,
       lifecycle:           'forecast',
+      approval_status:     order.approval_status || null,
       bookable:            false,   // can't book until split into legs
     };
   });
@@ -261,7 +274,8 @@ async function getOne(req, res) {
 // shipment_count + shipment_numbers keep that aggregation visible rather than
 // hiding it. ISO date strings compare lexicographically, so min/max need no parsing.
 async function getAllLegLines(req, res) {
-  const [d, modes, facilities, channels, suppliers, seasons, skus, shipments, shipLegs] = await Promise.all([
+  const [d, modes, facilities, channels, suppliers, seasons, skus, shipments, shipLegs,
+    invoices, cartons, receipts, receiptLines] = await Promise.all([
     loadAll(await scopeOf(req)),
     new BaseModel('modes.json').read(),
     new BaseModel('migrated/warehouse_facilities.json').read(),
@@ -271,7 +285,21 @@ async function getAllLegLines(req, res) {
     new BaseModel('migrated/product_skus.json').read(),
     new BaseModel('migrated/mainline_shipments.json').read(),
     new BaseModel('migrated/mainline_shipment_legs.json').read(),
+    // Shipped + received per (leg, SKU) — the same derivation the PO leg page
+    // reconciles with, via the shared `legActuals`. CI lines are derived from the
+    // packing cartons, not stored.
+    new BaseModel('migrated/mainline_commercial_invoices.json').read().catch(() => []),
+    new BaseModel('migrated/mainline_packing_cartons.json').read().catch(() => []),
+    new BaseModel('migrated/mainline_item_receipts.json').read().catch(() => []),
+    new BaseModel('migrated/mainline_item_receipt_lines.json').read().catch(() => []),
   ]);
+  // Built over ALL legs, not the vendor-scoped subset: the receipt split walks a
+  // PO's legs in shipping-method order and capping it to a partial view would
+  // credit the wrong leg. The ROW LIST below is still scoped by loadAll.
+  const { shippedByLegSku, recvByLegSku } = legActuals({
+    legs: d.legs, legLines: d.legLines, invoices,
+    ciLines: deriveAllCiLines(cartons), receipts, receiptLines, modes,
+  });
   const modeName = nameMap(modes), facName = nameMap(facilities), chanName = nameMap(channels);
   const supName = nameMap(suppliers), seasonName = nameMap(seasons, 'code');
   const orderByPo = new Map(d.orders.map((o) => [o.po_number, o]));
@@ -283,6 +311,14 @@ async function getAllLegLines(req, res) {
   // ROW LIST (d.legLines) is already vendor-scoped by loadAll, and this is lookup
   // context — pruning it would blank dates rather than hide rows.
   const shipById = new Map((Array.isArray(shipments) ? shipments : []).map((s) => [s.id, s]));
+  // ⚠️ ATA is DERIVED from the NetSuite Item Receipts; the `ata` COLUMN is only a
+  // manual stopgap and is set on 1 of 9 live shipments (SHP-2). Reading the column
+  // here left the export blank for every other consignment even though the receipts
+  // say it landed — the same defect the three report endpoints carried until
+  // 2026-09-02, and the reason this export showed an ATA only for SHP-2's two POs.
+  // `effectiveAta` holds the one precedence rule: attributed receipt date wins, the
+  // typed column is the fallback.
+  const ataMatch = await loadAtaByShipment({ shipments, shipLegs, legs: d.legs });
   const shipDatesByLeg = new Map();
   for (const j of (Array.isArray(shipLegs) ? shipLegs : [])) {
     const s = shipById.get(j.shipment_id);
@@ -292,9 +328,11 @@ async function getAllLegLines(req, res) {
     if (s.shipment_number) agg.numbers.push(s.shipment_number);
     // earliest departure, latest everything downstream
     if (s.etd_pol && (!agg.etd_pol || s.etd_pol < agg.etd_pol)) agg.etd_pol = s.etd_pol;
-    for (const k of ['eta_pod', 'e_del', 'cargo_received_date', 'ata']) {
+    for (const k of ['eta_pod', 'e_del', 'cargo_received_date']) {
       if (s[k] && (!agg[k] || s[k] > agg[k])) agg[k] = s[k];
     }
+    const { ata, ata_source } = effectiveAta(ataMatch, s);
+    if (ata && (!agg.ata || ata > agg.ata)) { agg.ata = ata; agg.ata_source = ata_source; }
     shipDatesByLeg.set(j.leg_id, agg);
   }
 
@@ -328,12 +366,21 @@ async function getAllLegLines(req, res) {
       cargo_received_date: (ship && ship.cargo_received_date) || null,
       expected_ata:        addDays(bestEDel, 5),
       ata:                 (ship && ship.ata) || null,
+      // which rule produced it: 'netsuite' = attributed Item Receipt, 'manual' =
+      // the typed column. Worth a column in a spreadsheet people reconcile against
+      // NetSuite — a date and no provenance invites re-checking every row.
+      ata_source:          (ship && ship.ata_source) || null,
       leg_id:              ll.leg_id,
       sku_code:            ll.sku_code,
       item_name:           sku.item_name || null,
       style_color:         sku.style_color || null,
       size:                sku.size || null,
       allocated_qty:       ll.allocated_qty || 0,
+      // 0, not null: at this grain a SKU with no CI line or no receipt has shipped
+      // / received nothing, and a blank cell in a spreadsheet column people sum
+      // would be read as missing data rather than as zero.
+      shipped_qty:         shippedByLegSku.get(`${ll.leg_id}|${ll.sku_code}`) || 0,
+      received_qty:        recvByLegSku.get(`${ll.leg_id}|${ll.sku_code}`) || 0,
       unit_price:          sku.unit_price ?? null,
     };
   }).sort((a, b) => (a.po_number || '').localeCompare(b.po_number || '') || (a.sku_code || '').localeCompare(b.sku_code || ''));
@@ -394,6 +441,7 @@ async function getLeg(req, res) {
     facility_id:          order.facility_id || null,
     allocation_channel:   chanName.get(order.allocation_channel_id) || null,
     coo:                  order.coo_country || null,
+    approval_status:      order.approval_status || null,   // NS sign-off state (badge)
     crd:                  leg.crd || null,
     etd_pol:              leg.etd_pol || null,
     e_del:                leg.e_del || null,

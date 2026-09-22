@@ -103,8 +103,52 @@ async function readWorkbookSheet(file) {
 }
 
 /**
+ * Parse an UPLOADED order-data file — the `NRI Order data` sheet out of the
+ * combined workbook, or one of NRI's period CSVs. Same column map either way
+ * (`Order #`, `OrderType`, `Ship To Country`, `Ref2`, `CustCode`, `Ship To`).
+ *
+ * This is what lets channel and country be supplied through the UI instead of
+ * from a G: drive path: coverage of this file is the limiting factor on class
+ * accuracy, so whoever is coding the invoice has to be able to top it up.
+ *
+ * @param {Buffer} buffer
+ * @param {string} filename  used only to tell xlsx from csv
+ * @returns {Promise<object[]>} rows shaped like readCsv/readWorkbookSheet
+ */
+async function parseUploaded(buffer, filename = '') {
+  if (/\.csv$/i.test(filename)) {
+    const lines = buffer.toString('utf8').split(/\r?\n/).filter((l) => l.trim());
+    if (!lines.length) return [];
+    const header = splitCsv(lines[0]);
+    return lines.slice(1).map((l) => mapRow(header, splitCsv(l))).filter((r) => norm(r.orderNo));
+  }
+  const wb = xl.openBuffer(buffer, filename || 'uploaded order data');
+  const sst = await xl.sharedStrings(wb);
+  const index = await xl.sheetIndex(wb);
+  // the combined workbook has one sheet whose name contains "order data"; a
+  // single-sheet export just has the one
+  const sheet = [...index.keys()].find((s) => /order data/i.test(s)) || [...index.keys()][0];
+  if (!sheet) return [];
+  const rows = [];
+  let header = null;
+  await xl.eachRow(wb, sheet, sst, (n, cells) => {
+    if (!header) { header = cells.map((c) => norm(c && c.error ? '' : c)); return true; }
+    const r = mapRow(header, cells);
+    if (norm(r.orderNo)) {
+      if (typeof r.completed === 'number') r.completed = xl.excelSerialToISO(r.completed);
+      rows.push(r);
+    }
+  });
+  return rows;
+}
+
+/**
  * Load every available order source. Later sources overwrite earlier ones for the
  * same order number, so pass the least-trusted first.
+ *
+ * @param {object[]} [opts.stored]  rows the portal already holds (uploaded through
+ *   the UI). They are ingested LAST — an operator who just uploaded this period's
+ *   file means it, and it is the only source that does not depend on a mapped drive.
  */
 async function load(opts = {}) {
   const csvDir = opts.csvDir === undefined ? DEFAULT_CSV_DIR : opts.csvDir;
@@ -147,6 +191,11 @@ async function load(opts = {}) {
     }
   }
 
+  // 3. Rows uploaded through the portal — the newest deliberate act, so last.
+  if (Array.isArray(opts.stored) && opts.stored.length) {
+    ingest(opts.stored, opts.storedLabel || 'uploaded in the portal');
+  }
+
   const dates = [...byOrder.values()].map(o => o.completed).filter(Boolean).sort();
   return {
     byOrder,
@@ -164,4 +213,6 @@ function toContextRows(master) {
   }));
 }
 
-module.exports = { load, toContextRows, readCsv, readWorkbookSheet, isoDate, splitCsv, DEFAULT_CSV_DIR };
+module.exports = {
+  load, toContextRows, readCsv, readWorkbookSheet, parseUploaded, isoDate, splitCsv, DEFAULT_CSV_DIR,
+};

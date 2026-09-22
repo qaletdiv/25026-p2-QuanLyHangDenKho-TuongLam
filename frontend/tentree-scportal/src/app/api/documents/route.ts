@@ -27,6 +27,17 @@ const ALLOWED_PREFIXES = ['/uploads/', '/templates/'];
 // template has no file on disk — downloadTemplate() builds the xlsx in memory — so it
 // needs an exact entry, not a prefix.
 const ALLOWED_EXACT = ['/freights/template'];
+// The CI / Packing List download, which rebuilds the workbook from current master
+// data (see generatedDocHref). A pattern rather than a prefix: the document id is
+// the only variable part, and it is constrained so this cannot widen into
+// "anything under /mainline".
+const ALLOWED_PATTERNS = [
+  /^\/(mainline|sms)\/documents\/[A-Za-z0-9_.-]+\/file$/,
+  // Landed-cost month-end export. The query string carries ?month=YYYY-MM, so the
+  // pattern has to allow it — constrained to that one parameter rather than any
+  // query, so this cannot be used to reach the route with arbitrary input.
+  /^\/landed-costs\/(mainline|sms)\/export(\?month=[A-Za-z0-9-]{1,16})?$/,
+];
 
 export async function GET(request: NextRequest) {
   // Authenticate FIRST, before looking at ?path, so an unauthenticated caller learns
@@ -60,7 +71,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
   }
   const allowed = ALLOWED_PREFIXES.some((p) => decoded.startsWith(p))
-    || ALLOWED_EXACT.includes(decoded);
+    || ALLOWED_EXACT.includes(decoded)
+    || ALLOWED_PATTERNS.some((re) => re.test(decoded));
   if (!allowed) {
     return NextResponse.json({ error: 'Path not allowed' }, { status: 400 });
   }
@@ -78,7 +90,10 @@ export async function GET(request: NextRequest) {
   }
 
   // Stream rather than buffer — these are spreadsheets and can be large.
-  const filename = decoded.split('/').pop() || 'download';
+  // A generated route's last segment is "file", so prefer the name the backend
+  // states in its own Content-Disposition and fall back to the path.
+  const upstreamName = /filename="([^"]+)"/.exec(upstream.headers.get('content-disposition') || '')?.[1];
+  const filename = upstreamName || decoded.split('/').pop() || 'download';
   const headers = new Headers();
   headers.set(
     'Content-Type',

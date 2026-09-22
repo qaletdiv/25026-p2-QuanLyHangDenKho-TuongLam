@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, CalendarPlus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+import ApprovalBadge from './ApprovalBadge';
 import type { PoLegDetail as PoLegDetailT, PoReconcile, LegShipment } from '@/modules/mainline/types';
 
 const DASH = '—';
@@ -41,6 +44,17 @@ function Stat({ label, value }: { label: string; value: number }) {
   );
 }
 
+// Variance is RECEIVED − SHIPPED, so `over` is the warehouse booking in more than
+// the packing list said and `short` is less. 'any' is the common case — "just show
+// me what doesn't tie out" — and is offered first for that reason.
+type VarianceFilter = 'all' | 'any' | 'over' | 'short';
+const VARIANCE_LABEL: Record<VarianceFilter, string> = {
+  all: 'All',
+  any: 'Discrepancies',
+  over: 'Over-received',
+  short: 'Short',
+};
+
 // One PO leg (air/sea split): the SKUs the vendor must produce + the component-PO
 // reconcile (ordered vs shipped vs received, from NetSuite Item Receipts).
 export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: PoLegDetailT; reconcile: PoReconcile | null; shipments?: LegShipment[] }) {
@@ -48,7 +62,42 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
   const [showAll, setShowAll] = useState(false);
   const itemBySku = new Map(leg.line_items.map((li) => [li.sku_code, li]));
   const recRows = reconcile?.fulfillment ?? [];
-  const shownRec = showAll ? recRows : recRows.slice(0, 15);
+
+  // Reconcile-table filters, in the header itself. This table runs to hundreds of
+  // SKUs (385 on TRN_1267) and the question asked of it is almost always "which
+  // ones are off?" — which previously meant reading every row.
+  const [skuQuery, setSkuQuery] = useState('');
+  const [varianceFilter, setVarianceFilter] = useState<VarianceFilter>('all');
+  const recFiltering = skuQuery.trim() !== '' || varianceFilter !== 'all';
+
+  const filteredRec = useMemo(() => {
+    const q = skuQuery.trim().toLowerCase();
+    return recRows.filter((r) => {
+      // match the item name too — staff search by style as often as by SKU
+      if (q && !`${r.sku_code} ${itemBySku.get(r.sku_code)?.item_name ?? ''}`.toLowerCase().includes(q)) return false;
+      if (varianceFilter === 'any' && r.variance === 0) return false;
+      if (varianceFilter === 'over' && r.variance <= 0) return false;
+      if (varianceFilter === 'short' && r.variance >= 0) return false;
+      return true;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recRows, skuQuery, varianceFilter]);
+
+  // A filter IS a request to see the matches — all of them. Capping a filtered
+  // result at 15 would hide the very rows the user narrowed down to.
+  const shownRec = recFiltering || showAll ? filteredRec : filteredRec.slice(0, 15);
+
+  // Totals are of the rows ON SCREEN — `shownRec`, not `reconcile.totals` and not
+  // the full filtered set. A footer summing 374 SKUs under a body showing 15 is
+  // read as the total of those 15 and is wrong; that holds for the top-15 cap just
+  // as much as for a filter. The whole-leg figures are still one glance away in
+  // the Stat cards above, which are deliberately NOT filtered.
+  const recTotals = useMemo(() => shownRec.reduce((t, r) => ({
+    allocated_qty: t.allocated_qty + r.allocated_qty,
+    shipped_qty: t.shipped_qty + r.shipped_qty,
+    received_qty: t.received_qty + r.received_qty,
+  }), { allocated_qty: 0, shipped_qty: 0, received_qty: 0 }), [shownRec]);
+
   const shown = showAll ? leg.line_items : leg.line_items.slice(0, 15);
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
@@ -61,6 +110,10 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
         </Link>
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-semibold tracking-tight">{leg.po_number}</h1>
+          {/* Next to the title, where "Book Now" is: this is the page you book
+              from, so the fact that NetSuite hasn't approved the PO belongs in the
+              same glance as the button. */}
+          <ApprovalBadge status={leg.approval_status} />
           {leg.supplier_id && (
             <Button
               size="sm"
@@ -86,9 +139,12 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
           <Meta label="Allocation Channel" value={leg.allocation_channel} />
           <Meta label="COO" value={leg.coo} />
           <Meta label="Incoterm" value={leg.incoterm} />
-          {/* The WIP target. The per-shipment "CRD (actual)" in the Shipments table
-              below is a different date — they disagree on most live rows. */}
-          <Meta label="CRD (target)" value={leg.crd} />
+          {/* CARGO READY — the supplier's date, from WIP, and a PLAN: it moves
+              earlier and later. The Shipments table below shows "Received at Port",
+              which is a different EVENT (the forwarder has the cargo), 0–32 days
+              later on live rows. These were once labelled "CRD (target)" and
+              "CRD (actual)", which read as two measurements of one date. */}
+          <Meta label="Cargo Ready" value={leg.crd} />
           <Meta label="E-DEL" value={leg.e_del} />
         </div>
       </Card>
@@ -107,15 +163,16 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
               <TableRow className="bg-card/80 hover:bg-card/80">
                 <TableHead>Lot</TableHead>
                 <TableHead>Carrier Shipment #</TableHead>
-                <TableHead>CRD (actual)</TableHead>
+                <TableHead>Received at Port</TableHead>
                 <TableHead className="text-right">Shipped Qty</TableHead>
+                <TableHead className="text-right">Received Qty</TableHead>
                 <TableHead className="text-right">Shipped Cartons</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {shipments.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Not shipped yet — a shipment appears here once the booking for this leg is approved.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Not shipped yet — a shipment appears here once the booking for this leg is approved.</TableCell></TableRow>
               ) : shipments.map((s) => (
                 <TableRow key={`${s.shipment_id}-${s.lot_number}`} className="border-border hover:bg-muted/30">
                   {/* The lot carries the link, not the carrier ref — the ref is blank on
@@ -131,6 +188,20 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
                   <TableCell className="font-mono text-xs">{s.carrier_shipment_number ?? DASH}</TableCell>
                   <TableCell className="text-muted-foreground">{s.crd_actual ?? DASH}</TableCell>
                   <TableCell className="text-right tabular-nums">{s.shipped_qty != null ? s.shipped_qty.toLocaleString() : DASH}</TableCell>
+                  {/* Amber only when BOTH figures exist and disagree — this is the
+                      cell that says which lot the leg-level discrepancy came from.
+                      A missing receipt is not a discrepancy, it is "not yet". */}
+                  <TableCell
+                    className={cn('text-right tabular-nums',
+                      s.received_qty != null && s.shipped_qty != null && s.received_qty !== s.shipped_qty && 'text-amber-600 font-medium')}
+                    title={s.received_qty == null ? 'No Item Receipt attributed to this lot yet'
+                      : `${s.received_ir ?? 'Item Receipt'}${s.received_date ? ` · ${s.received_date}` : ''}${s.received_confirmed ? '' : ' · match not confirmed'}`}
+                  >
+                    {s.received_qty != null ? s.received_qty.toLocaleString() : DASH}
+                    {/* An unconfirmed attribution is a suggestion, so the number is
+                        marked rather than presented as settled. */}
+                    {s.received_qty != null && !s.received_confirmed && <span className="ml-0.5 text-muted-foreground">*</span>}
+                  </TableCell>
                   <TableCell className="text-right tabular-nums">{s.shipped_cartons != null ? s.shipped_cartons.toLocaleString() : DASH}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className={cn(STATUS_STYLES[s.status || ''])}>{s.status ?? DASH}</Badge>
@@ -149,18 +220,52 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
             <Stat label="Allocated" value={reconcile!.totals.allocated_qty} />
             <Stat label="Shipped" value={reconcile!.totals.shipped_qty} />
             <Stat label="Received" value={reconcile!.totals.received_qty} />
-            <Stat label="Remaining" value={reconcile!.totals.allocated_qty - reconcile!.totals.shipped_qty} />
+            {/* Σ of the rows' own `remaining_qty`, NOT allocated − shipped: the
+                backend floors shipped at received per SKU, and recomputing it here
+                from the totals would put a different number on the card than the
+                table under it. */}
+            <Stat label="Remaining" value={recRows.reduce((t, r) => t + r.remaining_qty, 0)} />
           </div>
           <Card className="overflow-x-auto">
             <Table className="bg-card">
               <TableHeader>
+                {/* The SKU and Variance headers ARE their filters — one row, no
+                    separate filter strip. Each control shows the column name while
+                    it is unset and the active filter once it is, so the header
+                    always reads as both the label and the current state. */}
                 <TableRow className="bg-card/80 hover:bg-card/80">
-                  <TableHead>SKU</TableHead>
+                  <TableHead className="py-1.5">
+                    <Input
+                      value={skuQuery}
+                      onChange={(e) => setSkuQuery(e.target.value)}
+                      placeholder="SKU"
+                      title="Filter by SKU or item name"
+                      aria-label="Filter by SKU or item name"
+                      className="h-7 w-full text-xs font-medium placeholder:font-medium placeholder:text-foreground"
+                    />
+                  </TableHead>
                   <TableHead>Item</TableHead>
                   <TableHead className="text-right">Allocated</TableHead>
                   <TableHead className="text-right">Shipped</TableHead>
                   <TableHead className="text-right">Received</TableHead>
-                  <TableHead className="text-right">Variance</TableHead>
+                  <TableHead className="py-1.5">
+                    <Select value={varianceFilter} onValueChange={(v) => setVarianceFilter((v as VarianceFilter) ?? 'all')}>
+                      {/* Label rendered directly — <SelectValue> can't derive one
+                          when the value is set programmatically (see CLAUDE.md).
+                          Unset reads "Variance", the column name. */}
+                      <SelectTrigger
+                        title="Filter by variance"
+                        className={cn('h-7 w-full text-xs font-medium', varianceFilter !== 'all' && 'text-primary')}
+                      >
+                        {varianceFilter === 'all' ? 'Variance' : VARIANCE_LABEL[varianceFilter]}
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(Object.keys(VARIANCE_LABEL) as VarianceFilter[]).map((k) => (
+                          <SelectItem key={k} value={k}>{VARIANCE_LABEL[k]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -176,17 +281,35 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
                     </TableCell>
                   </TableRow>
                 ))}
+                {filteredRec.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="py-6 text-center text-sm text-muted-foreground">
+                      No SKU matches this filter.
+                    </TableCell>
+                  </TableRow>
+                )}
                 <TableRow className="bg-card/80 font-medium">
-                  <TableCell colSpan={2}>Total ({recRows.length} SKUs)</TableCell>
-                  <TableCell className="text-right tabular-nums">{reconcile!.totals.allocated_qty.toLocaleString()}</TableCell>
-                  <TableCell className="text-right tabular-nums">{reconcile!.totals.shipped_qty.toLocaleString()}</TableCell>
-                  <TableCell className="text-right tabular-nums">{reconcile!.totals.received_qty.toLocaleString()}</TableCell>
-                  <TableCell />
+                  <TableCell colSpan={2}>
+                    {/* "of N" whenever the body is a subset — filtered OR capped at
+                        the top 15 — so the number above can never be mistaken for
+                        the leg total. */}
+                    Total ({shownRec.length === recRows.length ? recRows.length : `${shownRec.length} of ${recRows.length}`} SKUs)
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">{recTotals.allocated_qty.toLocaleString()}</TableCell>
+                  <TableCell className="text-right tabular-nums">{recTotals.shipped_qty.toLocaleString()}</TableCell>
+                  <TableCell className="text-right tabular-nums">{recTotals.received_qty.toLocaleString()}</TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {recTotals.received_qty - recTotals.shipped_qty === 0
+                      ? DASH
+                      : (recTotals.received_qty - recTotals.shipped_qty).toLocaleString()}
+                  </TableCell>
                 </TableRow>
               </TableBody>
             </Table>
           </Card>
-          {recRows.length > 15 && (
+          {/* Hidden while filtering: the filter already shows every match, so the
+              toggle would claim to expand a list that is not truncated. */}
+          {!recFiltering && recRows.length > 15 && (
             <button onClick={() => setShowAll((v) => !v)} className="text-xs font-semibold text-primary hover:underline">
               {showAll ? 'Show top 15' : `Show all ${recRows.length} SKUs`}
             </button>

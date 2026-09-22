@@ -3,15 +3,61 @@ const stream = require('stream');
 const fs = require('fs');
 const path = require('path');
 
+// ---------------------------------------------------------------------------
+// DATA_BACKEND selects where the portal's records live:
+//
+//   postgres (default)  db/pgStore.js — real tables, real keys, one transaction
+//                       per write request.
+//   json                the original JSON files under backend/data/.
+//
+// The switch exists so a problem in Postgres is one env var away from being
+// backed out of, not a git revert. Note that it is NOT a mirror: once the app
+// has been writing to Postgres, the JSON files are a frozen snapshot from
+// migration day, and switching back moves the portal to that snapshot.
+//
+// It applies to readData/writeData ONLY. uploadFile still writes real file
+// blobs (CI workbooks, packing lists, ASNs) to Drive or disk — those are
+// documents, not records, and nothing about them changed.
+// ---------------------------------------------------------------------------
+const DATA_BACKEND = (process.env.DATA_BACKEND || 'postgres').toLowerCase();
+
 class GoogleDriveStorage {
     constructor() {
         this.folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
         this.fileMap = new Map();
         this.drive = null;
         this.localDataDir = path.join(__dirname, 'data');
+        this.backend = DATA_BACKEND;
+        // Required lazily: db/pool.js opens a connection pool on require, which
+        // a DATA_BACKEND=json run should not do.
+        this.pg = DATA_BACKEND === 'postgres' ? require('./db/pgStore') : null;
     }
 
     async init() {
+        if (this.pg) {
+            // A failed ping must NOT stop the server coming up. Postgres here runs
+            // in a container that can be down for reasons that have nothing to do
+            // with the app (the WSL distro idling out takes dockerd with it), and
+            // refusing to boot would turn a database blip into "the portal is
+            // gone until someone restarts node". The pool reconnects by itself,
+            // so the next request after Postgres returns simply works.
+            try {
+                const { ping } = require('./db/pool');
+                const info = await ping();
+                console.log(`Data backend: PostgreSQL (${info.db}).`);
+            } catch (e) {
+                console.error('='.repeat(72));
+                console.error(`Data backend: PostgreSQL — CANNOT CONNECT (${e.code || e.message}).`);
+                console.error('The server is starting anyway and will reconnect on its own, but every');
+                console.error('request that touches data will fail until the database is reachable.');
+                console.error(`  connection: ${require('./db/pool').connectionString().replace(/:[^:@/]*@/, ':****@')}`);
+                console.error('  if it runs in WSL:  wsl -e docker start some-postgres');
+                console.error('='.repeat(72));
+            }
+            return;
+        }
+        console.log('Data backend: local JSON files (DATA_BACKEND=json).');
+
         if (!process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY || !this.folderId) {
             console.log("No Google Drive credentials found. Falling back to local fs storage.");
             return;
@@ -49,6 +95,8 @@ class GoogleDriveStorage {
     }
 
     async readData(filename) {
+        if (this.pg) return this.pg.readData(filename);
+
         if (!this.drive) {
             // Fallback
             try {
@@ -79,6 +127,8 @@ class GoogleDriveStorage {
     }
 
     async writeData(filename, data) {
+        if (this.pg) return this.pg.writeData(filename, data);
+
         if (!this.drive) {
             // Atomic local write: serialise to a temp file first, then rename over the target.
             // This prevents data loss if the process is killed or throws mid-write — the

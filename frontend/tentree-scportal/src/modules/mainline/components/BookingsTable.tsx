@@ -13,9 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Check, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { APPROVE_DENIED_HINT, hasPermission } from '@/lib/permissions';
+import { useSession } from '@/components/providers/SessionProvider';
 import { createMainlineBooking, approveMainlineBooking, deleteMainlineBooking } from '@/modules/mainline/actions';
 import DataTable, { type DataColumn } from './DataTable';
 import ConfirmDialog from './ConfirmDialog';
+import ApprovalBadge from './ApprovalBadge';
 import { SeasonScopeFilter, seasonsFrom, applySeasonScope, type Scope } from '@/components/SeasonScopeFilter';
 import type { MainlineBooking, PoMasterSummary, PoLegRow, CourierOption } from '@/modules/mainline/types';
 
@@ -40,6 +43,14 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
   bookings: MainlineBooking[]; masters: PoMasterSummary[]; legs: PoLegRow[]; couriers?: CourierOption[]; initialNewSupplier?: string | null;
 }) {
   const router = useRouter();
+  // Who may act on a booking, as opposed to watch it. Keyed on the PERMISSION, not
+  // a role name, so it follows a roles.json edit (today: Admin / Logistics /
+  // Production hold booking_approve; Vendor and Freight Forwarder do not). The
+  // server refuses either way — this is so the button doesn't offer what the API
+  // will reject.
+  const { user } = useSession();
+  const canApprove = hasPermission(user, 'booking_approve');
+  const canDelete = hasPermission(user, 'booking_delete');
   const [open, setOpen] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<null | { kind: 'approve' | 'delete'; booking: MainlineBooking }>(null);
@@ -171,10 +182,19 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
     { key: 'approved', label: 'Approved', defaultVisible: false, accessor: (b) => b.approved_at, render: (b) => <span className="text-muted-foreground">{b.approved_at ? b.approved_at.slice(0, 10) : '—'}</span> },
     { key: 'cargo_ready_date', label: 'Cargo Ready', accessor: (b) => b.cargo_ready_date, render: (b) => <span className="text-muted-foreground">{b.cargo_ready_date ?? '—'}</span> },
     { key: 'booking_status', label: 'Status', accessor: (b) => b.booking_status, render: (b) => <Badge variant="outline" className={cn(STATUS_STYLES[b.booking_status || ''])}>{b.booking_status ?? '—'}</Badge> },
+    // Approve stays VISIBLE and goes DISABLED for a role that may not press it —
+    // a vendor watching their own booking should still see that it is sitting on
+    // an approval, which a hidden button doesn't say. Delete is HIDDEN instead:
+    // it tells them nothing they are waiting on. The tooltip hangs on a span
+    // because a disabled Button carries `pointer-events-none` and would eat it.
     { key: 'actions', label: 'Actions', align: 'right', sortable: false, render: (b) => (
       <div className="space-x-2 whitespace-nowrap">
-        {b.booking_status === 'Booking Pending' && <Button size="sm" variant="outline" disabled={busyId === b.id} onClick={() => setConfirmAction({ kind: 'approve', booking: b })}><Check className="h-4 w-4 mr-1" /> Approve</Button>}
-        <Button size="sm" variant="ghost" disabled={busyId === b.id} title="Delete booking" onClick={() => setConfirmAction({ kind: 'delete', booking: b })}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+        {b.booking_status === 'Booking Pending' && (
+          <span title={canApprove ? undefined : APPROVE_DENIED_HINT} className="inline-block">
+            <Button size="sm" variant="outline" disabled={!canApprove || busyId === b.id} onClick={() => setConfirmAction({ kind: 'approve', booking: b })}><Check className="h-4 w-4 mr-1" /> Approve</Button>
+          </span>
+        )}
+        {canDelete && <Button size="sm" variant="ghost" disabled={busyId === b.id} title="Delete booking" onClick={() => setConfirmAction({ kind: 'delete', booking: b })}><Trash2 className="h-4 w-4 text-red-500" /></Button>}
       </div>
     ) },
   ];
@@ -301,9 +321,21 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
                         const remaining = remainingOf(l);
                         const entered = Number(r.units) || 0;
                         const over = entered > remaining;
+                        // G4 mirrored in the form: a PO NetSuite hasn't approved is
+                        // LOCKED, not rejected at submit — the same choice the SMS
+                        // booking form makes for its same-supplier guard, so the
+                        // rule is unexpressible rather than a surprise on Submit.
+                        // The server guard stays the authority (a stale page can
+                        // still POST); this only stops the wasted keystrokes.
+                        const unapproved = l.approval_status === 'Pending Approval' || l.approval_status === 'Rejected';
                         return (
-                          <TableRow key={l.id} className={cn('border-border', entered > 0 && 'bg-primary/5')}>
-                            <TableCell className="font-medium whitespace-nowrap">{l.po_number}</TableCell>
+                          <TableRow key={l.id} className={cn('border-border', entered > 0 && 'bg-primary/5', unapproved && 'opacity-60')}>
+                            <TableCell className="font-medium whitespace-nowrap">
+                              <span className="inline-flex items-center gap-2">
+                                {l.po_number}
+                                {unapproved && <ApprovalBadge status={l.approval_status} />}
+                              </span>
+                            </TableCell>
                             <TableCell className="whitespace-nowrap">{l.mode ?? '—'}</TableCell>
                             <TableCell className="text-muted-foreground whitespace-nowrap">{l.receiving_warehouse ?? '—'}</TableCell>
                             <TableCell className="text-muted-foreground whitespace-nowrap">{l.allocation_channel ?? '—'}</TableCell>
@@ -313,13 +345,15 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
                               <span className="text-muted-foreground"> / {l.expected_qty.toLocaleString()}</span>
                             </TableCell>
                             <TableCell className="text-right">
-                              <Input type="number" min={0} className={cn('w-20 h-8 ml-auto', over && 'border-amber-500 focus-visible:ring-amber-500')} placeholder="0"
+                              <Input type="number" min={0} disabled={unapproved}
+                                title={unapproved ? 'This PO is not approved in NetSuite yet — it cannot be booked' : undefined}
+                                className={cn('w-20 h-8 ml-auto', over && 'border-amber-500 focus-visible:ring-amber-500')} placeholder="0"
                                 value={r.units ?? ''} onChange={(e) => setField(l.id, 'units', e.target.value)} />
                               {over && <div className="text-[10px] text-amber-600 mt-0.5">over by {(entered - remaining).toLocaleString()}</div>}
                             </TableCell>
-                            <TableCell className="text-right"><Input type="number" min={0} className="w-20 h-8 ml-auto" placeholder="—" value={r.cartons ?? ''} onChange={(e) => setField(l.id, 'cartons', e.target.value)} /></TableCell>
-                            <TableCell className="text-right"><Input type="number" min={0} step="0.01" className="w-24 h-8 ml-auto" placeholder="—" value={r.weight ?? ''} onChange={(e) => setField(l.id, 'weight', e.target.value)} /></TableCell>
-                            <TableCell className="text-right"><Input type="number" min={0} step="0.001" className="w-20 h-8 ml-auto" placeholder="—" value={r.cbm ?? ''} onChange={(e) => setField(l.id, 'cbm', e.target.value)} /></TableCell>
+                            <TableCell className="text-right"><Input type="number" min={0} disabled={unapproved} className="w-20 h-8 ml-auto" placeholder="—" value={r.cartons ?? ''} onChange={(e) => setField(l.id, 'cartons', e.target.value)} /></TableCell>
+                            <TableCell className="text-right"><Input type="number" min={0} step="0.01" disabled={unapproved} className="w-24 h-8 ml-auto" placeholder="—" value={r.weight ?? ''} onChange={(e) => setField(l.id, 'weight', e.target.value)} /></TableCell>
+                            <TableCell className="text-right"><Input type="number" min={0} step="0.001" disabled={unapproved} className="w-20 h-8 ml-auto" placeholder="—" value={r.cbm ?? ''} onChange={(e) => setField(l.id, 'cbm', e.target.value)} /></TableCell>
                           </TableRow>
                         );
                       })}

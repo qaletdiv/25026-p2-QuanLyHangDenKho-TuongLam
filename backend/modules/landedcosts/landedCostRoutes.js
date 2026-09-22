@@ -31,6 +31,13 @@ router.put('/sms/commissions',       requireLandedCosts, validate(commissionsUpd
 router.get('/mainline/commissions',  requireLandedCosts, asyncWrap(controller.getMlCommissions));
 router.put('/mainline/commissions',  requireLandedCosts, validate(commissionsUpdate), asyncWrap(controller.putMlCommissions));
 
+// Excel export of the cost book (month end). Same `landed_costs` gate as the read
+// model it is built from — the spreadsheet is the same commercially sensitive data
+// in a different container. `/sms/export` is two segments and cannot collide with
+// the three-segment `/sms/:shipmentId/...` routes below.
+router.get('/sms/export',      requireLandedCosts, asyncWrap(controller.exportSms));
+router.get('/mainline/export', requireLandedCosts, asyncWrap(controller.exportMainline));
+
 // SMS landed-cost read model + posting
 router.get('/sms',                        requireLandedCosts, asyncWrap(controller.getSms));
 router.post('/sms/:shipmentId/post',      requireLandedCosts, asyncWrap(controller.postSms));

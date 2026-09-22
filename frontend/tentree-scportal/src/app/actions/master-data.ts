@@ -48,6 +48,18 @@ export async function updateIncoterms(data: any) { return putMasterData('/master
 export async function updateStatuses(data: any) { return putMasterData('/master-data/statuses', data); }
 
 export async function getWarehouses() { return fetchApi('/master-data/warehouses') ?? []; }
+// Physical destinations (NRI US, NRI CA, …). Shared: the SMS module has its own
+// typed wrapper (getSmsFacilities) over the same route. The rows themselves are
+// owned by the PO ingestion — the PUT edits their document fields (consignee
+// address, port of discharge, notify party) and refuses add/remove server-side.
+export async function getWarehouseFacilities() { return fetchApi('/master-data/warehouse-facilities') ?? []; }
+export async function updateWarehouseFacilities(data: any) { return putMasterData('/master-data/warehouse-facilities', data); }
+// The CI's Notify Party — a SINGLETON row (always tentree), but the endpoint takes
+// the same array shape as every other master-data PUT so it shares the validator.
+export async function getNotifyParty() { return fetchApi('/master-data/notify-party') ?? []; }
+export async function updateNotifyParty(party: { name: string; address: string }) {
+  return putMasterData('/master-data/notify-party', [party]);
+}
 export async function getModes() { return fetchApi('/master-data/modes') ?? []; }
 export async function updateWarehouses(data: any) { return putMasterData('/master-data/warehouses', data); }
 export async function updateModes(data: any) { return putMasterData('/master-data/modes', data); }

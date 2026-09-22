@@ -154,6 +154,11 @@ async function getMainlineReport(req, res) {
     // 1 — shipment rows (actual)
     for (const j of shipLegsByLeg[leg.id] || []) {
       const ship  = shipById.get(j.shipment_id) || {};
+      // A CANCELLED consignment is not an actual. It used to emit a row here with
+      // stage 'Cancelled', graded on the timeliness cascade and counted in the
+      // order book as though it were still coming. Its units are picked up by step
+      // 2b below, which says what they really are: booked, not shipped.
+      if (statusName.get(ship.status_id) === 'Cancelled') continue;
       const facts = shipFacts.get(j.shipment_id) || { slipped: [], ata: null, ata_source: null };
       const qty   = Number(j.expected_quantity) || 0;
       counted += qty;
@@ -226,6 +231,46 @@ async function getMainlineReport(req, res) {
         timeliness,
         kpi_status:      timeliness,
         reason:          `Booking ${booking.booking_number || bl.booking_id} awaiting approval — ${timelinessClause(leg.e_del, sched, timeliness)}`,
+      });
+    }
+
+    // 2b — BOOKED — NOT SHIPPED: an approved booking whose consignment was
+    // cancelled. One rung above Booking Pending (a supervisor has signed it off)
+    // and below In Transit (nothing is moving), so it sits between them. Graded
+    // like the pending row, on the LEG's E-DEL: the cancelled shipment's own dates
+    // described a sailing that is not happening.
+    for (const j of shipLegsByLeg[leg.id] || []) {
+      const ship = shipById.get(j.shipment_id) || {};
+      if (statusName.get(ship.status_id) !== 'Cancelled') continue;
+      const booking = bookingById.get(ship.booking_id) || {};
+      // Only while the BOOKING still stands. Cancel that too and the units are
+      // genuinely unbooked again — step 3 picks them up.
+      if (statusName.get(booking.booking_status_id) !== 'Booking Approved') continue;
+      const qty = Math.min(Number(j.expected_quantity) || 0, Math.max(0, legQty - counted));
+      if (qty <= 0) continue;
+      counted += qty;
+      const timeliness = timelinessFor(leg.e_del, sched);
+
+      rows.push({
+        ...base,
+        row_id:          `${leg.id}|unshipped|${j.shipment_id}`,
+        shipment_id:     null,
+        shipment_number: null,
+        booking_id:      ship.booking_id || null,
+        booking_number:  booking.booking_number || null,
+        facility:        facName.get(order.facility_id) || null,
+        mode_id:         leg.mode_id || null,
+        mode:            modeName.get(leg.mode_id) || null,
+        qty,
+        stage:           'Booked — Not Shipped',
+        progress_status: null,
+        date_basis:      'projected',
+        e_del:           leg.e_del || null,
+        expected_ata:    transit.addDays(leg.e_del, 5),
+        ata:             null,
+        timeliness,
+        kpi_status:      timeliness,
+        reason:          `Consignment ${ship.shipment_number || j.shipment_id} was cancelled — booking ${booking.booking_number || ship.booking_id} still authorizes these units; ${timelinessClause(leg.e_del, sched, timeliness)}`,
       });
     }
 

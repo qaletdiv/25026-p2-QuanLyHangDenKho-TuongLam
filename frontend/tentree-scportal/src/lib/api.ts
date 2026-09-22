@@ -17,6 +17,34 @@ export function docHref(fileUrl: string | null | undefined): string {
   return `/api/documents?path=${encodeURIComponent(fileUrl)}`;
 }
 
+/**
+ * Href for a generated CI / Packing List.
+ *
+ * NOT `docHref(d.file_url)`. The stored xlsx is a snapshot of the letterhead as it
+ * stood at upload — supplier address, consignee address, port of discharge and
+ * notify party all come from master data edited later, so a file written in August
+ * cannot show what was entered in September. These two routes REBUILD the workbook
+ * from the stored cartons plus current master data, keeping the same invoice
+ * number. Use this for anything in `mainline_documents` / `sms_documents`; ASNs and
+ * uploaded source files still go through docHref.
+ */
+export function generatedDocHref(module: 'mainline' | 'sms', docId: string): string {
+  return `/api/documents?path=${encodeURIComponent(`/${module}/documents/${docId}/file`)}`;
+}
+
+/**
+ * Href for the landed-cost month-end export (xlsx).
+ *
+ * Goes through the same authenticated proxy as every other download — the backend
+ * gates the route on `landed_costs`, and a browser tab cannot send the Bearer
+ * token. `month` mirrors the page's own filter; omit it (or pass 'all') to export
+ * the whole cost book.
+ */
+export function landedCostExportHref(module: 'mainline' | 'sms', month?: string): string {
+  const q = month && month !== 'all' ? `?month=${encodeURIComponent(month)}` : '';
+  return `/api/documents?path=${encodeURIComponent(`/landed-costs/${module}/export${q}`)}`;
+}
+
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const url = `${BACKEND_URL}${endpoint}`;
   try {

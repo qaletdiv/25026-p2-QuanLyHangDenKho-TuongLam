@@ -203,29 +203,52 @@ function poTypeClause(type) {
 }
 
 /**
+ * A REJECTED purchase order is not a commitment and must never enter the portal:
+ * it has no goods coming, so it would sit in the order book forever, inflate the
+ * forecast and offer itself for booking. `approvalstatus` 3 = Rejected.
+ *
+ * IS NULL is allowed on purpose. 880 of this account's Fully-Billed / Closed POs
+ * carry no approval status at all; they sit outside SMS's 18-month window today,
+ * but a plain `approvalstatus != 3` would silently exclude every one of them the
+ * moment the window widened — SQL three-valued logic makes NULL != 3 UNKNOWN, not
+ * true. Verified: SMS scope 120 → 120 POs with this clause added.
+ */
+const NOT_REJECTED_CLAUSE = 'AND (t.approvalstatus IS NULL OR t.approvalstatus != 3)';
+
+/**
  * PO status scope — a WHERE fragment on the `t` alias.
  *
- * Default (mainline / untyped) = active only: Pending Receipt / Partially
- * Received / Pending Billing. SMS receiving needs the FULL post-order lifecycle
+ * Default (mainline / untyped) = not yet received: Pending Supervisor Approval
+ * (A) + Pending Receipt (B). SMS receiving needs the FULL post-order lifecycle
  * so a PO's receipts keep syncing AFTER it's fully received — a PO flips to
  * G (Fully Billed) the moment receiving completes, so excluding the received
  * states means the final receipt (and the "fully received" total) never lands.
- * We therefore pull B..H for SMS, bounded to a rolling window
+ * We therefore pull the lifecycle for SMS, bounded to a rolling window
  * (SMS_SYNC_SINCE_MONTHS, default 18) so years of Fully-Billed/Closed POs don't
  * pile up (the UI season filter hides done records anyway).
  *
- * NOTE: the REAL NetSuite PO status codes are B=Pending Receipt,
- * D=Partially Received, E=Pending Billing/Partially Received, F=Pending Bill,
- * G=Fully Billed, H=Closed. The old A/B/C-only filter was written against a
- * wrong legend and excluded EVERY received PO — that is why receipts never synced.
+ * VERIFIED legend (production, GROUP BY t.status over every PurchOrd, 2026-09-08):
+ *   A = Pending Supervisor Approval      (approval: Pending Approval)
+ *   B = Pending Receipt                  (Approved)
+ *   C = Rejected by Supervisor           (Rejected)   ← NOT a live PO
+ *   D = Partially Received, E = Pending Billing/Partially Received,
+ *   F = Pending Bill, G = Fully Billed, H = Closed     (Approved / unset)
+ *
+ * 'C' used to be in BOTH lists, described as "Pending Billing" from a legend that
+ * was already known to be wrong (see the D..H note this comment replaced). That is
+ * how PO03521 and PO03789 — rejected by a supervisor — reached the portal as live
+ * mainline POs. It is excluded twice over now: not in the status list, and refused
+ * by NOT_REJECTED_CLAUSE, which also catches a PO rejected at the approval level
+ * while sitting in some other transaction state.
  */
 function poStatusClause(type) {
-    if (type !== 'sms') return "AND t.status IN ('A', 'B', 'C')";
+    if (type !== 'sms') return `AND t.status IN ('A', 'B') ${NOT_REJECTED_CLAUSE}`;
     const months = Number(process.env.SMS_SYNC_SINCE_MONTHS) || 18;
     const d = new Date();
     d.setMonth(d.getMonth() - months);
     const cutoff = d.toISOString().slice(0, 10);
-    return `AND t.status IN ('A','B','C','D','E','F','G','H') AND t.trandate >= TO_DATE('${cutoff}', 'YYYY-MM-DD')`;
+    return `AND t.status IN ('A','B','D','E','F','G','H') ${NOT_REJECTED_CLAUSE}`
+        + ` AND t.trandate >= TO_DATE('${cutoff}', 'YYYY-MM-DD')`;
 }
 
 /**
@@ -240,7 +263,9 @@ function poStatusClause(type) {
  *
  * @param {string} [typeClause]  Extra WHERE predicate (see poTypeClause).
  */
-function buildHeaderQuery(typeClause = '', statusClause = "AND t.status IN ('A', 'B', 'C')") {
+// default = the mainline scope, from the ONE definition of it (a literal copy
+// here is how 'C'/Rejected survived the legend correction the first time)
+function buildHeaderQuery(typeClause = '', statusClause = poStatusClause(null)) {
     return `
     SELECT
         agg.id,
@@ -317,7 +342,7 @@ function buildHeaderQuery(typeClause = '', statusClause = "AND t.status IN ('A',
  *   BUILTIN.DF(tl.custcol_size)  AS size,
  * and expose them in mapLineItemRow instead of the sku_code split fallback.
  */
-function buildLineItemsQuery(typeClause = '', statusClause = "AND t.status IN ('A', 'B', 'C')") {
+function buildLineItemsQuery(typeClause = '', statusClause = poStatusClause(null)) {
     const attrCols = skuAttrSelects();
     const attrSelect = attrCols.length ? ',\n' + attrCols.join(',\n') : '';
     return `
@@ -563,6 +588,61 @@ class IntegrationService {
             for (const r of rows) out[r.tranid] = String(r.id);
         }
         return out;
+    }
+
+    /**
+     * Approval status of the POs the portal HOLDS, whether or not they are still in
+     * the sync's pull scope.
+     *
+     * Two jobs, one round trip:
+     *  · the prune needs to know which held POs NetSuite has since REJECTED — the
+     *    scope filters can't say, because a rejected PO is out of scope by
+     *    definition, so a PO rejected after it synced just stops being refreshed
+     *    and lives on (that is how PO03521 / PO03789 were found);
+     *  · the "Pending approval" badge needs the CURRENT value for every held PO.
+     *    Taking it only from the pull would freeze it: a PO that was pending when
+     *    it synced, then got approved and received, leaves the A/B scope and would
+     *    wear "Pending approval" forever — a badge that lies on exactly the POs
+     *    that moved on is worse than no badge.
+     *
+     * Batched to stay under the IN-list limit; sanitised because the list is
+     * inlined. Never throws — a failed lookup leaves this sync's values alone.
+     *
+     * @param {string[]} tranids
+     * @returns {Promise<Map<string, {approval: string|null, rejected: boolean}>>}
+     */
+    async fetchPoApprovalStatuses(tranids = []) {
+        const out = new Map();
+        if (!process.env.NETSUITE_ACCOUNT_ID || !process.env.NETSUITE_CONSUMER_KEY) return out;
+        const clean = [...new Set((tranids || []).map((t) => String(t).replace(/[^A-Za-z0-9-]/g, '')).filter(Boolean))];
+        for (let i = 0; i < clean.length; i += 900) {
+            const list = clean.slice(i, i + 900).map((t) => `'${t}'`).join(', ');
+            const rows = await this._suiteqlFetchAll(
+                `SELECT tranid,
+                        BUILTIN.DF(approvalstatus) AS approval,
+                        approvalstatus             AS approval_code,
+                        status                     AS status_code
+                   FROM transaction
+                  WHERE type = 'PurchOrd' AND tranid IN (${list})`,
+            ).catch((e) => { console.error('[Integration] fetchPoApprovalStatuses failed:', e.message); return []; });
+            rows.forEach((r) => out.set(r.tranid, {
+                approval: r.approval || null,
+                // both signals: approvalstatus 3 and transaction status 'C' are the
+                // same rejection seen at the approval and transaction levels
+                rejected: String(r.approval_code) === '3' || r.status_code === 'C',
+            }));
+        }
+        return out;
+    }
+
+    /**
+     * The subset of these POs that NetSuite has REJECTED. Thin wrapper over
+     * fetchPoApprovalStatuses so both answers come from one query shape.
+     * @returns {Promise<Set<string>>}
+     */
+    async fetchRejectedPoTranids(tranids = []) {
+        const statuses = await this.fetchPoApprovalStatuses(tranids);
+        return new Set([...statuses.entries()].filter(([, v]) => v.rejected).map(([k]) => k));
     }
 
     /**

@@ -4,16 +4,20 @@ import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ArrowLeft, Check, Download, Pencil, Save, Upload, X } from 'lucide-react';
+import { ArrowLeft, Ban, Check, Download, Pencil, Save, Trash2, Upload, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import { docHref } from '@/lib/api';
-import { approveMainlineBooking, confirmMainlineCi, updateMainlineBooking, uploadShipmentData } from '@/modules/mainline/actions';
+import { generatedDocHref } from '@/lib/api';
+import {
+  approveMainlineBooking, rejectMainlineBooking, cancelMainlineBooking, deleteMainlineBooking,
+  confirmMainlineCi, updateMainlineBooking, uploadShipmentData,
+} from '@/modules/mainline/actions';
 import { useSession } from '@/components/providers/SessionProvider';
+import { APPROVE_DENIED_HINT, hasPermission } from '@/lib/permissions';
 import ConfirmDialog from './ConfirmDialog';
 import type { MainlineBooking, CommercialInvoice, PackingSummary, PackingByPo, MainlineDocument } from '@/modules/mainline/types';
 
@@ -47,13 +51,22 @@ export default function BookingDetail({
 }: { booking: MainlineBooking; ci: CommercialInvoice | null; packing: PackingSummary | null; packingByPo: PackingByPo[]; documents: MainlineDocument[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
-  const [confirmApprove, setConfirmApprove] = useState(false);
+  const [confirm, setConfirm] = useState<null | 'approve' | 'reject' | 'cancel' | 'delete'>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   // Cargo Ready is seeded from the WIP leg CRD; the vendor can adjust it while the
   // booking is still pending (locked once approved — the shipment owns dates then).
   // Admin / Logistics may override it even after approval.
   const { user } = useSession();
   const isPending = booking.booking_status === 'Booking Pending';
+  // Approval is a permission, not a role — Vendor and Freight Forwarder don't hold
+  // `booking_approve`, so they watch the status here rather than act on it.
+  const canApprove = hasPermission(user, 'booking_approve');
+  const canDelete = hasPermission(user, 'booking_delete');
+  const isApproved = booking.booking_status === 'Booking Approved';
+  // Cancel is the exit at BOTH ends of a booking's life; reject is the negative
+  // answer to one still awaiting approval. Terminal bookings (Cancelled/Rejected)
+  // offer neither — only delete, once nothing hangs off them.
+  const isLive = isPending || isApproved;
   const isPrivileged = ['Admin', 'Logistics Coordinator'].includes(user?.role ?? '');
   const canEditCrd = isPending || isPrivileged;
   const [editingCrd, setEditingCrd] = useState(false);
@@ -109,13 +122,57 @@ export default function BookingDetail({
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-4xl mx-auto">
       <ConfirmDialog
-        open={confirmApprove}
+        open={confirm === 'approve'}
         title={`Approve booking ${booking.booking_number}?`}
         description="Approving creates the shipment records for this booking (one per destination + mode) and hands them to logistics."
         confirmLabel="Approve"
         busy={busy}
-        onCancel={() => setConfirmApprove(false)}
-        onConfirm={async () => { await run(() => approveMainlineBooking(booking.id), 'Approved'); setConfirmApprove(false); }}
+        onCancel={() => setConfirm(null)}
+        onConfirm={async () => { await run(() => approveMainlineBooking(booking.id), 'Approved'); setConfirm(null); }}
+      />
+      <ConfirmDialog
+        open={confirm === 'reject'}
+        title={`Reject booking ${booking.booking_number}?`}
+        description="The booking is turned down and no shipment is created. The PO legs stay unbooked and can be booked again."
+        confirmLabel="Reject"
+        busy={busy}
+        onCancel={() => setConfirm(null)}
+        onConfirm={async () => { await run(() => rejectMainlineBooking(booking.id), 'Booking rejected'); setConfirm(null); }}
+      />
+      <ConfirmDialog
+        open={confirm === 'cancel'}
+        title={`Cancel booking ${booking.booking_number}?`}
+        description="The authorization is withdrawn and its units go back to unbooked. Any consignment it created is cancelled with it — but only if none of them has been handed to the carrier, received or costed; otherwise this is refused and the consignment has to be dealt with first."
+        confirmLabel="Cancel booking"
+        busy={busy}
+        onCancel={() => setConfirm(null)}
+        onConfirm={async () => {
+          await run(async () => {
+            const res = await cancelMainlineBooking(booking.id);
+            if (!res?.error && res?.shipments_cancelled) {
+              toast.message(`${res.shipments_cancelled} consignment(s) cancelled with it`);
+            }
+            return res;
+          }, 'Booking cancelled');
+          setConfirm(null);
+        }}
+      />
+      <ConfirmDialog
+        open={confirm === 'delete'}
+        title={`Delete booking ${booking.booking_number}?`}
+        description="Removes the booking, its PO-leg rows, its commercial invoice, packing data and generated documents. Refused while any consignment still hangs off it. This cannot be undone."
+        confirmLabel="Delete"
+        destructive
+        busy={busy}
+        onCancel={() => setConfirm(null)}
+        onConfirm={async () => {
+          setBusy(true);
+          const res = await deleteMainlineBooking(booking.id);
+          setBusy(false);
+          if (res?.error) { toast.error(res.error); setConfirm(null); return; }
+          toast.success('Booking deleted');
+          router.push('/mainline/bookings');
+        }}
       />
 
       {/* ── Slim header: identity + actions ── */}
@@ -128,8 +185,26 @@ export default function BookingDetail({
             <h1 className="text-2xl font-semibold tracking-tight">{booking.booking_number}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            {/* Shown to everyone, pressable only by a role holding booking_approve —
+                the vendor's own booking should still read as "waiting on approval".
+                Tooltip on the span: a disabled Button has pointer-events-none. */}
             {booking.booking_status === 'Booking Pending' && (
-              <Button size="sm" disabled={busy} onClick={() => setConfirmApprove(true)}><Check className="h-4 w-4 mr-1" /> Approve</Button>
+              <span title={canApprove ? undefined : APPROVE_DENIED_HINT} className="inline-block">
+                <Button size="sm" disabled={busy || !canApprove} onClick={() => setConfirm('approve')}><Check className="h-4 w-4 mr-1" /> Approve</Button>
+              </span>
+            )}
+            {/* The other answers. Hidden rather than disabled for a role that may
+                not take them — unlike Approve, whose greyed state tells a vendor
+                their booking is waiting on someone else. */}
+            {canApprove && isPending && (
+              <Button size="sm" variant="outline" disabled={busy} onClick={() => setConfirm('reject')}>
+                <X className="h-4 w-4 mr-1" /> Reject
+              </Button>
+            )}
+            {canApprove && isLive && (
+              <Button size="sm" variant="outline" disabled={busy} onClick={() => setConfirm('cancel')}>
+                <Ban className="h-4 w-4 mr-1" /> Cancel booking
+              </Button>
             )}
             <Button size="sm" variant="outline" disabled={busy} onClick={() => fileRef.current?.click()}
               title={booking.po_legs.length > 1 ? 'Upload one file per PO — you can select several at once; each adds/replaces only its own PO.' : 'Upload the shipment-data Excel'}>
@@ -139,6 +214,13 @@ export default function BookingDetail({
               onChange={(e) => { const fs = Array.from(e.target.files ?? []); if (fs.length) onUpload(fs); e.target.value = ''; }} />
             {ci && !ciConfirmed && (
               <Button size="sm" variant="outline" disabled={busy} onClick={() => run(() => confirmMainlineCi(booking.id), 'CI confirmed')}><Check className="h-4 w-4 mr-1" /> Confirm CI</Button>
+            )}
+            {/* Last in the row: the only irreversible thing here, and it should not
+                sit between two everyday actions. */}
+            {canDelete && (
+              <Button size="sm" variant="ghost" disabled={busy} title="Delete booking" onClick={() => setConfirm('delete')}>
+                <Trash2 className="h-4 w-4 text-red-500" />
+              </Button>
             )}
           </div>
         </div>
@@ -270,7 +352,7 @@ export default function BookingDetail({
                 <div key={scope} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                   <span className="w-full sm:w-44 shrink-0 text-muted-foreground">{scope}</span>
                   {documents.filter((d) => d.scope === scope).sort((a) => (a.doc_type === 'commercial_invoice' ? -1 : 1)).map((d) => (
-                    <a key={d.id} href={docHref(d.file_url)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                    <a key={d.id} href={generatedDocHref('mainline', d.id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
                       <Download className="h-3.5 w-3.5" /> {d.doc_type === 'commercial_invoice' ? 'Commercial Invoice' : 'Packing Slip'}
                     </a>
                   ))}

@@ -74,13 +74,15 @@ export type ForecastWeek = Series & {
 const BACKED_STAGES = new Set(['Received', 'In Transit']);
 const isBacked = (l: ForecastLine) => BACKED_STAGES.has(l.stage);
 
-// Stage → pill styling. The four stages are the confidence ladder behind a row:
-// landed, on the water, booked but unapproved, and nobody has booked it.
+// Stage → pill styling, in confidence order: landed, on the water, approved with
+// no consignment carrying it (its shipment was cancelled), booked but unapproved,
+// and nobody has booked it. Only the first two are shipment-BACKED.
 const STAGE_STYLE: Record<string, string> = {
-  'Received':         'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400',
-  'In Transit':       'bg-primary/20 text-primary',
-  'Booking Pending':  'bg-amber-500/20 text-amber-700 dark:text-amber-400',
-  'Awaiting Booking': 'bg-muted text-muted-foreground',
+  'Received':            'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400',
+  'In Transit':          'bg-primary/20 text-primary',
+  'Booked — Not Shipped': 'bg-sky-500/20 text-sky-700 dark:text-sky-400',
+  'Booking Pending':     'bg-amber-500/20 text-amber-700 dark:text-amber-400',
+  'Awaiting Booking':    'bg-muted text-muted-foreground',
 };
 
 export default function ForecastClient({ seasons, bySeason }: { seasons: string[]; bySeason: Record<string, ForecastWeek[]> }) {
@@ -617,8 +619,10 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
                                       {lines.map((l, li) => {
                                         // "Overdue" only means anything for units that have NOT
                                         // moved yet — a Received or In Transit line already has a
-                                        // real date, however late it turned out to be.
-                                        const unmoved = l.stage === 'Awaiting Booking' || l.stage === 'Booking Pending';
+                                        // real date, however late it turned out to be. A cancelled
+                                        // consignment's units are back to not-moving, so they can
+                                        // be overdue again.
+                                        const unmoved = !BACKED_STAGES.has(l.stage);
                                         const overdue = unmoved && l.actual_date && l.actual_date < todayIso;
                                         const slip = l.slip_days ?? 0;
                                         return (

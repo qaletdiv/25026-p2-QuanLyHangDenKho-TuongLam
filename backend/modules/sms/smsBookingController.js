@@ -28,7 +28,11 @@ const STATUS = {
   pending:   'sms_bk_pending',
   approved:  'sms_bk_approved',
   rejected:  'sms_bk_rejected',
-  cancelled: 'sms_bk_cancelled',
+  // Renamed from sms_bk_cancelled and widened to category 'both' when SMS
+  // shipments gained a Cancel (scripts/add-sms-cancelled-status.js): the database's
+  // (module, name) unique allows SMS exactly ONE row named Cancelled, which is the
+  // same shape mainline uses. Nothing referenced the old id at the time.
+  cancelled: 'sms_cancelled',
 };
 
 // Vendor scoping lives in utils/vendorScope (one copy, was four).

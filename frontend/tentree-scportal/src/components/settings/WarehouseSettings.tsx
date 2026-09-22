@@ -34,7 +34,7 @@ export function WarehouseSettings() {
 
   const addItem = () => {
     const id = Math.random().toString(36).substr(2, 9);
-    setWarehouses([...warehouses, { id, name: '', country: '', city: '', address: '', port_of_discharge: '' }]);
+    setWarehouses([...warehouses, { id, name: '', country: '', city: '' }]);
   };
 
   const removeItem = (id: string) => {
@@ -53,11 +53,13 @@ export function WarehouseSettings() {
   });
 
   const columns: SettingsColumn<any>[] = [
+    // No Address / Port of Discharge here: the documents read those off
+    // warehouse_facilities (the Destinations table above), never off this one, so
+    // filling them in here changed nothing. Existing values stay in the row —
+    // they are simply not offered for editing.
     textCol('name', 'Name'),
     textCol('country', 'Country'),
     textCol('city', 'City'),
-    textCol('address', 'Address'),
-    textCol('port_of_discharge', 'Port of Discharge'),
     {
       key: 'actions', label: '', sortable: false, movable: false, headClassName: 'w-[50px]',
       cell: (w) => (

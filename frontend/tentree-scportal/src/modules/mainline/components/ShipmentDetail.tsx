@@ -4,19 +4,27 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ArrowLeft, Download, FileText, Pencil, Save, X, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Ban, Download, FileText, Pencil, Save, Trash2, X, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { MoneyInput } from '@/components/ui/money-input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { docHref } from '@/lib/api';
-import { generateMainlineAsn, updateMainlineShipment } from '@/modules/mainline/actions';
+import { docHref, generatedDocHref } from '@/lib/api';
+import { cancelMainlineShipment, deleteMainlineShipment, generateMainlineAsn, updateMainlineShipment } from '@/modules/mainline/actions';
+import { useSession } from '@/components/providers/SessionProvider';
+import { hasPermission } from '@/lib/permissions';
+import ConfirmDialog from './ConfirmDialog';
 import type { MainlineShipment, MainlineShipmentStatus, MainlineDocument, PortOption, ContainerTypeOption, CourierOption } from '@/modules/mainline/types';
 
-const STATUSES: MainlineShipmentStatus[] = ['Ready to Ship', 'In Transit', 'At Port', 'Delivered', 'Received', 'Cancelled'];
+// The PROGRESS pipeline, which is all this dropdown sets. 'Cancelled' is not in
+// it: cancelling is a decision with guards (handed over? received? costed?) behind
+// the Cancel action below, and the server refuses the name on this route — a free
+// dropdown entry would just be a way around those guards.
+const STATUSES: MainlineShipmentStatus[] = ['Ready to Ship', 'In Transit', 'At Port', 'Delivered', 'Received'];
 const STATUS_STYLES: Record<string, string> = {
   'Ready to Ship': 'bg-blue-500/10 text-blue-600 border-blue-500/20',
   'In Transit': 'bg-violet-500/10 text-violet-600 border-violet-500/20',
@@ -44,6 +52,23 @@ export default function ShipmentDetail({
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [confirm, setConfirm] = useState<null | 'cancel' | 'delete'>(null);
+
+  const { user } = useSession();
+  const canCancel = hasPermission(user, 'shipment_update_status');
+  const canDelete = hasPermission(user, 'shipment_delete');
+
+  // Mirror of the server's handover predicate (shipmentLifecycle.js), so the button
+  // can explain itself instead of costing a round trip to be told no. The SERVER is
+  // still the authority, and it knows two things this page does not — whether a
+  // confirmed Item Receipt or a posted landed cost points here — so a refusal can
+  // still come back; its message is written to be shown as-is.
+  const isCancelled = s.status === 'Cancelled';
+  const handover = [
+    s.cargo_received_date && `received at port ${s.cargo_received_date}`,
+    s.etd_pol && `ETD ${s.etd_pol}`,
+    s.bl_no && `BL ${s.bl_no}`,
+  ].filter(Boolean) as string[];
   // POL = origin ports; POD (arrival) is one of the two NRI discharge ports only.
   const loadingPorts = ports.filter((p) => p.role !== 'discharge');
   const dischargePorts = ports.filter((p) => p.role === 'discharge');
@@ -106,6 +131,25 @@ export default function ShipmentDetail({
     router.refresh();
   }
 
+  async function doCancel() {
+    setBusy(true);
+    const res = await cancelMainlineShipment(s.id);
+    setBusy(false);
+    setConfirm(null);
+    if (res?.error) { toast.error(res.error); return; }
+    toast.success(`${s.shipment_number} cancelled — the booking still holds these units, so re-approving it issues a new consignment`);
+    router.refresh();
+  }
+
+  async function doDelete() {
+    setBusy(true);
+    const res = await deleteMainlineShipment(s.id);
+    setBusy(false);
+    if (res?.error) { toast.error(res.error); setConfirm(null); return; }
+    toast.success(`${s.shipment_number} deleted`);
+    router.push('/mainline/shipments');
+  }
+
   async function genAsn() {
     setBusy(true);
     const res = await generateMainlineAsn(s.id);
@@ -153,11 +197,52 @@ export default function ShipmentDetail({
                 <Button size="sm" disabled={busy} onClick={save}><Save className="h-4 w-4 mr-1" /> Save</Button>
               </>
             ) : (
-              <Button size="sm" variant="outline" onClick={() => setEditing(true)}><Pencil className="h-4 w-4 mr-1" /> Edit</Button>
+              <>
+                <Button size="sm" variant="outline" onClick={() => setEditing(true)}><Pencil className="h-4 w-4 mr-1" /> Edit</Button>
+                {/* "Cancel consignment", never bare "Cancel" — the edit mode above
+                    already owns that word for "stop editing". */}
+                {canCancel && !isCancelled && (
+                  <span title={handover.length
+                    ? `Already handed over (${handover.join(', ')}) — cancel is for a consignment that has not left the supplier`
+                    : undefined} className="inline-block">
+                    <Button size="sm" variant="outline" disabled={busy || handover.length > 0} onClick={() => setConfirm('cancel')}>
+                      <Ban className="h-4 w-4 mr-1" /> Cancel consignment
+                    </Button>
+                  </span>
+                )}
+                {/* Delete only ever appears on a cancelled row: erasing a live
+                    consignment should not be one click away, and the server
+                    refuses it anyway. */}
+                {canDelete && isCancelled && (
+                  <Button size="sm" variant="ghost" disabled={busy} title="Delete this consignment" onClick={() => setConfirm('delete')}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirm === 'cancel'}
+        title={`Cancel ${s.shipment_number}?`}
+        description="The consignment is called off, but its booking keeps authorizing these units — re-approving the booking issues a new one. Cancelled consignments can then be deleted."
+        confirmLabel="Cancel consignment"
+        busy={busy}
+        onCancel={() => setConfirm(null)}
+        onConfirm={doCancel}
+      />
+      <ConfirmDialog
+        open={confirm === 'delete'}
+        title={`Delete ${s.shipment_number}?`}
+        description="Its lot rows, ASN and receipt-match rejections are removed and any item receipts are unlinked (never deleted). The booking's commercial invoice and packing data are untouched. This cannot be undone."
+        confirmLabel="Delete"
+        destructive
+        busy={busy}
+        onCancel={() => setConfirm(null)}
+        onConfirm={doDelete}
+      />
 
       {/* ── Overview: identity & cargo ── */}
       <section className="space-y-2">
@@ -272,16 +357,21 @@ export default function ShipmentDetail({
             </p>
           )}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {/* MoneyInput, not `type="number"`: these are four- and five-figure
+                bills off a forwarder invoice, and a number input cannot show group
+                separators, so 14763.30 and 1476.33 looked alike while typing. It
+                still hands back a plain comma-free string, so `Number(form.freight)`
+                in save() is unchanged. */}
             <Cell label="Total Freight (USD)">
               {editing && !isEstimateBasis
-                ? <Input type="number" min="0" step="0.01" className="h-8" placeholder="0.00" value={form.freight} onChange={(e) => setF('freight', e.target.value)} />
+                ? <MoneyInput className="h-8" placeholder="0.00" value={form.freight} onValueChange={(v) => setF('freight', v)} />
                 : isEstimateBasis
                   ? <span className="text-muted-foreground">estimated</span>
                   : (s.freight != null ? `$${Number(s.freight).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—')}
             </Cell>
             <Cell label="Total Duty (USD)">
               {editing && !isEstimateBasis
-                ? <Input type="number" min="0" step="0.01" className="h-8" placeholder="0.00" value={form.duty} onChange={(e) => setF('duty', e.target.value)} />
+                ? <MoneyInput className="h-8" placeholder="0.00" value={form.duty} onValueChange={(v) => setF('duty', v)} />
                 : isEstimateBasis
                   ? <span className="text-muted-foreground">estimated</span>
                   : (s.duty != null ? `$${Number(s.duty).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—')}
@@ -350,7 +440,7 @@ export default function ShipmentDetail({
                 <div key={scope} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                   <span className="w-full sm:w-44 shrink-0 text-muted-foreground">{scope}</span>
                   {shipmentDocs.filter((d) => d.scope === scope).sort((a) => (a.doc_type === 'commercial_invoice' ? -1 : 1)).map((d) => (
-                    <a key={d.id} href={docHref(d.file_url)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                    <a key={d.id} href={generatedDocHref('mainline', d.id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
                       <Download className="h-3.5 w-3.5" /> {d.doc_type === 'commercial_invoice' ? 'Commercial Invoice' : 'Packing Slip'}
                     </a>
                   ))}

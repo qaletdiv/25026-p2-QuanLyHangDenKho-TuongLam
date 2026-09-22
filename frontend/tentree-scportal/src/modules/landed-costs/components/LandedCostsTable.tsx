@@ -5,12 +5,13 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, RotateCcw, FileJson, X } from 'lucide-react';
+import { Check, RotateCcw, FileJson, X, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { landedCostExportHref } from '@/lib/api';
 import { useSession } from '@/components/providers/SessionProvider';
 import DataTable, { type DataColumn } from '@/modules/mainline/components/DataTable';
 import {
@@ -20,6 +21,17 @@ import {
 import type { SmsLandedCostRow, LandedCostMatch } from '@/modules/landed-costs/types';
 
 const DASH = '—';
+
+// Status pills are one FIXED size, not `w-fit`. The Badge base sizes to its own
+// text, so "Posted" (icon + 6 chars) and "No shipping data" rendered as two very
+// different boxes down one column and the eye had nothing to scan against.
+const STATUS_BADGE = 'w-32 justify-center';
+// The action cell holds two slots whose contents change width: the second is a
+// ~26px icon once posted but a ~64px "Post" / "Posting…" button before. With the
+// cell right-aligned that moved the preview icon sideways on every state change,
+// so both slots are pinned instead.
+const ICON_BTN = 'h-7 w-7 p-0';
+const POST_SLOT = 'inline-flex h-7 w-16 items-center justify-end';
 const usd = (n: number | null | undefined) =>
   `$${(Number(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const dim = (v: string | null | undefined) => <span className="text-muted-foreground">{v ?? DASH}</span>;
@@ -198,17 +210,26 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
   }
 
   // Item Receipt cell — number when matched, or an inline input to type the IR # when not.
+  //
+  // Every state renders in the SAME fixed box. This cell mutates under the
+  // user's cursor (unmatched input+Add → suggested label+✓+✗ → confirmed
+  // label+✓+clear), and left to size itself the widest state on the page set the
+  // column width: answering the last suggestion collapsed the column and
+  // re-laid out the entire table. h-7 is the tallest control here and also the
+  // Action column's height, so row heights never move either.
+  const IR_CELL = 'flex h-7 w-52 items-center gap-1 overflow-hidden';
+
   function matchControl(l: LcLine) {
     const m = l.m;
-    if (!m) return <span className="text-muted-foreground">{DASH}</span>;
+    if (!m) return <span className={cn(IR_CELL, 'text-muted-foreground')}>{DASH}</span>;
     const key = l.key;
     if (m.confirmed) {
       return (
-        <span className="inline-flex items-center gap-1">
-          <span className="font-medium text-emerald-600 dark:text-emerald-400">{irLabel(m)}</span>
-          <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+        <span className={IR_CELL}>
+          <span className="min-w-0 truncate font-medium text-emerald-600 dark:text-emerald-400">{irLabel(m)}</span>
+          <Check className="h-3 w-3 shrink-0 text-emerald-600 dark:text-emerald-400" />
           {canEdit && !l.row.posted && (
-            <Button size="sm" variant="ghost" className="h-6 px-1" disabled={busy !== null} title="Clear match" onClick={() => clearMatch(m, l.shipment_id)}><X className="h-3 w-3" /></Button>
+            <Button size="sm" variant="ghost" className="h-6 w-6 shrink-0 p-0" disabled={busy !== null} title="Clear match" onClick={() => clearMatch(m, l.shipment_id)}><X className="h-3 w-3" /></Button>
           )}
         </span>
       );
@@ -217,15 +238,15 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
     // ✗ reject (recorded, so the matcher offers the next candidate instead).
     if (m.netsuite_ir_id) {
       return (
-        <span className="inline-flex items-center gap-1">
-          <span className="text-muted-foreground">{irLabel(m)}</span>
-          <span className="text-muted-foreground text-[10px]">({m.confidence})</span>
+        <span className={IR_CELL}>
+          <span className="min-w-0 truncate text-muted-foreground">{irLabel(m)}</span>
+          <span className="shrink-0 text-muted-foreground text-[10px]">({m.confidence})</span>
           {canEdit && (
             <>
-              <Button size="sm" variant="outline" className="h-6 w-6 p-0 text-emerald-600 dark:text-emerald-400"
+              <Button size="sm" variant="outline" className="h-6 w-6 shrink-0 p-0 text-emerald-600 dark:text-emerald-400"
                 disabled={busy !== null} title={`Confirm ${irLabel(m)} for ${m.po_number}`}
                 onClick={() => confirmMatch(m, l.shipment_id)}><Check className="h-3.5 w-3.5" /></Button>
-              <Button size="sm" variant="outline" className="h-6 w-6 p-0 text-red-600 dark:text-red-400"
+              <Button size="sm" variant="outline" className="h-6 w-6 shrink-0 p-0 text-red-600 dark:text-red-400"
                 disabled={busy !== null} title={`Reject — ${irLabel(m)} is not the receipt for this lot`}
                 onClick={() => rejectMatch(m, l.shipment_id)}><X className="h-3.5 w-3.5" /></Button>
             </>
@@ -233,11 +254,11 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
         </span>
       );
     }
-    if (!canEdit) return <span className="text-amber-600 dark:text-amber-400">No IR</span>;
+    if (!canEdit) return <span className={cn(IR_CELL, 'text-amber-600 dark:text-amber-400')}>No IR</span>;
     return (
-      <span className="inline-flex items-center gap-1" title="No Item Receipt matched — type the IR number (e.g. IR65377)">
-        <Input value={manualIr[key] || ''} onChange={(e) => setManualIr((s) => ({ ...s, [key]: e.target.value }))} placeholder="IR #" className="h-6 w-24 text-xs" disabled={busy !== null} />
-        <Button size="sm" variant="outline" className="h-6" disabled={busy !== null || !(manualIr[key] || '').trim()} onClick={() => manualAdd(l.shipment_id, l.po_number)}>Add</Button>
+      <span className={IR_CELL} title="No Item Receipt matched — type the IR number (e.g. IR65377)">
+        <Input value={manualIr[key] || ''} onChange={(e) => setManualIr((s) => ({ ...s, [key]: e.target.value }))} placeholder="IR #" className="h-6 w-24 shrink-0 text-xs" disabled={busy !== null} />
+        <Button size="sm" variant="outline" className="h-6 shrink-0" disabled={busy !== null || !(manualIr[key] || '').trim()} onClick={() => manualAdd(l.shipment_id, l.po_number)}>Add</Button>
       </span>
     );
   }
@@ -276,21 +297,25 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
       accessor: (l) => l.row.posted ? 'Posted' : !l.row.has_shipping_data ? 'No shipping data' : l.row.awaiting_actual ? 'Awaiting actual' : 'Pending',
       render: (l) => (
         l.row.posted
-          ? <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400"><Check className="h-3 w-3 mr-1" />Posted</Badge>
+          ? <Badge variant="outline" className={cn(STATUS_BADGE, 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400')}><Check className="h-3 w-3 mr-1" />Posted</Badge>
           : !l.row.has_shipping_data
-            ? <Badge variant="outline" className="border-amber-500/40 text-amber-600 dark:text-amber-400">No shipping data</Badge>
+            ? <Badge variant="outline" className={cn(STATUS_BADGE, 'border-amber-500/40 text-amber-600 dark:text-amber-400')}>No shipping data</Badge>
             : l.row.awaiting_actual
-              ? <Badge variant="outline" className="border-amber-500/40 text-amber-600 dark:text-amber-400" title="Booked consignment — enter the broker bill on the shipment">Awaiting actual</Badge>
-              : <Badge variant="outline" className="text-muted-foreground">Pending</Badge>
+              ? <Badge variant="outline" className={cn(STATUS_BADGE, 'border-amber-500/40 text-amber-600 dark:text-amber-400')} title="Booked consignment — enter the broker bill on the shipment">Awaiting actual</Badge>
+              : <Badge variant="outline" className={cn(STATUS_BADGE, 'text-muted-foreground')}>Pending</Badge>
       ) },
+    // Fixed-width like the IR cell: Post → "Posting…" → the unpost icon are three
+    // different widths for the same slot, and the column resized on every click.
     { key: 'action', label: 'Action', align: 'right', sortable: false, accessor: () => '', render: (l) => {
       const blockReason = postBlockReason(l.row);
       return (
-        <span className="inline-flex items-center gap-1 whitespace-nowrap">
-          <Button size="sm" variant="ghost" className="h-7 px-1.5" disabled={busy !== null} title="Preview NetSuite payload" onClick={() => showNetsuitePreview(l.row)}><FileJson className="h-3.5 w-3.5" /></Button>
-          {canEdit && (l.row.posted
-            ? <Button size="sm" variant="ghost" disabled={busy !== null} onClick={() => unpost(l.row)} title="Unpost (correction — NetSuite value stays)"><RotateCcw className="h-3.5 w-3.5" /></Button>
-            : <Button size="sm" variant="outline" disabled={busy !== null || !!blockReason} onClick={() => post(l.row)} title={blockReason || 'Post & send to NetSuite'}>{busy === l.shipment_id ? 'Posting…' : 'Post'}</Button>)}
+        <span className="inline-flex h-7 w-28 items-center justify-end gap-1 whitespace-nowrap">
+          <Button size="sm" variant="ghost" className={ICON_BTN} disabled={busy !== null} title="Preview NetSuite payload" onClick={() => showNetsuitePreview(l.row)}><FileJson className="h-3.5 w-3.5" /></Button>
+          <span className={POST_SLOT}>
+            {canEdit && (l.row.posted
+              ? <Button size="sm" variant="ghost" className={ICON_BTN} disabled={busy !== null} onClick={() => unpost(l.row)} title="Unpost (correction — NetSuite value stays)"><RotateCcw className="h-3.5 w-3.5" /></Button>
+              : <Button size="sm" variant="outline" className="h-7 px-2" disabled={busy !== null || !!blockReason} onClick={() => post(l.row)} title={blockReason || 'Post & send to NetSuite'}>{busy === l.shipment_id ? 'Posting…' : 'Post'}</Button>)}
+          </span>
         </span>
       );
     } },
@@ -313,6 +338,12 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
         {counts.pending} pending · {counts.posted} posted
         {counts.awaiting ? ` · ${counts.awaiting} awaiting actual` : ''}
       </span>
+      {/* Exports what the month filter is showing, not the whole book — the button
+          sits next to the filter and should mean what the filter says. */}
+      <a href={landedCostExportHref('sms', effMonth)} download
+         className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'ml-auto')}>
+        <Download className="h-3.5 w-3.5 mr-1" /> Export Excel
+      </a>
     </>
   );
 

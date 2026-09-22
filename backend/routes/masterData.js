@@ -31,8 +31,16 @@ router.put('/warehouses',   requirePermission('settings_edit'), validate(masterD
 router.get('/modes',        asyncWrap(masterDataController.getModes));
 router.put('/modes',        requirePermission('settings_edit'), validate(masterDataArray), asyncWrap(masterDataController.putModes));
 
-// Normalized destination master data (read-only; owned by migration/ingestion)
+// Normalized destination master data (rows owned by migration/ingestion). The PUT
+// edits the document fields only — consignee address, port of discharge and notify
+// party, which the CI/Packing List print; adding or removing a destination here is
+// refused (see the controller).
 router.get('/warehouse-facilities', asyncWrap(masterDataController.getWarehouseFacilities));
+router.put('/warehouse-facilities', requirePermission('settings_edit'), validate(masterDataArray), asyncWrap(masterDataController.putWarehouseFacilities));
+
+// The CI's Notify Party — one row, always tentree (see the controller).
+router.get('/notify-party', asyncWrap(masterDataController.getNotifyParty));
+router.put('/notify-party', requirePermission('settings_edit'), validate(masterDataArray), asyncWrap(masterDataController.putNotifyParty));
 router.get('/allocation-channels',  asyncWrap(masterDataController.getAllocationChannels));
 router.get('/ports',                asyncWrap(masterDataController.getPorts));
 router.get('/container-types',      asyncWrap(masterDataController.getContainerTypes));

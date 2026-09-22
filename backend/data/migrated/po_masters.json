@@ -1,19 +1,5 @@
 [
   {
-    "trn_number": "TRN_4073",
-    "supplier_id": null,
-    "season_id": null,
-    "main_shoulder": null,
-    "netsuite_id": "18581569"
-  },
-  {
-    "trn_number": "TRN_1163",
-    "supplier_id": "14",
-    "season_id": null,
-    "main_shoulder": null,
-    "netsuite_id": "20508637"
-  },
-  {
     "trn_number": "TRN_2099",
     "supplier_id": "14",
     "season_id": "season_1",

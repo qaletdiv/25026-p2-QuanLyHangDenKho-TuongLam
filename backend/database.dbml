@@ -73,8 +73,15 @@ Table suppliers {                       // resolves supplier-fact duplication (P
   id            varchar [pk]
   name          varchar [unique, not null]
   country       varchar                 // source of truth for old PO.coo
-  address       varchar
+  address       varchar                 // the SELLER — the company on the invoice
   port_of_loading varchar
+  // The FACTORY that made the goods, which is not always the company being
+  // invoiced (a supplier may be an agent sourcing from a separate mill). The CI's
+  // "Manufacturer Name / Manufacturer address" lines; both fall back to the
+  // seller's name/address when blank, which is what those lines always showed
+  // before they had their own field (2026-09-16).
+  manufacturer_name    varchar
+  manufacturer_address varchar
 }
 
 // LEGACY warehouses — retained for SMS. Conflates two facts in `name`
@@ -97,8 +104,25 @@ Table warehouse_facilities {
   name          varchar [unique, not null]
   country       varchar
   city          varchar
+  // These two are the CONSIGNEE block of the Commercial Invoice and Packing List
+  // (ciGenerator / plGenerator, both modules) — the consignee IS the destination
+  // the PO names (NRI CA / NRI US / Direct). Editable in Settings → Warehouse
+  // Management → Destinations; the legacy `warehouses` table above is NOT what the
+  // documents read, which is why its address/port fields were removed from that
+  // screen and its values backfilled here (2026-09-16).
   port_of_discharge varchar
   address       varchar
+}
+
+// NOTIFY PARTY on the CI — ONE row, because it is always tentree regardless of
+// destination, supplier or module (stated by Lam 2026-09-16). A column on
+// warehouse_facilities was the first attempt and was wrong: it invited five
+// copies of one fact and five chances for them to disagree. Editable in
+// Settings → Warehouse Management → Notify Party. Data: migrated/notify_party.json.
+Table notify_party {
+  id      varchar [pk]              // always 'default' — the row is a singleton
+  name    varchar [not null]
+  address varchar
 }
 
 // Internal inventory bucket — orthogonal to where cargo physically goes
@@ -235,6 +259,15 @@ Table po_orders {                       // STEP 2 — warehouse split. One per (
   facility_id           varchar [ref: > warehouse_facilities.id]   // physical destination
   allocation_channel_id varchar [ref: > allocation_channels.id]    // Reserved/First (nullable)
   coo_country           varchar                                    // country of origin (the goods)
+  // NetSuite's sign-off state, straight off `approvalstatus` (2026-09-09):
+  // 'Pending Approval' | 'Approved' | null (older POs carry no value). STORED, not
+  // derived — nothing local can tell whether a supervisor signed off. Drives the
+  // "Pending approval" badge on the PO list/detail. REFRESHED for every held PO on
+  // each sync, not just the ones in the pull scope, or it freezes on POs that were
+  // pending when synced and have since been approved and received.
+  // 'Rejected' is never stored: R4 refuses it on intake and pruneRejected removes
+  // any that predate the rule (see CLAUDE.md).
+  approval_status       varchar
   // mode is 'Sea' by default here; the real Air/Sea split happens at the leg grain
   // NOTE: this hierarchy is MAINLINE-ONLY (WIP-import-sourced today; a mainline
   // NetSuite sync may come later). SMS POs live in their own sms_pos table —

@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Trash2, Users } from 'lucide-react';
 import { EditLockActions } from './EditLockActions';
 import { SettingsTable, type SettingsColumn } from './SettingsTable';
+import { AddressInput } from './AddressInput';
 
 export function SupplierSettings() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -34,7 +35,7 @@ export function SupplierSettings() {
 
   const addItem = () => {
     const id = Math.random().toString(36).substr(2, 9);
-    setSuppliers([...suppliers, { id, name: '', country: '', address: '', port_of_loading: '' }]);
+    setSuppliers([...suppliers, { id, name: '', country: '', address: '', manufacturer_name: '', manufacturer_address: '', port_of_loading: '' }]);
   };
 
   const removeItem = (id: string) => {
@@ -52,10 +53,19 @@ export function SupplierSettings() {
     cell: (s) => <Input value={s[key] || ''} onChange={(e) => updateItem(s.id, key, e.target.value)} className="h-8 text-sm" />,
   });
 
+  const addressCol = (key: string, label: string, placeholder?: string): SettingsColumn<any> => ({
+    key, label, sortable: false,
+    cell: (s) => <AddressInput value={s[key]} onChange={(v) => updateItem(s.id, key, v)} placeholder={placeholder} />,
+  });
+
   const columns: SettingsColumn<any>[] = [
     textCol('name', 'Name'),
     textCol('country', 'Country'),
-    textCol('address', 'Address'),
+    // Seller (invoiced party) vs manufacturer (the factory) — the CI prints both,
+    // and the manufacturer pair falls back to these two when left blank.
+    addressCol('address', 'Address', 'One line per line of the address'),
+    textCol('manufacturer_name', 'Manufacturer Name'),
+    addressCol('manufacturer_address', 'Manufacturer Address', 'Leave blank if same as Address'),
     textCol('port_of_loading', 'Port of Loading'),
     {
       key: 'actions', label: '', sortable: false, movable: false, headClassName: 'w-[50px]',

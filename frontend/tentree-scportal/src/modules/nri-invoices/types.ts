@@ -233,3 +233,23 @@ export type CostSummary = {
   }[];
   storage_premium: number;
 };
+
+/**
+ * One invoicing WAREHOUSE = one tab under All Invoices.
+ *
+ * `parser` names the detail-file layout used to read that warehouse's workbook;
+ * null means none is mapped, so `upload_enabled` is false and the tab is a shell
+ * (its invoice list, legend slice and rate card exist, but nothing can be
+ * uploaded). Every 3PL builds its workbook differently — registering a warehouse
+ * cannot invent a reader for a format nobody has seen.
+ */
+export type InvoiceSource = {
+  code: string;            // URL segment: 'nri-us'
+  label: string;           // 'NRI US'
+  entity: string;          // the key the legend, rate card and invoice ids turn on: 'US'
+  facility_id: string | null;
+  parser: string | null;
+  upload_enabled: boolean;
+  note: string | null;     // why uploads are off, shown on the tab's page
+  invoice_count?: number;
+};

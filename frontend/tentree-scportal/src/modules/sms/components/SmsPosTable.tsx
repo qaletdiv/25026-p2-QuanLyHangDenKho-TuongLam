@@ -43,7 +43,22 @@ export default function SmsPosTable({ pos }: { pos: SmsPo[] }) {
     setSyncing(false);
     if (r?.fetch_error) return void toast.error(`NetSuite: ${r.fetch_error}`);
     if (r?.error) return void toast.error(r.error);
-    toast.success(`NetSuite sync: ${r.pos_upserted ?? 0} POs, ${r.po_lines_upserted ?? 0} lines, ${r.receipts_upserted ?? 0} receipts${r.warnings?.length ? ` · ⚠ ${r.warnings.length} warning(s)` : ''}`);
+    // Receipts NetSuite has deleted are now REMOVED here, not left to accumulate
+    // (PO04801 read 658 received against NetSuite's 329). Deleting rows is never
+    // silent: they are named, and a removed CONFIRMED match gets its own warning
+    // because it withdraws something a human asserted.
+    const removed: { ir: string; po_number: string; was_confirmed?: boolean }[] = r?.receipts_removed ?? [];
+    toast.success(`NetSuite sync: ${r.pos_upserted ?? 0} POs, ${r.po_lines_upserted ?? 0} lines, ${r.receipts_upserted ?? 0} receipts`
+      + (removed.length ? ` · ${removed.length} deleted receipt(s) removed` : '')
+      + (r.warnings?.length ? ` · ⚠ ${r.warnings.length} warning(s)` : ''));
+    if (removed.length) {
+      const confirmed = removed.filter((x) => x.was_confirmed);
+      toast.warning(
+        `No longer in NetSuite, removed: ${removed.map((x) => `${x.ir} (${x.po_number})`).join(', ')}`
+        + (confirmed.length ? ` — ${confirmed.length} of them carried a CONFIRMED match, so those lots need re-matching.` : ''),
+        { duration: 12000 },
+      );
+    }
     router.refresh();
   }
 

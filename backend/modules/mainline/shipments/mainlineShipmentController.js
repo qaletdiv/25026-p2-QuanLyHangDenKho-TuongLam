@@ -15,6 +15,17 @@ const status = require('../statuses');
 const { enrichShipments } = require('./mainlineShipmentService');
 const { resolveVendorSupplierId } = require('../../../utils/vendorScope');
 const { assertLegVisible } = require('../vendorAccess');
+const { cascadeShipmentDelete } = require('./shipmentCleanup');
+const lifecycle = require('./shipmentLifecycle');
+
+// Read-only here, and both are owned elsewhere: `landed_costs` belongs to the
+// landed-cost module (a posted row records money already pushed to NetSuite) and
+// the receipts are NetSuite's. The lifecycle guards only ask whether they exist.
+const LandedCostModel = new BaseModel('migrated/landed_costs.json');
+const ItemReceiptModel = new BaseModel('migrated/mainline_item_receipts.json');
+// same attribution the ATA and the landed-cost push use — one answer to "which IR
+// belongs to this consignment", per the note at the top of that file
+const { resolveMainlineReceipts } = require('../receipts/mainlineReceiptMatch');
 
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
 
@@ -119,8 +130,33 @@ async function getByLeg(req, res) {
   // supplier by G1), so this second filter is defence in depth, not the control.
   const mine = visibleShipments(shipments.filter((s) => carrying.has(String(s.id))), ctx, vendorSid);
 
+  // RECEIVED per lot. Item Receipts attach to a po_number, not to a shipment, so
+  // the per-lot figure comes from the shared attribution resolver — the same one
+  // that decides the ATA and the landed-cost push target, so all three agree on
+  // which IR belongs to which consignment. Without this the page could show a
+  // leg-level discrepancy with no way to tell which lot caused it.
+  const legRow = ctx.legs.find((l) => String(l.id) === String(legId));
+  const legPo = legRow ? legRow.po_number : null;
+  const matchCtx = {
+    mlReceipts: ctx.itemReceipts, mlReceiptLines: ctx.itemReceiptLines,
+    mlShipmentLegs: ctx.shipLegs, mlRejections: ctx.receiptRejections,
+    // the UNFILTERED table: the matcher is competitive, so every consignment
+    // carrying this PO has to be in the pool or the attribution shifts
+    mlShipments: ctx.allShipments,
+    poByLeg: new Map(ctx.legs.map((l) => [l.id, l.po_number])),
+  };
+  // Resolved per shipment rather than once: the resolver returns only the target
+  // for the id it is asked about. It re-resolves the whole PO each call, which is
+  // what keeps the answers consistent — and a leg carries a handful of lots.
+  const receivedFor = (shipmentId) => {
+    if (!legPo) return null;
+    const t = resolveMainlineReceipts(shipmentId, [legPo], matchCtx)[0];
+    return t && t.receipt_id ? t : null;
+  };
+
   const rows = (await _enrich(mine, ctx)).map((s) => {
     const leg = (s.legs || []).find((l) => String(l.leg_id) === String(legId)) || {};
+    const rec = receivedFor(s.id);
     return {
       shipment_id:             s.id,
       shipment_number:         s.shipment_number || null,
@@ -135,6 +171,13 @@ async function getByLeg(req, res) {
       crd_actual:              s.cargo_received_date || null,
       shipped_qty:             leg.shipped_qty ?? null,
       shipped_cartons:         leg.shipped_cartons ?? null,
+      // NULL, never 0, when no IR is attributed — "not received yet" and "received
+      // nothing" are different answers and only one of them is a discrepancy.
+      received_qty:            rec ? (rec.receipt_qty ?? null) : null,
+      received_ir:             rec ? (rec.netsuite_ir_tranid || null) : null,
+      received_date:           rec ? (rec.receipt_date || null) : null,
+      // an unconfirmed attribution is a SUGGESTION — the UI marks it as such
+      received_confirmed:      rec ? !!rec.confirmed : false,
       status:                  s.status || null,
     };
   }).sort((a, b) => (a.lot_number ?? 0) - (b.lot_number ?? 0)
@@ -148,6 +191,22 @@ async function update(req, res) {
   const idx = shipments.findIndex((s) => s.id === req.params.id);
   if (idx < 0) err('Shipment not found', 404);
   const next = { ...shipments[idx] };
+
+  // CANCELLED IS NOT A STATUS YOU TYPE. It is a decision with guards behind it
+  // (`cancel` below), and leaving it in the generic status setter would be the
+  // same hole the booking approve bypass was: one gated action, and beside it an
+  // ungated field that reaches the same state. Both directions are closed —
+  // a cancelled consignment does not come back either, because re-approving its
+  // booking now issues a fresh shipment, which keeps the cancelled one as a record
+  // of what happened instead of quietly reusing it.
+  const wasStatus = await status.nameForId(next.status_id);
+  if (req.body.status === 'Cancelled' && wasStatus !== 'Cancelled') {
+    err('Use POST /mainline/shipments/:id/cancel to cancel a consignment — it has guards this route does not', 400);
+  }
+  if (wasStatus === 'Cancelled' && req.body.status && req.body.status !== 'Cancelled') {
+    err('This consignment is cancelled and cannot be reopened — re-approve its booking to issue a new one', 409);
+  }
+
   if (req.body.status) next.status_id = await status.idForName(req.body.status);
 
   // ACTUAL carrier. Validated because it decides the landed-cost BASIS: a carrier
@@ -198,12 +257,75 @@ async function bulkStatus(req, res) {
   res.json({ updated });
 }
 
+// Everything the lifecycle guards need to see. Loaded together so cancel and
+// delete judge a consignment on exactly the same facts.
+async function _lifecycleCtx() {
+  const [landedCosts, receipts] = await Promise.all([
+    LandedCostModel.read().catch(() => []),
+    ItemReceiptModel.read().catch(() => []),
+  ]);
+  return { landedCosts, receipts };
+}
+
+// POST /:id/cancel — the way out of a consignment that has NOT left the supplier.
+//
+// Cancel withdraws the CONVEYANCE, never the authorization: the booking stays
+// Approved, its units stay committed against the leg, and nobody else can take the
+// space. That is the normal case — a sailing falls through and the same goods go
+// next week. If the whole consignment is off, that is a decision about the BOOKING,
+// taken on the booking.
+async function cancel(req, res) {
+  const shipments = await MainlineShipmentModel.read();
+  const idx = shipments.findIndex((s) => s.id === req.params.id);
+  if (idx < 0) err('Shipment not found', 404);
+  const ship = shipments[idx];
+
+  const statusName = await status.nameForId(ship.status_id);
+  if (statusName === 'Cancelled') err('This consignment is already cancelled', 409);
+
+  const why = lifecycle.cancelBlockers(ship, await _lifecycleCtx());
+  if (why.length) {
+    err(`${ship.shipment_number} cannot be cancelled because ${why.join('; and ')}.`, 409);
+  }
+
+  shipments[idx] = { ...ship, status_id: await status.idForName('Cancelled') };
+  await MainlineShipmentModel.write(shipments);
+  const ctx = await _ctx();
+  res.json({
+    ...(await _enrich([shipments[idx]], ctx))[0],
+    // The status the row was in when it was called off. A cancelled consignment
+    // otherwise loses the only trace of how far it had got.
+    cancelled_from: statusName,
+    // The typed status said it had moved and no record backed that up — the client
+    // asked anyway (see `confirm_status_conflict`), so say so in the response.
+    status_conflicted: lifecycle.statusDisagrees(ship, statusName),
+  });
+}
+
+// Four tables key on a shipment; this used to clear one of them (the junction).
+// cascadeShipmentDelete owns the rest — see that module for why the ASN and the
+// rejections are DELETED while the Item Receipts are only UNLINKED.
+//
+// The guards in front of it are the point: delete is for a consignment entered by
+// mistake, so it asks that someone first CANCELLED it, and it refuses outright
+// while a record NetSuite owns still points at it — a posted landed cost (money
+// already PATCHed onto a live Item Receipt) or a confirmed receipt. Each of those
+// has its own deliberate reversal, and the message names it.
 async function remove(req, res) {
-  const [shipments, shipLegs] = await Promise.all([MainlineShipmentModel.read(), MainlineShipmentLegModel.read()]);
-  if (!shipments.some((s) => s.id === req.params.id)) err('Shipment not found', 404);
-  await MainlineShipmentModel.write(shipments.filter((s) => s.id !== req.params.id));
-  await MainlineShipmentLegModel.write(shipLegs.filter((j) => j.shipment_id !== req.params.id));   // cascade junction
+  const shipments = await MainlineShipmentModel.read();
+  const id = req.params.id;
+  const ship = shipments.find((s) => s.id === id);
+  if (!ship) err('Shipment not found', 404);
+
+  const statusName = await status.nameForId(ship.status_id);
+  const why = lifecycle.deleteBlockers(ship, statusName, await _lifecycleCtx());
+  if (why.length) {
+    err(`${ship.shipment_number} cannot be deleted because ${why.join('; and ')}.`, 409);
+  }
+
+  await MainlineShipmentModel.write(shipments.filter((s) => s.id !== id));
+  await cascadeShipmentDelete([id]);
   res.status(204).send();
 }
 
-module.exports = { getAll, getOne, getByLeg, update, bulkStatus, remove };
+module.exports = { getAll, getOne, getByLeg, update, bulkStatus, cancel, remove };

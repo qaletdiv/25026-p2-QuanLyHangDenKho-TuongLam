@@ -145,6 +145,14 @@ export async function updateSmsShipment(id: string, data: Record<string, unknown
   revalidateSms();
   return result;
 }
+// Calls off a consignment the carrier does not have yet — in practice a
+// booking-approved draft, since a vendor-entered parcel is typed after handover.
+// The booking is untouched and still authorizes those lots.
+export async function cancelSmsShipment(id: string) {
+  const result = await fetchApi(`/sms/shipments/${encodeURIComponent(id)}/cancel`, { method: 'POST' });
+  revalidateSms();
+  return result;
+}
 export async function deleteSmsShipment(id: string) {
   const result = await fetchApi(`/sms/shipments/${encodeURIComponent(id)}`, { method: 'DELETE' });
   revalidateSms();

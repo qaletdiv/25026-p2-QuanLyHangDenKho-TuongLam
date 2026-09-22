@@ -41,6 +41,38 @@ function checkSameConsignment(legIds, { legs, orders }) {
   return { ok: facilities.size <= 1 && modes.size <= 1, facilities: [...facilities], modes: [...modes] };
 }
 
+/**
+ * G4 — a leg whose PO NetSuite has NOT approved cannot be booked (2026-09-09).
+ *
+ * Approval is a money gate: booking reserves space and commits the supplier, and
+ * a PO awaiting supervisor sign-off may still change or be rejected outright.
+ * Until now nothing stopped it — the portal didn't even display the difference.
+ *
+ * HARD refusal, deliberately: no `force_` bypass like G2's overbooking. G2 is soft
+ * because shipping a bit over allocation is a real, routine call for a coordinator
+ * to make; "book it before the supervisor approves it" is not theirs to make.
+ *
+ * Only an explicit 'Pending Approval' / 'Rejected' blocks. NULL means NetSuite has
+ * no value for that PO (older closed POs carry none) and must NOT block — treating
+ * absence as disapproval would refuse legitimate bookings on historical POs.
+ *
+ * @returns {{ok: boolean, offending: Array<{leg_id, po_number, approval_status}>}}
+ */
+const BOOKING_BLOCKING_APPROVAL = new Set(['Pending Approval', 'Rejected']);
+
+function checkApproved(legIds, { legs, orders }) {
+  const orderByPo = new Map(orders.map((o) => [o.po_number, o]));
+  const legById = new Map(legs.map((l) => [l.id, l]));
+  const offending = legIds
+    .map((id) => {
+      const leg = legById.get(id) || {};
+      const order = orderByPo.get(leg.po_number) || {};
+      return { leg_id: id, po_number: leg.po_number ?? null, approval_status: order.approval_status ?? null };
+    })
+    .filter((x) => BOOKING_BLOCKING_APPROVAL.has(String(x.approval_status)));
+  return { ok: offending.length === 0, offending };
+}
+
 // leg capacity = Σ allocated_qty of that leg's lines (the air/sea allocation).
 function legCapacities(legLines) {
   const cap = new Map();
@@ -128,6 +160,6 @@ function enrichBookings(bookings, { bookingLegs, legs, suppliers, modes = [], or
 }
 
 module.exports = {
-  legSupplierMap, checkVendorMatch, checkSameConsignment, legCapacities, bookedUnitsByLeg,
-  overbookWarnings, enrichBookings,
+  legSupplierMap, checkVendorMatch, checkSameConsignment, checkApproved,
+  legCapacities, bookedUnitsByLeg, overbookWarnings, enrichBookings,
 };

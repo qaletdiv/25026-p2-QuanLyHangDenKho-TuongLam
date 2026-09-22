@@ -2,6 +2,57 @@
 
 const ExcelJS = require('exceljs');
 
+// ---------------------------------------------------------------------------
+//  Multi-line address blocks — ONE LINE PER ROW
+//
+//  These fields are free text and genuinely long: a consignee block carries the
+//  street address, a contact name, a phone, an email, a carrier-appointment
+//  address and an EIN — eight lines in live data. The original layout wrote
+//  addrLines[0] and [1] into two fixed cells and spread the consignee over
+//  exactly four rows, so everything past line 2 (or 4) was DROPPED, silently and
+//  on a customs document.
+//
+//  Each line now gets its own Excel row, so the cells are ordinary cells: you can
+//  click one, edit it, copy a column. The cost is that nothing below a block can
+//  sit at a fixed row any more — the layout is computed downward from the blocks
+//  (see the `Math.max(originalRow, …)` anchors). Those maxes keep a short address
+//  looking EXACTLY as it did before: with one-line addresses the sheet still has
+//  its banner on row 12, its consignee label on 14 and its item table on 21.
+// ---------------------------------------------------------------------------
+const splitLines = (v) => String(v ?? '').split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+
+/**
+ * Write `lines` down one column, a row each.
+ * @returns {number} the first row AFTER the block
+ */
+function writeLines(ws, col, startRow, lines) {
+    lines.forEach((line, i) => { ws.getCell(`${col}${startRow + i}`).value = line; });
+    return startRow + lines.length;
+}
+
+/**
+ * Draw a MEDIUM rule around a rectangle, leaving whatever is inside alone.
+ *
+ * The form is a set of boxes — header, info block, parties, item table — inside one
+ * outer box. Without them the sheet is a grid of values that stops wherever the data
+ * happens to stop, and it does not read as a document. Each edge is merged into the
+ * cell's existing border, so the thin cell grid inside the item table survives.
+ */
+function outline(ws, top, left, bottom, right, style = 'medium') {
+    for (let r = top; r <= bottom; r++) {
+        for (let c = left; c <= right; c++) {
+            if (r !== top && r !== bottom && c !== left && c !== right) continue;   // interior
+            const cell = ws.getCell(r, c);
+            const b = { ...(cell.border || {}) };
+            if (r === top) b.top = { style };
+            if (r === bottom) b.bottom = { style };
+            if (c === left) b.left = { style };
+            if (c === right) b.right = { style };
+            cell.border = b;
+        }
+    }
+}
+
 /**
  * Generate a formatted Commercial Invoice Excel workbook.
  *
@@ -13,12 +64,25 @@ async function generateCI(shipmentData, meta) {
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('Commercial Invoice');
 
-    // ── Column widths ────────────────────────────────────────────────────
-    //  A=12  B=22  C=16  D=12  E=25  F=28  G=12  H=10  I=35  J=16  K=10  L=14  M=14
+    // ── Item table columns ───────────────────────────────────────────────
+    // Declared FIRST because the sheet's whole right edge is derived from them:
+    // the info block sits in the last two, the banner spans all of them, and the
+    // medium rule goes down the last one. Add a column here and everything follows.
+    const colHeaders = [
+        'PO#', 'SKU', 'UPC', 'Knit/Woven', 'Style Description', 'Color Description',
+        'Category', 'Gender', 'Composition', 'HTS Code', 'Quantity',
+        'Unit Price USD', 'Total USD',
+    ];
+    const LAST_COL = colHeaders.length;        // M — the sheet's right edge
+    const INFO_LABEL_COL = LAST_COL - 1;       // L
+
+    //  A=12  B=22  C=16  D=12  E=25  F=28  G=12  H=10  I=35  J=16  K=10  L=18  M=18
+    //  L and M are wider than a money column needs because they now also carry the
+    //  info block ("Port of Discharge" is 17 characters).
     ws.columns = [
         { width: 12 }, { width: 22 }, { width: 16 }, { width: 12 }, { width: 25 },
         { width: 28 }, { width: 12 }, { width: 10 }, { width: 35 }, { width: 16 },
-        { width: 10 }, { width: 14 }, { width: 14 },
+        { width: 10 }, { width: 18 }, { width: 18 },
     ];
 
     const bold = { bold: true };
@@ -27,74 +91,81 @@ async function generateCI(shipmentData, meta) {
         left: { style: 'thin' }, right: { style: 'thin' },
     };
 
-    // ── Header section (rows 1-12) ───────────────────────────────────────
+    // ── Header section ───────────────────────────────────────────────────
     ws.getCell('A1').value = meta.vendor_name || '';
     ws.getCell('A1').font = { bold: true, size: 12 };
 
-    ws.getCell('A2').value = meta.vendor_address || '';
-    ws.getCell('I2').value = 'PO #';       ws.getCell('I2').font = bold;
-    ws.getCell('J2').value = meta.po_number || '';
-
-    ws.getCell('A3').value = meta.vendor_contact || '';
-    ws.getCell('I3').value = 'Invoice #';  ws.getCell('I3').font = bold;
-    ws.getCell('J3').value = meta.invoice_number || '';
-
-    ws.getCell('I4').value = 'Date';       ws.getCell('I4').font = bold;
-    ws.getCell('J4').value = meta.date || new Date().toISOString().slice(0, 10);
-
-    ws.getCell('A6').value = 'Manufacturer Name: ' + (meta.vendor_name || '');
-    ws.getCell('I6').value = 'Shipping Mode'; ws.getCell('I6').font = bold;
-    ws.getCell('J6').value = meta.shipping_mode || '';
-
-    ws.getCell('A7').value = 'Manufacturer address: ' + (meta.vendor_address || '').split('\n')[0];
-    ws.getCell('I7').value = 'Shipment #';  ws.getCell('I7').font = bold;
-    ws.getCell('J7').value = meta.shipment_number || '';
-
-    const addrLines = (meta.vendor_address || '').split('\n');
-    ws.getCell('A8').value = addrLines[1] || '';
-    ws.getCell('I8').value = 'ETA Date';    ws.getCell('I8').font = bold;
-    ws.getCell('J8').value = meta.eta_date || '';
-
-    ws.getCell('A9').value = meta.vendor_contact || '';
-    ws.getCell('I9').value = 'Port of Loading'; ws.getCell('I9').font = bold;
-    ws.getCell('J9').value = meta.port_of_loading || '';
-
-    ws.getCell('I10').value = 'Port of Discharge'; ws.getCell('I10').font = bold;
-    ws.getCell('J10').value = meta.port_of_discharge || '';
-
-    ws.getCell('I11').value = 'Remarks';    ws.getCell('I11').font = bold;
-    ws.getCell('J11').value = meta.remarks || '';
-
-    ws.mergeCells('A12:H12');
-    ws.getCell('A12').value = 'Commercial Invoice';
-    ws.getCell('A12').font = { bold: true, size: 13 };
-    ws.getCell('I12').value = 'Country of Origin'; ws.getCell('I12').font = bold;
-    ws.getCell('J12').value = meta.country_of_origin || '';
-
-    // ── Consignee / Notify Party (rows 14-18) ───────────────────────────
-    ws.getCell('A14').value = 'Consignee';        ws.getCell('A14').font = bold;
-    ws.getCell('D14').value = 'Notify Party';     ws.getCell('D14').font = bold;
-
-    const conLines = (meta.consignee_name || '').split('\n').concat(
-        (meta.consignee_address || '').split('\n')
-    );
-    const notifyLines = (meta.notify_party_name || '').split('\n').concat(
-        (meta.notify_party_address || '').split('\n')
-    );
-    for (let i = 0; i < 4; i++) {
-        if (conLines[i])    ws.getCell(`A${15 + i}`).value = conLines[i];
-        if (notifyLines[i]) ws.getCell(`D${15 + i}`).value = notifyLines[i];
-    }
-
-    // ── Column headers (row 21) ──────────────────────────────────────────
-    const colHeaders = [
-        'PO#', 'SKU', 'UPC', 'Knit/Woven', 'Style Description', 'Color Description',
-        'Category', 'Gender', 'Composition', 'HTS Code', 'Quantity',
-        'Unit Price USD', 'Total USD',
+    // The RIGHT-hand label stack: the LAST TWO COLUMNS, contiguous from row 1, so
+    // the block's right edge is the table's right edge. A separate column group
+    // from the seller block on the left, so a long address grows the left column
+    // past it without disturbing it. Country of Origin lives here too, which is
+    // what frees the banner row below to be centred across the full width.
+    const labels = [
+        ['PO #',              meta.po_number],
+        ['Invoice #',         meta.invoice_number],
+        ['Date',              meta.date || new Date().toISOString().slice(0, 10)],
+        ['Shipping Mode',     meta.shipping_mode],
+        ['Shipment #',        meta.shipment_number],
+        ['ETA Date',          meta.eta_date],
+        ['Port of Loading',   meta.port_of_loading],
+        ['Port of Discharge', meta.port_of_discharge],
+        ['Country of Origin', meta.country_of_origin],
+        ['Remarks',           meta.remarks],
     ];
-    const row21 = ws.getRow(21);
+    labels.forEach(([label, value], i) => {
+        const r = i + 1;
+        const labelCell = ws.getCell(r, INFO_LABEL_COL);
+        labelCell.value = label;
+        labelCell.font = bold;
+        ws.getCell(r, LAST_COL).value = value || '';
+    });
+    const labelsEnd = labels.length;
+
+    // ── LEFT column: seller, then manufacturer — one address line per ROW ──
+    let after = writeLines(ws, 'A', 2, splitLines(meta.vendor_address));
+    const contactRow = Math.max(3, after);
+    ws.getCell(`A${contactRow}`).value = meta.vendor_contact || '';
+
+    // Manufacturer is its OWN field on the supplier now — the factory that made the
+    // goods is not always the company on the invoice (an agent may be). Falls back
+    // to the vendor when the supplier has no separate manufacturer recorded, which
+    // is what this line always showed before.
+    const mfrNameRow = Math.max(6, contactRow + 2);
+    ws.getCell(`A${mfrNameRow}`).value = 'Manufacturer Name: ' + (meta.manufacturer_name || meta.vendor_name || '');
+    const mfrAddr = splitLines(meta.manufacturer_address || meta.vendor_address);
+    after = writeLines(ws, 'A', mfrNameRow + 1,
+        mfrAddr.map((l, i) => (i === 0 ? 'Manufacturer address: ' + l : l)));
+    const contact2Row = Math.max(9, after);
+    ws.getCell(`A${contact2Row}`).value = meta.vendor_contact || '';
+
+    // The banner has to clear BOTH stacks — the left column above and the I/J
+    // labels. Centred across the sheet's full width (A:M, every item column), which
+    // it could not be while Country of Origin sat on this row.
+    const titleRow = Math.max(labelsEnd + 2, contact2Row + 2);
+    ws.mergeCells(titleRow, 1, titleRow, LAST_COL);
+    ws.getCell(`A${titleRow}`).value = 'Commercial Invoice';
+    ws.getCell(`A${titleRow}`).font = { bold: true, size: 14 };
+    ws.getCell(`A${titleRow}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+    // ── Consignee / Notify Party — side by side, one line per row ────────
+    const labelRow = titleRow + 2;                       // 14 by default
+    ws.getCell(`A${labelRow}`).value = 'Consignee';    ws.getCell(`A${labelRow}`).font = bold;
+    ws.getCell(`D${labelRow}`).value = 'Notify Party'; ws.getCell(`D${labelRow}`).font = bold;
+
+    const blockRow = labelRow + 1;                       // 15 by default
+    const conLines = [...splitLines(meta.consignee_name), ...splitLines(meta.consignee_address)];
+    const notifyLines = [...splitLines(meta.notify_party_name), ...splitLines(meta.notify_party_address)];
+    writeLines(ws, 'A', blockRow, conLines);
+    writeLines(ws, 'D', blockRow, notifyLines);
+
+    // ── Column headers ───────────────────────────────────────────────────
+    // Directly under the TALLER of the two blocks, one blank row between. No fixed
+    // floor: the table follows the consignee rather than leaving a gap to reach a
+    // row number that stopped meaning anything once the blocks grew.
+    const headerRow = blockRow + Math.max(conLines.length, notifyLines.length) + 1;
+    const headerRowRef = ws.getRow(headerRow);
     colHeaders.forEach((h, i) => {
-        const cell = row21.getCell(i + 1);
+        const cell = headerRowRef.getCell(i + 1);
         cell.value = h;
         cell.font = bold;
         cell.border = borderThin;
@@ -121,8 +192,8 @@ async function generateCI(shipmentData, meta) {
         a.sku.localeCompare(b.sku)
     );
 
-    // ── Data rows (row 22+) ──────────────────────────────────────────────
-    let dataRow = 22;
+    // ── Data rows (immediately under the header) ─────────────────────────
+    let dataRow = headerRow + 1;
     let totalQty = 0;
     let totalValue = 0;
 
@@ -151,6 +222,7 @@ async function generateCI(shipmentData, meta) {
 
     // ── Totals row ───────────────────────────────────────────────────────
     dataRow++; // blank row
+    const totalsRow = dataRow;
     const totRow = ws.getRow(dataRow);
     totRow.getCell(11).value = totalQty;
     totRow.getCell(11).font = bold;
@@ -174,9 +246,23 @@ async function generateCI(shipmentData, meta) {
     dataRow += 5;
     ws.getCell(`H${dataRow}`).value = 'Seller Full Company Name and Address:';
     ws.getCell(`H${dataRow + 1}`).value = (meta.vendor_name || '').toUpperCase();
-    ws.getCell(`H${dataRow + 2}`).value = (meta.vendor_address || '').toUpperCase();
-    dataRow += 6;
-    ws.getCell(`H${dataRow}`).value = '(Authorized Signature/ Company Mark)';
+    const sigEnd = writeLines(ws, 'H', dataRow + 2,
+        splitLines(meta.vendor_address).map((l) => l.toUpperCase()));
+    // Signature line clears the address block rather than sitting a fixed 6 rows
+    // down, which a multi-line address would have overwritten.
+    const lastRow = Math.max(dataRow + 6, sigEnd + 3);
+    ws.getCell(`H${lastRow}`).value = '(Authorized Signature/ Company Mark)';
+
+    // ── Frame ────────────────────────────────────────────────────────────
+    // Drawn LAST, once every row position is known. Section boxes first, then the
+    // outer box, so the outer edge wins wherever the two meet.
+    // The banner and the Consignee / Notify Party block are deliberately UNBOXED
+    // (per Lam, 2026-09-16) — boxing every section made the sheet busy; the outer
+    // frame plus the two data boxes is enough structure.
+    outline(ws, 1, INFO_LABEL_COL, labelsEnd, LAST_COL);          // info block
+    outline(ws, 1, 1, labelsEnd, INFO_LABEL_COL - 1);             // seller / manufacturer
+    outline(ws, headerRow, 1, totalsRow, LAST_COL);               // item table
+    outline(ws, 1, 1, lastRow, LAST_COL);                         // the form itself
 
     return wb.xlsx.writeBuffer();
 }

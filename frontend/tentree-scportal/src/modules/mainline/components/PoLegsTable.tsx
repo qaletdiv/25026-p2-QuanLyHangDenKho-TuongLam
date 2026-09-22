@@ -12,6 +12,7 @@ import { useSession } from '@/components/providers/SessionProvider';
 import { cn } from '@/lib/utils';
 import { importWip, syncNetSuite } from '@/modules/mainline/actions';
 import DataTable, { type DataColumn } from './DataTable';
+import ApprovalBadge from './ApprovalBadge';
 import type { PoLegRow } from '@/modules/mainline/types';
 
 // Mainline POs are WIP-import-sourced (the importer bootstraps missing
@@ -64,7 +65,31 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
     if (r?.fetch_error) return void toast.error(`NetSuite: ${r.fetch_error}`);
     if (r?.error) return void toast.error(r.error);
     const prot = Array.isArray(r?.protected) ? r.protected.length : 0;
-    toast.success(`NetSuite sync: ${r.masters_upserted ?? 0} PO master(s), ${r.orders_upserted ?? 0} order(s), ${r.lines_upserted ?? 0} line(s)${prot ? ` · ${prot} protected (booked) skipped` : ''}`);
+    // Rejected POs: refused on the way in, and removed if they were already here
+    // (NetSuite usually rejects a PO after it was synced). Both are reported —
+    // silently deleting rows from the order book would be worse than the bug.
+    const rejectedIn = Array.isArray(r?.rejected_skipped) ? r.rejected_skipped.length : 0;
+    const removed: string[] = r?.rejected_removed?.po_numbers ?? [];
+    const stuck: string[] = r?.rejected_kept_referenced ?? [];
+    toast.success(`NetSuite sync: ${r.masters_upserted ?? 0} PO master(s), ${r.orders_upserted ?? 0} order(s), ${r.lines_upserted ?? 0} line(s)`
+      + (prot ? ` · ${prot} protected (booked) skipped` : '')
+      + (rejectedIn ? ` · ${rejectedIn} rejected skipped` : '')
+      + (removed.length ? ` · ${removed.length} rejected removed (${removed.join(', ')})` : ''));
+    if (stuck.length) {
+      toast.warning(`Rejected in NetSuite but booked/received here — left in place for review: ${stuck.join(', ')}`, { duration: 10000 });
+    }
+    // Item Receipts NetSuite has deleted are removed rather than left to add up
+    // (the fold used to only ever insert). Named, never silent — and a removed
+    // CONFIRMED match withdraws a human's assertion, so it is called out.
+    const irsGone: { ir: string; po_number: string; was_confirmed?: boolean }[] = r?.receipts_removed ?? [];
+    if (irsGone.length) {
+      const confirmed = irsGone.filter((x) => x.was_confirmed);
+      toast.warning(
+        `No longer in NetSuite, removed: ${irsGone.map((x) => `${x.ir} (${x.po_number})`).join(', ')}`
+        + (confirmed.length ? ` — ${confirmed.length} carried a CONFIRMED match and need re-matching.` : ''),
+        { duration: 12000 },
+      );
+    }
     router.refresh();
   }
 
@@ -79,6 +104,25 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
         ? <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">Forecast</Badge>
         : <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Split</Badge>
     ) },
+    // NetSuite sign-off. Its OWN column rather than a second pill in Stage: they
+    // answer different questions (has WIP split it / has a supervisor approved it),
+    // and stacking two badges in one cell makes both harder to scan. Blank on the
+    // approved POs — only the exceptions are worth ink.
+    //
+    // The accessor is rank-PREFIXED text, and it has to be both:
+    //  · a bare label sorted "Approved" before "Pending" (A < P), so the one click
+    //    anyone makes on this header buried the rows the column exists to surface;
+    //  · a bare rank number broke the SEARCH box — DataTable filters on the same
+    //    accessor, so typing "pending" matched 0 of 104 rows.
+    // "1 Pending Approval" satisfies both: it sorts most-urgent-first and still
+    // contains the words people type.
+    { key: 'approval_status', label: 'Approval',
+      accessor: (l) => (
+        l.approval_status === 'Rejected' ? '0 Rejected'
+          : l.approval_status === 'Pending Approval' ? '1 Pending Approval'
+            : l.approval_status === 'Approved' ? '2 Approved' : '3'
+      ),
+      render: (l) => <ApprovalBadge status={l.approval_status} /> },
     { key: 'mode', label: 'Mode', accessor: (l) => l.mode, render: (l) => l.mode ?? '—' },
     { key: 'coo', label: 'COO', defaultVisible: false, accessor: (l) => l.coo, render: (l) => <span className="text-muted-foreground">{l.coo ?? '—'}</span> },
     { key: 'receiving_warehouse', label: 'Destination', accessor: (l) => l.receiving_warehouse, render: (l) => <span className="text-muted-foreground">{l.receiving_warehouse ?? '—'}</span> },

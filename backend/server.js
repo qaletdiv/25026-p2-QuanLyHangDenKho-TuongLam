@@ -34,6 +34,22 @@ app.use(cors({
 app.use(require('./middleware/securityHeaders'));
 app.use(express.json());
 
+// ---------------------------------------------------------------------------
+// ONE TRANSACTION PER WRITE REQUEST (Postgres backend only).
+//
+// Mounted here, above every router, because the multi-table writes it protects
+// are spread across them: booking-approve writes shipments then shipment legs,
+// the shipping-data upload writes five tables, an SMS shipment writes a header
+// then its junction. Under the JSON stack a crash between two of those left
+// partial state with no way back; now the request either lands whole or not at
+// all. It is also what lets foreign keys exist at all — see db/txContext.js.
+//
+// GET/HEAD skip it, so read paths and streamed downloads are untouched.
+// ---------------------------------------------------------------------------
+if ((process.env.DATA_BACKEND || 'postgres').toLowerCase() === 'postgres') {
+    app.use(require('./db/txContext').transactionMiddleware);
+}
+
 // Health check
 app.get('/health', (req, res) => res.status(200).json({ message: 'initial running' }));
 
@@ -94,6 +110,9 @@ app.use('/templates', (req, res, next) => {
     return next();
 }, express.static(path.join(__dirname, 'data', 'templates')));
 
+// Who am I, with permissions resolved NOW (not the login-time snapshot). The
+// frontend page gate calls this on navigation — see controllers/meController.
+app.use('/me',                 require('./routes/me'));
 app.use('/po',                 require('./modules/po/poRoutes'));        // normalized PO hierarchy (mainline)
 app.use('/mainline',           require('./modules/mainline/mainlineRoutes')); // mainline module
 app.use('/sms',                require('./modules/sms/smsRoutes'));      // SMS module — separate dataset (sms_* tables); see SMS_MODULE_PLAN.md
@@ -113,7 +132,13 @@ app.use('/notifications',      require('./routes/notifications')); // derived, r
 app.use(errorHandler);
 
 if (require.main === module) {
-    driveStorage.init().then(() => {
+    // `.catch` matters: an unhandled rejection here is FATAL in Node 24, so
+    // anything init() throws would take the process down before app.listen ever
+    // ran. Storage problems are reported by init() itself; the server still
+    // comes up so /health answers and the app recovers on its own.
+    driveStorage.init().catch((e) => {
+        console.error('Storage init failed — starting anyway:', e.message);
+    }).then(() => {
         initCronJobs();
         app.listen(PORT, () => {
             console.log(`Server is listening at http://localhost:${PORT}`);

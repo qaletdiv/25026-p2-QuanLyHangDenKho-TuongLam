@@ -21,6 +21,11 @@ module.exports = {
   // of matched_shipment_id. Own table, not a column: one IR can be rejected against
   // several of its PO's lots, so on the receipt row it would be a repeating group.
   receiptRejections: new BaseModel('migrated/sms_receipt_match_rejections.json'),
+  // READ-ONLY here, and owned by the landed-cost module. A posted row records
+  // freight & duty already PATCHed onto a live NetSuite Item Receipt, so the
+  // shipment lifecycle only asks whether one exists before letting a consignment
+  // be cancelled or deleted out from under it.
+  landedCosts:    new BaseModel('migrated/landed_costs.json'),
   packingCartons: new BaseModel('migrated/sms_packing_cartons.json'),   // shipping data, (carton × SKU) grain
   cartons:        new BaseModel('migrated/sms_cartons.json'),           // PHYSICAL carton: weights + measure, once per (shipment, ctn)
   documents:      new BaseModel('migrated/sms_documents.json'),         // generated CI + packing-list files
@@ -35,5 +40,6 @@ module.exports = {
   suppliers:      new BaseModel('suppliers.json'),
   couriers:       new BaseModel('couriers.json'),
   modes:          new BaseModel('modes.json'),                          // Sea / Air / Courier — booking + shipment mode
+  notifyParty:    new BaseModel('migrated/notify_party.json'),          // singleton — the CI's Notify Party block
   users:          new BaseModel('users.json'),
 };

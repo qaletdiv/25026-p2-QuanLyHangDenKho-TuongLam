@@ -15,6 +15,8 @@ const router = express.Router();
 const { asyncWrap } = require('../../middleware/errorHandler');
 const requirePermission = require('../../middleware/requirePermission');
 const upload = require('../../middleware/upload');
+const validate = require('../../middleware/validate');
+const nriSchemas = require('./nriInvoiceValidator');
 const controller = require('./nriInvoiceController');
 
 const requireInvoices = requirePermission('landed_costs');
@@ -26,15 +28,32 @@ const documents = upload.fields([
   { name: 'invoice', maxCount: 1 },
 ]);
 
-// Master data — the two validators
+// The warehouses that bill us — one row per invoicing warehouse = one tab under
+// All Invoices. Declared before /:id so "sources" is never read as an invoice id.
+// A new warehouse is registered as a SHELL (uploads off until its detail-file
+// layout is mapped) — see invoiceSources.js.
+router.get('/sources',            requireInvoices, asyncWrap(controller.listSources));
+router.post('/sources',           requireInvoices, validate(nriSchemas.source), asyncWrap(controller.addSource));
+router.delete('/sources/:code',   requireInvoices, asyncWrap(controller.removeSource));
+
+// Master data — the two validators.
+//
+// The legend is the GL lookup basis, and it is CONFIGURED here: the sync accepts
+// an uploaded workbook (`legend`), so it no longer requires the shared drive to be
+// mapped. `dry_run=true` reports the defects without adopting the file.
+const legendFile = upload.fields([{ name: 'legend', maxCount: 1 }]);
 router.get('/charge-codes',       requireInvoices, asyncWrap(controller.getChargeCodes));
-router.post('/charge-codes/sync', requireInvoices, asyncWrap(controller.syncChargeCodes));
+router.post('/charge-codes/sync', requireInvoices, legendFile, asyncWrap(controller.syncChargeCodes));
 router.get('/rate-card',          requireInvoices, asyncWrap(controller.getRateCard));
 
 // Order master — the input the CLASS depends on (channel x geography x
 // marketplace). Coverage is the limiting factor on class accuracy, so it is
 // inspectable and refreshable without a restart.
+const orderFile = upload.fields([{ name: 'file', maxCount: 1 }]);
 router.get('/order-data',          requireInvoices, asyncWrap(controller.getOrderData));
+// Upload the `NRI Order data` sheet (or a period CSV). UPSERTS by order number, so
+// dropping in a later period tops the master up rather than replacing it.
+router.post('/order-data',         requireInvoices, orderFile, asyncWrap(controller.uploadOrderData));
 router.post('/order-data/refresh', requireInvoices, asyncWrap(controller.refreshOrderData));
 
 // Cross-invoice analysis (cost per GL + the checks a single invoice can't see).

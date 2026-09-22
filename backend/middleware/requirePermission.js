@@ -35,7 +35,7 @@
 // Must run AFTER requireAuth so req.user exists — satisfied by the global auth
 // gate in server.js, which every router below it sits under.
 
-const RoleModel = require('../models/RoleModel');
+const { permissionsForRole } = require('../utils/rolePermissions');
 
 /**
  * Gate a route on permission keys. Grants access if the caller's role holds ANY
@@ -54,12 +54,10 @@ function requirePermission(...keys) {
                 return res.status(401).json({ success: false, error: 'Authentication required' });
             }
 
-            const roles = await RoleModel.read().catch(() => []);
-            const role = Array.isArray(roles) ? roles.find((r) => r.name === req.user.role) : null;
-
             // Unknown role → deny. A token naming a role that no longer exists
-            // must not fall through to "no permissions required".
-            const granted = new Set(role && Array.isArray(role.permissions) ? role.permissions : []);
+            // must not fall through to "no permissions required" (enforced by
+            // permissionsForRole, which returns [] for an unknown role).
+            const granted = new Set(await permissionsForRole(req.user.role));
 
             if (keys.some((k) => granted.has(k))) return next();
 

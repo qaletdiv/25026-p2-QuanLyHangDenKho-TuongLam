@@ -23,7 +23,11 @@
       "Bash(npx next:*)",
       "Bash(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('data/bookings.json','utf8'\\)\\); const b=d[0]; console.log\\('CI source:', b.commercial_invoice?.source\\); console.log\\('CI status:', b.commercial_invoice?.status\\); console.log\\('CI line_items count:', b.commercial_invoice?.line_items?.length\\); console.log\\('CI line_items is array:', Array.isArray\\(b.commercial_invoice?.line_items\\)\\); console.log\\('First line item:', JSON.stringify\\(b.commercial_invoice?.line_items?.[0]\\)\\);\")",
       "Bash(tasklist /FI \"IMAGENAME eq node.exe\")",
-      "Bash(node -e \"const pkg=JSON.parse\\(require\\('fs'\\).readFileSync\\('package.json','utf8'\\)\\); console.log\\('start script:', pkg.scripts?.start\\); console.log\\('dev script:', pkg.scripts?.dev\\);\")"
+      "Bash(node -e \"const pkg=JSON.parse\\(require\\('fs'\\).readFileSync\\('package.json','utf8'\\)\\); console.log\\('start script:', pkg.scripts?.start\\); console.log\\('dev script:', pkg.scripts?.dev\\);\")",
+      "Bash(node -e ' *)",
+      "Bash(node *)",
+      "Bash(echo \"exit: $?\")",
+      "Artifact"
     ]
   },
   "hooks": {

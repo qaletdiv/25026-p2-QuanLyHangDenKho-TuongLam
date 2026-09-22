@@ -14,9 +14,14 @@ frontend trees) was **DELETED at the 2026-07-03 cutover** — do not reference i
   families), `backend/SCHEMA_REDESIGN.md`, `backend/MAINLINE_MODULE_STRUCTURE.md`,
   `backend/MAINLINE_BUILD_PLAN.md`, `backend/SMS_MODULE_PLAN.md` (SMS schema,
   phases 1–7 all ✅, open items).
-- **Data:** `backend/data/migrated/*.json` = the normalized tables (mainline +
-  sms + shared reference data). Legacy master data still in `backend/data/*.json`
-  (suppliers, couriers, warehouses, modes, incoterms, users, roles, contacts).
+- **Data: PostgreSQL since 2026-09-14** (database `tentree_portal`; see the
+  POSTGRES section below and `backend/db/README.md`). The table NAMES are still
+  the old filenames — `migrated/po_orders.json` is the `po_orders` table — and
+  modules still read/write whole arrays via `BaseModel`, so everything else in
+  this file still describes the code accurately.
+  **⚠️ `backend/data/**.json` is now a FROZEN pre-migration snapshot.** Nothing
+  writes to it. Editing it changes nothing; reading it to answer a question about
+  live data gives migration-day values. Query the DB, or read through `BaseModel`.
   **NEVER re-run `migrate-to-normalized.js`** (regenerates from deleted legacy
   files → wipes live data). `scripts/migrate-sms.js` is standalone + idempotent.
 - **No transactional tables are shared** between mainline and SMS. Shared =
@@ -34,15 +39,183 @@ frontend trees) was **DELETED at the 2026-07-03 cutover** — do not reference i
   excluded; R1 protects booked orders); the **WIP import** creates the air/sea
   `mainline_po_legs` (NS sync never creates legs — POs stay `forecast` lifecycle
   until WIP splits them). Ingestion rules R1 (protect-if-booked) /
-  R2 (flag-on-conflict) / R3 (WIP-overwrites-legs).
+  R2 (flag-on-conflict) / R3 (WIP-overwrites-legs) / R4 (refuse-rejected).
+- **R4 — a REJECTED NetSuite PO is not a PO (2026-09-08).** The mainline scope was
+  `t.status IN ('A','B','C')`, commented as "Pending Receipt / Partially Received /
+  Pending Billing" — a legend already known to be wrong when the SMS side was fixed.
+  **Verified against production** (`GROUP BY t.status` over every PurchOrd):
+  `A` = Pending Supervisor Approval, `B` = Pending Receipt, **`C` = Rejected by
+  Supervisor**, `D`–`H` = the received/billed/closed states. So "active only" was
+  importing rejected POs as live ones: PO03521 and PO03789 (both
+  `approvalstatus=3`, `status='C'`) sat in the order book as Forecast rows, offering
+  themselves for booking. `buildUpserts` never looked at `approval_status` either,
+  though the header query has always selected it. Now closed three ways:
+  **(1)** scope is `IN ('A','B')` + `NOT_REJECTED_CLAUSE`
+  (`approvalstatus IS NULL OR != 3` — **`IS NULL` matters**: 880 older Closed/
+  Fully-Billed POs carry no approval status and a plain `!= 3` would drop them all
+  on SQL three-valued logic), on the header AND line-item queries, both modules;
+  **(2)** R4 in `buildUpserts` skips a rejected PO and reports it in
+  `rejected_skipped`; **(3)** `pruneRejected` + `integrationService
+  .fetchRejectedPoTranids` REMOVE ones already stored — a filter cannot, because a
+  PO is normally rejected *after* it was synced, so it just stops being refreshed
+  and lives in the portal forever. The prune **refuses to delete a PO anything
+  points at** (leg / booking / shipment / receipt — `computeReferenced`, wider than
+  R1's `computeLocked`) and reports it as `rejected_kept_referenced` instead:
+  rejected-but-booked is a real contradiction for a human, not something a sync
+  should paper over. A TRN master goes only with its LAST PO.
+  `scripts/prune-rejected-pos.js` (idempotent, `--dry-run`) does the cleanup without
+  a full sync. Measured: mainline pull 19 → 17 POs and **the only two dropped were
+  the rejected pair**; SMS scope 120 → 120 (untouched); the removal took orders
+  83 → 81, lines 11,981 → 11,946, masters 44 → 42, PO-list rows 106 → 104, while
+  `/reports/mainline` (92 rows, 264,948 units) and `/forecast` were **byte-identical**
+  — those are leg-grained and these POs had no legs.
+- **Pending-approval POs are BADGED, not excluded (2026-09-09).** Status `A`
+  (Pending Supervisor Approval) stays in scope — 16 of 81 POs today — because an
+  unapproved PO is still useful forecast signal. What was wrong is that it looked
+  IDENTICAL to an approved one everywhere. `po_orders.approval_status` now stores
+  NetSuite's value ('Pending Approval' | 'Approved' | null; 'Rejected' never
+  stored, see R4) and `components/ApprovalBadge` renders an amber pill on the PO
+  list (own **Approval** column), the TRN detail (per PO row — a TRN can mix
+  approved and unapproved POs) and the leg detail (beside **Book Now**, which is
+  the button the badge is warning about). **Approved renders NOTHING** — a badge on
+  every row is two things to read instead of one; same blank-when-unremarkable rule
+  as Carrier Ref #. The Approval column's sort accessor is a RANK
+  (rejected→pending→approved→unknown), because sorting the label put "Approved"
+  first (A < P) and buried the rows the column exists to surface.
+  ⚠️ **It must be REFRESHED for every held PO, not taken from the pull**: the pull
+  is A/B only, so a PO that was pending when it synced and has since been approved
+  and received would wear "Pending approval" forever. `sync()` therefore calls
+  `integrationService.fetchPoApprovalStatuses(held)` — ONE query that also answers
+  the R4 prune — and reports `approval_refreshed`.
+  `scripts/backfill-po-approval-status.js` (idempotent, `--dry-run`) populated the
+  existing rows (81 written: 65 Approved / 16 Pending) without a full sync, which
+  would also have renumbered ~12k `po_order_lines` ids for nothing.
+  **Resolved 2026-09-09:** booking an unapproved PO is REFUSED — see G4 below.
+  SMS was left alone: `sms_pos` has no approval column and no SMS PO is pending.
 - **Bookings key on `leg_id`** (leg-only; forecast POs unbookable). Guards:
   G1 same-supplier, G2 overbooking (409 + `force_overbook`), G3 same-consignment
-  (one destination facility + one mode; `mainlineBookingService.checkSameConsignment`).
+  (one destination facility + one mode; `mainlineBookingService.checkSameConsignment`),
+  **G4 NetSuite-approved** (`checkApproved`, 2026-09-09).
+- **G4 — you cannot book a PO NetSuite has not approved.** Booking reserves space
+  and commits the supplier, but a PO awaiting supervisor sign-off can still change
+  or be rejected; nothing stopped it before (the portal didn't even show the
+  difference — see the badge note under the PO hierarchy). **HARD refusal, 422, no
+  `force_` bypass** — G2 is soft because shipping slightly over allocation is a
+  coordinator's call to make, whereas "book it before the supervisor approves it"
+  is not. Only an explicit `'Pending Approval'` / `'Rejected'` blocks: **NULL must
+  NOT block** (older closed POs carry no approval status, and treating absence as
+  disapproval would refuse legitimate bookings on historical POs). Checked before
+  G1/G3 because it is a property of the PO alone, so the message stands on its own
+  ("have it approved in NetSuite, then run the NetSuite Sync"). The create path is
+  the only site — `update` never touches `po_legs`. The booking FORM mirrors it by
+  **locking** those rows (badge + disabled inputs + dimmed), the same
+  make-it-unexpressible choice the SMS booking form makes for its supplier guard;
+  the server guard remains the authority, since a stale page can still POST.
+  Verified over HTTP: unapproved leg → 422, same call with `force_overbook:true` →
+  still 422, an approved leg → 201 (test booking deleted; 9 bookings before and
+  after), and in the form 4 badged rows fully locked / 10 unbadged fully editable.
+- **⚠️ Approving is `booking_approve` on BOTH doors — the EDIT route was the second
+  one (2026-09-18).** `POST /mainline/bookings/:id/approve` was gated, but
+  `PUT /mainline/bookings/:id` accepts `booking_status` and moving it to
+  'Booking Approved' runs the FULL `_approve` (stamps `approved_at`, creates the
+  shipments) — and that route carries `booking_create_mainline`, which **Vendor
+  holds**. Measured against the live vendor account: POST → 403, the same approval
+  via PUT → 200. Now checked IN THE HANDLER, not at the route, because the key is
+  needed only when the status actually MOVES: a vendor saving Cargo Ready or the
+  carrier on their own pending booking must still pass. Cancelled/Rejected are
+  covered by the same test — same decision, answered differently.
+  The same probe found `update` had **no vendor scoping** while `getAll`/`getOne`
+  did, so a vendor got **404 reading** another supplier's booking and **200 writing
+  it**; it now 404s (never 403 — a 403 confirms the id is real). `approve` and
+  `remove` are unscoped too but gated on keys no Vendor holds — latent, not
+  reachable. Verified on a throwaway Pending booking (deleted; 10 before and after,
+  0 orphans): vendor status-change 403 · vendor POST /approve 403 · vendor Cargo
+  Ready 200 · other supplier's vendor 404 · Production status-change 200.
+- **The Approve button is VISIBLE and DISABLED without the permission, not hidden**
+  (2026-09-18, per Lam). Mainline drew it for everyone (status-gated only), so a
+  vendor clicked it and got a 403 toast; SMS hid it on `role === 'Vendor'`, which
+  missed the Freight Forwarder. Both now key on `hasPermission(user,
+  'booking_approve')` (`lib/permissions`, shared with `Sidebar.can`) — a role name
+  in a component is the debt this file already lists. Approve stays on screen and
+  greyed because a vendor watching their own booking should still see it is sitting
+  on an approval, which a hidden button does not say; Reject / Cancel / Delete stay
+  HIDDEN, since they say nothing to someone who cannot take them. ⚠️ The tooltip
+  hangs on a wrapping `<span>` — a disabled `Button` carries `pointer-events-none`
+  and eats a `title`. The server is still the authority; this only stops the UI
+  offering what the API refuses. Verified in the GUI on a throwaway Pending booking
+  per module: Vendor + Freight Forwarder disabled with the hint, Logistics enabled.
 - **Shipment grain = (booking, facility, mode)** — ONE physical conveyance:
   `mainline_shipments` header (shared dates/BL/ports/status/financials, edited
   once) + `mainline_shipment_legs` junction (`lot_number`/`expected_quantity`).
   COO/CRD are per-leg, joined at read. **expected ATA = e_del + 5, derived never
   stored**. `checkChronology` guard rejects out-of-order dates on update.
+- **⚠️ CANCEL AND DELETE TRAVEL DOWN, NEVER UP (2026-09-18).** The exits are now one
+  rule at every grain: **you may undo a level only while nothing below it has
+  hardened**, and the four hardening events are `approved → handed over → landed →
+  costed`. Concretely:
+  **(1) Cancel shipment** (`POST /mainline/shipments/:id/cancel`,
+  `shipment_update_status`) calls off the CONVEYANCE and leaves the booking
+  Approved with its units still committed — the usual case is "this sailing fell
+  through, same goods next week". **(2) Delete shipment** (`shipment_delete`)
+  requires the row to be **Cancelled first**, so deleting is never the first click.
+  **(3) `DELETE /mainline/bookings/:id` now 409s while ANY shipment row hangs off
+  it** — it used to cascade, so one click destroyed the consignment, its ASN, its
+  receipt links, the CI, the cartons and the documents with no check on whether the
+  goods had arrived (live: 10 shipments, 8 CIs, 2,275 cartons, 48 docs, 16 confirmed
+  receipt matches behind an unguarded button). The booking still cascades its OWN
+  artifacts. **(4) `_approve` skips Cancelled shipments** when deciding whether to
+  spawn one — without it cancel was a dead end, because re-approve found the
+  cancelled row, created nothing, and left the booking Approved with no way to issue
+  a consignment. Now re-approve mints a fresh SHP-N and the cancelled row stays as
+  the record. **(5) Neither state is reachable through the generic status PUT** —
+  `status:'Cancelled'` 400s pointing at the action, and a cancelled row refuses to
+  be reopened. Same shape as the booking-approve bypass: a gated action beside an
+  ungated field that reaches the same state is not a gate. `Cancelled` was removed
+  from the shipment status dropdown for the same reason.
+- **⚠️ The gate is "HANDED OVER", and it is `cargo_received_date` — NOT the ETD, and
+  NEVER the CRD** (`shipments/shipmentLifecycle.js`). **CRD is the CARGO READY date**
+  — the supplier's plan, which moves earlier and later, and which the VENDOR can
+  edit while the booking is pending; gating on it would hand the vendor a switch for
+  the guard. `cargo_received_date` is **Received at Port**: the forwarder has the
+  cargo. It lands 0–32 days after Cargo Ready and **8–46 days BEFORE the vessel
+  sails** (46 on SHP-4), so gating on `etd_pol` would leave a month-and-a-half window
+  where the goods are in the carrier's hands and the portal still offers Cancel.
+  ETD and `bl_no` stay in the predicate as backstops (the three are monotonic on all
+  8 live consignments, so "any present" needs no ordering). `carrier_reference` is
+  deliberately EXCLUDED — SHP-1 carries one and no other evidence, and including it
+  would lock the exact shell row this lets staff clear. The typed status is excluded
+  too (hand-set; 8 of 10 read "Delivered" because a person typed it, and nothing
+  stops setting it back), so the UI mirrors the predicate to disable the button and
+  the server stays the authority. Two more blockers, both naming their own reversal:
+  a **confirmed Item Receipt** (unmatch first) and a **posted landed cost** (unpost
+  first — that row is money already PATCHed onto a live NetSuite IR, and
+  `landed_costs.shipment_id` is a SOFT ref, so nothing else would catch it).
+  ⚠️ `PoLegDetail` used to label `leg.crd` "CRD (target)" and `cargo_received_date`
+  "CRD (actual)", which reads as two measurements of one date; they are two
+  different EVENTS and `transitTimeService` already models the gap between them
+  (`CRD → Received`, then `Received → Depart`). Now **Cargo Ready** and **Received
+  at Port**.
+- **SMS gets the same two actions, with its own predicate** (2026-09-18).
+  `POST /sms/shipments/:id/cancel` — handed over = **a tracking number or a ship
+  date**, the same test `smsBookingController.cancel` already applied at booking
+  grain. That means it reaches only booking-approved DRAFTS: all 37 vendor-entered
+  parcels are typed after handover and carry both, so the action is absent on them
+  rather than offered and refused. `DELETE /sms/shipments/:id` gained the **posted
+  landed-cost** guard it was missing (38 SMS rows are posted); it sits behind the
+  existing receipt guard, so it is only reachable after someone unmatches — which
+  is exactly the hole it closes. SMS delete deliberately does NOT require Cancelled
+  first: an SMS consignment is TYPED by a vendor and a mistyped tracking number is
+  the common case, and `smsBookingController.cancel` explicitly directs people to
+  "delete those shipments first if they were entered in error".
+  **The SMS Cancelled status was WIDENED, not added** — the database's
+  `statuses_module_name_uniq (module, name)` refuses a second row, which is the same
+  shape mainline uses (one `cancelled`, category 'both'). So
+  `scripts/add-sms-cancelled-status.js` renames `sms_bk_cancelled` → `sms_cancelled`
+  and sets category 'both' (idempotent, `--dry-run`, refuses if anything still
+  references the old id — 0 did). Consequences wired: `smsStatuses` includes
+  category 'both', `TERMINAL_STATUS_IDS` includes it (a cancelled box is never
+  polled), the manual-status route refuses the name, and the table's Done set
+  includes it.
 - **Actual ATA is DERIVED from NetSuite Item Receipts, in every consumer**
   (2026-09-02). `receipts/ataLoader.js` wraps the shared resolver
   (`receipts/mainlineReceiptMatch.ataByShipment` — confirmed → quantity →
@@ -61,9 +234,15 @@ frontend trees) was **DELETED at the 2026-07-03 cutover** — do not reference i
   forecast equal the units newly recognised as received (41,380, both sides).
   ⚠️ `mainlineReceiptMatch.js:50` must keep reading the RAW column (its
   `ship_date` sort key) or matcher → ATA → matcher closes a loop.
-  Still raw-column readers, deliberately untouched: `poController` (PO detail
-  display) and `landedCostController` (`ship_date`/`ship_month`, which groups
-  posted finance snapshots).
+  **`poController.getAllLegLines` was the LAST raw-column holdout and was fixed
+  2026-09-16** — same defect, found the same way: the `PO item lines (SKUs)` export
+  showed an ATA for PO04772 and PO04784 only, because those two ride SHP-2, the
+  **1 of 9** shipments whose typed `ata` column is set. Every other consignment
+  exported blank while its receipts said it had landed. It now goes through
+  `loadAtaByShipment` + `effectiveAta` like the reports, and carries an
+  `ata_source` column so a reconciler can see which rule produced the date.
+  Still a raw-column reader, deliberately: `landedCostController`
+  (`ship_date`/`ship_month`, which groups posted finance snapshots).
 - **Backend:** `modules/po/*` (routes `/po`) + `modules/mainline/*` (routes
   `/mainline/{wip-import,bookings,shipments,fulfillment,bookings/:id/ci|packing|
   shipment-data|documents,shipments/:id/asn,legs/:legId/shipments}`).
@@ -214,6 +393,127 @@ frontend trees) was **DELETED at the 2026-07-03 cutover** — do not reference i
   REST Web Services feature — user-record edits do NOT work. Changing the
   user's role assignment INVALIDATES existing tokens.
 
+## CI / Packing List header block (2026-09-15, revised 2026-09-16)
+
+The shared `services/ciGenerator.js` + `plGenerator.js` render a `meta` object both
+modules build in their own `_meta` (`modules/mainline/ci/documentService.js`,
+`modules/sms/smsDocumentService.js`). Six header fields were blank on every
+downloaded document, for two different reasons, and the distinction is the point:
+
+- **No source in code.** `shipping_mode` and `notify_party_*` were read by the
+  generators and set by NOBODY — the keys appeared only inside the two generator
+  files. Now: `shipping_mode` is DERIVED (mainline from the booking's leg
+  `mode_id` → `modes.name`, resolved through `legPoToId` — **not** `legs.find(po)`,
+  which on an air+sea PO can return another booking's leg; SMS from
+  `sms_shipments.mode_id` falling back to `Courier`, the same fallback
+  `netsuiteLandedCost` applies to `custbody16`, so the document and the NetSuite
+  record state one mode). The **NOTIFY PARTY is a SINGLETON** — table
+  `notify_party`, one row `default`, because it is always tentree whatever the
+  destination, supplier or module (Lam, 2026-09-16). It was first built as two
+  columns on `warehouse_facilities` and that was wrong: five copies of one fact are
+  five chances for them to disagree on a customs document. Settings → Warehouse
+  Management → **Notify Party** (`GET|PUT /master-data/notify-party`).
+- **Source existed, data empty.** `suppliers.address`, `suppliers.port_of_loading`,
+  `warehouse_facilities.address`, `.port_of_discharge`. Looks like data entry, was
+  not: **Settings → Warehouses edited the WRONG TABLE.** `WarehouseSettings` wrote
+  `address`/`port_of_discharge` to the legacy 6-row `warehouses` (the pre-3NF
+  warehouse×channel list) — which no generator reads. The details HAD been entered,
+  correctly, into a table no document consults. Those two columns were removed from
+  that screen, a **Destinations** block over `warehouse_facilities` added above it,
+  and the typed values lifted across by
+  `scripts/backfill-facility-addresses.js` (idempotent, `--dry-run`, matches
+  warehouse → facility by longest NAME PREFIX, refuses to write on any conflict).
+  The CONSIGNEE is the destination the PO names (`po_orders.facility_id`), which is
+  why facility grain is the right one — both "NRI US *" warehouse rows carried the
+  same address.
+- `PUT /master-data/warehouse-facilities` is **EDIT-ONLY** — the id set must match
+  what is stored, or 400. Facilities are FK targets for `po_orders`, `sms_pos`,
+  `sms_shipments` and `mainline_shipments` and are created by the PO ingestion, and
+  `BaseModel.write` replaces the whole table, so a missing id would DELETE a
+  destination live records point at. Fields outside `FACILITY_EDITABLE` are carried
+  over from the stored row.
+- **⚠️ The download REBUILDS the workbook; the stored xlsx is not served.**
+  `GET /mainline/documents/:docId/file` and `GET /sms/documents/:docId/file`
+  reconstruct the rows from the stored cartons + SKU master and re-read the
+  master data, keeping the STORED `invoice_number` (the document's identity). This
+  is the actual fix for the reported bug: the letterhead is master data edited
+  *after* the upload, so a file written in August cannot show what was typed in
+  September — every downloaded CI kept its blank consignee block even once the
+  addresses were entered. Frontend uses `generatedDocHref(module, doc.id)` from
+  `lib/api`, **not** `docHref(d.file_url)`; `/api/documents` allows the two routes
+  by pattern and prefers the backend's own `Content-Disposition` filename. ASNs and
+  uploaded source files still go through `docHref`. `rowsFromCartons` +
+  `_groups` are shared by `generateAll` and `rebuild` in both modules so the
+  regenerated document can never disagree with the stored one about its rows —
+  verified on all 6 BKG-9 documents: identical row counts and exactly ONE differing
+  line each, the signature-block seller address that used to be blank.
+- **⚠️ An address field must be a `<Textarea>`, never an `<Input>`** (2026-09-16).
+  A browser collapses newlines to spaces when you paste into a single-line input,
+  so an 8-line consignee block was STORED as one 230-character line (verified:
+  `position(E'\n' in address) = 0` on every facility, vs 22 on `notify_party`) and
+  printed as one line — while the Notify Party, the only such field already backed
+  by a textarea, came out correctly. That contrast is what identified it.
+  `components/settings/AddressInput` is the shared control; use it for anything
+  printed as a block.
+- **Address lines get ONE EXCEL ROW EACH** (`writeLines`, duplicated in both
+  generators — they share no module). The generators used to write
+  `addrLines[0]`/`[1]` into two fixed cells and spread the consignee over exactly
+  4 rows, so line 5 onward was DROPPED silently on a customs document. A merged
+  wrapText cell was tried first and rejected: real rows stay ordinary editable,
+  copyable cells.
+  **The consequence is that NOTHING below a block sits at a fixed row.** Every
+  anchor is computed downward: `titleRow = max(labelsEnd + 2, contact2Row + 2)`,
+  `labelRow = titleRow + 2`, `headerRow = blockRow + max(conLines, notifyLines)
+  + 1`, `dataRow = headerRow + 1` (PL: `titleRow` → `headerRowNum = titleRow + 2`).
+  The item table follows the consignee block directly — there is no `max(21, …)`
+  floor any more, because a fixed row number stopped meaning anything once the
+  blocks could grow. ⚠️ Anything added below a block must be anchored to these
+  variables, never to a literal row.
+- **Layout conventions (2026-09-16, per Lam):** the right-hand label stack is
+  CONTIGUOUS FROM ROW 1 and sits in the **LAST TWO COLUMNS OF THE ITEM TABLE**, so
+  the info block's right edge IS the table's right edge. Both are DERIVED, not
+  written out: `colHeaders` is declared first
+  and `LAST_COL = colHeaders.length` / `INFO_LABEL_COL = LAST_COL - 1` drive the
+  block, the banner's merge (`mergeCells(titleRow, 1, titleRow, LAST_COL)`) and the
+  rule — **add a column to `colHeaders` and the whole right edge follows.** Today
+  that is L&M on the CI (13 columns) and I&J on the PL (10). Those columns were
+  widened to 18 because they now carry labels, not just money/measure values. The
+  stack is a separate column group from the seller block, so a long address grows
+  past it without disturbing it. Country of Origin moved into it, which frees the
+  banner row to be
+  **centred across the full sheet width** (`A:M` on the CI, `A:J` on the PL) at
+  size 14. **The PL carries the Consignee / Notify Party blocks too** — it travels
+  with the goods and is read at the destination — in the same columns and the same
+  one-line-per-row form, so the two documents read identically. Live check: CI
+  banner 12, labels 14, block 15-22, item table 24; PL banner 10, labels 12, block
+  13-20, carton table 22; totals, Say-In-Words and the signature block all follow,
+  quantities unchanged (3,116 = 1,207 + 1,909).
+- **The FRAME is `outline(ws, top, left, bottom, right)`, drawn LAST** — after every
+  row position is known, since none of them are fixed. Medium rules box exactly
+  three things plus the perimeter: the **seller block**, the **info block** and the
+  **item table**, then the whole form. The banner and the Consignee / Notify Party
+  block are deliberately UNBOXED (Lam, 2026-09-16) — boxing every section made the
+  sheet busy. Section boxes are drawn before the outer one so the outer edge wins
+  where they meet, and each edge is MERGED into the cell's existing border so the
+  item table's thin grid survives. A per-cell right border on the info block alone
+  was the first attempt and read as an unfinished form — the rule stopped at row 10.
+  Verified: outer frame complete on all four sides (CI 13 cols × 108 rows, PL 10 ×
+  334), 0 rows missing the right rule, the three boxes present, banner and parties
+  edges absent, content byte-identical.
+- ⚠️ **A run-on line in a document is usually the DATA, not the generator.** The
+  generator prints exactly the lines it is given. Three facility addresses had
+  breaks in the wrong places from a partially-preserved paste (NRI CA held street,
+  contact, phone and email on one stored line); `splitLines` trims but cannot
+  invent a break, and heuristically splitting on "Contact:"/a phone/an email is not
+  something to do unattended to a customs document. Check the stored value first:
+  `SELECT replace(address, E'\n', ' [NL] ') FROM warehouse_facilities`.
+- **`suppliers.manufacturer_name` / `.manufacturer_address`** (2026-09-16) — the
+  FACTORY, which is not always the company being invoiced (a supplier may be an
+  agent). Both fall back to the seller's name/address when blank, which is exactly
+  what the CI's "Manufacturer Name / address" lines showed before they had a field.
+- Still blank by design, no source anywhere: `vendor_contact` (CI `A3`/`A9`, PL
+  `A3`), `eta_date` (CI `J8`), `remarks` (CI `J11`).
+
 ## Notifications (derived, role-scoped)
 
 - **No stored log** — notifications are DERIVED from current state per request
@@ -264,8 +564,46 @@ frontend trees) was **DELETED at the 2026-07-03 cutover** — do not reference i
   typed (422 `awaiting_actual`); **every PO must have a CONFIRMED Item-Receipt
   match** (422 unresolved / 422 unconfirmed); not already posted (409 — unpost via
   `DELETE /landed-costs/:id`). Snapshot is final: a later courier bill does NOT
-  change it. Permission `landed_costs` (**Admin + Logistics** — not Admin-only).
+  change it. Permission `landed_costs` — held by **Admin, Logistics Coordinator and
+  Production** as of 2026-09-16 (this line said "Admin + Logistics" and was stale;
+  check `roles` rather than trusting it). Vendor and Freight Forwarder do NOT hold
+  it, which is what stops them curling the cost book.
   Month-end view groups by ship month; Copy per-PO split as TSV.
+- **Excel export (2026-09-16):** `GET /landed-costs/{sms,mainline}/export?month=`,
+  same `landed_costs` gate as the read model — the spreadsheet is the same
+  commercially sensitive data in a different container. Built in
+  `landedCostExport.js` from the SAME rows `getSms`/`getMainline` render, so the
+  file cannot disagree with the screen, and STREAMED (no file on disk to go stale,
+  unlike the `/freights` export).
+  **BOTH modules export ONE flat sheet at PO grain, for pivoting** (Lam,
+  2026-09-16 — it started as two sheets per module and was flattened). Three rules
+  make it pivot-safe, and breaking any silently corrupts a pivot rather than
+  erroring: **(1)** one row per PO line, with the shipment's attributes REPEATED
+  down its lines — that repetition is not redundancy, it is what lets them serve as
+  pivot row/column fields; **(2)** every money column at PO grain, so Σ over any
+  selection is correct — a shipment-level total column beside them would be counted
+  once per PO and overstate a multi-PO shipment; **(3)** NO totals row
+  (`addSheet(…, { totals: false })`), because Excel takes the contiguous block as
+  the pivot source and a TOTAL row becomes a data row, doubling every measure.
+  The two share their first 23 columns EXACTLY (verified) and carry a `Module`
+  column, so a mainline export pastes straight under an SMS one. SMS appends its
+  two module-only attributes (`Supplier`, `Season`) AFTER that block rather than
+  interleaving them — mainline's read model carries neither, and two permanently
+  blank columns on that export would read as a bug to whoever opened it. SMS's
+  `Shipment #` holds the tracking number (the same substitution
+  `smsDocumentService` makes) and its `Carrier Ref #` is blank, that field being
+  mainline-only. SMS also falls back to zero-amount lines when a consignment has no
+  shipping data — its split is apportioned by CI value and would otherwise be
+  empty, dropping the row from the export; the Status column says why it is zero.
+  The button sits beside the month filter and exports **what the
+  filter is showing**, not the whole book. Frontend: `landedCostExportHref` in
+  `lib/api` → the `/api/documents` proxy (the allowlist pattern permits only
+  `?month=`, not arbitrary query). Verified against the live read model: SMS 42 PO
+  rows / 25 cols, mainline 16 / 23, both with 0 blank rows, no TOTAL row, a single
+  `Module` value, and Σ of every money column equal to the API (SMS CI 81,386.93 ·
+  freight 25,960.72 · duty 21,325.61 · commission 13.21; mainline 459,674.54 ·
+  27,293.54 · 90,421.11 · 916.41); shared 23-column prefix byte-identical between
+  the two; `?month=` filters; no token → 401.
 - **The arm switch is ON in this deployment.** `LANDED_COST_NS_PUSH=enabled` and
   `LANDED_COST_PUSH_ALLOWLIST` is **EMPTY, which means ALL shipments are
   allowed** (`push_allowed` short-circuits to true on an empty list) — put
@@ -361,9 +699,15 @@ Overdue, and the `Fully Shipped` column absent because nothing could reach it.
 
 `shippedFor(ordered, recorded, received) = max(recorded, min(received, ordered))` —
 you cannot receive what was never shipped, so received is a FLOOR. Two caps matter:
-the INFERRED floor is capped at `ordered` so an over-receipt (PO04800: 352 received
-against 200 ordered) can't drive `remaining_qty` negative, while `recorded` is
-NEVER capped so a genuine over-SHIP still shows (PO04823 ships 125 against 121).
+the INFERRED floor is capped at `ordered` so an over-receipt can't drive
+`remaining_qty` negative, while `recorded` is NEVER capped so a genuine over-SHIP
+still shows (PO04823 ships 125 against 121).
+⚠️ The over-receipt this cap was written against — "PO04800: 352 received against
+200 ordered" — **was not real**: 172 of those units came from IR65894, an Item
+Receipt deleted in NetSuite that the upsert-only fold never removed (fixed
+2026-09-10, see the receipt-prune note below). PO04800 now reads 180/200. Keep the
+cap anyway — it is cheap and a true over-receipt is possible — but do not cite that
+PO as evidence of one.
 `shipped_recorded_qty` + `has_shipment_record` ride on every row (and the CSV,
 appended at the END so column positions don't shift) — they are the cleanup
 worklist for POs needing a consignment entered.
@@ -424,11 +768,33 @@ with no plan at all**. 40,468 units slipped later, 2,467 earlier.
   book, **NOT an incoming-only view**, and its grand total includes goods already
   in the warehouse — so the UI leads with **Still to Arrive** (222,013), not the
   raw total, and `stage` says which is which.
-- **`stage` is the confidence ladder and now all four populate:** `Received` →
-  `In Transit` → `Booking Pending` → `Awaiting Booking`. `Booking Pending` tests
-  the booking's STATUS, the same test `mainlineReportController` step 2 makes —
-  deliberately NOT "a junction row exists", which would label rejected and
-  cancelled bookings as pending.
+- **`stage` is the confidence ladder, FIVE rungs since 2026-09-18:** `Received` →
+  `In Transit` → **`Booked — Not Shipped`** → `Booking Pending` → `Awaiting Booking`.
+  `Booking Pending` tests the booking's STATUS, the same test
+  `mainlineReportController` step 2 makes — deliberately NOT "a junction row
+  exists", which would label rejected and cancelled bookings as pending.
+- **⚠️ A CANCELLED consignment is not incoming, and its units are not unbooked
+  either** (2026-09-18). Both rollups used to count one as live: `/forecast` read
+  SHP-10's 1,000 units as `In Transit` in W43 (the only In-Transit row in the whole
+  order book) and `/reports/mainline` emitted a `Cancelled`-stage row graded on the
+  timeliness cascade. Now the cancelled junction rows are split out of the shipped
+  pass and land in the new stage, which means **an approved booking with no
+  consignment carrying it**. It sits above Booking Pending (a supervisor has signed
+  it off) and below In Transit (nothing is moving), and it is **NOT `backed`** —
+  `backed` stays exactly `Received` + `In Transit`, the units a real shipment stands
+  behind. Two conditions, both load-bearing: the units count only while the BOOKING
+  is still `Booking Approved` (cancel that too and they are genuinely unbooked
+  again, so step 3 takes them), and the forecast **splits** the remainder rather
+  than labelling it by whichever booking touches the leg — a partly-shipped leg's
+  uncommitted units must stay `Awaiting Booking`. Capped at the remainder so the
+  split can never exceed what is actually left.
+  Measured on the live book: the 1,000 units moved from `In Transit` to
+  `Booked — Not Shipped` and **every other figure is byte-identical** (Awaiting
+  Booking 222,013 · Received 42,935 · backed 42,935 · 17 weeks · Σ lines === actual
+  on every week · 0 weeks where backed > actual). Report rows unchanged in count —
+  one `Cancelled` row became one `Booked — Not Shipped` row at the same qty.
+  ⚠️ The label carries an EM DASH and no comma, deliberately: these tables are
+  copied as TSV/CSV and a comma inside a stage value would split a column.
 - **The unshipped remainder has actual == plan, contributing ZERO slippage.** That
   is the honest answer: an unbooked leg has not slipped, it has not been committed
   to yet. Slippage therefore only ever comes from legs that actually shipped.
@@ -557,6 +923,139 @@ one per PO, so PO# subsumes both existing toggles.
   2026-07-22 → actual 2026-08-05 (+14d) with cartons; Cartons mode hides the
   comparison; no console errors.
 
+## Item Receipts: the sync MATCHES NetSuite, it does not accumulate (2026-09-10)
+
+Both receipt folds were **upsert-only** — keyed on `netsuite_ir_id`, they refreshed
+what NetSuite returned and inserted what was new, but never removed. So the normal
+NetSuite correction (delete an IR, post a replacement) left the portal holding
+BOTH and summing them: **PO04801 read 658 received against NetSuite's 329**
+(IR65999 315 + IR66000 14 + IR66023 329), and mainline had the same two phantoms.
+Received quantity feeds the three-way match, the derived `Received` status, the SMS
+report's received floor and the landed-cost push target, so this was not cosmetic.
+
+`utils/pruneStaleReceipts` (pure, shared — one sentence about NetSuite ownership,
+not module logic) now runs inside both folds: **within the PO scope the receipt
+query just covered, the fetched set is the whole truth.** Scope is everything —
+SMS scopes to the POs its pull returned, mainline to every held PO with a
+`netsuite_id`, and the mainline `foldReceipts` will NOT prune unless the caller
+passes `queriedPoNumbers`, because absent that it cannot tell "NetSuite deleted
+this" from "nobody asked about this PO". Three exemptions, each load-bearing:
+a PO **outside** the scope (else you wipe the receipt history of every PO beyond
+the 18-month SMS window), a **`source:'manual'`** row (a human's override, which
+may deliberately point at an IR raised against a *different* PO — exactly why the
+PO-scoped query won't return it), and a row with **no `netsuite_ir_id`**. A stale
+row carrying a CONFIRMED match IS removed — a confirmation pointing at a deleted IR
+asserts a receipt that doesn't exist, keeping a consignment Received and postable —
+but it is reported in `receipts_removed`, warned in the sync toast and logged.
+`scripts/prune-stale-receipts.js` (idempotent, `--dry-run`, `--module=sms|mainline|both`)
+cleans up without a sync; it also refuses to read an empty NetSuite answer as
+"everything was deleted". **Measured:** SMS 175 → 172 receipts (NetSuite has 172),
+mainline 96 → 94 (NetSuite has 94), 0 orphaned lines, all 37 SMS + 16 mainline
+confirmed matches preserved, second run removes nothing. The 5 removed IRs were
+each verified ABSENT from NetSuite by tranid first.
+
+## Fulfillment `variance` = RECEIVED − SHIPPED (2026-09-16)
+
+`fulfillmentService` computed `shipped_qty - received_qty` at BOTH grains, which
+inverts the sign of every discrepancy: leg 77 over-received `TCM4546-6351-L` by one
+unit (shipped 46, received 47) and the PO leg detail showed **−1**, while a genuine
+one-unit SHORTFALL showed **+1**. Now `received_qty - shipped_qty` — actual minus
+expected, so over-received is POSITIVE and short negative, which is how a warehouse
+discrepancy is spoken. Both grains must agree; the TRN rollup and the leg view are
+separate code paths that each build the row.
+Safe to flip because nothing branched on the sign — the only consumer,
+`PoLegDetail`, tests `variance !== 0` for its amber highlight. Verified: 0 formula
+mismatches across leg 77 (10 non-zero SKUs) and TRN_1267 (385 SKUs), totals
+unchanged.
+
+**`remaining_qty` FLOORS shipped at received (2026-09-16)** — the mainline echo of
+the SMS report's rule, and for the same reason. `shipped_qty` counts only confirmed
+CI packing lines matched to the leg, so a PO received without anyone uploading
+shipping data here reads shipped 0, and `allocated − shipped` then claimed the
+whole quantity was still to come while the receipts beside it said it had all
+landed: **PO04723 leg 81 showed allocated 1,300 · shipped 0 · received 1,300 ·
+remaining 1,300**, with zero shipments on the leg. Now
+`allocated − max(shipped, min(received, allocated))` → remaining 0. The floor is
+capped at allocated so an over-RECEIPT cannot make remaining negative, while
+`shipped_qty` itself is never capped, so a genuine over-SHIP still shows negative
+(leg 77 stays at −459; it moved from −449 because SKUs like
+`TCM6689-6356-XXL`, 12 allocated / 2 shipped / 12 received, correctly went from 10
+remaining to 0). Both grains carry it, and `PoLegDetail`'s Remaining card sums the
+rows' own `remaining_qty` rather than recomputing `allocated − shipped`, or the
+card and the table under it would disagree.
+**What `variance` compares against depends on whether a CONSIGNMENT EXISTS**
+(Lam, 2026-09-16) — not on whether `shipped_qty` is 0:
+- leg **with** a shipment → `received − shipped`, **even when shipped is 0**. A
+  shipment that carries nothing while units are received IS the discrepancy, and
+  suppressing it would hide the missing packing upload. Live: leg 50 / PO04749 has
+  one lot and no packing data, so it correctly reads the full received qty as
+  variance.
+- leg with **no** shipment → `received − allocated`. There is no shipped figure to
+  measure against, so the expectation is the allocation.
+
+Evaluated PER LEG, never for the whole scope: a TRN holds both kinds at once and
+one shipped leg would put every unshipped leg on the wrong basis. At TRN/PO grain
+the rows are SKU-grained across legs, so the expected quantity is
+`shipped_qty + Σ allocated of the legs with no consignment` — `shipped_qty` only
+ever accrues from legs with confirmed CI lines, so the two halves cannot
+double-count. `fulfillmentController._ctx` loads `mainline_shipment_legs` for this
+one question; it is the service's ONLY consumer, so the ctx is always complete —
+the `shipmentLegs = []` default would silently put every leg on the allocated
+basis, so a new caller must pass it.
+Measured: TRN_1267 went from **372 of 385** SKUs showing a non-zero variance to
+**17**; legs 81/82 (PO04723, no lots) from 65 and 100 false "over-received" to 0;
+leg 77 (4 lots) keeps all 10 genuine discrepancies unchanged; 0 formula mismatches.
+
+**Shipped + Received in the `PO item lines (SKUs)` export (2026-09-16).**
+`GET /po/leg-lines` is at (leg, SKU) grain, which is exactly the grain
+`reconcileLeg` already derives those two figures at — so rather than a second copy,
+the rules were extracted into `fulfillmentService.legActuals(ctx)`, which returns
+`shippedByLegSku` / `recvByLegSku` for EVERY leg in one pass, and `reconcileLeg`
+now consumes it. A second implementation of "which leg gets credited this receipt"
+is how two screens start disagreeing about a discrepancy.
+⚠️ `legActuals` is built over **all** legs in `getAllLegLines`, not the
+vendor-scoped subset: the receipt split walks a PO's legs in shipping-method order,
+so a partial view would credit the wrong leg. The ROW LIST stays scoped by
+`loadAll`. Both columns emit **0, not null** — a blank in a column people sum reads
+as missing data, not as zero. Verified: 9,982 lines, Σ allocated 264,349 (the
+forecast's plan total), and the per-leg sums match the leg page exactly on 77
+(12,750 / 12,757), 81 (0 / 1,300) and 50 (0 / 147); the leg page's own variance and
+remaining are unchanged after the refactor.
+
+**Received qty PER LOT on the leg detail (2026-09-16).** Item Receipts attach to a
+`po_number`, not a shipment, so the per-lot figure comes from the shared
+`resolveMainlineReceipts` — the same attribution that decides the ATA and the
+landed-cost push target, so all three agree on which IR belongs to which
+consignment. Resolved per shipment (the resolver returns only the target for the id
+it is asked), with the UNFILTERED shipment table in the pool because the matcher is
+competitive. NULL, never 0, when nothing is attributed — "not received yet" and
+"received nothing" are different answers and only one is a discrepancy; the cell
+goes amber only when both figures exist and differ, and an unconfirmed attribution
+is marked `*`. Verified on leg 77: Σ lots = 12,750 shipped / 12,757 received,
+exactly the leg totals, with the +7 traced to Lot 1 −3, Lot 3 −2, Lot 4 +12.
+
+**The SKU and Variance headers ARE the filters (2026-09-16).** That table runs to
+hundreds of SKUs (374 on leg 77) and the question asked of it is almost always
+"which ones are off?". So there is ONE header row and no filter strip: the SKU
+cell holds an input whose placeholder is the column name, and the Variance cell
+holds a select that reads `Variance` while unset and the active filter
+(`Discrepancies` · `Over-received` · `Short`) once set, tinted `text-primary`.
+The header is therefore the label AND the current state. The SKU box matches the
+ITEM NAME as well as the code — staff search by style as often as by SKU.
+Three rules the next edit must keep:
+**(1)** the totals row sums the rows **ON SCREEN** (`shownRec`), never
+`reconcile.totals` and never the full filtered set — a footer summing 374 SKUs
+under a body of 15 is read as the total of those 15; the label says `N of M SKUs`
+whenever the body is a subset, from a filter OR the top-15 cap. Whole-leg figures
+stay one glance away in the Stat cards, which are deliberately NOT filtered.
+**(2)** a filter shows EVERY match, never the first 15 — capping would hide the
+rows just narrowed down to. **(3)** the "Show all N SKUs" toggle is hidden while
+filtering, since it would offer to expand a list that is not truncated.
+Verified in the GUI: 1 header row; top-15 footer `15 of 374` / 744·853·853;
+Show all `374` / 12,301·12,750·12,757·+7; Over-received 5 rows / +15 with the
+header reading "Over-received"; + SKU `TCM6689` → 2 rows / +12; no match → empty
+state and a 0 footer; 0 console errors.
+
 ## Known debt / deferred
 
 - `/forecast` (mainline) now runs on LIVE migrated data via
@@ -567,7 +1066,11 @@ one per PO, so PO# subsumes both existing toggles.
   UNUSED (kept on disk; `purchase-orders.json` snapshot no longer read anywhere).
   `/reports/sms` + `/reports/sms/forecast` built. DHL tracking pending credentials.
 - Component-level permission checks still use hardcoded role names in some
-  detail components (sidebar page-access is permission-driven via `can()`).
+  detail components (e.g. `RoleSettings`/`UserSettings` test `role === 'Admin'`).
+  Page ACCESS is permission-driven end to end as of 2026-09-08 — nav via `can()`
+  and the route itself via `src/proxy.ts` + `lib/pageAccess` (see Auth below).
+  Changing a user's ROLE still needs a re-login: the JWT carries the role name and
+  permissions are resolved from it, so the old role applies until the token expires.
 - EOM tasks route (`/eom-tasks`) is mounted but its page/data were removed long ago.
 - ✅ RESOLVED (2026-07-07): `mainline_ci_line_items` is now DERIVED at read-time
   from `mainline_packing_cartons`, not stored (`modules/mainline/ci/ciLines.js`;
@@ -641,15 +1144,99 @@ baseline; order-sensitivity 25 → **0** of 34.
 SKU grain, `plGenerator.js:109` takes `rows[0]`) — same latent order-dependence,
 deliberately left alone. Fix it the same way before the mainline data grows.
 
-### Postgres migration notes (known JSON-stack limitations — fix AT migration, not before)
+## ✅ POSTGRES — the portal runs on it now (2026-09-14). JSON files are FROZEN.
 
-- **No transactions:** multi-file writes (booking approve → shipments + legs;
-  shipment-data upload → 5 files; SMS shipment → header + junction) are
-  sequential; crash mid-way = partial state. → DB transactions.
-- **ID generation races:** `Math.max(id)+1` patterns collide under concurrency.
-  → SERIAL/IDENTITY.
-- **`mainline/statuses.js` in-memory cache** never invalidated after a
-  statuses.json edit (restart required). → drop cache.
+Records live in PostgreSQL (`tentree_portal`). **`backend/data/**.json` is a
+pre-migration SNAPSHOT — nothing writes to it any more.** Editing those files
+changes nothing; reading them to answer a question about live data gives the
+answer as of migration day. `backend/db/README.md` is the source of truth for
+this layer; `backend/db/QUERIES.md` has how to connect plus worked example
+queries (PO hierarchy, three-way match, booking→shipment, landed-cost basis,
+integrity checks) — read it before writing SQL against these tables, because
+most of what the UI shows is DERIVED per read and is not a column.
+
+- **The swap is at ONE chokepoint.** Every module goes through
+  `BaseModel.read()/.write()` → `driveStorage` → `db/pgStore`, which keeps the
+  same signatures and hands back the same plain objects. **No controller,
+  service or report changed** — reads still pull whole tables and derive
+  everything per request, exactly as the 3NF discipline above describes.
+  `DATA_BACKEND=json` switches back to the frozen files (see the hazard above).
+- **The schema is GENERATED from `database.dbml`** (`db/buildSchema.js` →
+  `db/schema.sql`), so the dbml stays authoritative and cannot drift from the
+  DDL. It is merged with the keys actually present in the JSON, because the dbml
+  HAD drifted: `users` carries `role`/`supplier` name strings where the dbml
+  declares `role_id`/`supplier_id`, and `mainline_documents` + the seven `nri_*`
+  tables are not in the dbml at all. A column in the data but not the schema
+  would otherwise be silently dropped. 69 tables, 423 columns, 79 FKs.
+- **⚠️ `db/migrate.js --force` WIPES Postgres and reloads the frozen JSON.** It
+  refuses to run against a non-empty database without the flag — the same
+  protection this file puts around `migrate-to-normalized.js`, and for the same
+  reason.
+- **Rows are RECTANGLES now — a key absent from a sparse JSON row reads `null`,
+  not `undefined`.** 289 such cells across 18 API field paths (`db/verify.js`
+  lists them; e.g. `users.role_id`, `sms_shipments.booking_id`,
+  `suppliers.address`). **No VALUE changed** — verified 0 differences across all
+  65 tables / 83,856 rows and all 32 read endpoints. Safe because every consumer
+  here tests these with `||`, `??` or truthiness, where null and undefined are
+  the same; the code that genuinely distinguishes them (`nriInvoiceService`'s
+  `l.gl === null`) is helped by this, not hurt.
+- **⚠️ Two type parsers in `db/pool.js` are LOAD-BEARING, and both failures are
+  silent.** node-pg returns `date` as a JS Date at LOCAL midnight (so
+  `"2026-05-06"` → `2026-05-06T07:00:00.000Z`, i.e. every CRD/E-DEL/HOD shifts a
+  day) and `numeric` as a **STRING** — and this codebase is built on
+  `(m.get(k) || 0) + (l.allocated_qty || 0)`, which with strings is
+  CONCATENATION. Both are pinned; do not remove them.
+- **`_seq` carries row ORDER.** SQL has none, and this codebase depends on the
+  JSON array order in places it states outright (`plGenerator` takes `rows[0]`,
+  the receipt matcher walks "first still-free IR", and the sms_cartons note above
+  records row order changing 25 of 34 packing summaries). Every read is
+  `ORDER BY _seq`; the column never reaches a caller.
+- **`sms_tracking_events.event_time` is `text`, deliberately** — the only column
+  where the dbml's type was rejected. Values carry real offsets
+  (`2026-07-13T13:02:00-08:00`); through `timestamptz` they return as UTC, a
+  DIFFERENT string, and `smsTrackingService.js:31` dedupes incoming courier scans
+  on `${shipment_id}|${event_time}|${courier_code}` — so every poll would
+  re-insert every event. Same reasoning put the JSON-valued columns on `json`
+  rather than `jsonb`: jsonb reorders object keys.
+
+### ✅ RESOLVED at the migration
+
+- **No transactions** → **one transaction per WRITE request**
+  (`db/txContext.js`, mounted above every router in `server.js`). Booking
+  approve, the 5-table shipping-data upload and the SMS shipment header+junction
+  now land whole or not at all; the transaction settles BEFORE the response body
+  goes out, so a failed COMMIT becomes a 500 rather than a success the client was
+  already told about. GET/HEAD skip it. Cron ticks and maintenance scripts are
+  not requests, so they ask via `db/tx.js` `atomically()` (a no-op on
+  DATA_BACKEND=json).
+- **Foreign keys exist and bite** — `DEFERRABLE INITIALLY DEFERRED`, checked at
+  COMMIT. They MUST be deferred: `writeData` replaces a whole table
+  (DELETE-all + INSERT-all), so any write to a parent momentarily removes every
+  row its children point at. **Never make one `ON DELETE CASCADE`** — it would
+  fire on that routine DELETE-all and take every child row with it.
+- **Two delete paths were leaving orphans, which the FKs surfaced.**
+  `DELETE /mainline/bookings/:id` cleaned 4 tables and stranded the commercial
+  invoice, the packing cartons and the generated documents — **8 of 9 live
+  bookings carry all three**, and CI lines and the packing summary are DERIVED
+  from `mainline_packing_cartons`, so the orphans kept contributing to totals for
+  a deleted booking. `DELETE /mainline/shipments/:id` cleaned only the junction,
+  stranding ASNs, receipt matches and rejections. Both now use
+  `modules/mainline/shipments/shipmentCleanup.js`, which encodes the one
+  distinction that matters: the ASN and the rejections are artifacts OF the
+  shipment and are DELETED, but `mainline_item_receipts` are NetSuite's record of
+  goods that physically arrived — they are only UNLINKED
+  (`matched_shipment_id`/`confirmed_*` cleared). `smsShipmentController.remove`
+  gained the same cleanup for `sms_receipt_match_rejections`.
+- **Maintenance scripts go through `BaseModel` now** (`prune-stale-receipts`,
+  `prune-rejected-pos`, `backfill-po-approval-status`). They read `data/` with
+  `fs` before, which after the cutover would have pruned the frozen snapshot and
+  reported a cleanup the live portal never received. Their multi-table writes are
+  wrapped in `atomically()`. Re-verified live against NetSuite after the move:
+  approval 65 Approved / 16 Pending (0 changes), receipts 94 mainline / 173 SMS
+  (0 stale), 0 rejected POs.
+
+### Resolved earlier (kept for the reasoning)
+
 - ✅ RESOLVED (2026-08-12): **`mainline/statuses.js` was MODULE-BLIND.** `_maps()`
   built `nameToId` as `new Map(rows.map(r => [r.name, r.id]))` — keyed on NAME with
   the `module` column ignored — so for each of the six names present in both modules
@@ -669,8 +1256,48 @@ deliberately left alone. Fix it the same way before the mainline data grows.
   the status and drop the row out of the Done set. Verified after: zero cross-module
   status ids in any migrated table, all 10 mainline names resolve to mainline ids,
   and every UI row count is byte-identical to the pre-fix baseline.
-- **`.catch(() => [])`** read paths treat I/O errors as empty tables. → let DB
-  errors propagate.
+
+### Still open
+
+- **ID generation races:** `Math.max(id)+1` patterns collide under concurrency.
+  → SERIAL/IDENTITY. Not addressed: the ids are the app's own strings
+  (`mll_15_SKU`, `SHP-6`) and changing them is a data migration, not a schema
+  switch.
+- **`mainline/statuses.js` in-memory cache** never invalidated after a
+  statuses.json edit (restart required). → drop cache.
+- **Constraints the live data could NOT satisfy** (created as far as the data
+  allows; `db/migrate.js` reprints this list every run):
+  - `mainline_po_leg_lines` — **no PK, no `(leg_id, sku_code)` unique**: 22 rows
+    duplicate both, on legs 15/45/85 (e.g. `mll_15_TCM6948-6346-L` at 28 and 5).
+    Same class as the `sms_po_lines` grain bug above. **Currently harmless to
+    every total** — all five consumers (`legCapacities`, `fulfillmentService` ×2,
+    `legReconciliationService`, both report controllers, `wipImportController`)
+    sum with `+=`, which is also what makes merging them a numerically neutral
+    fix.
+  - `sms_po_lines` — **no PK on `id`**: `netsuite_line_id` holds the PO's line
+    SEQUENCE ("1".."245", 245 distinct over 4,961 rows), not NetSuite's global
+    `transactionline.id`, so `id = spol_ns_<line_id>` collapses 4,961 rows onto
+    245 ids. **The 2026-08-14 note above describes the intended fix, but the
+    value being stored is the wrong one** — the grain bug moved rather than went
+    away. `(po_number, netsuite_line_id)` IS unique (0 repeats within any of the
+    120 POs) and is created instead. Fix = regenerate ids as
+    `spol_ns_<po_number>_<line_id>` and store the real `tl.id`.
+  - `landed_costs` — the dbml's `(module, shipment_id)` unique is **wrong, not
+    violated**: mainline posts PER PO (all 16 rows carry `po_number`, ids read
+    `lc_ml_<shipment>_<po>`) while SMS posts per shipment (38 rows, `po_number`
+    null). `(module, shipment_id, po_number) NULLS NOT DISTINCT` has 0 duplicates
+    and still blocks the SMS double-post the 409 depends on. **Update the dbml.**
+  - `po_order_lines.sku_code → product_skus.sku_code` — **FK not created**: 2,233
+    rows (15 of 81 POs, 207,976 units) reference 2,232 SKUs absent from the
+    master. Confined to forecast-stage POs — **none of those SKUs appear in any
+    leg line or packing carton**, so no CI, packing or landed-cost path touches
+    them; they resolve when those POs are WIP-imported. SMS is clean (0/4,961).
+    `mainline_item_receipt_lines.sku_code` has the same gap for 3 rows
+    (`TRF3399-0558-ONE`, `TRF3398-0558-ONE`) — those ARE goods received against a
+    SKU the master does not know.
+- **`.catch(() => [])`** read paths treat I/O errors as empty tables. Now a real
+  hazard rather than a theoretical one: a DB error becomes "the table is empty"
+  instead of propagating. → let DB errors propagate.
 - **`force_overbook`/`force_overship`** bypass G2 by design (client shows the
   warning dialog) — intentional, documented so it isn't "found" again.
 - Row-level invariants to enforce with triggers: a PO is mainline XOR SMS
@@ -679,10 +1306,20 @@ deliberately left alone. Fix it the same way before the mainline data grows.
 ## Project Layout
 
 ```
-backend/                     Express API, JSON data files (data/ + data/migrated/)
+backend/                     Express API on PostgreSQL
+  db/                        the data layer — schema generated from database.dbml,
+                             pgStore (readData/writeData), per-request transactions.
+                             See db/README.md.
+  data/                      FROZEN pre-migration JSON snapshot (nothing writes here)
   modules/po/                mainline PO hierarchy (WIP-sourced; NS sync dormant)
   modules/mainline/          bookings, shipments, ci/packing/asn, fulfillment, reports, wip import
   modules/sms/               SMS module (own dataset) + NetSuite sync + FedEx poll
+  modules/nriinvoices/       3PL invoice verification — "All Invoices" (own tables
+                             under data/nri/). ONE TAB PER INVOICING WAREHOUSE from
+                             nri_invoice_sources.json; `parser: null` = shell, uploads
+                             refused with a reason (a 3PL's workbook layout must be
+                             mapped in code). API stays /nri-invoices, UI is /invoices
+                             — see that module's README, which is the source of truth.
   services/                  integrationService (SuiteQL), fedexService, ciParser,
                              wipParser, asnService, ci/plGenerator, cronJobs (SMS poll)
   controllers/               auth, users, roles, masterData, contacts, freights,
@@ -705,11 +1342,48 @@ frontend/tentree-scportal/   Next.js RSC app (shadcn/ui, Tailwind)
 - **Tables (frontend):** `bg-card` table bg, `bg-card/80` headers, `border-border`
   rows, `hover:bg-muted/30`; DataTable gives search/sort/pagination/column-picker
   (localStorage via `storageKey`) — reuse it.
+- **⚠️ An expandable row's detail lines must be ROWS OF THE PARENT TABLE**, not a
+  nested `<table>` in a `colSpan` cell (mainline Shipments, 2026-09-16). A nested
+  table computes its own column widths from its own content, so every expansion
+  lined up with itself and with nothing else — not with the other expansions, and
+  not with the parent columns the values break down. Emitting a `<TableRow>` per
+  detail line and mapping `visibleCols` puts each value in its parent's column for
+  free, and follows the Column picker's hide/reorder without extra code. The target
+  columns are looked up by key (`pos`, `total_qty`) with a first/last visible
+  fallback, so hiding one relocates the value rather than losing it. Live: 17 child
+  rows under 9 parents, 0 off-column on either axis, and the legs visibly sum to
+  the parent's Total Qty (861 + 694 = 1,555).
+  The detail's PO/Mode/Channel header row went at the same time: **Mode was pure
+  noise** — shipment grain is `(booking, facility, MODE)`, so every leg in the
+  expansion carries the same one and it is already a column on the parent row.
 - **Radix Select gotcha:** `<SelectValue>` can't derive a label when options
   load async / value set programmatically — render the label directly in
   `<SelectTrigger>` (fixed in mainline booking dropdowns + SMS receiving).
+- **⚠️ NEVER `redirect()` from a page that has a sibling `loading.tsx`** — put
+  the redirect in `next.config.ts` `redirects()` instead. `loading.tsx` wraps the
+  page in a Suspense boundary, which makes it a STREAMING context, and per the
+  Next docs `redirect()` there "will insert a meta tag to emit the redirect on
+  the client side" rather than issue an HTTP 307. Re-running the client Router
+  against an already-mounted tree changed its internal hook count, so
+  `/landed-costs` threw **"Rendered more hooks than during the previous render"**
+  on every visit (fixed 2026-09-14; `app/landed-costs/page.tsx` deleted). The
+  other index redirects (`/reports`, `/settings`, `/mainline`, `/invoices`, `/`)
+  have no `loading.tsx`, get a real 307, and are fine — which is why this was the
+  only affected route. A `next.config` redirect runs at step 2 of the routing
+  order and `src/proxy.ts` at step 3, so the DESTINATION is still permission-
+  gated; nothing is exposed by moving it there.
 - **Destructive/consequential actions** get a ConfirmDialog (delete booking/
   shipment, approve booking).
+- **Settings page width lives ONCE, in `app/settings/layout.tsx`** (2026-09-16):
+  `w-full md:w-[80%] max-w-[1400px] mx-auto`. It was a `max-w-*` class repeated in
+  all ten page files, which is exactly how they drifted — Suppliers was sized at
+  `max-w-4xl` for four columns and stayed there after growing to seven (two of them
+  address textareas), so it scrolled sideways while Warehouses next door had room
+  spare. Percentage rather than a fixed cap so the wide tables use the screen, but
+  **with a ceiling**: percentage tracks the WINDOW while readability tracks the
+  CONTENT, and at 80% of a 2560px monitor the two-column tables (Couriers,
+  Incoterms, Modes) would render a ~1900px text input. Full width below `md`.
+  A table needing a different width should size its CARD, not re-add a page cap.
 - **Master data endpoints:** `/master-data/{suppliers,couriers,incoterms,statuses,
   warehouses,modes}` (RW), `/master-data/{warehouse-facilities,allocation-channels,
   ports,container-types}` (RO), `/master-data/production-schedules` (RW) +
@@ -799,8 +1473,38 @@ frontend/tentree-scportal/   Next.js RSC app (shadcn/ui, Tailwind)
   not configurable) — which is what lets it use `node:crypto` and verify with NO new
   dependency. **This requires `JWT_SECRET` in `frontend/tentree-scportal/.env.local`
   matching `backend/.env`**; if unset it logs loudly and fails closed (it does not
-  throw — a throw would 500 /login too, leaving no way back in). It is defence in
-  depth: the API is the real control, so a forged cookie already 401s every fetch.
+  throw — a throw would 500 /login too, leaving no way back in). For the DATA the
+  API is still the real control, so a forged cookie already 401s every fetch.
+- **NAV keys are now ENFORCED on the page itself** (2026-09-08), in that same gate.
+  They were documented as "page visibility" but only `Sidebar.can()` read them, so
+  unchecking `purchase_orders` for a role hid the link while
+  `/mainline/purchase-orders` typed into the address bar still served the full page.
+  It has to be enforced HERE: `/po` and `/mainline/*` are deliberately auth-only
+  (the Bookings page fetches `/po` + `/po/legs`, so gating those on
+  `purchase_orders` breaks Production and Freight Forwarder — see the TIERED note
+  above), and this gate is the one choke point every deep link, refresh and client
+  navigation passes through. Three parts: **(1)** `lib/pageAccess.ts` holds the
+  route→key table AND the sidebar's rows, so nav and gate cannot disagree (they
+  did: that divergence *was* the bug) — a page added there is gated and navigable
+  in one edit. **(2)** `GET /me` (`controllers/meController`, auth-only, below the
+  gate) returns the caller's permissions re-resolved from roles.json per call, via
+  the same `utils/rolePermissions.permissionsForRole` that `requirePermission` and
+  login use; the gate and the root layout read it through `lib/serverIdentity`
+  (3s cache, keyed per token, shared by both). The session cookie's
+  `permissions[]` is a login-time SNAPSHOT and is never an access decision — a
+  revoked key now applies without logging out, and the nav follows the same
+  answer. **(3)** denied → `/no-access` (which itself needs no permission, so it
+  cannot loop); `/` and post-login go to `firstAllowedPath()` instead of a
+  hardcoded page, or a role without `purchase_orders` would land on the gate.
+  `Sidebar.can()` now fails CLOSED with no session (it returned `true`, drawing the
+  whole menu — Roles and Users included — for any request whose session cookie was
+  missing). Verified: 21 path variants (`//`, `/./`, `/..`, `%70`, case, trailing
+  dot, `?_rsc=`) either hit the gate or 404 with no data; permission grant/revoke
+  moves nav + page together mid-session; Admin unaffected. **Known limits:** the
+  answer can be up to 3s stale, and it is scoped to PAGES — a role without
+  `purchase_orders` can still read `/po` with its token, unchanged and by design.
+  If `/me` is unreachable the gate logs and lets the request through (fail OPEN)
+  rather than locking everyone out of every page during a backend restart.
 - **File downloads go through `/api/documents`** (Next route handler), never straight
   to the backend. `backend/server.js` now mounts `/uploads` + `/templates` BELOW the
   auth gate, so a browser tab hitting them directly 401s; the handler reads the
@@ -849,6 +1553,31 @@ NOT `127.0.0.1`** (HMR websocket rejects it — React never hydrates). Login via
 the real form, with credentials read from `E2E_EMAIL`/`E2E_PASSWORD` in backend/.env
 (never hardcoded — see .env.example); backend needs a manual
 restart after code changes (`node server.js`, port 5000 — no hot reload).
+
+### Starting the backend so it STAYS up
+
+`node server.js &` from an agent shell dies with that shell, which reads later as
+"the server is down" with a healthy log and no crash in it. Start it detached:
+
+```powershell
+Start-Process node -ArgumentList server.js -WorkingDirectory <repo>\backend `
+  -WindowStyle Hidden -RedirectStandardOutput backend\server.out.log `
+  -RedirectStandardError backend\server.err.log
+```
+
+⚠️ **Then check nothing else is already running it.** Every `server.js` process
+starts its OWN cron scheduler (`services/cronJobs.js`), so two of them means two
+SMS tracking polls, two SMS NetSuite syncs and two mainline PO syncs — concurrent
+writers against one database, each rebuilding tables the other is reading. Four
+stale copies were found this way on 2026-09-15. To check and clean:
+
+```powershell
+Get-CimInstance Win32_Process -Filter "Name='node.exe'" |
+  Where-Object { $_.CommandLine -like '*server.js*' -and $_.CommandLine -notlike '*next*' } |
+  Select-Object ProcessId, CommandLine
+```
+
+`backend/server.{out,err}.log` are gitignored.
 
 ## Agent File Ownership
 

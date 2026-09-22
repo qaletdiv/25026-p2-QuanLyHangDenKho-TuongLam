@@ -1,0 +1,448 @@
+{
+  "po": "PO04840",
+  "at": "2026-09-16",
+  "legs": [
+    {
+      "id": "87",
+      "po_number": "PO04840",
+      "mode_id": "m1",
+      "incoterm_id": null,
+      "crd": "2026-09-20",
+      "etd_pol": null,
+      "e_del": "2026-10-19"
+    }
+  ],
+  "leg_lines": [
+    {
+      "id": "mll_87_TCW7145-2858-L",
+      "leg_id": "87",
+      "sku_code": "TCW7145-2858-L",
+      "allocated_qty": 46
+    },
+    {
+      "id": "mll_87_TCW7145-2858-M",
+      "leg_id": "87",
+      "sku_code": "TCW7145-2858-M",
+      "allocated_qty": 95
+    },
+    {
+      "id": "mll_87_TCW7145-2858-S",
+      "leg_id": "87",
+      "sku_code": "TCW7145-2858-S",
+      "allocated_qty": 65
+    },
+    {
+      "id": "mll_87_TCW7145-2858-XL",
+      "leg_id": "87",
+      "sku_code": "TCW7145-2858-XL",
+      "allocated_qty": 22
+    },
+    {
+      "id": "mll_87_TCW7145-2858-XS",
+      "leg_id": "87",
+      "sku_code": "TCW7145-2858-XS",
+      "allocated_qty": 22
+    },
+    {
+      "id": "mll_87_TCW7145-6301-L",
+      "leg_id": "87",
+      "sku_code": "TCW7145-6301-L",
+      "allocated_qty": 46
+    },
+    {
+      "id": "mll_87_TCW7145-6301-M",
+      "leg_id": "87",
+      "sku_code": "TCW7145-6301-M",
+      "allocated_qty": 95
+    },
+    {
+      "id": "mll_87_TCW7145-6301-S",
+      "leg_id": "87",
+      "sku_code": "TCW7145-6301-S",
+      "allocated_qty": 65
+    },
+    {
+      "id": "mll_87_TCW7145-6301-XL",
+      "leg_id": "87",
+      "sku_code": "TCW7145-6301-XL",
+      "allocated_qty": 22
+    },
+    {
+      "id": "mll_87_TCW7145-6301-XS",
+      "leg_id": "87",
+      "sku_code": "TCW7145-6301-XS",
+      "allocated_qty": 22
+    },
+    {
+      "id": "mll_87_TCW7146-2012-L",
+      "leg_id": "87",
+      "sku_code": "TCW7146-2012-L",
+      "allocated_qty": 46
+    },
+    {
+      "id": "mll_87_TCW7146-2012-M",
+      "leg_id": "87",
+      "sku_code": "TCW7146-2012-M",
+      "allocated_qty": 95
+    },
+    {
+      "id": "mll_87_TCW7146-2012-S",
+      "leg_id": "87",
+      "sku_code": "TCW7146-2012-S",
+      "allocated_qty": 65
+    },
+    {
+      "id": "mll_87_TCW7146-2012-XL",
+      "leg_id": "87",
+      "sku_code": "TCW7146-2012-XL",
+      "allocated_qty": 22
+    },
+    {
+      "id": "mll_87_TCW7146-2012-XS",
+      "leg_id": "87",
+      "sku_code": "TCW7146-2012-XS",
+      "allocated_qty": 22
+    },
+    {
+      "id": "mll_87_TCW7146-7135-L",
+      "leg_id": "87",
+      "sku_code": "TCW7146-7135-L",
+      "allocated_qty": 46
+    },
+    {
+      "id": "mll_87_TCW7146-7135-M",
+      "leg_id": "87",
+      "sku_code": "TCW7146-7135-M",
+      "allocated_qty": 95
+    },
+    {
+      "id": "mll_87_TCW7146-7135-S",
+      "leg_id": "87",
+      "sku_code": "TCW7146-7135-S",
+      "allocated_qty": 65
+    },
+    {
+      "id": "mll_87_TCW7146-7135-XL",
+      "leg_id": "87",
+      "sku_code": "TCW7146-7135-XL",
+      "allocated_qty": 22
+    },
+    {
+      "id": "mll_87_TCW7146-7135-XS",
+      "leg_id": "87",
+      "sku_code": "TCW7146-7135-XS",
+      "allocated_qty": 22
+    }
+  ],
+  "skus": [
+    {
+      "sku_code": "TCW7145-2858-L",
+      "style_color": "TCW7145-2858",
+      "item_name": "W Westview Sweater",
+      "description": "W Westview Sweater",
+      "colorway": null,
+      "size": null,
+      "hts_code": null,
+      "unit_price": 12.8,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7145-2858-M",
+      "style_color": "TCW7145-2858",
+      "item_name": "W Westview Sweater",
+      "description": "W Westview Sweater",
+      "colorway": null,
+      "size": null,
+      "hts_code": null,
+      "unit_price": 12.8,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7145-2858-S",
+      "style_color": "TCW7145-2858",
+      "item_name": "W Westview Sweater",
+      "description": "W Westview Sweater",
+      "colorway": null,
+      "size": null,
+      "hts_code": null,
+      "unit_price": 12.8,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7145-2858-XL",
+      "style_color": "TCW7145-2858",
+      "item_name": "W Westview Sweater",
+      "description": "W Westview Sweater",
+      "colorway": null,
+      "size": null,
+      "hts_code": null,
+      "unit_price": 12.8,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7145-2858-XS",
+      "style_color": "TCW7145-2858",
+      "item_name": "W Westview Sweater",
+      "description": "W Westview Sweater",
+      "colorway": null,
+      "size": null,
+      "hts_code": null,
+      "unit_price": 12.8,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7145-6301-L",
+      "style_color": "TCW7145-6301",
+      "item_name": "W Westview Sweater",
+      "description": "W Westview Sweater",
+      "colorway": null,
+      "size": null,
+      "hts_code": null,
+      "unit_price": 12.8,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7145-6301-M",
+      "style_color": "TCW7145-6301",
+      "item_name": "W Westview Sweater",
+      "description": "W Westview Sweater",
+      "colorway": null,
+      "size": null,
+      "hts_code": null,
+      "unit_price": 12.8,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7145-6301-S",
+      "style_color": "TCW7145-6301",
+      "item_name": "W Westview Sweater",
+      "description": "W Westview Sweater",
+      "colorway": null,
+      "size": null,
+      "hts_code": null,
+      "unit_price": 12.8,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7145-6301-XL",
+      "style_color": "TCW7145-6301",
+      "item_name": "W Westview Sweater",
+      "description": "W Westview Sweater",
+      "colorway": null,
+      "size": null,
+      "hts_code": null,
+      "unit_price": 12.8,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7145-6301-XS",
+      "style_color": "TCW7145-6301",
+      "item_name": "W Westview Sweater",
+      "description": "W Westview Sweater",
+      "colorway": null,
+      "size": null,
+      "hts_code": null,
+      "unit_price": 12.8,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7146-2012-L",
+      "style_color": "TCW7146-2012",
+      "item_name": "W Bowery Sweater",
+      "description": "W Bowery Sweater",
+      "colorway": null,
+      "size": null,
+      "hts_code": null,
+      "unit_price": 11.6,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7146-2012-M",
+      "style_color": "TCW7146-2012",
+      "item_name": "W Bowery Sweater",
+      "description": "W Bowery Sweater",
+      "colorway": null,
+      "size": null,
+      "hts_code": null,
+      "unit_price": 11.6,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7146-2012-S",
+      "style_color": "TCW7146-2012",
+      "item_name": "W Bowery Sweater",
+      "description": "W Bowery Sweater",
+      "colorway": null,
+      "size": null,
+      "hts_code": null,
+      "unit_price": 11.6,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7146-2012-XL",
+      "style_color": "TCW7146-2012",
+      "item_name": "W Bowery Sweater",
+      "description": "W Bowery Sweater",
+      "colorway": null,
+      "size": null,
+      "hts_code": null,
+      "unit_price": 11.6,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7146-2012-XS",
+      "style_color": "TCW7146-2012",
+      "item_name": "W Bowery Sweater",
+      "description": "W Bowery Sweater",
+      "colorway": null,
+      "size": null,
+      "hts_code": null,
+      "unit_price": 11.6,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7146-7135-L",
+      "style_color": "TCW7146-7135",
+      "item_name": "W Bowery Sweater (Ashwood Light)",
+      "description": "W Bowery Sweater (Ashwood Light)",
+      "colorway": "Ashwood Light",
+      "size": null,
+      "hts_code": null,
+      "unit_price": 11.6,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7146-7135-M",
+      "style_color": "TCW7146-7135",
+      "item_name": "W Bowery Sweater (Ashwood Light)",
+      "description": "W Bowery Sweater (Ashwood Light)",
+      "colorway": "Ashwood Light",
+      "size": null,
+      "hts_code": null,
+      "unit_price": 11.6,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7146-7135-S",
+      "style_color": "TCW7146-7135",
+      "item_name": "W Bowery Sweater (Ashwood Light)",
+      "description": "W Bowery Sweater (Ashwood Light)",
+      "colorway": "Ashwood Light",
+      "size": null,
+      "hts_code": null,
+      "unit_price": 11.6,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7146-7135-XL",
+      "style_color": "TCW7146-7135",
+      "item_name": "W Bowery Sweater (Ashwood Light)",
+      "description": "W Bowery Sweater (Ashwood Light)",
+      "colorway": "Ashwood Light",
+      "size": null,
+      "hts_code": null,
+      "unit_price": 11.6,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    },
+    {
+      "sku_code": "TCW7146-7135-XS",
+      "style_color": "TCW7146-7135",
+      "item_name": "W Bowery Sweater (Ashwood Light)",
+      "description": "W Bowery Sweater (Ashwood Light)",
+      "colorway": "Ashwood Light",
+      "size": null,
+      "hts_code": null,
+      "unit_price": 11.6,
+      "upc": null,
+      "knit_woven": null,
+      "category": null,
+      "gender": null,
+      "composition": null
+    }
+  ],
+  "order": {
+    "po_number": "PO04840",
+    "trn_number": "TRN_1281",
+    "facility_id": "fac_nri_ca",
+    "allocation_channel_id": "ch_first",
+    "coo_country": "China",
+    "netsuite_id": "33640702",
+    "approval_status": "Approved"
+  }
+}

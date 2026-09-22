@@ -137,6 +137,23 @@ export async function updateMainlineBooking(id: string, data: Record<string, unk
   return result;
 }
 
+// The other two answers to a booking. Cancel also cancels the booking's live
+// consignments — the server refuses the whole call if any of them has been handed
+// over, so the booking can never override a consignment's own guards.
+export async function rejectMainlineBooking(id: string) {
+  const result = await fetchApi(`/mainline/bookings/${id}/reject`, { method: 'POST' });
+  revalidatePath('/mainline/bookings');
+  return result;
+}
+
+export async function cancelMainlineBooking(id: string) {
+  const result = await fetchApi(`/mainline/bookings/${id}/cancel`, { method: 'POST' });
+  revalidatePath('/mainline/bookings');
+  revalidatePath('/mainline/shipments');
+  revalidatePath('/forecast');
+  return result;
+}
+
 export async function approveMainlineBooking(id: string) {
   const result = await fetchApi(`/mainline/bookings/${id}/approve`, { method: 'POST' });
   revalidatePath('/mainline/bookings');
@@ -166,6 +183,26 @@ export async function getMainlineShipment(id: string): Promise<MainlineShipment 
 export async function updateMainlineShipment(id: string, data: Record<string, unknown>) {
   const result = await fetchApi(`/mainline/shipments/${id}`, { method: 'PUT', body: JSON.stringify(data) });
   revalidatePath('/mainline/shipments');
+  return result;
+}
+
+// Cancel calls off the CONVEYANCE and leaves the booking authorizing those units,
+// so re-approving the booking issues a fresh consignment. Its own route rather
+// than a status write: the server refuses 'Cancelled' through updateMainlineShipment.
+export async function cancelMainlineShipment(id: string) {
+  const result = await fetchApi(`/mainline/shipments/${id}/cancel`, { method: 'POST' });
+  revalidatePath('/mainline/shipments');
+  revalidatePath('/mainline/bookings');
+  revalidatePath('/forecast');
+  return result;
+}
+
+// Delete is for a consignment entered by mistake. The server refuses it unless the
+// row is already Cancelled and nothing NetSuite owns points at it.
+export async function deleteMainlineShipment(id: string) {
+  const result = await fetchApi(`/mainline/shipments/${id}`, { method: 'DELETE' });
+  revalidatePath('/mainline/shipments');
+  revalidatePath('/mainline/bookings');
   return result;
 }
 

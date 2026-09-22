@@ -18,6 +18,7 @@ const rateCard = require('./rateCard');
 const lineClass = require('./lineClass');
 const orderData = require('./orderData');
 const svc = require('./nriInvoiceService');
+const sources = require('./invoiceSources');
 
 const arr = v => (Array.isArray(v) ? v : []);
 const norm = v => (v === undefined || v === null ? '' : String(v).trim());
@@ -30,31 +31,117 @@ const round2 = n => Math.round((Number(n) || 0) * 100) / 100;
 // is ~33k rows; `POST /order-data/refresh` clears it.
 let orderCache = null;
 
-async function orderMaster() {
-  if (orderCache) return orderCache;
+async function orderMaster(entity = 'US') {
+  const ent = norm(entity).toUpperCase() || 'US';
+  if (orderCache && orderCache[ent]) return orderCache[ent];
   const workbook = process.env.NRI_ORDER_DATA_WORKBOOK
     || require('path').join(__dirname, '..', '..', 'NRI US_ALL Invoices 2026.xlsx');
   let master;
   try {
-    master = await orderData.load({ workbook });
+    // Rows uploaded through the UI are this warehouse's own, and they are ingested
+    // last (they win) — see orderData.load.
+    const stored = arr(await M.orderMaster.read().catch(() => []))
+      .filter((r) => !r.entity || String(r.entity).toUpperCase() === ent);
+    master = await orderData.load({
+      workbook, stored,
+      storedLabel: `uploaded in the portal (${stored.length} rows)`,
+    });
   } catch (e) {
     // Never fail an upload over this: the class simply comes back unresolved,
     // which the reconcile reports rather than hiding.
     master = { byOrder: new Map(), sources: [{ label: 'load failed', error: e.message }], orders: 0, covers: null };
   }
-  orderCache = { master, index: lineClass.buildOrderIndex(master) };
-  return orderCache;
+  orderCache = { ...(orderCache || {}), [ent]: { master, index: lineClass.buildOrderIndex(master) } };
+  return orderCache[ent];
+}
+
+// Which entity is being asked about (?warehouse=nri-us | ?entity=US).
+async function entityOf(req) {
+  const asked = norm(req.query?.warehouse) || norm(req.body?.warehouse)
+    || norm(req.query?.entity) || norm(req.body?.entity) || 'US';
+  const src = await sources.find(asked);
+  return String(src?.entity || asked).toUpperCase();
 }
 
 exports.refreshOrderData = async (req, res) => {
   orderCache = null;
-  const { master } = await orderMaster();
+  const { master } = await orderMaster(await entityOf(req));
   res.json({ orders: master.orders, covers: master.covers, sources: master.sources });
 };
 
 exports.getOrderData = async (req, res) => {
-  const { master } = await orderMaster();
-  res.json({ orders: master.orders, covers: master.covers, sources: master.sources, csv_dir: orderData.DEFAULT_CSV_DIR });
+  const ent = await entityOf(req);
+  const { master } = await orderMaster(ent);
+  const stored = arr(await M.orderMaster.read().catch(() => []))
+    .filter((r) => !r.entity || String(r.entity).toUpperCase() === ent);
+  res.json({
+    entity: ent,
+    orders: master.orders, covers: master.covers, sources: master.sources,
+    stored_rows: stored.length,
+    csv_dir: orderData.DEFAULT_CSV_DIR,
+  });
+};
+
+/**
+ * POST /nri-invoices/order-data   (multipart: file=<xlsx|csv>)
+ *
+ * The order master is the ONLY source of channel (`OrderType`) and ship-to
+ * country — neither appears on an invoice line — so without it the class cannot
+ * be derived and lines come back `needs_class`. Uploading it here replaces the
+ * dependency on a mapped G: drive.
+ *
+ * Rows are UPSERTED by order number within the warehouse's entity: dropping in a
+ * later period tops the master up instead of wiping the earlier one, which is what
+ * "coverage is the limiting factor" demands.
+ */
+exports.uploadOrderData = async (req, res) => {
+  const file = req.files?.file?.[0] || req.files?.detail?.[0];
+  if (!file) return res.status(400).json({ error: 'An order-data file is required (field name "file") — the workbook\'s "NRI Order data" sheet, or a period CSV.' });
+  const ent = await entityOf(req);
+
+  let rows;
+  try {
+    rows = await orderData.parseUploaded(file.buffer, file.originalname);
+  } catch (e) {
+    return res.status(400).json({ error: `Could not read the order data: ${e.message}` });
+  }
+  if (!rows.length) {
+    return res.status(400).json({
+      error: 'No order rows found. The file needs an "Order #" column, plus "OrderType" and "Ship To Country" to be useful for coding.',
+    });
+  }
+
+  const existing = arr(await M.orderMaster.read().catch(() => []));
+  const byKey = new Map(existing.map((r) => [`${String(r.entity || 'US').toUpperCase()}|${String(r.orderNo || '').toUpperCase()}`, r]));
+  let added = 0, updated = 0, skipped = 0;
+  for (const r of rows) {
+    const orderNo = norm(r.orderNo);
+    if (!orderNo) { skipped++; continue; }
+    const key = `${ent}|${orderNo.toUpperCase()}`;
+    const row = {
+      entity: ent,
+      orderNo,
+      ref2: norm(r.ref2) || null,
+      custCode: norm(r.custCode).toUpperCase() || null,
+      custName: norm(r.custName).toUpperCase() || null,
+      orderType: norm(r.orderType).toUpperCase() || null,
+      country: norm(r.country).toUpperCase() || null,
+      completed: orderData.isoDate(r.completed),
+    };
+    if (byKey.has(key)) { Object.assign(byKey.get(key), row); updated++; } else { byKey.set(key, row); added++; }
+  }
+  await M.orderMaster.write([...byKey.values()]);
+  orderCache = null;   // the index is rebuilt from the new rows on the next read
+
+  const { master } = await orderMaster(ent);
+  const withChannel = rows.filter((r) => norm(r.orderType)).length;
+  const withCountry = rows.filter((r) => norm(r.country)).length;
+  res.json({
+    entity: ent, file: file.originalname,
+    read: rows.length, added, updated, skipped,
+    with_order_type: withChannel, with_country: withCountry,
+    orders: master.orders, covers: master.covers,
+  });
 };
 
 async function indexes() {
@@ -83,6 +170,66 @@ function applyOverrides(lines, overrides) {
   });
 }
 
+/* ------------------------------------------------- warehouses (sources) ---- */
+
+// GET /nri-invoices/sources — the warehouses that bill us = the tabs under
+// All Invoices, each with its invoice count so an empty one is obvious.
+exports.listSources = async (req, res) => {
+  const [rows, invoices] = await Promise.all([
+    sources.list(),
+    M.invoices.read().catch(() => []),
+  ]);
+  const counted = arr(invoices).reduce((m, i) => m.set(i.entity, (m.get(i.entity) || 0) + 1), new Map());
+  res.json(rows.map((s) => ({ ...s, invoice_count: counted.get(String(s.entity).toUpperCase()) || 0 })));
+};
+
+// POST /nri-invoices/sources — register another invoicing warehouse.
+//
+// It is a SHELL by design: `parser: null`, `upload_enabled: false`. Registering a
+// warehouse cannot invent a reader for a workbook layout nobody has seen, and
+// guessing one would load a misread invoice into the GL. So the tab, the invoice
+// list and its slice of the legend/rate card appear immediately, and uploads open
+// when the format is mapped.
+exports.addSource = async (req, res) => {
+  const label = norm(req.body?.label);
+  const code = sources.slug(req.body?.code || label);
+  const entity = norm(req.body?.entity).toUpperCase() || code.toUpperCase().replace(/-/g, '_');
+  const facility_id = norm(req.body?.facility_id) || null;
+  if (!label) return res.status(400).json({ error: 'A warehouse name is required.' });
+  if (!code) return res.status(400).json({ error: 'That name has no letters or digits to build a URL code from.' });
+
+  const rows = await sources.list();
+  if (rows.some((s) => s.code === code)) return res.status(409).json({ error: `A warehouse with the code "${code}" already exists.` });
+  // The entity is the key the coding legend, the rate card and every stored
+  // invoice id turn on — two warehouses sharing one would merge their invoices.
+  if (rows.some((s) => String(s.entity).toUpperCase() === entity)) {
+    return res.status(409).json({ error: `Entity "${entity}" is already used by ${rows.find((s) => String(s.entity).toUpperCase() === entity).label}.` });
+  }
+  if (facility_id) {
+    const facilities = arr(await new (require('../../models/BaseModel'))('migrated/warehouse_facilities.json').read().catch(() => []));
+    if (!facilities.some((f) => f.id === facility_id)) return res.status(400).json({ error: `Unknown facility "${facility_id}".` });
+  }
+
+  const row = { code, label, entity, facility_id, parser: null, upload_enabled: false, note: null };
+  await M.sources.write([...rows, row]);
+  res.status(201).json(row);
+};
+
+// DELETE /nri-invoices/sources/:code — only while it holds no invoices. Removing
+// a warehouse that has loaded invoices would orphan them (they key on entity),
+// so that is refused rather than cascaded.
+exports.removeSource = async (req, res) => {
+  const code = sources.slug(req.params.code);
+  const rows = await sources.list();
+  const row = rows.find((s) => s.code === code);
+  if (!row) return res.status(404).json({ error: 'Warehouse not found.' });
+  const invoices = arr(await M.invoices.read().catch(() => []));
+  const held = invoices.filter((i) => String(i.entity).toUpperCase() === String(row.entity).toUpperCase()).length;
+  if (held) return res.status(409).json({ error: `${row.label} holds ${held} loaded invoice(s) — delete those first.` });
+  await M.sources.write(rows.filter((s) => s.code !== code));
+  res.status(204).send();
+};
+
 /* ------------------------------------------------------------- handlers ---- */
 
 // POST /nri-invoices/preview   (multipart: detail=<xlsx>, invoice=<pdf?>)
@@ -93,10 +240,15 @@ exports.preview = async (req, res) => {
   const pdfFile = req.files?.invoice?.[0];
   if (!detail) return res.status(400).json({ error: 'A detail workbook is required (field name "detail").' });
 
-  const entity = (norm(req.body?.entity) || 'US').toUpperCase();
-  if (entity !== 'US') {
-    return res.status(400).json({ error: 'Only the US entity is supported so far. CA needs its own detail-layout check first.' });
-  }
+  // Which warehouse's invoice is this, and is its file layout mapped? Both answers
+  // come from the registry now (data/nri/nri_invoice_sources.json) — this used to
+  // be `if (entity !== 'US') 400`, so a second warehouse meant a code change.
+  // `warehouse` is the URL code ('nri-us'); `entity` is still accepted for the
+  // API's existing callers.
+  const src = await sources.find(req.body?.warehouse || req.body?.entity || 'US');
+  const gate = sources.uploadable(src, req.body?.warehouse || req.body?.entity || 'US');
+  if (!gate.ok) return res.status(gate.status).json({ error: gate.error });
+  const entity = String(src.entity).toUpperCase();
 
   let pdf = null;
   if (pdfFile) {
@@ -113,7 +265,7 @@ exports.preview = async (req, res) => {
   if (!lines.length) return res.status(400).json({ error: 'The detail workbook has no charge lines.' });
 
   const { codeIndex, rateIndex } = await indexes();
-  const result = svc.reconcile({ pdf, lines, entity, orderIndex: (await orderMaster()).index, codeIndex, rateIndex });
+  const result = svc.reconcile({ pdf, lines, entity, orderIndex: (await orderMaster(entity)).index, codeIndex, rateIndex });
 
   result.source_file = detail.originalname;
   result.has_summary = !!pdf;
@@ -128,8 +280,12 @@ exports.create = async (req, res) => {
   const pdfFile = req.files?.invoice?.[0];
   if (!detail) return res.status(400).json({ error: 'A detail workbook is required (field name "detail").' });
 
-  const entity = (norm(req.body?.entity) || 'US').toUpperCase();
-  if (entity !== 'US') return res.status(400).json({ error: 'Only the US entity is supported so far.' });
+  // Same registry gate as preview — a commit must never be reachable by a path
+  // the preview refuses.
+  const src = await sources.find(req.body?.warehouse || req.body?.entity || 'US');
+  const gate = sources.uploadable(src, req.body?.warehouse || req.body?.entity || 'US');
+  if (!gate.ok) return res.status(gate.status).json({ error: gate.error });
+  const entity = String(src.entity).toUpperCase();
 
   const force = norm(req.body?.force) === 'true' || req.query.force === 'true';
 
@@ -152,7 +308,7 @@ exports.create = async (req, res) => {
   catch (e) { return res.status(400).json({ error: `Could not read the detail workbook: ${e.message}` }); }
 
   const { codeIndex, rateIndex } = await indexes();
-  const result = svc.reconcile({ pdf, lines, entity, orderIndex: (await orderMaster()).index, codeIndex, rateIndex });
+  const result = svc.reconcile({ pdf, lines, entity, orderIndex: (await orderMaster(entity)).index, codeIndex, rateIndex });
 
   if (result.tie_out.status === 'out_of_balance' && !force) {
     return res.status(422).json({
@@ -198,7 +354,9 @@ exports.create = async (req, res) => {
 // GET /nri-invoices — the loaded invoice list (headers only; lines are heavy).
 exports.list = async (req, res) => {
   const invoices = arr(await M.invoices.read().catch(() => []));
-  const entity = norm(req.query.entity).toUpperCase();
+  // `?warehouse=nri-us` (the URL code) or the older `?entity=US`; blank = all.
+  const asked = norm(req.query.warehouse) || norm(req.query.entity);
+  const entity = asked ? String((await sources.find(asked))?.entity || asked).toUpperCase() : '';
   const rows = invoices
     .filter(i => !entity || i.entity === entity)
     .map(({ by_gl, by_service, findings, tie_out, ...i }) => ({
@@ -332,10 +490,29 @@ exports.getRateCard = async (req, res) => {
 };
 
 // POST /nri-invoices/charge-codes/sync — re-read the legend from the shared drive.
+/**
+ * POST /nri-invoices/charge-codes/sync
+ *
+ * The GL lookup basis. Three ways in, in order of precedence:
+ *   1. an UPLOADED legend workbook (multipart `legend`) — what the UI sends, so
+ *      finance can configure the coding without anyone having the G: drive mapped;
+ *   2. an explicit `file` path;
+ *   3. the shared-drive default.
+ *
+ * `dry_run=true` reports what it WOULD write plus the file's defects (duplicate
+ * services, trailing-space keys, blank classes, missing GLs) — the legend is the
+ * basis for every GL on every line, so it gets inspected before it is adopted.
+ */
 exports.syncChargeCodes = async (req, res) => {
   const { sync } = require('./syncLegend');
+  const upload = req.files?.legend?.[0];
   try {
-    const r = await sync({ file: norm(req.body?.file) || undefined, dryRun: norm(req.body?.dry_run) === 'true' });
+    const r = await sync({
+      file: norm(req.body?.file) || undefined,
+      buffer: upload ? upload.buffer : null,
+      label: upload ? upload.originalname : null,
+      dryRun: norm(req.body?.dry_run) === 'true',
+    });
     res.json({
       source: r.source, read: r.read, written: r.written, dry_run: r.dryRun,
       defects: {
@@ -357,7 +534,8 @@ exports.syncChargeCodes = async (req, res) => {
 // cross-invoice checks that no single invoice can see (a monthly fee billed
 // twice, the storage aging trend).
 exports.summary = async (req, res) => {
-  const entity = (norm(req.query.entity) || 'US').toUpperCase();
+  const asked = norm(req.query.warehouse) || norm(req.query.entity) || 'US';
+  const entity = String((await sources.find(asked))?.entity || asked).toUpperCase();
   const invoices = arr(await M.invoices.read().catch(() => [])).filter(i => i.entity === entity);
   const ids = new Set(invoices.map(i => i.id));
   const allLines = arr(await M.lines.read().catch(() => [])).filter(l => ids.has(l.invoice_id));

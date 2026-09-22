@@ -19,7 +19,9 @@ import type { Reconcile } from '../types';
  * when the detail does not tie to the invoice, with a deliberate override —
  * because the block exists to make the mismatch a decision, not to hide it.
  */
-export default function UploadVerify() {
+export default function UploadVerify({
+  warehouse = 'nri-us', label = 'NRI US',
+}: { warehouse?: string; label?: string }) {
   const router = useRouter();
   const [detail, setDetail] = useState<File | null>(null);
   const [invoice, setInvoice] = useState<File | null>(null);
@@ -31,7 +33,11 @@ export default function UploadVerify() {
 
   const build = () => {
     const fd = new FormData();
-    fd.append('entity', 'US');
+    // WHICH warehouse's invoice this is. Was hardcoded 'US'; the server resolves
+    // the code through the registry, which also decides whether uploads are open
+    // at all — so a shell warehouse is refused here with its reason, not silently
+    // parsed with the NRI US layout.
+    fd.append('warehouse', warehouse);
     if (detail) fd.append('detail', detail);
     if (invoice) fd.append('invoice', invoice);
     return fd;
@@ -64,7 +70,7 @@ export default function UploadVerify() {
       setResult(null); setDetail(null); setInvoice(null);
       if (detailRef.current) detailRef.current.value = '';
       if (invoiceRef.current) invoiceRef.current.value = '';
-      router.push(`/nri-invoices/${res.invoice_no}`);
+      router.push(`/invoices/${warehouse}/${res.invoice_no}`);
     })();
   };
 
@@ -73,6 +79,11 @@ export default function UploadVerify() {
   return (
     <div className="space-y-4">
       <section className="rounded-lg border border-border bg-card p-4">
+        {/* Names the warehouse being uploaded to — with several tabs sharing this
+            panel, "which warehouse am I loading?" must be answerable on screen. */}
+        <h2 className="mb-3 text-sm font-semibold">
+          Upload an invoice <span className="font-normal text-muted-foreground">· {label}</span>
+        </h2>
         <div className="grid gap-3 md:grid-cols-2">
           <FilePick
             inputRef={detailRef}

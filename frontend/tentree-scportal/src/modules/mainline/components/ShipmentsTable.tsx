@@ -172,6 +172,17 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
 
   const visibleCols = columns.filter((c) => visible.includes(c.key));
 
+  // Which column an expanded leg's PO and quantity sit under. Normally the ones
+  // they break down — POs and Total Qty — so the detail reads as a breakdown of the
+  // figure directly above it. Either can be switched off in the Column picker,
+  // hence the fallback to the first / last visible column: the values still have to
+  // land somewhere, and losing them because a column was hidden would be worse than
+  // showing them slightly out of place.
+  const keyOf = (want: string, fallback: ShipColumn | undefined) =>
+    (visibleCols.find((c) => c.key === want) ?? fallback)?.key;
+  const poColKey = keyOf('pos', visibleCols[0]);
+  const qtyColKey = keyOf('total_qty', visibleCols[visibleCols.length - 1]);
+
   return (
     <div className="p-4 md:p-6 space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -218,31 +229,27 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
                       </TableCell>
                     ))}
                   </TableRow>
-                  {isOpen && (
-                    <TableRow className="bg-muted/20 hover:bg-muted/20">
+                  {/* Each leg is a row of the PARENT table, not a nested one: the PO
+                      lands in the POs column and its quantity under Total Qty,
+                      directly beneath the figures they break down. A nested <table>
+                      cannot do that — it computes its own widths, so every expansion
+                      lined up with itself and with nothing else.
+                      No header row and no Mode/Channel: Mode is the same for every
+                      leg here (shipment grain is (booking, facility, MODE)) and is
+                      already a column above, which leaves two self-evident values.
+                      The target columns are resolved from `visibleCols`, so hiding or
+                      reordering via the Column picker carries the detail with it. */}
+                  {isOpen && s.legs.map((l) => (
+                    <TableRow key={`${s.id}-${l.leg_id}`} className="bg-muted/20 hover:bg-muted/20 border-border/50">
                       <TableCell />
-                      <TableCell colSpan={visibleCols.length} className="p-0">
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="hover:bg-transparent">
-                              <TableHead>PO</TableHead><TableHead>Mode</TableHead><TableHead>Channel</TableHead>
-                              <TableHead className="text-right">Qty</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {s.legs.map((l) => (
-                              <TableRow key={l.leg_id} className="border-border/50 hover:bg-muted/30">
-                                <TableCell className="font-medium">{l.po_number ?? `#${l.leg_id}`}</TableCell>
-                                <TableCell>{l.mode ?? '—'}</TableCell>
-                                <TableCell className="text-muted-foreground">{l.allocation_channel ?? '—'}</TableCell>
-                                <TableCell className="text-right tabular-nums">{(l.expected_quantity ?? 0).toLocaleString()}</TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableCell>
+                      {visibleCols.map((c) => (
+                        <TableCell key={c.key} className={cn('py-1.5 text-sm', c.align === 'right' && 'text-right')}>
+                          {c.key === poColKey && <span className="text-muted-foreground">{l.po_number ?? `#${l.leg_id}`}</span>}
+                          {c.key === qtyColKey && <span className="tabular-nums text-muted-foreground">{(l.expected_quantity ?? 0).toLocaleString()}</span>}
+                        </TableCell>
+                      ))}
                     </TableRow>
-                  )}
+                  ))}
                 </Fragment>
               );
             })}

@@ -7,21 +7,25 @@ const MainlineLegModel = require('../legs/MainlineLegModel');
 const MainlineCiModel = require('../ci/MainlineCiModel');
 const MainlinePackingModel = require('../packing/MainlinePackingModel');
 const ItemReceiptModel = require('../receipts/MainlineItemReceiptModel');
+const MainlineShipmentLegModel = require('../shipments/MainlineShipmentLegModel');
 const BaseModel = require('../../../models/BaseModel');
 const { deriveAllCiLines } = require('../ci/ciLines');
 const { compute, reconcilePo, reconcileLeg } = require('./fulfillmentService');
 const { assertTrnVisible, assertPoNumberVisible, assertLegVisible } = require('../vendorAccess');
 
 async function _ctx() {
-  const [masters, orders, orderLines, legs, legLines, invoices, cartons, receipts, receiptLines, modes] = await Promise.all([
+  const [masters, orders, orderLines, legs, legLines, invoices, cartons, receipts, receiptLines, modes, shipmentLegs] = await Promise.all([
     PoMasterModel.read(), PoOrderModel.readOrders(), PoOrderModel.readOrderLines(),
     MainlineLegModel.readLegs(), MainlineLegModel.readLegLines(),
     MainlineCiModel.readInvoices(), MainlinePackingModel.read(),
     ItemReceiptModel.readReceipts().catch(() => []), ItemReceiptModel.readReceiptLines().catch(() => []),
     new BaseModel('modes.json').read().catch(() => []),
+    // Only to answer "does a consignment exist for this leg" — that decides what
+    // `variance` compares received against. See fulfillmentService.
+    MainlineShipmentLegModel.read().catch(() => []),
   ]);
   const ciLines = deriveAllCiLines(cartons);   // derived from packing cartons (not stored)
-  return { masters, orders, orderLines, legs, legLines, invoices, ciLines, receipts, receiptLines, modes };
+  return { masters, orders, orderLines, legs, legLines, invoices, ciLines, receipts, receiptLines, modes, shipmentLegs };
 }
 
 // GET /mainline/fulfillment/:trn — TRN-grained three-way match.

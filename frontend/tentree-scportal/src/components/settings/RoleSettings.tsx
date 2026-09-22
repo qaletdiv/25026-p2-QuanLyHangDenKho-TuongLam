@@ -10,14 +10,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Trash2, Save, ShieldCheck, Lock, Pencil, Check } from 'lucide-react';
+import { Plus, Trash2, Save, ShieldCheck, Lock, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function RoleSettings() {
   const { user: sessionUser } = useSession();
   const [roles, setRoles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [savingId, setSavingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);   // matrix is read-only until Edit
 
   // Track dirty permissions per role: { [roleId]: Set<string> | null (= no changes) }
@@ -66,28 +66,57 @@ export function RoleSettings() {
     return false;
   };
 
-  // Done: re-lock and revert any unsaved permission toggles to the saved sets.
-  const handleDone = () => {
+  const dirtyRoles = roles.filter((r: any) => isDirty(r.id));
+
+  // Cancel: re-lock and revert any unsaved permission toggles to the saved sets.
+  // This is what the old "Done" button did — with a single Save now committing the
+  // whole matrix, discarding needs its own button or there is no way back out.
+  const handleCancel = () => {
     const reset: Record<string, Set<string>> = {};
     roles.forEach((r: any) => { reset[r.id] = new Set(r.permissions || []); });
     setDirtyPerms(reset);
     setEditing(false);
   };
 
-  const handleSave = async (role: any) => {
-    if (!isDirty(role.id)) return;
-    setSavingId(role.id);
-    try {
+  /**
+   * ONE Save for the whole matrix (was a Save per role column, i.e. five buttons
+   * for one mental action — you edit "the permissions", not "Vendor's permissions"
+   * then "Production's").
+   *
+   * Only CHANGED roles are sent, and SEQUENTIALLY, not Promise.all: /roles has no
+   * bulk endpoint, so each PUT is a read-modify-write of the whole roles.json (no
+   * transactions in the JSON stack — see the Postgres notes in CLAUDE.md), and
+   * concurrent writes would drop each other's changes.
+   *
+   * A failure part-way leaves edit mode OPEN with the roles that didn't save still
+   * marked unsaved, so Save can be pressed again without re-ticking anything.
+   */
+  const handleSaveAll = async () => {
+    if (!dirtyRoles.length) { setEditing(false); return; }   // nothing to commit
+    setSaving(true);
+    const saved: { id: string; permissions: string[] }[] = [];
+    const failed: string[] = [];
+    for (const role of dirtyRoles) {
       const permissions = Array.from(dirtyPerms[role.id] || []);
-      const result = await updateRole(role.id, { permissions });
-      if (result?.error) throw new Error(result.error);
-      setRoles(prev => prev.map(r => r.id === role.id ? { ...r, permissions } : r));
-      toast.success(`"${role.name}" permissions saved.`);
-    } catch (e: any) {
-      toast.error(e.message || 'Failed to save permissions.');
-    } finally {
-      setSavingId(null);
+      try {
+        const result = await updateRole(role.id, { permissions });
+        if (result?.error) throw new Error(result.error);
+        saved.push({ id: role.id, permissions });
+      } catch (e: any) {
+        failed.push(role.name);
+        toast.error(`${role.name}: ${e.message || 'failed to save'}`);
+      }
     }
+    if (saved.length) {
+      setRoles(prev => prev.map(r => {
+        const hit = saved.find(s => s.id === r.id);
+        return hit ? { ...r, permissions: hit.permissions } : r;
+      }));
+      const names = dirtyRoles.filter(r => saved.some(s => s.id === r.id)).map(r => r.name);
+      toast.success(names.length === 1 ? `"${names[0]}" permissions saved.` : `Permissions saved for ${names.length} roles.`);
+    }
+    setSaving(false);
+    if (!failed.length) setEditing(false);
   };
 
   const handleDelete = async (role: any) => {
@@ -136,12 +165,16 @@ export function RoleSettings() {
             <h2 className="text-lg font-semibold">Role Permissions</h2>
           </div>
           {editing ? (
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)} disabled={saving}>
                 <Plus className="w-4 h-4 mr-1" /> Add Role
               </Button>
-              <Button size="sm" onClick={handleDone}>
-                <Check className="w-4 h-4 mr-1" /> Done
+              <Button size="sm" variant="ghost" onClick={handleCancel} disabled={saving}>Cancel</Button>
+              {/* The one Save for the whole matrix. Counts the columns it will
+                  commit so it is clear this button is not per-role. */}
+              <Button size="sm" onClick={handleSaveAll} disabled={saving}>
+                <Save className="w-4 h-4 mr-1" />
+                {saving ? 'Saving…' : dirtyRoles.length > 1 ? `Save (${dirtyRoles.length})` : 'Save'}
               </Button>
             </div>
           ) : (
@@ -151,45 +184,67 @@ export function RoleSettings() {
           )}
         </div>
         <p className="text-xs text-muted-foreground">
-          Changes take effect on the user's next login.
+          {/* Was "Changes take effect on the user's next login" — stale since the
+              server resolves role→permissions per request (2026-09-08): the portal
+              picks a change up within seconds, on the pages AND in the sidebar.
+              Moving a user to a DIFFERENT role is what still needs a re-login,
+              because the role name is carried in their token. */}
+          Permission changes apply within a few seconds — no re-login needed. Changing which
+          role a user <em>has</em> still takes effect at their next login.
           <span className="ml-2 inline-flex items-center gap-1 text-amber-600"><Lock className="w-3 h-3" /> Protected roles cannot be renamed or deleted.</span>
         </p>
+        {/* Reserved for the whole of edit mode, and `truncate` so a long list of
+            role names can't wrap onto a second line: ticking a box must not move
+            the matrix underneath it. (Entering edit mode does change the header
+            height — that one is a deliberate, user-initiated change.) */}
+        {editing && (
+          <p className="mt-2 h-4 truncate text-xs text-amber-600">
+            {dirtyRoles.length > 0 ? `Unsaved changes: ${dirtyRoles.map((r: any) => r.name).join(', ')}` : ''}
+          </p>
+        )}
       </div>
 
       {/* Permission Matrix — read-only until Edit (checkboxes stay readable) */}
       <fieldset disabled={!editing} className="m-0 p-0 min-w-0 bg-card rounded-xl border shadow-sm overflow-x-auto [&_button:disabled]:opacity-100 [&_button:disabled]:cursor-default">
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="border-b border-border bg-muted/40">
+            {/* Every column header is the SAME four fixed bands — name, description,
+                actions, unsaved badge — stacked from the TOP (align-top).
+                They used to size to their own content and sit vertically centred,
+                so a 3-line description ("Manage shipments, bookings, and master
+                data") pushed that column's name up and its delete button down
+                while a 1-line one ("Full system access") did neither: five names
+                and five trash icons all at different heights. The action and badge
+                bands are reserved whenever `editing` is on — for EVERY column, not
+                only the ones that have something to put there — so Admin's missing
+                delete (it's protected) and a column becoming dirty leave the row
+                exactly where it was. */}
+            <tr className="border-b border-border bg-muted/40 align-top">
               {/* Spacer for permission label column */}
               <th className="text-left px-4 py-3 font-semibold text-muted-foreground w-56 min-w-[14rem]">Permission</th>
               {roles.map(role => (
-                <th key={role.id} className="px-3 py-3 text-center min-w-[140px]">
+                <th key={role.id} className="px-3 py-3 text-center align-top min-w-[150px]">
                   <div className="flex flex-col items-center gap-1.5">
-                    <div className="flex items-center gap-1">
-                      {role.protected && <Lock className="w-3 h-3 text-muted-foreground" />}
+                    <div className="flex h-5 items-center justify-center gap-1">
+                      {role.protected && <Lock className="w-3 h-3 shrink-0 text-muted-foreground" />}
                       <span className="font-semibold text-foreground">{role.name}</span>
                     </div>
-                    {role.description && (
-                      <span className="text-[10px] text-muted-foreground font-normal leading-tight max-w-[120px] text-center">{role.description}</span>
-                    )}
+                    {/* fixed 3-line band (the longest description today), always
+                        rendered so a role without one still lines up */}
+                    <span className="h-10 w-[110px] line-clamp-3 text-[10px] leading-tight text-muted-foreground font-normal text-center">
+                      {role.description || ''}
+                    </span>
+                    {/* No per-role Save here any more — the header's single Save
+                        commits every changed column. Delete stays: it is a
+                        different action on one specific role, not a save. */}
                     {editing && (
-                      <div className="flex gap-1 mt-0.5">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-6 px-2 text-[10px]"
-                          disabled={!isDirty(role.id) || savingId === role.id}
-                          onClick={() => handleSave(role)}
-                        >
-                          <Save className="w-3 h-3 mr-0.5" />
-                          {savingId === role.id ? 'Saving…' : 'Save'}
-                        </Button>
+                      <div className="flex h-6 items-center gap-1">
                         {!role.protected && (
                           <Button
                             size="sm"
                             variant="ghost"
                             className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
+                            disabled={saving}
                             onClick={() => handleDelete(role)}
                             title={`Delete ${role.name}`}
                           >
@@ -198,8 +253,12 @@ export function RoleSettings() {
                         )}
                       </div>
                     )}
-                    {editing && isDirty(role.id) && (
-                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-amber-500/10 border-amber-400/40 text-amber-600">unsaved</Badge>
+                    {editing && (
+                      <div className="flex h-4 items-center">
+                        {isDirty(role.id) && (
+                          <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-amber-500/10 border-amber-400/40 text-amber-600">unsaved</Badge>
+                        )}
+                      </div>
                     )}
                   </div>
                 </th>

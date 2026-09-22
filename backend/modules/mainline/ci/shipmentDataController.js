@@ -17,8 +17,13 @@ const MainlineCiModel = require('./MainlineCiModel');
 const MainlinePackingModel = require('../packing/MainlinePackingModel');
 const MainlineDocumentModel = require('./MainlineDocumentModel');
 const PoOrderModel = require('../../po/PoOrderModel');
-const { suppliers: SupplierModel } = require('../../../models/MasterDataModel');
+const { suppliers: SupplierModel, modes: ModeModel } = require('../../../models/MasterDataModel');
 const BaseModel = require('../../../models/BaseModel');
+// Destination master data (consignee block) + the singleton notify party — both
+// read at DOWNLOAD time as well as upload time, see documentService.rebuild.
+const FacilityModel = new BaseModel('migrated/warehouse_facilities.json');
+const NotifyPartyModel = new BaseModel('migrated/notify_party.json');
+const SkuModel = new BaseModel('migrated/product_skus.json');
 const documentService = require('./documentService');
 const { linesForBooking } = require('./ciLines');
 const { assertBookingVisible } = require('../vendorAccess');
@@ -30,10 +35,11 @@ async function uploadShipmentData(req, res) {
   if (!req.file) err('No file uploaded. Send Excel as multipart field "file".', 400);
   const bookingId = req.params.id;
 
-  const [bookings, bookingLegs, legs, orders, suppliers, facilities, skus, allCartons, allInvoices, allDocs] = await Promise.all([
+  const [bookings, bookingLegs, legs, orders, suppliers, facilities, modes, notifyParty, skus, allCartons, allInvoices, allDocs] = await Promise.all([
     MainlineBookingModel.readBookings(), MainlineBookingModel.readBookingLegs(), MainlineLegModel.readLegs(),
-    PoOrderModel.readOrders(), SupplierModel.read().catch(() => []), new BaseModel('migrated/warehouse_facilities.json').read(),
-    new BaseModel('migrated/product_skus.json').read(), MainlinePackingModel.read(),
+    PoOrderModel.readOrders(), SupplierModel.read().catch(() => []), FacilityModel.read(),
+    ModeModel.read().catch(() => []), NotifyPartyModel.read().catch(() => []),
+    SkuModel.read(), MainlinePackingModel.read(),
     MainlineCiModel.readInvoices(), MainlineDocumentModel.read(),
   ]);
   const booking = bookings.find((b) => b.id === bookingId);
@@ -101,27 +107,12 @@ async function uploadShipmentData(req, res) {
   });
 
   // --- reconstruct the FULL row set for the booking (all POs) from the merged cartons
-  //     + enriched SKUs, then regenerate every document (combined + per-PO). `_group_key`
-  //     keeps carton grouping unique across POs (both files may start at carton #1). ---
-  const rowFromCarton = (c) => {
-    const s = skuByCode.get(c.sku_code) || {};
-    const po = legIdToPo.get(String(c.leg_id)) || null;
-    return {
-      _group_key: `${po || 'unm'}#${c.ctn_number}`,
-      ctn_number: c.ctn_number, po_number: po, sku: c.sku_code,
-      upc: s.upc || '', knit_woven: s.knit_woven || '',
-      style_description: s.item_name || s.description || '', color_description: s.colorway || '',
-      category: s.category || '', gender: s.gender || '', composition: s.composition || '', hts_code: s.hts_code || '',
-      unit_price: c.unit_price || 0, total_usd: c.total_usd || 0, pcs_per_ctn: c.pcs_per_ctn || 0,
-      net_weight_kgs: c.net_weight_kgs || 0, gross_weight_kgs: c.gross_weight_kgs || 0, measure_cm: c.measure_cm || '',
-    };
-  };
-  const fullRows = bookingCartons
-    .map(rowFromCarton)
-    .sort((a, b) => (a.po_number || '').localeCompare(b.po_number || '') || (a.ctn_number - b.ctn_number));
+  //     + enriched SKUs, then regenerate every document (combined + per-PO). Shared
+  //     with the download rebuild so both produce identical rows. ---
+  const fullRows = documentService.rowsFromCartons(bookingCartons, legIdToPo, skuByCode);
 
   // --- generate documents (combined + per-PO) from the full booking row set ---
-  const docs = await documentService.generateAll(booking, fullRows, { legPoToId, suppliers, facilities, orders, legs });
+  const docs = await documentService.generateAll(booking, fullRows, { legPoToId, suppliers, facilities, orders, legs, modes, notifyParty });
 
   // --- CI record (upsert; keep the existing one when re-uploading/adding a PO) ---
   const existingCi = allInvoices.find((i) => i.booking_id === bookingId);
@@ -167,4 +158,49 @@ async function getDocuments(req, res) {
   res.json(mine);
 }
 
-module.exports = { uploadShipmentData, getDocuments };
+// GET /mainline/documents/:docId/file — the CI / Packing List itself, REBUILT from
+// current data rather than streamed off disk.
+//
+// The stored xlsx is a snapshot of the letterhead as it was at upload: supplier
+// address, consignee address, port of discharge and notify party all come from
+// master data that is edited later, and a file written in August cannot know what
+// was typed in September. That is why the downloaded CI kept showing a blank
+// consignee block after the details had been entered. Rebuilding keeps the stored
+// invoice_number (the document's identity) and the stored cartons, and re-reads
+// only the master data. Falls back to the stored file if the cartons are gone.
+async function downloadDocument(req, res) {
+  const docs = await MainlineDocumentModel.read();
+  const doc = docs.find((d) => d.id === req.params.docId);
+  if (!doc) err('Document not found', 404);
+  await assertBookingVisible(req, doc.booking_id);
+
+  const [bookings, bookingLegs, legs, orders, suppliers, facilities, modes, notifyParty, skus, allCartons] =
+    await Promise.all([
+      MainlineBookingModel.readBookings(), MainlineBookingModel.readBookingLegs(), MainlineLegModel.readLegs(),
+      PoOrderModel.readOrders(), SupplierModel.read().catch(() => []), FacilityModel.read(),
+      ModeModel.read().catch(() => []), NotifyPartyModel.read().catch(() => []),
+      SkuModel.read(), MainlinePackingModel.read(),
+    ]);
+  const booking = bookings.find((b) => b.id === doc.booking_id);
+  if (!booking) err('Booking not found', 404);
+
+  const myLegIds = new Set(bookingLegs.filter((bl) => bl.booking_id === booking.id).map((bl) => bl.leg_id));
+  const bookingLegList = legs.filter((l) => myLegIds.has(l.id));
+  const legPoToId = new Map(bookingLegList.map((l) => [l.po_number, l.id]));
+  const legIdToPo = new Map(bookingLegList.map((l) => [String(l.id), l.po_number]));
+  const bookingCartons = allCartons.filter((c) => c.booking_id === booking.id);
+  if (!bookingCartons.length) err('No shipping data on this booking — re-upload it to regenerate the document.', 409);
+
+  const rows = documentService.rowsFromCartons(bookingCartons, legIdToPo, new Map(skus.map((s) => [s.sku_code, s])));
+  const buf = await documentService.rebuild(doc, booking, rows, {
+    legPoToId, suppliers, facilities, orders, legs, modes, notifyParty,
+  });
+  if (!buf) err('This document no longer matches the booking\'s POs — re-upload the shipping data.', 409);
+
+  const filename = (doc.file_url || '').split('/').pop() || `${doc.doc_type}.xlsx`;
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(Buffer.from(buf));
+}
+
+module.exports = { uploadShipmentData, getDocuments, downloadDocument };

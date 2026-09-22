@@ -27,7 +27,10 @@ export default function LoginPage() {
       setIsLoading(false);
     } else {
       toast.success('Welcome back!');
-      router.push('/mainline/shipments');
+      // '/' resolves the landing page from the role's permissions server-side —
+      // a hardcoded page would bounce off the route gate for a role that can't
+      // open it.
+      router.push('/');
       router.refresh();
     }
   };

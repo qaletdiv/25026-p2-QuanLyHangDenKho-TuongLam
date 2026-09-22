@@ -15,6 +15,30 @@ export const ALL_PERMISSIONS = [
 
 export type Permission = typeof ALL_PERMISSIONS[number];
 
+/**
+ * Does this session hold a permission key?
+ *
+ * `permissions[]` is re-resolved per render from GET /me (see the root layout), so
+ * a granted or revoked key follows without a re-login. It decides what to DRAW only
+ * — every action it guards is enforced again server-side by requirePermission,
+ * which is the real control; a stale page can still POST.
+ *
+ * Fails CLOSED with no session. A LEGACY session predating permissions[] falls back
+ * to the role name, or an admin holding an old cookie would lose every action button.
+ */
+export function hasPermission(
+  user: { role?: string; permissions?: string[] } | null | undefined,
+  permission: Permission | string,
+): boolean {
+  if (!user) return false;
+  if (!user.permissions) return user.role === 'Admin';
+  return user.permissions.includes(permission);
+}
+
+/** Hover text on an Approve button the caller may look at but not press. */
+export const APPROVE_DENIED_HINT =
+  'You do not have permission to approve bookings — this is with logistics.';
+
 /** Grouped manifest used to render the permission matrix UI */
 export const PERMISSION_MANIFEST: { category: string; items: { key: Permission; label: string }[] }[] = [
   {

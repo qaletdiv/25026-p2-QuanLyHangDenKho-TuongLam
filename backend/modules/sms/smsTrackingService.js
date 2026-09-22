@@ -22,7 +22,10 @@ const norm = (s) => (s == null ? '' : String(s).trim().toLowerCase());
 // 'sms_received' (Delivered + a NetSuite Item Receipt) is listed for completeness:
 // this poll doesn't pass the receipt map to deriveStatus, so a received
 // consignment reads back as Delivered here and is skipped either way.
-const TERMINAL_STATUS_IDS = new Set(['sms_delivered', 'sms_received']);
+// Cancelled is terminal too: a called-off draft has no tracking number to poll,
+// and if one is ever added to a cancelled row we still have no business asking a
+// courier about a consignment the business withdrew.
+const TERMINAL_STATUS_IDS = new Set(['sms_delivered', 'sms_received', 'sms_cancelled']);
 
 // ---- pure core (unit-testable) ----------------------------------------------
 // trackResults: fedexService.track() output. Returns { newEvents, perShipment }.

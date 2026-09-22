@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+import ApprovalBadge from './ApprovalBadge';
 import type { PoMasterDetail as PoMasterDetailT, OrderIntent, Fulfillment, MainlineLifecycle } from '@/modules/mainline/types';
 
 const DASH = '—';
@@ -121,7 +122,13 @@ export default function PoMasterDetail({
                         className="border-border hover:bg-muted/30 cursor-pointer"
                         onClick={() => router.push(`/mainline/purchase-orders/${encodeURIComponent(master.trn_number)}/${leg.id}`)}
                       >
-                        <TableCell className="font-medium">{o.po_number}</TableCell>
+                        <TableCell className="font-medium">
+                          {/* a TRN can mix approved and unapproved POs, so the badge
+                              belongs per PO row, not on the TRN header */}
+                          <span className="inline-flex items-center gap-2">
+                            {o.po_number}<ApprovalBadge status={o.approval_status} />
+                          </span>
+                        </TableCell>
                         <TableCell className="font-mono text-xs text-muted-foreground">{o.netsuite_id ?? DASH}</TableCell>
                         <TableCell className="text-muted-foreground">{o.destination_facility ?? DASH}</TableCell>
                         <TableCell className="text-muted-foreground">{o.allocation_channel ?? DASH}</TableCell>
@@ -133,7 +140,13 @@ export default function PoMasterDetail({
                     ))
                   : [
                       <TableRow key={o.po_number} className="border-border hover:bg-muted/30">
-                        <TableCell className="font-medium">{o.po_number}</TableCell>
+                        <TableCell className="font-medium">
+                          {/* a TRN can mix approved and unapproved POs, so the badge
+                              belongs per PO row, not on the TRN header */}
+                          <span className="inline-flex items-center gap-2">
+                            {o.po_number}<ApprovalBadge status={o.approval_status} />
+                          </span>
+                        </TableCell>
                         <TableCell className="font-mono text-xs text-muted-foreground">{o.netsuite_id ?? DASH}</TableCell>
                         <TableCell className="text-muted-foreground">{o.destination_facility ?? DASH}</TableCell>
                         <TableCell className="text-muted-foreground">{o.allocation_channel ?? DASH}</TableCell>

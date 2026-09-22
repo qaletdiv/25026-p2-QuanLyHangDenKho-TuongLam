@@ -21,8 +21,14 @@ const DEFAULT_LEGEND = 'G:/Shared drives/Tentree Shared Drive/Operations/Logisti
 
 const norm = v => (v === undefined || v === null ? '' : String(v).trim());
 
-async function readLegend(file) {
-  const wb = xl.open(file);
+/**
+ * @param {string|Buffer} file  a path on the shared drive, or an UPLOADED buffer.
+ *   The buffer path is what lets the legend be configured from the UI instead of
+ *   only re-synced from a G: drive nobody but finance's laptop can see.
+ * @param {string} [label]      what to call the buffer in the report
+ */
+async function readLegend(file, label) {
+  const wb = Buffer.isBuffer(file) ? xl.openBuffer(file, label || 'uploaded legend') : xl.open(file);
   const sst = await xl.sharedStrings(wb);
   const index = await xl.sheetIndex(wb);
   const sheet = index.has('NRI Invoice Coding') ? 'NRI Invoice Coding' : [...index.keys()][0];
@@ -65,8 +71,10 @@ function analyse(rows) {
   };
 }
 
-async function sync({ file = DEFAULT_LEGEND, dryRun = false } = {}) {
-  const { sheet, rows } = await readLegend(file);
+async function sync({ file = DEFAULT_LEGEND, buffer = null, label = null, dryRun = false } = {}) {
+  // An uploaded workbook wins over the shared-drive path: it is the file the user
+  // just chose, in front of them, rather than whatever is on a mapped drive.
+  const { sheet, rows } = await readLegend(buffer || file, label);
   const a = analyse(rows);
 
   const out = a.deduped
@@ -82,7 +90,10 @@ async function sync({ file = DEFAULT_LEGEND, dryRun = false } = {}) {
 
   if (!dryRun) await chargeCodes.codesTable.write(out);
   chargeCodes.reload();
-  return { sheet, source: file, read: rows.length, written: out.length, dryRun, defects: a };
+  return {
+    sheet, source: buffer ? (label || 'uploaded legend') : file,
+    read: rows.length, written: out.length, dryRun, defects: a,
+  };
 }
 
 module.exports = { sync, readLegend, DEFAULT_LEGEND };

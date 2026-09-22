@@ -7,6 +7,8 @@ const { supplierKey } = require('../utils/nameKey');
 // (NRI US, NRI CA, …); allocation_channels = internal buckets (Reserved/First).
 const warehouseFacilities = new BaseModel('migrated/warehouse_facilities.json');
 const allocationChannels  = new BaseModel('migrated/allocation_channels.json');
+// One row ('default'): the CI's Notify Party — see putNotifyParty.
+const notifyParty         = new BaseModel('migrated/notify_party.json');
 const ports               = new BaseModel('migrated/ports.json');
 const containerTypes      = new BaseModel('migrated/container_types.json');
 // Per-season production schedule — the On Time / At Risk / Late gates for reports.
@@ -84,6 +86,58 @@ async function putModes(req, res) {
 async function getWarehouseFacilities(req, res) {
     res.json(await warehouseFacilities.read().catch(() => []));
 }
+// The destination's DOCUMENT fields — consignee address, port of discharge and
+// notify party are what ciGenerator/plGenerator print (the legacy `warehouses`
+// table is not read by either, which is why those cells came out blank).
+//
+// EDIT ONLY: a facility is a FK target for po_orders, sms_pos, sms_shipments and
+// mainline_shipments, and rows here are created by the migration / PO ingestion.
+// BaseModel.write replaces the whole table, so an id missing from the body would
+// delete a destination that live records point at — refused rather than left to
+// fail as a deferred FK violation at COMMIT. Fields outside EDITABLE are carried
+// over from the stored row, so a stale client cannot blank one it never showed.
+const FACILITY_EDITABLE = ['name', 'country', 'city', 'address', 'port_of_discharge'];
+
+async function putWarehouseFacilities(req, res) {
+    const current = await warehouseFacilities.read().catch(() => []);
+    const incoming = (Array.isArray(req.body) ? req.body : []).filter((f) => f && f.id);
+    const sent = new Set(incoming.map((f) => f.id));
+    if (sent.size !== incoming.length) {
+        return res.status(400).json({ success: false, error: 'Duplicate destination id in request' });
+    }
+    const missing = current.filter((f) => !sent.has(f.id)).map((f) => f.name || f.id);
+    const unknown = incoming.filter((f) => !current.some((c) => c.id === f.id)).map((f) => f.name || f.id);
+    if (missing.length || unknown.length) {
+        return res.status(400).json({
+            success: false,
+            error: 'Destinations cannot be added or removed here — they are created by the PO ingestion. '
+                + `Only their address, ports and notify party are editable. (${
+                    [missing.length ? `missing: ${missing.join(', ')}` : '',
+                        unknown.length ? `unknown: ${unknown.join(', ')}` : ''].filter(Boolean).join('; ')})`,
+        });
+    }
+    const byId = new Map(incoming.map((f) => [f.id, f]));
+    await warehouseFacilities.write(current.map((f) => {
+        const patch = byId.get(f.id) || {};
+        const next = { ...f };
+        FACILITY_EDITABLE.forEach((k) => { if (k in patch) next[k] = patch[k]; });
+        return next;
+    }));
+    res.json({ success: true });
+}
+// NOTIFY PARTY — a SINGLETON. It is always tentree, whatever the destination,
+// supplier or module, so it is one row rather than a column repeated on each
+// facility (which would have been five copies of one fact). The PUT takes the
+// same array shape as every other master-data screen and keeps the first row.
+async function getNotifyParty(req, res) {
+    res.json(await notifyParty.read().catch(() => []));
+}
+async function putNotifyParty(req, res) {
+    const row = (Array.isArray(req.body) ? req.body : [])[0];
+    if (!row) return res.status(400).json({ success: false, error: 'Notify party is required' });
+    await notifyParty.write([{ id: 'default', name: row.name, address: row.address || '' }]);
+    res.json({ success: true });
+}
 async function getAllocationChannels(req, res) {
     res.json(await allocationChannels.read().catch(() => []));
 }
@@ -153,7 +207,8 @@ module.exports = {
     getStatuses,  putStatuses,
     getWarehouses, putWarehouses,
     getModes,      putModes,
-    getWarehouseFacilities, getAllocationChannels,
+    getWarehouseFacilities, putWarehouseFacilities,
+    getNotifyParty, putNotifyParty, getAllocationChannels,
     getPorts, getContainerTypes,
     getProductionSchedules, putProductionSchedules, postSeason
 };

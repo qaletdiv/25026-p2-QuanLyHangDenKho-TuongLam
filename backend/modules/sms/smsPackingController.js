@@ -26,9 +26,10 @@ async function uploadShippingData(req, res) {
   if (!req.file) err('No file uploaded. Send Excel as multipart field "file".', 400);
   const vendorSupplierId = await _vendorSupplierId(req.user);
 
-  const [shipments, shipmentPos, pos, poLines, skus, suppliers, facilities, allCartons, allDocs] = await Promise.all([
+  const [shipments, shipmentPos, pos, poLines, skus, suppliers, facilities, modes, notifyParty, allCartons, allDocs] = await Promise.all([
     M.shipments.read(), M.shipmentPos.read(), M.pos.read(), M.poLines.read(),
     M.skus.read(), M.suppliers.read().catch(() => []), M.facilities.read(),
+    M.modes.read().catch(() => []), M.notifyParty.read().catch(() => []),
     M.packingCartons.read().catch(() => []), M.documents.read().catch(() => []),
   ]);
   const shipment = shipments.find((s) => s.id === req.params.id);
@@ -158,7 +159,7 @@ async function uploadShippingData(req, res) {
     };
   });
 
-  const docs = await documentService.generateAll(shipment, generatorRows, { pos, suppliers, facilities });
+  const docs = await documentService.generateAll(shipment, generatorRows, { pos, suppliers, facilities, modes, notifyParty });
 
   // persist — replace this shipment's cartons + documents; write the SKU master
   // only when the sheet actually added/backfilled something
@@ -187,4 +188,37 @@ async function getDocuments(req, res) {
   res.json(docs.map((d) => ({ ...d, scope: d.po_number || 'Combined (all POs)' })));
 }
 
-module.exports = { uploadShippingData, getDocuments };
+// GET /sms/documents/:docId/file — the CI / Packing List itself, REBUILT from
+// current data rather than streamed off disk. Same reasoning as mainline's
+// downloadDocument: the letterhead (supplier address, consignee address, port of
+// discharge, notify party) is master data edited after the upload, so a stored
+// file freezes whatever was blank when it was written.
+async function downloadDocument(req, res) {
+  const doc = (await M.documents.read().catch(() => [])).find((d) => d.id === req.params.docId);
+  if (!doc) err('Document not found', 404);
+  await assertShipmentVisible(req, doc.shipment_id);
+
+  const [shipments, pos, skus, suppliers, facilities, modes, notifyParty, allCartons, cartonFacts] = await Promise.all([
+    M.shipments.read(), M.pos.read(), M.skus.read(), M.suppliers.read().catch(() => []),
+    M.facilities.read(), M.modes.read().catch(() => []), M.notifyParty.read().catch(() => []),
+    M.packingCartons.read().catch(() => []), M.cartons.read().catch(() => []),
+  ]);
+  const shipment = shipments.find((s) => s.id === doc.shipment_id);
+  if (!shipment) err('SMS shipment not found', 404);
+
+  // withCartonFacts puts the physical box facts back on EVERY SKU row of the
+  // carton, which is what the generators expect (see the sms_cartons split).
+  const cartons = svc.withCartonFacts(allCartons.filter((c) => c.shipment_id === shipment.id), cartonFacts);
+  if (!cartons.length) err('No shipping data on this consignment — re-upload it to regenerate the document.', 409);
+
+  const rows = documentService.rowsFromCartons(cartons, new Map(skus.map((s) => [s.sku_code, s])));
+  const buf = await documentService.rebuild(doc, shipment, rows, { pos, suppliers, facilities, modes, notifyParty });
+  if (!buf) err('This document no longer matches the consignment\'s POs — re-upload the shipping data.', 409);
+
+  const filename = (doc.file_url || '').split('/').pop() || `${doc.doc_type}.xlsx`;
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(Buffer.from(buf));
+}
+
+module.exports = { uploadShippingData, getDocuments, downloadDocument };

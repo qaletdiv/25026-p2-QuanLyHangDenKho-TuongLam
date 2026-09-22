@@ -9484,7 +9484,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCM2561-6897-M",
     "ordered_qty": 4,
-    "unit_price": 21.3,
+    "unit_price": 20.85,
     "netsuite_line_id": "2"
   },
   {
@@ -9516,7 +9516,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCM2563-6908-M",
     "ordered_qty": 4,
-    "unit_price": 17.7,
+    "unit_price": 17.55,
     "netsuite_line_id": "6"
   },
   {
@@ -9588,7 +9588,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCM6670-6906-M",
     "ordered_qty": 4,
-    "unit_price": 19.5,
+    "unit_price": 22.5,
     "netsuite_line_id": "15"
   },
   {
@@ -9604,7 +9604,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCM6675-7029-M",
     "ordered_qty": 4,
-    "unit_price": 24.75,
+    "unit_price": 24.9,
     "netsuite_line_id": "17"
   },
   {
@@ -9620,7 +9620,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCM6676-6968-M",
     "ordered_qty": 4,
-    "unit_price": 19.5,
+    "unit_price": 28.5,
     "netsuite_line_id": "19"
   },
   {
@@ -9628,7 +9628,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCM6676-7116-M",
     "ordered_qty": 1,
-    "unit_price": 19.5,
+    "unit_price": 22.5,
     "netsuite_line_id": "20"
   },
   {
@@ -9644,7 +9644,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCM6687-5586-M",
     "ordered_qty": 4,
-    "unit_price": 19.5,
+    "unit_price": 23.25,
     "netsuite_line_id": "22"
   },
   {
@@ -9668,7 +9668,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCM6947-6899-M",
     "ordered_qty": 4,
-    "unit_price": 19.5,
+    "unit_price": 19.8,
     "netsuite_line_id": "25"
   },
   {
@@ -9684,7 +9684,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCM7063-0164-M",
     "ordered_qty": 4,
-    "unit_price": 19.5,
+    "unit_price": 21,
     "netsuite_line_id": "27"
   },
   {
@@ -9716,7 +9716,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCM7064-5586-M",
     "ordered_qty": 4,
-    "unit_price": 19.5,
+    "unit_price": 25.2,
     "netsuite_line_id": "31"
   },
   {
@@ -9748,7 +9748,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCM7065-6900-M",
     "ordered_qty": 4,
-    "unit_price": 19.5,
+    "unit_price": 26.25,
     "netsuite_line_id": "35"
   },
   {
@@ -9772,7 +9772,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCM7066-6913-M",
     "ordered_qty": 4,
-    "unit_price": 19.5,
+    "unit_price": 22.95,
     "netsuite_line_id": "38"
   },
   {
@@ -9780,7 +9780,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCM7067-0164-M",
     "ordered_qty": 4,
-    "unit_price": 22.88,
+    "unit_price": 22.35,
     "netsuite_line_id": "39"
   },
   {
@@ -9924,7 +9924,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW3173-6908-S",
     "ordered_qty": 4,
-    "unit_price": 16.08,
+    "unit_price": 16.95,
     "netsuite_line_id": "57"
   },
   {
@@ -9940,7 +9940,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW5349-6896-S",
     "ordered_qty": 4,
-    "unit_price": 32.48,
+    "unit_price": 35.48,
     "netsuite_line_id": "59"
   },
   {
@@ -9956,7 +9956,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW5349-6898-S",
     "ordered_qty": 4,
-    "unit_price": 32.48,
+    "unit_price": 35.48,
     "netsuite_line_id": "61"
   },
   {
@@ -10020,7 +10020,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW6183-5604-S",
     "ordered_qty": 4,
-    "unit_price": 27.23,
+    "unit_price": 27.98,
     "netsuite_line_id": "69"
   },
   {
@@ -10076,7 +10076,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW6238-6898-S",
     "ordered_qty": 1,
-    "unit_price": 17.63,
+    "unit_price": 18.45,
     "netsuite_line_id": "76"
   },
   {
@@ -10084,7 +10084,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW6238-6908-S",
     "ordered_qty": 1,
-    "unit_price": 17.63,
+    "unit_price": 18.45,
     "netsuite_line_id": "77"
   },
   {
@@ -10092,7 +10092,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW6238-6910-S",
     "ordered_qty": 4,
-    "unit_price": 17.63,
+    "unit_price": 18.45,
     "netsuite_line_id": "78"
   },
   {
@@ -10100,7 +10100,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW6254-6898-S",
     "ordered_qty": 4,
-    "unit_price": 18.9,
+    "unit_price": 19.5,
     "netsuite_line_id": "79"
   },
   {
@@ -10116,7 +10116,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW6264-6898-S",
     "ordered_qty": 4,
-    "unit_price": 24.23,
+    "unit_price": 24.75,
     "netsuite_line_id": "81"
   },
   {
@@ -10188,7 +10188,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW6639-6902-S",
     "ordered_qty": 4,
-    "unit_price": 19.5,
+    "unit_price": 20.25,
     "netsuite_line_id": "90"
   },
   {
@@ -10204,7 +10204,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW6811-6339-S",
     "ordered_qty": 4,
-    "unit_price": 7.5,
+    "unit_price": 11.1,
     "netsuite_line_id": "92"
   },
   {
@@ -10212,7 +10212,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW6956-0164-S",
     "ordered_qty": 4,
-    "unit_price": 19.5,
+    "unit_price": 16.5,
     "netsuite_line_id": "93"
   },
   {
@@ -10268,7 +10268,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW7012-6339-S",
     "ordered_qty": 4,
-    "unit_price": 14.03,
+    "unit_price": 15.38,
     "netsuite_line_id": "100"
   },
   {
@@ -10308,7 +10308,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW7019-0164-S",
     "ordered_qty": 4,
-    "unit_price": 19.5,
+    "unit_price": 19.95,
     "netsuite_line_id": "105"
   },
   {
@@ -10340,7 +10340,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW7020-6914-S",
     "ordered_qty": 4,
-    "unit_price": 19.5,
+    "unit_price": 19.65,
     "netsuite_line_id": "109"
   },
   {
@@ -10348,7 +10348,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW7021-6899-S",
     "ordered_qty": 4,
-    "unit_price": 19.5,
+    "unit_price": 24,
     "netsuite_line_id": "110"
   },
   {
@@ -10372,7 +10372,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW7022-6900-S",
     "ordered_qty": 4,
-    "unit_price": 19.5,
+    "unit_price": 24.75,
     "netsuite_line_id": "113"
   },
   {
@@ -10396,7 +10396,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW7024-6902-S",
     "ordered_qty": 4,
-    "unit_price": 19.5,
+    "unit_price": 24.45,
     "netsuite_line_id": "116"
   },
   {
@@ -10452,7 +10452,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW7027-0164-S",
     "ordered_qty": 1,
-    "unit_price": 15.3,
+    "unit_price": 20.25,
     "netsuite_line_id": "123"
   },
   {
@@ -10460,7 +10460,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW7027-6900-S",
     "ordered_qty": 1,
-    "unit_price": 15.3,
+    "unit_price": 20.25,
     "netsuite_line_id": "124"
   },
   {
@@ -10468,7 +10468,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW7027-6911-S",
     "ordered_qty": 4,
-    "unit_price": 15.3,
+    "unit_price": 20.25,
     "netsuite_line_id": "125"
   },
   {
@@ -10524,7 +10524,7 @@
     "po_number": "PO04818",
     "sku_code": "ZCW7038-6898-S",
     "ordered_qty": 4,
-    "unit_price": 20.25,
+    "unit_price": 21.23,
     "netsuite_line_id": "132"
   },
   {
@@ -10580,7 +10580,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM2561-6897-M",
     "ordered_qty": 7,
-    "unit_price": 21.3,
+    "unit_price": 20.85,
     "netsuite_line_id": "2"
   },
   {
@@ -10612,7 +10612,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM2563-6908-M",
     "ordered_qty": 7,
-    "unit_price": 17.7,
+    "unit_price": 17.55,
     "netsuite_line_id": "6"
   },
   {
@@ -10628,7 +10628,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM3121-5586-M",
     "ordered_qty": 7,
-    "unit_price": 18.15,
+    "unit_price": 18.6,
     "netsuite_line_id": "8"
   },
   {
@@ -10684,7 +10684,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM6670-6906-M",
     "ordered_qty": 7,
-    "unit_price": 19.5,
+    "unit_price": 22.5,
     "netsuite_line_id": "15"
   },
   {
@@ -10700,7 +10700,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM6675-7029-M",
     "ordered_qty": 7,
-    "unit_price": 24.75,
+    "unit_price": 24.9,
     "netsuite_line_id": "17"
   },
   {
@@ -10716,7 +10716,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM6676-6968-M",
     "ordered_qty": 7,
-    "unit_price": 19.5,
+    "unit_price": 28.5,
     "netsuite_line_id": "19"
   },
   {
@@ -10740,7 +10740,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM6687-5586-M",
     "ordered_qty": 7,
-    "unit_price": 19.5,
+    "unit_price": 23.25,
     "netsuite_line_id": "22"
   },
   {
@@ -10748,7 +10748,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM6687-5604-M",
     "ordered_qty": 1,
-    "unit_price": 19.5,
+    "unit_price": 23.25,
     "netsuite_line_id": "23"
   },
   {
@@ -10764,7 +10764,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM6947-6899-M",
     "ordered_qty": 7,
-    "unit_price": 19.5,
+    "unit_price": 19.8,
     "netsuite_line_id": "25"
   },
   {
@@ -10772,7 +10772,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM6947-6900-M",
     "ordered_qty": 2,
-    "unit_price": 19.5,
+    "unit_price": 19.8,
     "netsuite_line_id": "26"
   },
   {
@@ -10780,7 +10780,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM7063-0164-M",
     "ordered_qty": 7,
-    "unit_price": 19.5,
+    "unit_price": 21,
     "netsuite_line_id": "27"
   },
   {
@@ -10788,7 +10788,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM7063-6899-M",
     "ordered_qty": 1,
-    "unit_price": 19.5,
+    "unit_price": 21,
     "netsuite_line_id": "28"
   },
   {
@@ -10796,7 +10796,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM7063-6913-M",
     "ordered_qty": 1,
-    "unit_price": 19.5,
+    "unit_price": 21,
     "netsuite_line_id": "29"
   },
   {
@@ -10812,7 +10812,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM7064-5586-M",
     "ordered_qty": 7,
-    "unit_price": 19.5,
+    "unit_price": 25.2,
     "netsuite_line_id": "31"
   },
   {
@@ -10836,7 +10836,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM7065-0164-M",
     "ordered_qty": 1,
-    "unit_price": 19.5,
+    "unit_price": 26.25,
     "netsuite_line_id": "34"
   },
   {
@@ -10844,7 +10844,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM7065-6900-M",
     "ordered_qty": 7,
-    "unit_price": 19.5,
+    "unit_price": 26.25,
     "netsuite_line_id": "35"
   },
   {
@@ -10868,7 +10868,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM7066-6913-M",
     "ordered_qty": 7,
-    "unit_price": 19.5,
+    "unit_price": 22.95,
     "netsuite_line_id": "38"
   },
   {
@@ -10876,7 +10876,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM7067-0164-M",
     "ordered_qty": 7,
-    "unit_price": 22.88,
+    "unit_price": 22.35,
     "netsuite_line_id": "39"
   },
   {
@@ -10884,7 +10884,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM7067-2398-M",
     "ordered_qty": 1,
-    "unit_price": 22.88,
+    "unit_price": 22.35,
     "netsuite_line_id": "40"
   },
   {
@@ -10892,7 +10892,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCM7067-6898-M",
     "ordered_qty": 1,
-    "unit_price": 22.88,
+    "unit_price": 22.35,
     "netsuite_line_id": "41"
   },
   {
@@ -11020,7 +11020,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW3173-6908-S",
     "ordered_qty": 7,
-    "unit_price": 16.08,
+    "unit_price": 16.95,
     "netsuite_line_id": "57"
   },
   {
@@ -11036,7 +11036,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW5349-6896-S",
     "ordered_qty": 7,
-    "unit_price": 32.48,
+    "unit_price": 35.48,
     "netsuite_line_id": "59"
   },
   {
@@ -11044,7 +11044,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW5349-6897-S",
     "ordered_qty": 1,
-    "unit_price": 32.48,
+    "unit_price": 35.48,
     "netsuite_line_id": "60"
   },
   {
@@ -11052,7 +11052,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW5349-6898-S",
     "ordered_qty": 7,
-    "unit_price": 32.48,
+    "unit_price": 35.48,
     "netsuite_line_id": "61"
   },
   {
@@ -11116,7 +11116,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW6183-5604-S",
     "ordered_qty": 7,
-    "unit_price": 27.23,
+    "unit_price": 27.98,
     "netsuite_line_id": "69"
   },
   {
@@ -11131,7 +11131,7 @@
     "id": "spol_ns_71",
     "po_number": "PO04819",
     "sku_code": "ZCW6228-0164-S",
-    "ordered_qty": 7,
+    "ordered_qty": 0,
     "unit_price": 13.8,
     "netsuite_line_id": "71"
   },
@@ -11180,7 +11180,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW6238-6908-S",
     "ordered_qty": 1,
-    "unit_price": 17.63,
+    "unit_price": 18.45,
     "netsuite_line_id": "77"
   },
   {
@@ -11188,7 +11188,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW6238-6910-S",
     "ordered_qty": 7,
-    "unit_price": 17.63,
+    "unit_price": 18.45,
     "netsuite_line_id": "78"
   },
   {
@@ -11196,7 +11196,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW6254-6898-S",
     "ordered_qty": 7,
-    "unit_price": 18.9,
+    "unit_price": 19.5,
     "netsuite_line_id": "79"
   },
   {
@@ -11212,7 +11212,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW6264-6898-S",
     "ordered_qty": 7,
-    "unit_price": 24.23,
+    "unit_price": 24.75,
     "netsuite_line_id": "81"
   },
   {
@@ -11284,7 +11284,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW6639-6902-S",
     "ordered_qty": 7,
-    "unit_price": 19.5,
+    "unit_price": 20.25,
     "netsuite_line_id": "90"
   },
   {
@@ -11299,8 +11299,8 @@
     "id": "spol_ns_92",
     "po_number": "PO04819",
     "sku_code": "ZCW6811-6339-S",
-    "ordered_qty": 0,
-    "unit_price": 7.5,
+    "ordered_qty": 7,
+    "unit_price": 11.1,
     "netsuite_line_id": "92"
   },
   {
@@ -11308,7 +11308,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW6956-0164-S",
     "ordered_qty": 7,
-    "unit_price": 19.5,
+    "unit_price": 16.5,
     "netsuite_line_id": "93"
   },
   {
@@ -11316,7 +11316,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW6956-5604-S",
     "ordered_qty": 1,
-    "unit_price": 19.5,
+    "unit_price": 16.5,
     "netsuite_line_id": "94"
   },
   {
@@ -11324,7 +11324,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW6956-6898-S",
     "ordered_qty": 2,
-    "unit_price": 19.5,
+    "unit_price": 16.5,
     "netsuite_line_id": "95"
   },
   {
@@ -11356,7 +11356,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW7012-0164-S",
     "ordered_qty": 2,
-    "unit_price": 14.03,
+    "unit_price": 15.38,
     "netsuite_line_id": "99"
   },
   {
@@ -11364,7 +11364,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW7012-6339-S",
     "ordered_qty": 7,
-    "unit_price": 14.03,
+    "unit_price": 15.38,
     "netsuite_line_id": "100"
   },
   {
@@ -11372,7 +11372,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW7012-6898-S",
     "ordered_qty": 2,
-    "unit_price": 14.03,
+    "unit_price": 15.38,
     "netsuite_line_id": "101"
   },
   {
@@ -11404,7 +11404,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW7019-0164-S",
     "ordered_qty": 7,
-    "unit_price": 19.5,
+    "unit_price": 19.95,
     "netsuite_line_id": "105"
   },
   {
@@ -11436,7 +11436,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW7020-6914-S",
     "ordered_qty": 7,
-    "unit_price": 19.5,
+    "unit_price": 19.65,
     "netsuite_line_id": "109"
   },
   {
@@ -11444,7 +11444,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW7021-6899-S",
     "ordered_qty": 7,
-    "unit_price": 19.5,
+    "unit_price": 24,
     "netsuite_line_id": "110"
   },
   {
@@ -11468,7 +11468,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW7022-6900-S",
     "ordered_qty": 7,
-    "unit_price": 19.5,
+    "unit_price": 24.75,
     "netsuite_line_id": "113"
   },
   {
@@ -11484,7 +11484,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW7024-0164-S",
     "ordered_qty": 1,
-    "unit_price": 19.5,
+    "unit_price": 24.45,
     "netsuite_line_id": "115"
   },
   {
@@ -11492,7 +11492,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW7024-6902-S",
     "ordered_qty": 7,
-    "unit_price": 19.5,
+    "unit_price": 24.45,
     "netsuite_line_id": "116"
   },
   {
@@ -11548,7 +11548,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW7027-0164-S",
     "ordered_qty": 1,
-    "unit_price": 15.3,
+    "unit_price": 20.25,
     "netsuite_line_id": "123"
   },
   {
@@ -11556,7 +11556,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW7027-6900-S",
     "ordered_qty": 3,
-    "unit_price": 15.3,
+    "unit_price": 20.25,
     "netsuite_line_id": "124"
   },
   {
@@ -11564,7 +11564,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW7027-6911-S",
     "ordered_qty": 7,
-    "unit_price": 15.3,
+    "unit_price": 20.25,
     "netsuite_line_id": "125"
   },
   {
@@ -11620,7 +11620,7 @@
     "po_number": "PO04819",
     "sku_code": "ZCW7038-6898-S",
     "ordered_qty": 7,
-    "unit_price": 20.25,
+    "unit_price": 21.23,
     "netsuite_line_id": "132"
   },
   {
@@ -12020,7 +12020,7 @@
     "po_number": "PO04823",
     "sku_code": "ZCM7102-7026-M",
     "ordered_qty": 1,
-    "unit_price": 31.46,
+    "unit_price": 35.03,
     "netsuite_line_id": "18"
   },
   {
@@ -12028,7 +12028,7 @@
     "po_number": "PO04823",
     "sku_code": "ZCM7102-7027-M",
     "ordered_qty": 4,
-    "unit_price": 31.46,
+    "unit_price": 35.03,
     "netsuite_line_id": "19"
   },
   {
@@ -12044,7 +12044,7 @@
     "po_number": "PO04823",
     "sku_code": "ZCM7103-7026-M",
     "ordered_qty": 4,
-    "unit_price": 26.13,
+    "unit_price": 30.39,
     "netsuite_line_id": "21"
   },
   {
@@ -12174,6 +12174,14 @@
     "ordered_qty": 4,
     "unit_price": 35.18,
     "netsuite_line_id": "37"
+  },
+  {
+    "id": "spol_ns_48",
+    "po_number": "PO04823",
+    "sku_code": "ZCW7121-6899-S",
+    "ordered_qty": 4,
+    "unit_price": 26.25,
+    "netsuite_line_id": "48"
   },
   {
     "id": "spol_ns_1",
@@ -12324,7 +12332,7 @@
     "po_number": "PO04824",
     "sku_code": "ZCM7102-7026-M",
     "ordered_qty": 1,
-    "unit_price": 31.46,
+    "unit_price": 35.03,
     "netsuite_line_id": "19"
   },
   {
@@ -12332,7 +12340,7 @@
     "po_number": "PO04824",
     "sku_code": "ZCM7102-7027-M",
     "ordered_qty": 7,
-    "unit_price": 31.46,
+    "unit_price": 35.03,
     "netsuite_line_id": "20"
   },
   {
@@ -12356,7 +12364,7 @@
     "po_number": "PO04824",
     "sku_code": "ZCM7103-7026-M",
     "ordered_qty": 7,
-    "unit_price": 26.13,
+    "unit_price": 30.39,
     "netsuite_line_id": "23"
   },
   {
@@ -12502,6 +12510,22 @@
     "ordered_qty": 7,
     "unit_price": 35.18,
     "netsuite_line_id": "41"
+  },
+  {
+    "id": "spol_ns_48",
+    "po_number": "PO04824",
+    "sku_code": "ZCM7071-6896-M",
+    "ordered_qty": 2,
+    "unit_price": 36,
+    "netsuite_line_id": "48"
+  },
+  {
+    "id": "spol_ns_49",
+    "po_number": "PO04824",
+    "sku_code": "ZCW7121-6899-S",
+    "ordered_qty": 7,
+    "unit_price": 26.25,
+    "netsuite_line_id": "49"
   },
   {
     "id": "spol_ns_1",

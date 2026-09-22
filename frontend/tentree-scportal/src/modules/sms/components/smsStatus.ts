@@ -5,11 +5,16 @@
 // the box. Delivered = the courier dropped it off; Received = the warehouse booked
 // it in. See backend modules/sms/smsService.deriveStatus.
 
-export const SMS_STATUSES = ['Label Created', 'Picked Up', 'In Transit', 'Out for Delivery', 'Delivered', 'Received', 'Exception'] as const;
+export const SMS_STATUSES = ['Label Created', 'Picked Up', 'In Transit', 'Out for Delivery', 'Delivered', 'Received', 'Exception', 'Cancelled'] as const;
 
-// What a human may set by hand. 'Received' is excluded on purpose (the server
-// rejects it too): it means "there is an Item Receipt", which only NetSuite knows.
-export const SMS_MANUAL_STATUSES = SMS_STATUSES.filter((s) => s !== 'Received');
+// What a human may set by hand. Two are excluded, for opposite reasons, and the
+// server rejects both on the same route:
+//   'Received'  — it means "there is an Item Receipt", which only NetSuite knows.
+//   'Cancelled' — it is a decision with guards behind it (Cancel consignment),
+//                 and a dropdown beside a guarded action that reaches the same
+//                 state would just be a way around the guards.
+const NOT_BY_HAND = new Set(['Received', 'Cancelled']);
+export const SMS_MANUAL_STATUSES = SMS_STATUSES.filter((s) => !NOT_BY_HAND.has(s));
 
 // Where a displayed status came from, as a short tag next to the badge.
 export const SMS_SOURCE_LABELS: Record<string, string> = {
@@ -31,6 +36,9 @@ export const SMS_STATUS_STYLES: Record<string, string> = {
   // TEXT colour would have gone muddy on the dark background.
   'Received':         'bg-emerald-700 text-white border-emerald-700',
   'Exception':        'bg-red-500/10 text-red-600 border-red-500/20',
+  // Muted, not red: a cancelled consignment is a closed decision, not a problem
+  // to chase. Exception keeps the red because it is the one that wants attention.
+  'Cancelled':        'bg-muted text-muted-foreground border-border line-through decoration-1',
 };
 
 export const FULFILLMENT_STYLES: Record<string, string> = {

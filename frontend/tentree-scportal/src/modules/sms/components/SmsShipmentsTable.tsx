@@ -18,9 +18,10 @@ import type { SmsShipment, SmsPo, CourierOption } from '@/modules/sms/types';
 
 const dim = (v: string | null) => <span className="text-muted-foreground">{v ?? '—'}</span>;
 
-// An SMS shipment is done once Delivered (courier dropped it off) or Received (also
-// booked into NetSuite). Exception stays "active" — it needs attention.
-const SMS_SHIP_DONE = new Set(['Delivered', 'Received']);
+// An SMS shipment is done once Delivered (courier dropped it off), Received (also
+// booked into NetSuite) or Cancelled (called off before the carrier took it).
+// Exception stays "active" — it needs attention.
+const SMS_SHIP_DONE = new Set(['Delivered', 'Received', 'Cancelled']);
 
 export default function SmsShipmentsTable({ shipments, pos, couriers }: {
   shipments: SmsShipment[];

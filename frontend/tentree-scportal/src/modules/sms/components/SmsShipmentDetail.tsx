@@ -4,18 +4,21 @@ import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ArrowLeft, Trash2, Upload, FileText, Download, Pencil, Save, X } from 'lucide-react';
+import { ArrowLeft, Ban, Trash2, Upload, FileText, Download, Pencil, Save, X } from 'lucide-react';
+import { useSession } from '@/components/providers/SessionProvider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { MoneyInput } from '@/components/ui/money-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import { docHref } from '@/lib/api';
+import { generatedDocHref } from '@/lib/api';
 // Generic UI primitive shared across modules (no mainline data coupling)
 import ConfirmDialog from '@/modules/mainline/components/ConfirmDialog';
-import { updateSmsShipment, deleteSmsShipment, uploadSmsShippingData } from '@/modules/sms/actions';
+import { updateSmsShipment, deleteSmsShipment, cancelSmsShipment, uploadSmsShippingData } from '@/modules/sms/actions';
+import { hasPermission } from '@/lib/permissions';
 import { SMS_MANUAL_STATUSES, SMS_SOURCE_LABELS, SMS_STATUS_STYLES, facilityLabel } from './smsStatus';
 import type { SmsShipment, SmsDocument, CourierOption, ModeOption } from '@/modules/sms/types';
 
@@ -61,7 +64,16 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirm, setConfirm] = useState<null | 'cancel' | 'delete'>(null);
+
+  const { user } = useSession();
+  const canCancel = hasPermission(user, 'shipment_update_status');
+  const canDelete = hasPermission(user, 'shipment_delete');
+  const isCancelled = shipment.status === 'Cancelled';
+  // The same test the server makes: a tracking number or a ship date means the
+  // carrier has the box, and you cannot call off something already gone. Mirrored
+  // here so the action is simply absent rather than offered and refused.
+  const handedOver = !!(shipment.tracking_number || shipment.ship_date);
   const [tracking, setTracking] = useState(shipment.tracking_number ?? '');
   const trackingDirty = tracking.trim() !== (shipment.tracking_number ?? '');
   // Ship date is editable for the same reason the tracking number is: a booking
@@ -164,9 +176,19 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
     setBusy(true);
     const res = await deleteSmsShipment(shipment.id);
     setBusy(false);
-    if (res?.error) { toast.error(res.error); setConfirmDelete(false); return; }
+    if (res?.error) { toast.error(res.error); setConfirm(null); return; }
     toast.success('Shipment deleted');
     router.push('/sms/shipments');
+  }
+
+  async function doCancel() {
+    setBusy(true);
+    const res = await cancelSmsShipment(shipment.id);
+    setBusy(false);
+    setConfirm(null);
+    if (res?.error) { toast.error(res.error); return; }
+    toast.success('Consignment cancelled — its booking still authorizes these lots');
+    router.refresh();
   }
 
   // The manual status is only a FALLBACK: a courier scan wins over it, and a
@@ -177,13 +199,22 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-4xl mx-auto">
       <ConfirmDialog
-        open={confirmDelete}
+        open={confirm === 'cancel'}
+        title={`Cancel consignment ${shipment.tracking_number || shipment.id}?`}
+        description="The consignment is called off. Its booking is untouched and still authorizes these lots, so approving it again issues a fresh draft."
+        confirmLabel="Cancel consignment"
+        busy={busy}
+        onCancel={() => setConfirm(null)}
+        onConfirm={doCancel}
+      />
+      <ConfirmDialog
+        open={confirm === 'delete'}
         title={`Delete shipment ${shipment.tracking_number || shipment.id}?`}
         description="The shipment, its PO lots and tracking history will be removed. This cannot be undone."
         confirmLabel="Delete"
         destructive
         busy={busy}
-        onCancel={() => setConfirmDelete(false)}
+        onCancel={() => setConfirm(null)}
         onConfirm={remove}
       />
 
@@ -205,9 +236,21 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
           </Button>
           <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f); e.target.value = ''; }} />
-          <Button size="sm" variant="ghost" disabled={busy} title="Delete shipment" onClick={() => setConfirmDelete(true)}>
-            <Trash2 className="h-4 w-4 text-red-500" />
-          </Button>
+          {/* Cancel calls off a consignment the carrier does not have yet — which in
+              practice means a booking-approved DRAFT, since a vendor types a parcel
+              in after handover and it arrives with a tracking number. The button is
+              therefore absent on the 37 bookingless consignments rather than
+              offered and refused. */}
+          {canCancel && !isCancelled && !handedOver && (
+            <Button size="sm" variant="outline" disabled={busy} onClick={() => setConfirm('cancel')}>
+              <Ban className="h-4 w-4 mr-1.5" /> Cancel consignment
+            </Button>
+          )}
+          {canDelete && (
+            <Button size="sm" variant="ghost" disabled={busy} title="Delete shipment" onClick={() => setConfirm('delete')}>
+              <Trash2 className="h-4 w-4 text-red-500" />
+            </Button>
+          )}
         </div>
         <p className="text-sm text-muted-foreground mt-1">{shipment.courier ?? DASH} · shipped {shipment.ship_date ?? DASH}</p>
       </div>
@@ -350,13 +393,17 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
                 )}
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {/* MoneyInput, not `type="number"` — a number input can't render
+                    group separators, so a four-figure broker bill was a digit
+                    count you had to do by eye. It emits a plain comma-free string,
+                    so `Number(fin.freight)` in saveFinancials() is unchanged. */}
                 <Meta label="Total Freight (USD)" value={editFin
-                  ? <Input type="number" min="0" step="0.01" className="h-8" placeholder="0.00" value={fin.freight}
-                      onChange={(e) => setFin((f) => ({ ...f, freight: e.target.value }))} />
+                  ? <MoneyInput className="h-8" placeholder="0.00" value={fin.freight}
+                      onValueChange={(v) => setFin((f) => ({ ...f, freight: v }))} />
                   : money(shipment.freight)} />
                 <Meta label="Total Duty (USD)" value={editFin
-                  ? <Input type="number" min="0" step="0.01" className="h-8" placeholder="0.00" value={fin.duty}
-                      onChange={(e) => setFin((f) => ({ ...f, duty: e.target.value }))} />
+                  ? <MoneyInput className="h-8" placeholder="0.00" value={fin.duty}
+                      onValueChange={(v) => setFin((f) => ({ ...f, duty: v }))} />
                   : money(shipment.duty)} />
                 <Meta label="Entry Number" value={editFin
                   ? <Input className="h-8" placeholder="Customs entry #" value={fin.customs_entry_number}
@@ -464,7 +511,7 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
                     <div key={scope} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                       <span className="w-full sm:w-40 shrink-0 text-muted-foreground">{scope}</span>
                       {documents.filter((d) => d.scope === scope).sort((a) => (a.doc_type === 'commercial_invoice' ? -1 : 1)).map((d) => (
-                        <a key={d.id} href={docHref(d.file_url)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                        <a key={d.id} href={generatedDocHref('sms', d.id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
                           {d.doc_type === 'commercial_invoice' ? <FileText className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
                           {d.doc_type === 'commercial_invoice' ? 'Commercial Invoice' : 'Packing List'}
                         </a>

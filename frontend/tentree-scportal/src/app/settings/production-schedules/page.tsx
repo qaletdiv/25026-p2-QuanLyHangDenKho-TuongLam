@@ -6,7 +6,7 @@ import { ProductionScheduleSettings } from '@/components/settings/ProductionSche
 
 export default function ProductionSchedulesPage() {
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto pb-20">
+    <div>
       <SettingsHeader
         title="Production Schedule"
         description="Set the per-season delivery cutoffs that grade the KPI report (On Time / At Risk / Late)."

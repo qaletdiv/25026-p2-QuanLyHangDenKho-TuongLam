@@ -59,6 +59,7 @@ export interface PoOrderDetail {
   order_lines: PoOrderLine[];
   legs: MainlineLeg[];
   lifecycle_state: 'forecast' | 'split';
+  approval_status?: PoApprovalStatus;   // NetSuite sign-off (badge on the TRN detail)
 }
 
 // GET /po/legs/:id — one PO leg + the SKU line items the vendor must produce.
@@ -90,6 +91,13 @@ export interface LegShipment {
   crd_actual: string | null;                // per-shipment cargo-ready; ≠ the leg's CRD target
   shipped_qty: number | null;
   shipped_cartons: number | null;
+  // Received against THIS lot, from the shared IR attribution (same resolver as the
+  // ATA and the landed-cost push). NULL — not 0 — when no receipt is attributed:
+  // "not received yet" and "received nothing" are different answers.
+  received_qty: number | null;
+  received_ir: string | null;               // IR document number, e.g. IR65720
+  received_date: string | null;
+  received_confirmed: boolean;              // false = the match is only a suggestion
   status: string | null;
 }
 
@@ -109,6 +117,7 @@ export interface PoLegDetail {
   facility_id: string | null;
   allocation_channel: string | null;
   coo: string | null;
+  approval_status?: PoApprovalStatus;   // NetSuite sign-off (badge on the leg detail)
   crd: string | null;
   etd_pol: string | null;
   e_del: string | null;
@@ -141,8 +150,18 @@ export interface PoLegRow {
   expected_qty: number;
   sku_count: number;
   lifecycle: 'split' | 'forecast';       // 'forecast' = synced PO, not yet air/sea split
+  approval_status: PoApprovalStatus;
   bookable: boolean;
 }
+
+/**
+ * NetSuite's sign-off state for a PO, straight off `approvalstatus`.
+ * `null` = NetSuite has no value (older closed POs) — treated as "no claim", not
+ * as pending. 'Rejected' can no longer reach the portal (R4 in the sync refuses it
+ * and the prune removes it), but the type admits it so a stale row is displayable
+ * rather than silently blank.
+ */
+export type PoApprovalStatus = 'Pending Approval' | 'Approved' | 'Rejected' | null;
 
 // GET /po/:trn/order-intent
 export interface OrderIntent {

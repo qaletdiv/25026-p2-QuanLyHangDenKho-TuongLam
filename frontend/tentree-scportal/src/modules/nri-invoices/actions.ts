@@ -3,10 +3,33 @@
 import { fetchApi } from '@/lib/api';
 import { revalidatePath } from 'next/cache';
 import type {
-  Reconcile, LoadedInvoice, InvoiceDetail, ChargeCode, RateCardRow, CostSummary,
+  Reconcile, LoadedInvoice, InvoiceDetail, ChargeCode, RateCardRow, CostSummary, InvoiceSource,
 } from './types';
 
-const revalidate = () => revalidatePath('/nri-invoices', 'layout');
+const revalidate = () => revalidatePath('/invoices', 'layout');
+
+// ─── Warehouses (the tabs) ───────────────────────────────────────────────────
+export async function getInvoiceSources(): Promise<InvoiceSource[]> {
+  const data = await fetchApi('/nri-invoices/sources');
+  return Array.isArray(data) ? data : [];
+}
+
+/** Register another invoicing warehouse. It arrives as a shell — uploads stay off
+ *  until its detail-file layout is mapped (the server refuses to accept a parser
+ *  flag over HTTP for exactly that reason). */
+export async function addInvoiceSource(input: { label: string; code?: string; entity?: string; facility_id?: string | null }) {
+  const res = await fetchApi('/nri-invoices/sources', { method: 'POST', body: JSON.stringify(input) });
+  if (res?.error) return { error: res.error as string };
+  revalidate();
+  return res as InvoiceSource;
+}
+
+export async function deleteInvoiceSource(code: string) {
+  const res = await fetchApi(`/nri-invoices/sources/${encodeURIComponent(code)}`, { method: 'DELETE' });
+  if (res?.error) return { error: res.error as string };
+  revalidate();
+  return res;
+}
 
 // ─── Master data: the two validators ─────────────────────────────────────────
 export async function getChargeCodes(): Promise<ChargeCode[]> {
@@ -19,18 +42,44 @@ export async function getRateCard(): Promise<RateCardRow[]> {
   return Array.isArray(data) ? data : [];
 }
 
-export async function syncChargeCodes(dryRun = false) {
-  const res = await fetchApi('/nri-invoices/charge-codes/sync', {
-    method: 'POST', body: JSON.stringify({ dry_run: String(dryRun) }),
-  });
+/**
+ * Adopt a coding legend — the basis for every GL on every line.
+ *
+ * `formData` may carry `legend` (an uploaded .xlsx) and `dry_run`. With no file it
+ * falls back to the shared-drive path, which is how it worked before the legend
+ * was configurable from the UI. A dry run reports the file's defects (duplicate
+ * services, trailing-space keys, blank classes, missing GLs) WITHOUT adopting it.
+ */
+export async function syncChargeCodes(formData: FormData) {
+  const res = await fetchApi('/nri-invoices/charge-codes/sync', { method: 'POST', body: formData });
+  if (res?.error) return { error: res.error as string };
+  if (formData.get('dry_run') !== 'true') revalidate();
+  return res;
+}
+
+// ─── Order data: the channel + country source ────────────────────────────────
+export async function getOrderData(warehouse = 'nri-us') {
+  const data = await fetchApi(`/nri-invoices/order-data?warehouse=${encodeURIComponent(warehouse)}`);
+  return (data && !data.error ? data : null) as {
+    entity: string; orders: number; stored_rows: number;
+    covers: { from: string; to: string } | null;
+    sources: { label: string; rows?: number; added?: number; error?: string }[];
+  } | null;
+}
+
+/** Upload the `NRI Order data` sheet or a period CSV. Upserts by order number. */
+export async function uploadOrderData(formData: FormData) {
+  const res = await fetchApi('/nri-invoices/order-data', { method: 'POST', body: formData });
   if (res?.error) return { error: res.error as string };
   revalidate();
   return res;
 }
 
 // ─── Invoices ────────────────────────────────────────────────────────────────
-export async function getInvoices(entity = 'US'): Promise<LoadedInvoice[]> {
-  const data = await fetchApi(`/nri-invoices?entity=${encodeURIComponent(entity)}`);
+// `warehouse` is the tab's URL code ('nri-us'); the server also still accepts a
+// bare entity ('US') for existing callers.
+export async function getInvoices(warehouse = 'nri-us'): Promise<LoadedInvoice[]> {
+  const data = await fetchApi(`/nri-invoices?warehouse=${encodeURIComponent(warehouse)}`);
   return Array.isArray(data) ? data : [];
 }
 
@@ -40,8 +89,8 @@ export async function getInvoice(id: string): Promise<InvoiceDetail | null> {
   return data as InvoiceDetail;
 }
 
-export async function getCostSummary(entity = 'US'): Promise<CostSummary | null> {
-  const data = await fetchApi(`/nri-invoices/summary?entity=${encodeURIComponent(entity)}`);
+export async function getCostSummary(warehouse = 'nri-us'): Promise<CostSummary | null> {
+  const data = await fetchApi(`/nri-invoices/summary?warehouse=${encodeURIComponent(warehouse)}`);
   if (!data || data.error) return null;
   return data as CostSummary;
 }

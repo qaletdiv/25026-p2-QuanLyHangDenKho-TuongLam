@@ -143,7 +143,24 @@ async function getMainlineForecast(req, res) {
   const modeName  = new Map(modes.map((m) => [m.id, m.name]));
   const seasonCode = new Map(seasons.map((s) => [s.id, s.code]));
   const qtyByLeg  = legLines.reduce((m, l) => m.set(l.leg_id, (m.get(l.leg_id) || 0) + (Number(l.allocated_qty) || 0)), new Map());
-  const shipLegsByLeg = shipLegs.reduce((m, j) => { (m[j.leg_id] = m[j.leg_id] || []).push(j); return m; }, {});
+  // ⚠️ A CANCELLED consignment is NOT incoming. Its junction rows are split out
+  // here rather than filtered away, because those units have not vanished — the
+  // booking still authorizes them, so they belong in the unshipped remainder under
+  // the `Booked — Not Shipped` stage below. Leaving them in the shipped pass was
+  // the bug this fixes: SHP-10 was cancelled and its 1,000 units still read
+  // "In Transit" in W43, the only In-Transit row in the whole order book.
+  const cancelledStatusId = await status.idForName('Cancelled');
+  const isCancelledShip = (shipmentId) => (shipById.get(shipmentId) || {}).status_id === cancelledStatusId;
+  const shipLegsByLeg = shipLegs
+    .filter((j) => !isCancelledShip(j.shipment_id))
+    .reduce((m, j) => { (m[j.leg_id] = m[j.leg_id] || []).push(j); return m; }, {});
+  // Units whose consignment was cancelled, per leg. Counted as booked-not-shipped
+  // only while the BOOKING is still approved — cancel the booking too and the units
+  // are genuinely back to unbooked.
+  const cancelledByLeg = new Map();
+  shipLegs.filter((j) => isCancelledShip(j.shipment_id)).forEach((j) => {
+    cancelledByLeg.set(j.leg_id, (cancelledByLeg.get(j.leg_id) || 0) + (Number(j.expected_quantity) || 0));
+  });
 
   // confirmed carton count per (booking_id | leg_id) = distinct ctn_number
   const cartonSets = new Map();
@@ -165,6 +182,14 @@ async function getMainlineForecast(req, res) {
   const pendingLegs = new Set(
     bookingLegs
       .filter((j) => statusName.get((bookingById.get(j.booking_id) || {}).booking_status_id) === 'Booking Pending')
+      .map((j) => j.leg_id));
+  // Legs an APPROVED booking still stands behind. Paired with cancelledByLeg above
+  // this gives the `Booked — Not Shipped` rung: authorized, no consignment carrying
+  // it right now. More confident than Booking Pending (someone has signed it off),
+  // less than In Transit (nothing is moving).
+  const approvedLegs = new Set(
+    bookingLegs
+      .filter((j) => statusName.get((bookingById.get(j.booking_id) || {}).booking_status_id) === 'Booking Approved')
       .map((j) => j.leg_id));
 
   // Week accumulator, keyed "W## - YYYY". A week exists if EITHER series lands
@@ -300,18 +325,33 @@ async function getMainlineForecast(req, res) {
     const rem = legQty - counted;
     if (rem > 0) {
       bucket('actual', planDate, orderFacility, orderChannel, supplier, rem, 0);
+      // The remainder can be TWO different things at once, so it is split rather
+      // than labelled by whichever booking happens to touch the leg: units whose
+      // consignment was cancelled are BOOKED and not shipped, while the rest was
+      // never committed to. Capped at `rem` so a leg that later shipped part of a
+      // cancelled quantity cannot push the split past what is actually left.
+      const bookedNotShipped = approvedLegs.has(leg.id)
+        ? Math.min(cancelledByLeg.get(leg.id) || 0, rem)
+        : 0;
+      const parts = [
+        bookedNotShipped > 0 && { units: bookedNotShipped, stage: 'Booked — Not Shipped' },
+        rem - bookedNotShipped > 0 && {
+          units: rem - bookedNotShipped,
+          stage: pendingLegs.has(leg.id) ? 'Booking Pending' : 'Awaiting Booking',
+        },
+      ].filter(Boolean);
       const wk = weekKeyOf(planDate);
       if (wk) {
-        weekAt(wk.key, wk.weekNo, wk.year).lines.push({
+        for (const part of parts) weekAt(wk.key, wk.weekNo, wk.year).lines.push({
           ...ident,
-          stage: pendingLegs.has(leg.id) ? 'Booking Pending' : 'Awaiting Booking',
+          stage: part.stage,
           date_basis: leg.e_del ? 'leg_e_del' : 'leg_etd_pol',
           shipment_id: null,
           shipment_number: null,
           carrier_reference: null,
           warehouse: orderFacility || 'Unknown',
           channel: orderChannel || 'Unassigned',
-          units: rem,
+          units: part.units,
           cartons: 0,
           actual_date: planDate,
           slip_days: 0,

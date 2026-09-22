@@ -182,11 +182,15 @@ export function UserSettings() {
     {
       key: 'role', label: 'Role',
       accessor: (u) => getEdit(u.id, 'role', u.role),
+      // w-full on the trigger: SelectTrigger is `w-fit` by default, so every row
+      // sized itself to its own value ("Admin" vs "Logistics Coordinator", one
+      // supplier name vs another) and the column read as a ragged stack of
+      // different-width controls. Full width = one edge, set by the column.
       cell: (u) => (u.id === sessionUser?.id ? (
         <Badge variant="outline" className={`text-xs ${roleBadgeClass[u.role] || ''}`}>{u.role}</Badge>
       ) : (
         <Select value={getEdit(u.id, 'role', u.role)} onValueChange={v => setEdit(u.id, 'role', v)}>
-          <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-8 w-full text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             {roleOptions.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
           </SelectContent>
@@ -202,7 +206,7 @@ export function UserSettings() {
           onValueChange={v => setEdit(u.id, 'supplier', v)}
           disabled={u.id === sessionUser?.id}
         >
-          <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Select supplier" /></SelectTrigger>
+          <SelectTrigger className="h-8 w-full text-sm"><SelectValue placeholder="Select supplier" /></SelectTrigger>
           <SelectContent>
             {suppliers.map((s: any) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
           </SelectContent>

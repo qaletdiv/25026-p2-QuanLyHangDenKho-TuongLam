@@ -1,6 +1,45 @@
-# NRI 3PL invoice verification (`/nri-invoices`)
+# 3PL invoice verification — All Invoices (`/nri-invoices` API, `/invoices` UI)
 
-Replaces the `NRI US_ALL Invoices 2026.xlsx` Power Query workbook. **US only** so far.
+Replaces the `NRI US_ALL Invoices 2026.xlsx` Power Query workbook.
+
+## One tab per invoicing WAREHOUSE (2026-09-10)
+
+The section was called "NRI Invoices" with NRI US hardcoded, which named one
+vendor after the whole capability — and every warehouse sends a differently-built
+invoice workbook. Which warehouses exist is now DATA:
+`data/nri/nri_invoice_sources.json`, one row per warehouse = one tab under
+**All Invoices** (`/invoices/<code>`, e.g. `/invoices/nri-us`).
+
+| field | meaning |
+|---|---|
+| `code` | URL segment (`nri-us`) |
+| `label` | what the tab says (`NRI US`) |
+| `entity` | the key the REST of the module already turns on — `nri_charge_codes.class_us`/`class_ca`, the entity-keyed rate card, `lineClass`, the `nri_<entity>_<invoice_no>` id |
+| `facility_id` | optional link to `warehouse_facilities` |
+| `parser` | which detail-file layout to read the workbook with. **NULL = none mapped** |
+| `upload_enabled` | false while `parser` is null |
+| `note` | why uploads are off — shown on that warehouse's page |
+
+`parser: null` is the important part. A warehouse registered through the UI is a
+**shell**: its tab, invoice list and slice of the legend/rate card exist at once,
+but uploads are refused *with the reason* rather than parsed with somebody else's
+layout — registering a warehouse cannot invent a reader for a format nobody has
+seen, and guessing one loads misread charges into the GL. `POST /sources`
+deliberately does not accept `parser`/`upload_enabled`: enabling a warehouse means
+mapping its layout in code.
+
+This replaced `if (entity !== 'US') return 400` in `preview`/`create`, so adding a
+warehouse is no longer a code change. `?warehouse=<code>` is accepted everywhere
+`?entity=<US>` was, and the old form still works.
+
+**NRI CA is registered but shelved on purpose** — its workbook is built
+differently (`Summary_Coded` plus its own *diverged* embedded legend, 60 rows
+against the master's 61) and no raw CA file has been checked. The legend and rate
+card already hold CA columns, so CA invoices will code and validate the moment the
+layout is mapped.
+
+Removing a warehouse is refused while it holds invoices (they key on `entity`, so
+it would orphan them).
 
 **Additive & isolated.** Owns `data/nri/*` and reads nothing from `sms_*`,
 `mainline_*` or `po_*`. Mounted with one line in `server.js`; one nav entry in the
@@ -42,12 +81,36 @@ here.
 
 ## Flow
 
+Two lookups are CONFIGURED once (Setup, `/invoices/<warehouse>/setup`), then each
+invoice runs through the same four steps:
+
 ```
-upload (detail + pdf) -> POST /preview   reconcile, save NOTHING
-                      -> POST /          commit; 422 unless the tie-out balances (force=true to override)
-                      -> PUT  /:inv/lines/:seq   per-line human decision
-                      -> POST /:id/submit        freeze; refuses while any value-bearing line is uncoded
+1. legend      POST /charge-codes/sync   (multipart `legend`=xlsx, or a path, or the shared drive)
+               `dry_run=true` reports the file's defects WITHOUT adopting it
+2. order data  POST /order-data          (multipart `file`=the `NRI Order data` sheet or a period CSV)
+               UPSERTS by order #, so a later period tops the master up
+3. invoice     POST /preview   reconcile, save NOTHING
+               POST /          commit; 422 unless the tie-out balances (force=true to override)
+4. exceptions  PUT  /:inv/lines/:seq   per-line human decision
+               POST /:id/submit        freeze; refuses while any value-bearing line is uncoded
 ```
+
+**Why 1 and 2 are both required, and what each answers.** The legend fixes the GL
+per SERVICE. The class is a property of the ORDER, and no invoice line states the
+channel or the ship-to country — those come from the order master (`OrderType`,
+`Ship To Country`), joined on `Client Ref 1` → `Order #`. Without step 2 the GL is
+right and the class is `null`, which is a flag, never a guess. Both inputs used to
+be read off a mapped `G:` drive; both can now be uploaded, so the pipeline runs on
+any machine.
+
+**The result is the workbook's `Pivot` tab**: rows = GL + description, columns =
+class, values = Σ Charges, grand totals both ways (`GlClassPivot`, computed from
+the lines so an override moves it immediately). Anything uncoded sits in its own
+**Needs coding** column — in the grand total, so the total always equals the
+invoice, but never folded into a real class. Measured on invoice 48872: grand total
+$39,511.77 = Σ Charges = the PDF SubTotal, with $5,487.73 across 1,444 lines
+flagged; coding one $1.70 line moved exactly $1.70 out of Needs coding into
+`US - Whsle` and left the grand total untouched.
 
 Re-uploading an invoice **replaces its lines wholesale**, never appends.
 
@@ -200,10 +263,13 @@ lands past it. NRI has already moved the banner once.
 
 ## Not done
 
-- **CA.** Its workbook is built differently (`Summary_Coded`, its own *diverged*
-  embedded legend — 60 rows vs the master's 61, and `Transfer Order fulfillment &
-  receipt` differs). `POST /preview` rejects `entity=CA` until a raw CA invoice
-  file has been checked.
+- **CA's file layout.** Its workbook is built differently (`Summary_Coded`, its own
+  *diverged* embedded legend — 60 rows vs the master's 61, and `Transfer Order
+  fulfillment & receipt` differs). It is registered as a warehouse with
+  `parser: null`, so its tab and list are live and `POST /preview` refuses uploads
+  with that reason until a raw CA invoice file has been checked. Mapping it means
+  adding its layout to `invoiceParser` and setting `parser` + `upload_enabled` on
+  its registry row.
 - **Credit memos.** NRI issues them as numbered invoices with negative amounts
   (e.g. 39646 −$52.40). The parser sets `is_credit`, but no credit has been loaded
   and 2026 has none on file — so the loaded total is gross.

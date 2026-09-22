@@ -72,12 +72,20 @@ router.get('/shipments',                    asyncWrap(shipmentController.getAll)
 router.post('/shipments',      requirePermission('shipments'), validate(schemas.shipmentCreate), asyncWrap(shipmentController.create));
 router.get('/shipments/:id',                asyncWrap(shipmentController.getOne));
 router.put('/shipments/:id',   requirePermission('shipment_update_status', 'shipments'), validate(schemas.shipmentUpdate), asyncWrap(shipmentController.update));
+// Cancel calls off a consignment that has not been handed to the carrier — in
+// practice a booking-approved DRAFT, since a vendor-entered parcel is typed after
+// handover and carries a tracking number. `shipment_update_status` only (NOT
+// `shipments`), because unlike the PUT above this is not part of the vendor's
+// self-service: it is logistics deciding the consignment is off.
+router.post('/shipments/:id/cancel', requirePermission('shipment_update_status'), asyncWrap(shipmentController.cancel));
 router.delete('/shipments/:id', requirePermission('shipment_delete'), asyncWrap(shipmentController.remove));
 
 // Shipping data — vendor uploads one packing Excel per consignment → carton × SKU
 // detail + generated CI/packing-list documents (combined + per-PO).
 router.post('/shipments/:id/shipping-data', requirePermission('shipment_import_export', 'shipments'), upload.single('file'), asyncWrap(packingController.uploadShippingData));
 router.get('/shipments/:id/documents', asyncWrap(packingController.getDocuments));
+// The file itself — REBUILT from current master data, not streamed off disk.
+router.get('/documents/:docId/file', asyncWrap(packingController.downloadDocument));
 
 // Item Receipt LINES sync from NetSuite (smsNetsuiteSync writes sms_item_receipts
 // /_lines) and feed the PO detail's reconciliation (smsService.reconcilePo) — no
