@@ -1,0 +1,296 @@
+[
+  {
+    "trnNumber": "TRN_2099",
+    "supplierId": "14",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "31604610"
+  },
+  {
+    "trnNumber": "TRN_2097",
+    "supplierId": "15",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "31604613"
+  },
+  {
+    "trnNumber": "TRN_1267",
+    "supplierId": "3",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "32399773"
+  },
+  {
+    "trnNumber": "TRN_1256",
+    "supplierId": "14",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "31604617"
+  },
+  {
+    "trnNumber": "TRN_1257",
+    "supplierId": "14",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "31604618"
+  },
+  {
+    "trnNumber": "TRN_1259",
+    "supplierId": "9",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "32399801"
+  },
+  {
+    "trnNumber": "TRN_1262",
+    "supplierId": "17",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "32399790"
+  },
+  {
+    "trnNumber": "TRN_1260",
+    "supplierId": "18",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "32399791"
+  },
+  {
+    "trnNumber": "TRN_1261",
+    "supplierId": "13",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "32399793"
+  },
+  {
+    "trnNumber": "TRN_1258",
+    "supplierId": "5",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "32399772"
+  },
+  {
+    "trnNumber": "TRN_1263",
+    "supplierId": "10",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "32399774"
+  },
+  {
+    "trnNumber": "TRN_5050",
+    "supplierId": "10",
+    "seasonId": "season_1",
+    "mainShoulder": "Main + Shoulder",
+    "netsuiteId": "32132862"
+  },
+  {
+    "trnNumber": "TRN_2100",
+    "supplierId": "14",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "32262015"
+  },
+  {
+    "trnNumber": "TRN_2102",
+    "supplierId": "3",
+    "seasonId": "season_1",
+    "mainShoulder": "Shoulder",
+    "netsuiteId": "32262016"
+  },
+  {
+    "trnNumber": "TRN_5051",
+    "supplierId": "20",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "32262017"
+  },
+  {
+    "trnNumber": "TRN_5053",
+    "supplierId": "18",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "32262019"
+  },
+  {
+    "trnNumber": "TRN_5055",
+    "supplierId": "5",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "32326557"
+  },
+  {
+    "trnNumber": "TRN_1255",
+    "supplierId": "15",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": "32399794"
+  },
+  {
+    "trnNumber": "TRN_2103",
+    "supplierId": "15",
+    "seasonId": "season_1",
+    "mainShoulder": "-",
+    "netsuiteId": "33092088"
+  },
+  {
+    "trnNumber": "TRN_1266",
+    "supplierId": "8",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": null
+  },
+  {
+    "trnNumber": "TRN_1265",
+    "supplierId": "16",
+    "seasonId": "season_1",
+    "mainShoulder": "Main + Shoulder",
+    "netsuiteId": null
+  },
+  {
+    "trnNumber": "TRN_1264",
+    "supplierId": "7",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": null
+  },
+  {
+    "trnNumber": "TRN_2101",
+    "supplierId": "15",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": null
+  },
+  {
+    "trnNumber": "TRN_5052",
+    "supplierId": "15",
+    "seasonId": "season_1",
+    "mainShoulder": "Main + Shoulder",
+    "netsuiteId": null
+  },
+  {
+    "trnNumber": "TRN_2098",
+    "supplierId": "16",
+    "seasonId": "season_1",
+    "mainShoulder": "Main",
+    "netsuiteId": null
+  },
+  {
+    "trnNumber": "TRN_1280",
+    "supplierId": "3",
+    "seasonId": "season_ss27",
+    "mainShoulder": null,
+    "netsuiteId": "33614215"
+  },
+  {
+    "trnNumber": "TRN_1268",
+    "supplierId": "15",
+    "seasonId": "season_ss27",
+    "mainShoulder": null,
+    "netsuiteId": "34129086"
+  },
+  {
+    "trnNumber": "TRN_1269",
+    "supplierId": "14",
+    "seasonId": "season_ss27",
+    "mainShoulder": null,
+    "netsuiteId": "33616316"
+  },
+  {
+    "trnNumber": "TRN_1271",
+    "supplierId": "5",
+    "seasonId": "season_ss27",
+    "mainShoulder": null,
+    "netsuiteId": "33616317"
+  },
+  {
+    "trnNumber": "TRN_1272",
+    "supplierId": "20",
+    "seasonId": "season_ss27",
+    "mainShoulder": null,
+    "netsuiteId": "33616816"
+  },
+  {
+    "trnNumber": "TRN_1273",
+    "supplierId": "9",
+    "seasonId": "season_ss27",
+    "mainShoulder": null,
+    "netsuiteId": "34119347"
+  },
+  {
+    "trnNumber": "TRN_1274",
+    "supplierId": "18",
+    "seasonId": "season_ss27",
+    "mainShoulder": null,
+    "netsuiteId": "34122065"
+  },
+  {
+    "trnNumber": "TRN_1275",
+    "supplierId": "13",
+    "seasonId": "season_ss27",
+    "mainShoulder": null,
+    "netsuiteId": "33616819"
+  },
+  {
+    "trnNumber": "TRN_1276",
+    "supplierId": "17",
+    "seasonId": "season_ss27",
+    "mainShoulder": null,
+    "netsuiteId": "33616820"
+  },
+  {
+    "trnNumber": "TRN_1277",
+    "supplierId": "7",
+    "seasonId": "season_ss27",
+    "mainShoulder": null,
+    "netsuiteId": "33616821"
+  },
+  {
+    "trnNumber": "TRN_1278",
+    "supplierId": "16",
+    "seasonId": "season_ss27",
+    "mainShoulder": null,
+    "netsuiteId": "33617416"
+  },
+  {
+    "trnNumber": "TRN_1279",
+    "supplierId": "8",
+    "seasonId": "season_ss27",
+    "mainShoulder": null,
+    "netsuiteId": "34121557"
+  },
+  {
+    "trnNumber": "TRN_5057",
+    "supplierId": null,
+    "seasonId": "season_1",
+    "mainShoulder": null,
+    "netsuiteId": "33624087"
+  },
+  {
+    "trnNumber": "TRN_5058",
+    "supplierId": null,
+    "seasonId": "season_1",
+    "mainShoulder": null,
+    "netsuiteId": "33624088"
+  },
+  {
+    "trnNumber": "TRN_1281",
+    "supplierId": "uxhnuqsv3",
+    "seasonId": "season_1",
+    "mainShoulder": null,
+    "netsuiteId": "33640702"
+  },
+  {
+    "trnNumber": "TRN_5059",
+    "supplierId": "10",
+    "seasonId": "season_1",
+    "mainShoulder": null,
+    "netsuiteId": "33759582"
+  },
+  {
+    "trnNumber": "TRN_5060",
+    "supplierId": "15",
+    "seasonId": "season_1",
+    "mainShoulder": null,
+    "netsuiteId": "33832831"
+  }
+]

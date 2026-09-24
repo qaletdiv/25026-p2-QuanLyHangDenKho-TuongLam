@@ -16,7 +16,7 @@
  *
  * SAFE TO RE-RUN. Read-only against NetSuite. It NEVER removes: a receipt whose PO
  * was not in the query scope, a `source: 'manual'` row (a human's override, which
- * may deliberately point at another PO's IR), or a row with no netsuite_ir_id.
+ * may deliberately point at another PO's IR), or a row with no netsuiteIrId.
  * A removed row that carried a CONFIRMED match is reported loudly — a confirmation
  * pointing at a deleted IR asserts a receipt that does not exist.
  *
@@ -29,8 +29,8 @@
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const integrationService = require('../services/integrationService');
 const { pruneStaleReceipts } = require('../utils/pruneStaleReceipts');
-const BaseModel = require('../models/BaseModel');
-const { atomically, shutdown } = require('../db/tx');
+const { models } = require('../models');
+const { atomically, shutdown } = require('../database/tx');
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const MODULE = (process.argv.find((a) => a.startsWith('--module=')) || '--module=both').split('=')[1];
@@ -39,7 +39,7 @@ const MODULE = (process.argv.find((a) => a.startsWith('--module=')) || '--module
 // whatever DATA_BACKEND the portal is actually running on. Reading data/ with fs
 // after the Postgres migration would operate on the frozen pre-migration
 // snapshot and report a clean prune the live portal never received.
-const model = (f) => new BaseModel(`migrated/${f}`);
+const model = (f) => models[f.replace(/.json$/, '')];
 const read = (f) => model(f).read();
 const write = (f, data) => model(f).write(data);
 
@@ -61,14 +61,14 @@ const MODULES = {
 };
 
 async function run(cfg) {
-  const pos = (await read(cfg.posFile)).filter((p) => p.netsuite_id && p.po_number);
+  const pos = (await read(cfg.posFile)).filter((p) => p.netsuiteId && p.poNumber);
   const receipts = await read(cfg.receiptsFile);
   const lines = await read(cfg.linesFile);
   console.log(`\n=== ${cfg.label} ===`);
   console.log(`POs with a NetSuite id: ${pos.length} | stored receipts: ${receipts.length}`);
   if (!pos.length) { console.log('nothing to ask NetSuite about — skipped'); return; }
 
-  const nsReceipts = await integrationService.fetchNetSuiteItemReceipts(pos.map((p) => p.netsuite_id));
+  const nsReceipts = await integrationService.fetchNetSuiteItemReceipts(pos.map((p) => p.netsuiteId));
   if (!nsReceipts.length) {
     // Refuse to interpret "no answer" as "everything is deleted".
     console.error('NetSuite returned NO receipts for these POs — treating that as an error, not as "all deleted". Nothing written.');
@@ -76,11 +76,11 @@ async function run(cfg) {
     return;
   }
   const out = pruneStaleReceipts({
-    nsReceipts, queriedPoNumbers: new Set(pos.map((p) => p.po_number)), receipts, receiptLines: lines,
+    nsReceipts, queriedPoNumbers: new Set(pos.map((p) => p.poNumber)), receipts, receiptLines: lines,
   });
   console.log(`NetSuite has ${nsReceipts.length} | stale here: ${out.removed.length}`);
   out.removed.forEach((r) => console.log(
-    `  remove ${r.ir.padEnd(9)} ${r.po_number}${r.was_confirmed ? '   ⚠ CARRIED A CONFIRMED MATCH' : ''}`,
+    `  remove ${r.ir.padEnd(9)} ${r.poNumber}${r.was_confirmed ? '   ⚠ CARRIED A CONFIRMED MATCH' : ''}`,
   ));
   if (!out.removed.length) { console.log('already in step with NetSuite. No file written.'); return; }
   console.log(`receipts ${receipts.length} → ${out.receipts.length} | lines ${lines.length} → ${out.receiptLines.length}`);

@@ -50,7 +50,7 @@ async function _ctx() {
   return {
     bookings, bookingPos, shipments, shipmentPos, pos, poLines, suppliers, incoterms, seasons, facilities, couriers, modes,
     idToStatusName: new Map(statuses.map((s) => [s.id, s.name])),
-    poByNumber: new Map(pos.map((p) => [p.po_number, p])),
+    poByNumber: new Map(pos.map((p) => [p.poNumber, p])),
   };
 }
 
@@ -65,10 +65,10 @@ const _enrichOne = (b, c) => svc.enrichBookings([b], { ...c })[0];
 // The `!rows.length` guard matters: `[].every(...)` is `true`, so without it a
 // booking carrying NO junction rows would read as owned by EVERY vendor.
 function _vendorOwnsBooking(bookingId, c, vendorSupplierId) {
-  const rows = c.bookingPos.filter((bp) => bp.booking_id === bookingId);
+  const rows = c.bookingPos.filter((bp) => bp.bookingId === bookingId);
   if (!rows.length) return false;
   return rows.every((bp) =>
-    String((c.poByNumber.get(bp.po_number) || {}).supplier_id) === String(vendorSupplierId));
+    String((c.poByNumber.get(bp.poNumber) || {}).supplierId) === String(vendorSupplierId));
 }
 
 function _assertVendorOwns(bookingId, c, vendorSupplierId) {
@@ -79,25 +79,25 @@ function _assertVendorOwns(bookingId, c, vendorSupplierId) {
 }
 
 // Shared validation for create/update: PO refs, G1, G3, lot conflicts, G2.
-// Returns { entries } with lot_number resolved, or responds 409 for soft overbook.
+// Returns { entries } with lotNumber resolved, or responds 409 for soft overbook.
 function _validateEntries(entries, c, { supplierId, vendorSupplierId, excludeBookingId = null, force }) {
   const seen = new Set();
   for (const e of entries) {
-    const key = `${e.po_number}|${e.lot_number ?? 'auto'}`;
-    if (seen.has(key)) err(`Duplicate PO '${e.po_number}' in one booking — combine the units`, 400);
+    const key = `${e.poNumber}|${e.lotNumber ?? 'auto'}`;
+    if (seen.has(key)) err(`Duplicate PO '${e.poNumber}' in one booking — combine the units`, 400);
     seen.add(key);
-    if (!c.poByNumber.has(e.po_number)) err(`'${e.po_number}' is not an SMS PO`, 400);
-    if (vendorSupplierId && (c.poByNumber.get(e.po_number) || {}).supplier_id !== vendorSupplierId) {
-      err(`'${e.po_number}' belongs to a different supplier — you can only book your own POs`, 403);
+    if (!c.poByNumber.has(e.poNumber)) err(`'${e.poNumber}' is not an SMS PO`, 400);
+    if (vendorSupplierId && (c.poByNumber.get(e.poNumber) || {}).supplierId !== vendorSupplierId) {
+      err(`'${e.poNumber}' belongs to a different supplier — you can only book your own POs`, 403);
     }
   }
 
-  const poNumbers = entries.map((e) => e.po_number);
+  const poNumbers = entries.map((e) => e.poNumber);
 
   // G1 — one supplier per booking
   const g1 = svc.checkSupplierMatch(poNumbers, supplierId, c.poByNumber);
   if (!g1.ok) {
-    err(`These POs do not belong to the booking's supplier: ${g1.offending.map((o) => o.po_number).join(', ')}`, 400);
+    err(`These POs do not belong to the booking's supplier: ${g1.offending.map((o) => o.poNumber).join(', ')}`, 400);
   }
 
   // G3 — one destination facility
@@ -109,7 +109,7 @@ function _validateEntries(entries, c, { supplierId, vendorSupplierId, excludeBoo
   // lot conflicts — HARD (double-authorizing the same goods is never intended)
   const conflicts = svc.lotConflicts(entries, c.bookings, c.bookingPos, c.idToStatusName, { excludeBookingId });
   if (conflicts.length) {
-    err(`Already booked: ${conflicts.map((x) => `${x.po_number} lot ${x.lot_number} (on ${x.booking_number})`).join(', ')}`, 409);
+    err(`Already booked: ${conflicts.map((x) => `${x.poNumber} lot ${x.lotNumber} (on ${x.bookingNumber})`).join(', ')}`, 409);
   }
 
   // G2 — soft overbooking
@@ -122,11 +122,11 @@ function _validateEntries(entries, c, { supplierId, vendorSupplierId, excludeBoo
   // resolve lots — pinned value wins, else next free past shipped AND booked
   const taken = new Map();
   const resolved = entries.map((e) => {
-    if (e.lot_number != null) return { ...e, lot_number: Number(e.lot_number) };
-    const base = svc.nextLotForPo(e.po_number, { shipmentPos: c.shipmentPos, bookingPos: c.bookingPos });
-    const bump = taken.get(e.po_number) || 0;
-    taken.set(e.po_number, bump + 1);
-    return { ...e, lot_number: base + bump };
+    if (e.lotNumber != null) return { ...e, lotNumber: Number(e.lotNumber) };
+    const base = svc.nextLotForPo(e.poNumber, { shipmentPos: c.shipmentPos, bookingPos: c.bookingPos });
+    const bump = taken.get(e.poNumber) || 0;
+    taken.set(e.poNumber, bump + 1);
+    return { ...e, lotNumber: base + bump };
   });
   return { entries: resolved };
 }
@@ -139,7 +139,7 @@ async function getAll(req, res) {
   const [vendorSupplierId, c] = await Promise.all([_readScope(req), _ctx()]);
   let out = svc.enrichBookings(c.bookings, { ...c });
   if (vendorSupplierId != null) {
-    out = out.filter((b) => String(b.supplier_id) === String(vendorSupplierId));
+    out = out.filter((b) => String(b.supplierId) === String(vendorSupplierId));
   }
   res.json(out);
 }
@@ -160,42 +160,42 @@ async function getOne(req, res) {
 async function create(req, res) {
   const vendorSupplierId = await _vendorSupplierId(req.user);
   const c = await _ctx();
-  const { supplier_id, incoterm_id, courier_id, mode_id, cargo_ready_date, pos: entries, force_overbook } = req.body;
+  const { supplierId, incotermId, courierId, modeId, cargoReadyDate, pos: entries, force_overbook } = req.body;
 
-  if (!c.suppliers.some((s) => s.id === supplier_id)) err(`Unknown supplier_id '${supplier_id}'`, 400);
-  if (vendorSupplierId && supplier_id !== vendorSupplierId) {
+  if (!c.suppliers.some((s) => s.id === supplierId)) err(`Unknown supplierId '${supplierId}'`, 400);
+  if (vendorSupplierId && supplierId !== vendorSupplierId) {
     err('You can only create bookings for your own supplier', 403);
   }
-  if (incoterm_id && !c.incoterms.some((i) => i.id === incoterm_id)) err(`Unknown incoterm_id '${incoterm_id}'`, 400);
-  if (!c.couriers.some((cr) => cr.id === courier_id)) err(`Unknown courier_id '${courier_id}'`, 400);
-  if (!c.modes.some((m) => m.id === mode_id)) err(`Unknown mode_id '${mode_id}'`, 400);
+  if (incotermId && !c.incoterms.some((i) => i.id === incotermId)) err(`Unknown incotermId '${incotermId}'`, 400);
+  if (!c.couriers.some((cr) => cr.id === courierId)) err(`Unknown courierId '${courierId}'`, 400);
+  if (!c.modes.some((m) => m.id === modeId)) err(`Unknown modeId '${modeId}'`, 400);
 
-  const checked = _validateEntries(entries, c, { supplierId: supplier_id, vendorSupplierId, force: force_overbook });
+  const checked = _validateEntries(entries, c, { supplierId: supplierId, vendorSupplierId, force: force_overbook });
   if (checked.overbook) return res.status(409).json({ overbook_warning: true, warnings: checked.overbook });
 
-  const seq = c.bookings.reduce((mx, b) => Math.max(mx, Number(String(b.booking_number).replace(/^SMS-B-/, '')) || 0), 0) + 1;
+  const seq = c.bookings.reduce((mx, b) => Math.max(mx, Number(String(b.bookingNumber).replace(/^SMS-B-/, '')) || 0), 0) + 1;
   const id = `smsbk_${seq}`;
   const booking = {
     id,
-    booking_number: `SMS-B-${seq}`,
-    supplier_id,
-    incoterm_id: incoterm_id || null,
+    bookingNumber: `SMS-B-${seq}`,
+    supplierId,
+    incotermId: incotermId || null,
     // planned carrier + mode — copied onto the draft shipment at approve
-    courier_id,
-    mode_id,
-    cargo_ready_date: cargo_ready_date || null,
-    booking_status_id: STATUS.pending,
-    submitted_at: new Date().toISOString(),
-    approved_at: null,
+    courierId,
+    modeId,
+    cargoReadyDate: cargoReadyDate || null,
+    bookingStatusId: STATUS.pending,
+    submittedAt: new Date().toISOString(),
+    approvedAt: null,
   };
   const junctions = checked.entries.map((e, i) => ({
     id: `smsbp_${id}_${i + 1}`,
-    booking_id: id,
-    po_number: e.po_number,
-    lot_number: e.lot_number,
+    bookingId: id,
+    poNumber: e.poNumber,
+    lotNumber: e.lotNumber,
     units: Number(e.units),
     cartons: e.cartons != null ? Number(e.cartons) : null,
-    weight_kg: e.weight_kg != null ? Number(e.weight_kg) : null,
+    weightKg: e.weightKg != null ? Number(e.weightKg) : null,
     cbm: e.cbm != null ? Number(e.cbm) : null,
   }));
 
@@ -214,43 +214,43 @@ async function update(req, res) {
   const booking = c.bookings[idx];
   _assertVendorOwns(booking.id, c, vendorSupplierId);
 
-  if (c.idToStatusName.get(booking.booking_status_id) !== 'Booking Pending') {
-    err(`Only a Pending booking can be edited — this one is ${c.idToStatusName.get(booking.booking_status_id)}`, 400);
+  if (c.idToStatusName.get(booking.bookingStatusId) !== 'Booking Pending') {
+    err(`Only a Pending booking can be edited — this one is ${c.idToStatusName.get(booking.bookingStatusId)}`, 400);
   }
-  if (req.body.incoterm_id && !c.incoterms.some((i) => i.id === req.body.incoterm_id)) {
-    err(`Unknown incoterm_id '${req.body.incoterm_id}'`, 400);
+  if (req.body.incotermId && !c.incoterms.some((i) => i.id === req.body.incotermId)) {
+    err(`Unknown incotermId '${req.body.incotermId}'`, 400);
   }
-  if (req.body.courier_id !== undefined && !c.couriers.some((cr) => cr.id === req.body.courier_id)) {
-    err(`Unknown courier_id '${req.body.courier_id}'`, 400);
+  if (req.body.courierId !== undefined && !c.couriers.some((cr) => cr.id === req.body.courierId)) {
+    err(`Unknown courierId '${req.body.courierId}'`, 400);
   }
-  if (req.body.mode_id !== undefined && !c.modes.some((m) => m.id === req.body.mode_id)) {
-    err(`Unknown mode_id '${req.body.mode_id}'`, 400);
+  if (req.body.modeId !== undefined && !c.modes.some((m) => m.id === req.body.modeId)) {
+    err(`Unknown modeId '${req.body.modeId}'`, 400);
   }
 
   const next = { ...booking };
-  if (req.body.incoterm_id !== undefined) next.incoterm_id = req.body.incoterm_id || null;
-  if (req.body.courier_id !== undefined) next.courier_id = req.body.courier_id;
-  if (req.body.mode_id !== undefined) next.mode_id = req.body.mode_id;
-  if (req.body.cargo_ready_date !== undefined) next.cargo_ready_date = req.body.cargo_ready_date || null;
+  if (req.body.incotermId !== undefined) next.incotermId = req.body.incotermId || null;
+  if (req.body.courierId !== undefined) next.courierId = req.body.courierId;
+  if (req.body.modeId !== undefined) next.modeId = req.body.modeId;
+  if (req.body.cargoReadyDate !== undefined) next.cargoReadyDate = req.body.cargoReadyDate || null;
 
   let junctions = c.bookingPos;
   if (Array.isArray(req.body.pos)) {
     const checked = _validateEntries(req.body.pos, c, {
-      supplierId: booking.supplier_id, vendorSupplierId,
+      supplierId: booking.supplierId, vendorSupplierId,
       excludeBookingId: booking.id, force: req.body.force_overbook,
     });
     if (checked.overbook) return res.status(409).json({ overbook_warning: true, warnings: checked.overbook });
     // replace this booking's junction wholesale (add/remove/edit in one shot)
     junctions = [
-      ...c.bookingPos.filter((bp) => bp.booking_id !== booking.id),
+      ...c.bookingPos.filter((bp) => bp.bookingId !== booking.id),
       ...checked.entries.map((e, i) => ({
         id: `smsbp_${booking.id}_${i + 1}`,
-        booking_id: booking.id,
-        po_number: e.po_number,
-        lot_number: e.lot_number,
+        bookingId: booking.id,
+        poNumber: e.poNumber,
+        lotNumber: e.lotNumber,
         units: Number(e.units),
         cartons: e.cartons != null ? Number(e.cartons) : null,
-        weight_kg: e.weight_kg != null ? Number(e.weight_kg) : null,
+        weightKg: e.weightKg != null ? Number(e.weightKg) : null,
         cbm: e.cbm != null ? Number(e.cbm) : null,
       })),
     ];
@@ -275,21 +275,21 @@ async function approve(req, res) {
   const idx = c.bookings.findIndex((b) => b.id === req.params.id);
   if (idx < 0) err('SMS booking not found', 404);
   const booking = c.bookings[idx];
-  const statusName = c.idToStatusName.get(booking.booking_status_id);
+  const statusName = c.idToStatusName.get(booking.bookingStatusId);
   if (statusName !== 'Booking Pending') err(`Only a Pending booking can be approved — this one is ${statusName}`, 400);
 
-  const myPos = c.bookingPos.filter((bp) => bp.booking_id === booking.id);
+  const myPos = c.bookingPos.filter((bp) => bp.bookingId === booking.id);
   if (!myPos.length) err('This booking has no POs', 400);
 
   // a lot already shipped cannot be authorized retroactively
-  const shipped = myPos.filter((bp) => c.shipmentPos.some((j) => j.po_number === bp.po_number && j.lot_number === bp.lot_number));
+  const shipped = myPos.filter((bp) => c.shipmentPos.some((j) => j.poNumber === bp.poNumber && j.lotNumber === bp.lotNumber));
   if (shipped.length) {
-    err(`Already shipped, cannot approve: ${shipped.map((s) => `${s.po_number} lot ${s.lot_number}`).join(', ')}`, 409);
+    err(`Already shipped, cannot approve: ${shipped.map((s) => `${s.poNumber} lot ${s.lotNumber}`).join(', ')}`, 409);
   }
 
   // group the booked lots by destination facility → one draft shipment each
   const byFacility = myPos.reduce((m, bp) => {
-    const fac = (c.poByNumber.get(bp.po_number) || {}).facility_id || null;
+    const fac = (c.poByNumber.get(bp.poNumber) || {}).facilityId || null;
     (m[fac ?? '__none'] = m[fac ?? '__none'] || []).push(bp);
     return m;
   }, {});
@@ -300,11 +300,11 @@ async function approve(req, res) {
   // as COURIER unconditionally, sent the wrong shipping method to NetSuite.
   // A booking predating those fields is refused rather than defaulted: it is
   // Pending-editable, so the fix is to set the carrier/mode on the booking.
-  if (!booking.courier_id || !booking.mode_id) {
+  if (!booking.courierId || !booking.modeId) {
     err('This booking has no carrier/mode set — edit the booking and pick them before approving', 400);
   }
-  if (!c.couriers.some((cr) => cr.id === booking.courier_id)) err(`Unknown courier_id '${booking.courier_id}' on this booking`, 400);
-  if (!c.modes.some((m) => m.id === booking.mode_id)) err(`Unknown mode_id '${booking.mode_id}' on this booking`, 400);
+  if (!c.couriers.some((cr) => cr.id === booking.courierId)) err(`Unknown courierId '${booking.courierId}' on this booking`, 400);
+  if (!c.modes.some((m) => m.id === booking.modeId)) err(`Unknown modeId '${booking.modeId}' on this booking`, 400);
 
   let nextId = c.shipments.reduce((mx, s) => Math.max(mx, Number(s.id) || 0), 0);
   const newShipments = [];
@@ -314,31 +314,31 @@ async function approve(req, res) {
     const id = String(++nextId);
     newShipments.push({
       id,
-      courier_id: booking.courier_id,              // the PLANNED carrier, not a default
-      mode_id: booking.mode_id,                    // drives NS custbody16 on the landed-cost push
-      tracking_number: null,                       // DRAFT — filled in when it ships
-      ship_date: null,
-      facility_id: facKey === '__none' ? null : facKey,
-      manual_status_id: 'sms_label_created',
-      created_by: req.user?.id || null,
-      created_at: new Date().toISOString(),
-      booking_id: booking.id,
-      customs_entry_number: null,
+      courierId: booking.courierId,              // the PLANNED carrier, not a default
+      modeId: booking.modeId,                    // drives NS custbody16 on the landed-cost push
+      trackingNumber: null,                       // DRAFT — filled in when it ships
+      shipDate: null,
+      facilityId: facKey === '__none' ? null : facKey,
+      manualStatusId: 'sms_label_created',
+      createdBy: req.user?.id || null,
+      createdAt: new Date().toISOString(),
+      bookingId: booking.id,
+      customsEntryNumber: null,
       duty: null,
       freight: null,
     });
     rows.forEach((bp) => newJunctions.push({
-      id: `spo_${id}_${bp.po_number}`,
-      shipment_id: id,
-      po_number: bp.po_number,
-      lot_number: bp.lot_number,                   // the BOOKED lot ships as that lot
+      id: `spo_${id}_${bp.poNumber}`,
+      shipmentId: id,
+      poNumber: bp.poNumber,
+      lotNumber: bp.lotNumber,                   // the BOOKED lot ships as that lot
       units: Number(bp.units),
       cartons: bp.cartons != null ? Number(bp.cartons) : null,
     }));
   }
 
   const bookings = [...c.bookings];
-  bookings[idx] = { ...booking, booking_status_id: STATUS.approved, approved_at: new Date().toISOString() };
+  bookings[idx] = { ...booking, bookingStatusId: STATUS.approved, approvedAt: new Date().toISOString() };
 
   // NOTE (JSON stack): three sequential writes, no transaction — a crash between
   // them leaves partial state. Same class as mainline booking-approve; fixed at the
@@ -360,11 +360,11 @@ async function reject(req, res) {
   const c = await _ctx();
   const idx = c.bookings.findIndex((b) => b.id === req.params.id);
   if (idx < 0) err('SMS booking not found', 404);
-  const statusName = c.idToStatusName.get(c.bookings[idx].booking_status_id);
+  const statusName = c.idToStatusName.get(c.bookings[idx].bookingStatusId);
   if (statusName !== 'Booking Pending') err(`Only a Pending booking can be rejected — this one is ${statusName}`, 400);
 
   const bookings = [...c.bookings];
-  bookings[idx] = { ...bookings[idx], booking_status_id: STATUS.rejected };
+  bookings[idx] = { ...bookings[idx], bookingStatusId: STATUS.rejected };
   await M.bookings.write(bookings);
 
   const c2 = await _ctx();
@@ -383,24 +383,24 @@ async function cancel(req, res) {
   const booking = c.bookings[idx];
   _assertVendorOwns(booking.id, c, vendorSupplierId);
 
-  const statusName = c.idToStatusName.get(booking.booking_status_id);
+  const statusName = c.idToStatusName.get(booking.bookingStatusId);
   if (!['Booking Pending', 'Booking Approved'].includes(statusName)) {
     err(`Only a Pending or Approved booking can be cancelled — this one is ${statusName}`, 400);
   }
 
-  const mine = c.shipments.filter((s) => s.booking_id === booking.id);
-  const shipped = mine.filter((s) => s.tracking_number);
+  const mine = c.shipments.filter((s) => s.bookingId === booking.id);
+  const shipped = mine.filter((s) => s.trackingNumber);
   if (shipped.length) {
-    err(`Already shipped under this booking (${shipped.map((s) => s.tracking_number).join(', ')}) — cancel is blocked; delete those shipments first if they were entered in error`, 409);
+    err(`Already shipped under this booking (${shipped.map((s) => s.trackingNumber).join(', ')}) — cancel is blocked; delete those shipments first if they were entered in error`, 409);
   }
 
   const draftIds = new Set(mine.map((s) => s.id));
   const bookings = [...c.bookings];
-  bookings[idx] = { ...booking, booking_status_id: STATUS.cancelled };
+  bookings[idx] = { ...booking, bookingStatusId: STATUS.cancelled };
 
   if (draftIds.size) {
     await M.shipments.write(c.shipments.filter((s) => !draftIds.has(s.id)));
-    await M.shipmentPos.write(c.shipmentPos.filter((j) => !draftIds.has(j.shipment_id)));
+    await M.shipmentPos.write(c.shipmentPos.filter((j) => !draftIds.has(j.shipmentId)));
   }
   await M.bookings.write(bookings);
 
@@ -420,16 +420,16 @@ async function remove(req, res) {
   if (!b) err('SMS booking not found', 404);
   _assertVendorOwns(b.id, c, vendorSupplierId);
 
-  const statusName = c.idToStatusName.get(b.booking_status_id);
+  const statusName = c.idToStatusName.get(b.bookingStatusId);
   if (statusName === 'Booking Approved') {
     err('An approved booking has shipments — cancel it instead (POST /sms/bookings/:id/cancel)', 400);
   }
-  if (c.shipments.some((s) => s.booking_id === b.id)) {
+  if (c.shipments.some((s) => s.bookingId === b.id)) {
     err('Shipments reference this booking — delete those first', 400);
   }
 
   await M.bookings.write(c.bookings.filter((x) => x.id !== b.id));
-  await M.bookingPos.write(c.bookingPos.filter((bp) => bp.booking_id !== b.id));
+  await M.bookingPos.write(c.bookingPos.filter((bp) => bp.bookingId !== b.id));
   res.status(204).send();
 }
 

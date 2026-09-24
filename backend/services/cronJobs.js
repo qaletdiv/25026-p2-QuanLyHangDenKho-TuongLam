@@ -1,12 +1,12 @@
 const cron = require('node-cron');
-const { atomically } = require('../db/tx');
+const { atomically } = require('../database/tx');
 
 // The legacy history sweep (archiving delivered legacy shipments into
 // history.json) was removed with the legacy stack at the SMS cutover (2026-07-03).
 //
-// Each job runs inside ONE transaction (db/tx.js — a no-op on DATA_BACKEND=json).
+// Each job runs inside ONE transaction (database/tx.js — a no-op on DATA_BACKEND=json).
 // These are the same multi-table writes the sync ROUTES perform, and those get a
-// transaction for free from db/txContext.js because they are HTTP requests; a
+// transaction for free from database/txContext.js because they are HTTP requests; a
 // cron tick is not a request, so it has to ask. Without it, a sync interrupted
 // between writing po_orders and writing its receipts leaves a half-applied pull
 // that nothing will notice until a number looks wrong.

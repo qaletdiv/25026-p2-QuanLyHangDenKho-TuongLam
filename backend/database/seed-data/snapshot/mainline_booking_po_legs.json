@@ -1,0 +1,164 @@
+[
+  {
+    "id": "bpl_1_50",
+    "bookingId": "1",
+    "legId": "50",
+    "units": 147,
+    "cartons": 7,
+    "weightKg": 126.26,
+    "cbm": 0.62
+  },
+  {
+    "id": "bpl_2_31",
+    "bookingId": "2",
+    "legId": "31",
+    "units": 861,
+    "cartons": null,
+    "weightKg": null,
+    "cbm": null
+  },
+  {
+    "id": "bpl_2_5",
+    "bookingId": "2",
+    "legId": "5",
+    "units": 694,
+    "cartons": null,
+    "weightKg": null,
+    "cbm": null
+  },
+  {
+    "id": "bpl_3_20",
+    "bookingId": "3",
+    "legId": "20",
+    "units": 680,
+    "cartons": 20,
+    "weightKg": 301.53,
+    "cbm": 1.3056
+  },
+  {
+    "id": "bpl_3_2",
+    "bookingId": "3",
+    "legId": "2",
+    "units": 139,
+    "cartons": 7,
+    "weightKg": 89.35,
+    "cbm": 0.44
+  },
+  {
+    "id": "bpl_4_77",
+    "bookingId": "4",
+    "legId": "77",
+    "units": 3516,
+    "cartons": 193,
+    "weightKg": 1806.35,
+    "cbm": 12.91
+  },
+  {
+    "id": "bpl_4_45",
+    "bookingId": "4",
+    "legId": "45",
+    "units": 2959,
+    "cartons": 168,
+    "weightKg": 1621.52,
+    "cbm": 11.11
+  },
+  {
+    "id": "bpl_5_73",
+    "bookingId": "5",
+    "legId": "73",
+    "units": 2959,
+    "cartons": 100,
+    "weightKg": 952,
+    "cbm": 6.3
+  },
+  {
+    "id": "bpl_5_38",
+    "bookingId": "5",
+    "legId": "38",
+    "units": 1936,
+    "cartons": 66,
+    "weightKg": 712.53,
+    "cbm": 2.86
+  },
+  {
+    "id": "bpl_6_77",
+    "bookingId": "6",
+    "legId": "77",
+    "units": 7279,
+    "cartons": 132,
+    "weightKg": null,
+    "cbm": null
+  },
+  {
+    "id": "bpl_6_45",
+    "bookingId": "6",
+    "legId": "45",
+    "units": 13065,
+    "cartons": 222,
+    "weightKg": null,
+    "cbm": null
+  },
+  {
+    "id": "bpl_7_28",
+    "bookingId": "7",
+    "legId": "28",
+    "units": 1271,
+    "cartons": 6,
+    "weightKg": 1012,
+    "cbm": 6
+  },
+  {
+    "id": "bpl_7_18",
+    "bookingId": "7",
+    "legId": "18",
+    "units": 1245,
+    "cartons": 6,
+    "weightKg": 996,
+    "cbm": 6
+  },
+  {
+    "id": "bpl_8_77",
+    "bookingId": "8",
+    "legId": "77",
+    "units": 748,
+    "cartons": 37,
+    "weightKg": 168,
+    "cbm": null
+  },
+  {
+    "id": "bpl_8_57",
+    "bookingId": "8",
+    "legId": "57",
+    "units": 2320,
+    "cartons": 45,
+    "weightKg": 454,
+    "cbm": null
+  },
+  {
+    "id": "bpl_9_77",
+    "bookingId": "9",
+    "legId": "77",
+    "units": 1207,
+    "cartons": 105,
+    "weightKg": 1297.536,
+    "cbm": null
+  },
+  {
+    "id": "bpl_9_45",
+    "bookingId": "9",
+    "legId": "45",
+    "units": 1909,
+    "cartons": 170,
+    "weightKg": 1292.062,
+    "cbm": null
+  },
+  {
+    "id": "bpl_10_87",
+    "bookingId": "10",
+    "legId": "87",
+    "units": 1000,
+    "cartons": 38,
+    "weightKg": 478,
+    "cbm": 4.16
+  }
+]

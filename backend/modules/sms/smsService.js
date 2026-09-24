@@ -6,7 +6,7 @@
 // ---- shipment status --------------------------------------------------------
 // DISPLAYED status = the latest courier tracking event mapped through
 // courier_status_map; a shipment with no events falls back to the manually
-// entered status. Returns { status_id, status, status_source }.
+// entered status. Returns { statusId, status, statusSource }.
 //
 // One step BEYOND the courier: Delivered means the courier handed the box over
 // (FedEx scan / manual entry); RECEIVED means NetSuite has an Item Receipt for it,
@@ -36,31 +36,31 @@ function deriveStatus(shipment, eventsByShipment, codeMap, statusNameById, recei
   // timezone (mixed offsets), so a string sort scrambles the sequence. Then use
   // the newest event whose code IS mapped, so an unmapped latest scan (e.g. an
   // exotic FedEx code) doesn't blank out the courier status.
-  const byInstantDesc = [...events].sort((a, b) => Date.parse(b.event_time) - Date.parse(a.event_time));
+  const byInstantDesc = [...events].sort((a, b) => Date.parse(b.eventTime) - Date.parse(a.eventTime));
   let base = null;
   for (const e of byInstantDesc) {
-    const mapped = codeMap.get(`${shipment.courier_id}|${e.courier_code}`);
-    if (mapped) { base = { status_id: mapped, status: statusNameById.get(mapped) || null, status_source: 'courier' }; break; }
+    const mapped = codeMap.get(`${shipment.courierId}|${e.courierCode}`);
+    if (mapped) { base = { statusId: mapped, status: statusNameById.get(mapped) || null, statusSource: 'courier' }; break; }
   }
   if (!base) {
     base = {
-      status_id: shipment.manual_status_id || null,
-      status: statusNameById.get(shipment.manual_status_id) || null,
-      status_source: 'manual',
+      statusId: shipment.manualStatusId || null,
+      status: statusNameById.get(shipment.manualStatusId) || null,
+      statusSource: 'manual',
     };
   }
   // Only Delivered escalates. An earlier status with an IR attributed is left
   // alone on purpose — that means the tracking or the match is wrong, and quietly
   // marking it Received (a DONE state) would hide the discrepancy.
   const rec = receivedByShipment && receivedByShipment.get(shipment.id);
-  if (base.status_id === DELIVERED_ID && rec && rec.confirmed) {
-    return { status_id: RECEIVED_ID, status: statusNameById.get(RECEIVED_ID) || 'Received', status_source: 'netsuite' };
+  if (base.statusId === DELIVERED_ID && rec && rec.confirmed) {
+    return { statusId: RECEIVED_ID, status: statusNameById.get(RECEIVED_ID) || 'Received', statusSource: 'netsuite' };
   }
   return base;
 }
 
 // ---- price lookup (deterministic) -------------------------------------------
-// NetSuite may carry one item on SEVERAL PO lines, so (po_number, sku_code) can
+// NetSuite may carry one item on SEVERAL PO lines, so (poNumber, skuCode) can
 // match more than one sms_po_lines row — and those rows can disagree on price
 // (PO04697|ZCW6846-6340-S is 26.25 on one line and 49 on another). Building the
 // lookup with `new Map(rows.map(...))` made the LAST row win, i.e. the answer
@@ -68,59 +68,59 @@ function deriveStatus(shipment, eventsByShipment, codeMap, statusNameById, recei
 // query could return either price. Since this value is the CI basis when a vendor's
 // packing sheet omits the price, and the CI basis drives the landed cost that now
 // posts to NetSuite, the tie-break must be explicit:
-//   1. a line with ordered_qty > 0 (the line actually being ordered)
+//   1. a line with orderedQty > 0 (the line actually being ordered)
 //   2. else a line with a non-null price
-//   3. else the lowest line identity (netsuite_line_id, then id) — stable, arbitrary
-// Returns Map('po_number|sku_code' → unit_price | null).
+//   3. else the lowest line identity (netsuiteLineId, then id) — stable, arbitrary
+// Returns Map('poNumber|skuCode' → unitPrice | null).
 function priceByPoSku(poLines) {
   const better = (a, b) => {
     if (!a) return b;
-    const q = (l) => (Number(l.ordered_qty) || 0) > 0 ? 1 : 0;
+    const q = (l) => (Number(l.orderedQty) || 0) > 0 ? 1 : 0;
     if (q(b) !== q(a)) return q(b) > q(a) ? b : a;
-    const p = (l) => (l.unit_price == null ? 0 : 1);
+    const p = (l) => (l.unitPrice == null ? 0 : 1);
     if (p(b) !== p(a)) return p(b) > p(a) ? b : a;
-    const key = (l) => String(l.netsuite_line_id ?? '') + '|' + String(l.id ?? '');
+    const key = (l) => String(l.netsuiteLineId ?? '') + '|' + String(l.id ?? '');
     return key(b) < key(a) ? b : a;
   };
   const best = new Map();
   poLines.forEach((l) => {
-    const k = `${l.po_number}|${l.sku_code}`;
+    const k = `${l.poNumber}|${l.skuCode}`;
     best.set(k, better(best.get(k), l));
   });
   const out = new Map();
-  best.forEach((l, k) => out.set(k, l.unit_price ?? null));
+  best.forEach((l, k) => out.set(k, l.unitPrice ?? null));
   return out;
 }
 
 // ---- shipping-data (packing cartons) derivations ----------------------------
 // Shipped truth per PO: if the vendor has uploaded shipping data (carton × SKU
-// detail), shipped = Σ pcs_per_ctn from those cartons (SKU-grained, confirmed);
+// detail), shipped = Σ pcsPerCtn from those cartons (SKU-grained, confirmed);
 // otherwise fall back to the declared Σ sms_shipment_pos.units (PO-grain estimate).
 // Σ packing pcs per PO
 function packingShippedByPo(packingCartons) {
   const m = new Map();
-  packingCartons.forEach((c) => m.set(c.po_number, (m.get(c.po_number) || 0) + (Number(c.pcs_per_ctn) || 0)));
+  packingCartons.forEach((c) => m.set(c.poNumber, (m.get(c.poNumber) || 0) + (Number(c.pcsPerCtn) || 0)));
   return m;
 }
 // Σ packing pcs per (po, sku)
 function packingShippedByPoSku(packingCartons) {
   const m = new Map();
   packingCartons.forEach((c) => {
-    const k = `${c.po_number}|${c.sku_code}`;
-    m.set(k, (m.get(k) || 0) + (Number(c.pcs_per_ctn) || 0));
+    const k = `${c.poNumber}|${c.skuCode}`;
+    m.set(k, (m.get(k) || 0) + (Number(c.pcsPerCtn) || 0));
   });
   return m;
 }
-// Distinct physical cartons per PO from uploaded shipping data (unique ctn_number).
+// Distinct physical cartons per PO from uploaded shipping data (unique ctnNumber).
 // Used as the fallback carton count when the vendor didn't declare one at entry —
 // the packing list is the actual truth (same spirit as packed pcs overriding
 // declared units in poRollups). Pass cartons already scoped to the shipment.
 function packingCartonsCountByPo(packingCartons) {
   const sets = new Map();
   packingCartons.forEach((c) => {
-    if (c.ctn_number == null) return;
-    if (!sets.has(c.po_number)) sets.set(c.po_number, new Set());
-    sets.get(c.po_number).add(c.ctn_number);
+    if (c.ctnNumber == null) return;
+    if (!sets.has(c.poNumber)) sets.set(c.poNumber, new Set());
+    sets.get(c.poNumber).add(c.ctnNumber);
   });
   const m = new Map();
   sets.forEach((set, po) => m.set(po, set.size));
@@ -128,8 +128,8 @@ function packingCartonsCountByPo(packingCartons) {
 }
 
 // ---- carton facts (stored ONCE per physical carton, joined at read) ---------
-// net/gross weight and measure_cm describe the BOX, not the (box × SKU) line, so
-// they live in `sms_cartons` keyed on (shipment_id, ctn_number) — see the note on
+// net/gross weight and measureCm describe the BOX, not the (box × SKU) line, so
+// they live in `sms_cartons` keyed on (shipmentId, ctnNumber) — see the note on
 // that table in database.dbml. They used to be repeated on every SKU row of the
 // carton with only the FIRST row carrying real values and the siblings zeroed,
 // which made every total depend on row order (undefined in SQL): Σ net weight read
@@ -140,15 +140,15 @@ function packingCartonsCountByPo(packingCartons) {
 // get the same answer no matter what order rows arrive in. Rows whose carton has no
 // entry keep whatever they already carry, so a partially-migrated dataset still reads.
 function withCartonFacts(skuRows, cartonRows = []) {
-  const byKey = new Map(cartonRows.map((k) => [`${k.shipment_id}|${k.ctn_number}`, k]));
+  const byKey = new Map(cartonRows.map((k) => [`${k.shipmentId}|${k.ctnNumber}`, k]));
   return skuRows.map((r) => {
-    const k = byKey.get(`${r.shipment_id}|${r.ctn_number}`);
+    const k = byKey.get(`${r.shipmentId}|${r.ctnNumber}`);
     if (!k) return r;
     return {
       ...r,
-      net_weight_kgs: k.net_weight_kgs ?? null,
-      gross_weight_kgs: k.gross_weight_kgs ?? null,
-      measure_cm: k.measure_cm ?? null,
+      netWeightKgs: k.netWeightKgs ?? null,
+      grossWeightKgs: k.grossWeightKgs ?? null,
+      measureCm: k.measureCm ?? null,
     };
   });
 }
@@ -160,51 +160,51 @@ function packingSummary(cartons) {
   const seenCtn = new Set();
   let pcs = 0, value = 0, net = 0, gross = 0, cbm = 0;
   cartons.forEach((c) => {
-    pcs += Number(c.pcs_per_ctn) || 0;
-    value += Number(c.total_usd) || (Number(c.pcs_per_ctn) || 0) * (Number(c.unit_price) || 0);
-    // Dedupe on (shipment, carton), not ctn_number alone: 14 ctn_number values are
+    pcs += Number(c.pcsPerCtn) || 0;
+    value += Number(c.totalUsd) || (Number(c.pcsPerCtn) || 0) * (Number(c.unitPrice) || 0);
+    // Dedupe on (shipment, carton), not ctnNumber alone: 14 ctnNumber values are
     // reused across shipments, so a caller that ever passes rows from more than one
     // consignment would silently drop the second shipment's identically-numbered
     // cartons. Every caller pre-scopes to one shipment today; this makes it safe
-    // regardless. Falls back to ctn_number for in-memory rows built at upload time,
-    // which carry no shipment_id.
-    const ctnKey = c.shipment_id != null ? `${c.shipment_id}|${c.ctn_number}` : String(c.ctn_number);
+    // regardless. Falls back to ctnNumber for in-memory rows built at upload time,
+    // which carry no shipmentId.
+    const ctnKey = c.shipmentId != null ? `${c.shipmentId}|${c.ctnNumber}` : String(c.ctnNumber);
     if (!seenCtn.has(ctnKey)) {
       seenCtn.add(ctnKey);
-      net += Number(c.net_weight_kgs) || 0;
-      gross += Number(c.gross_weight_kgs) || 0;
-      const d = String(c.measure_cm || '').split(/[*×xX]/).map((p) => parseFloat(p.trim()));
+      net += Number(c.netWeightKgs) || 0;
+      gross += Number(c.grossWeightKgs) || 0;
+      const d = String(c.measureCm || '').split(/[*×xX]/).map((p) => parseFloat(p.trim()));
       if (d.length === 3 && d.every((v) => !isNaN(v))) cbm += (d[0] * d[1] * d[2]) / 1e6;
     }
   });
   return {
-    total_pcs: pcs, total_cartons: seenCtn.size, total_value: +value.toFixed(2),
-    total_net_weight: +net.toFixed(2), total_gross_weight: +gross.toFixed(2), total_cbm: +cbm.toFixed(3),
+    totalPcs: pcs, totalCartons: seenCtn.size, totalValue: +value.toFixed(2),
+    totalNetWeight: +net.toFixed(2), totalGrossWeight: +gross.toFixed(2), totalCbm: +cbm.toFixed(3),
   };
 }
 
 // ---- per-PO rollups ---------------------------------------------------------
-// ordered  = Σ sms_po_lines.ordered_qty
+// ordered  = Σ sms_po_lines.orderedQty
 // shipped  = Σ packing pcs when shipping data exists, else Σ sms_shipment_pos.units
 // received = Σ sms_item_receipt_lines.qty (via the PO's receipts)
 function poRollups({ poLines, shipmentPos, receipts, receiptLines, packingCartons = [] }) {
   const ordered = new Map();
-  poLines.forEach((l) => ordered.set(l.po_number, (ordered.get(l.po_number) || 0) + (Number(l.ordered_qty) || 0)));
+  poLines.forEach((l) => ordered.set(l.poNumber, (ordered.get(l.poNumber) || 0) + (Number(l.orderedQty) || 0)));
 
   const declared = new Map();
   const lots = new Map();
   shipmentPos.forEach((j) => {
-    declared.set(j.po_number, (declared.get(j.po_number) || 0) + (Number(j.units) || 0));
-    lots.set(j.po_number, Math.max(lots.get(j.po_number) || 0, Number(j.lot_number) || 0));
+    declared.set(j.poNumber, (declared.get(j.poNumber) || 0) + (Number(j.units) || 0));
+    lots.set(j.poNumber, Math.max(lots.get(j.poNumber) || 0, Number(j.lotNumber) || 0));
   });
   const packed = packingShippedByPo(packingCartons);
   // packed truth overrides declared where present
   const shipped = new Map(declared);
   packed.forEach((v, po) => shipped.set(po, v));
 
-  const linesByReceipt = receiptLines.reduce((m, l) => ((m[l.receipt_id] = (m[l.receipt_id] || 0) + (Number(l.qty) || 0)), m), {});
+  const linesByReceipt = receiptLines.reduce((m, l) => ((m[l.receiptId] = (m[l.receiptId] || 0) + (Number(l.qty) || 0)), m), {});
   const received = new Map();
-  receipts.forEach((r) => received.set(r.po_number, (received.get(r.po_number) || 0) + (linesByReceipt[r.id] || 0)));
+  receipts.forEach((r) => received.set(r.poNumber, (received.get(r.poNumber) || 0) + (linesByReceipt[r.id] || 0)));
 
   return { ordered, shipped, received, lots };
 }
@@ -216,40 +216,40 @@ function poRollups({ poLines, shipmentPos, receipts, receiptLines, packingCarton
 // is 0 (only the PO-grain declared total is known) and shipped_total falls back
 // to the declared Σ sms_shipment_pos.units.
 function reconcilePo(poNumber, { poLines, shipmentPos, receipts, receiptLines, packingCartons = [] }) {
-  const myLines = poLines.filter((l) => l.po_number === poNumber);
-  const ordered_total = myLines.reduce((a, l) => a + (Number(l.ordered_qty) || 0), 0);
+  const myLines = poLines.filter((l) => l.poNumber === poNumber);
+  const ordered_total = myLines.reduce((a, l) => a + (Number(l.orderedQty) || 0), 0);
 
-  const myCartons = packingCartons.filter((c) => c.po_number === poNumber);
+  const myCartons = packingCartons.filter((c) => c.poNumber === poNumber);
   const hasShippingData = myCartons.length > 0;
-  const declared_total = shipmentPos.filter((j) => j.po_number === poNumber).reduce((a, j) => a + (Number(j.units) || 0), 0);
-  const packed_total = myCartons.reduce((a, c) => a + (Number(c.pcs_per_ctn) || 0), 0);
+  const declared_total = shipmentPos.filter((j) => j.poNumber === poNumber).reduce((a, j) => a + (Number(j.units) || 0), 0);
+  const packed_total = myCartons.reduce((a, c) => a + (Number(c.pcsPerCtn) || 0), 0);
   const shipped_total = hasShippingData ? packed_total : declared_total;
 
   const shippedBySku = new Map();
-  myCartons.forEach((c) => shippedBySku.set(c.sku_code, (shippedBySku.get(c.sku_code) || 0) + (Number(c.pcs_per_ctn) || 0)));
+  myCartons.forEach((c) => shippedBySku.set(c.skuCode, (shippedBySku.get(c.skuCode) || 0) + (Number(c.pcsPerCtn) || 0)));
 
-  const myReceiptIds = new Set(receipts.filter((r) => r.po_number === poNumber).map((r) => r.id));
-  const myReceiptLines = receiptLines.filter((l) => myReceiptIds.has(l.receipt_id));
+  const myReceiptIds = new Set(receipts.filter((r) => r.poNumber === poNumber).map((r) => r.id));
+  const myReceiptLines = receiptLines.filter((l) => myReceiptIds.has(l.receiptId));
   const received_total = myReceiptLines.reduce((a, l) => a + (Number(l.qty) || 0), 0);
 
   const receivedBySku = new Map();
-  myReceiptLines.forEach((l) => receivedBySku.set(l.sku_code, (receivedBySku.get(l.sku_code) || 0) + (Number(l.qty) || 0)));
+  myReceiptLines.forEach((l) => receivedBySku.set(l.skuCode, (receivedBySku.get(l.skuCode) || 0) + (Number(l.qty) || 0)));
 
-  const skuCodes = [...new Set([...myLines.map((l) => l.sku_code), ...shippedBySku.keys(), ...receivedBySku.keys()])].sort();
-  const by_sku = skuCodes.map((sku_code) => {
-    const ordered_qty = myLines.filter((l) => l.sku_code === sku_code).reduce((a, l) => a + (Number(l.ordered_qty) || 0), 0);
-    const shipped_qty = shippedBySku.get(sku_code) || 0;
-    const received_qty = receivedBySku.get(sku_code) || 0;
+  const skuCodes = [...new Set([...myLines.map((l) => l.skuCode), ...shippedBySku.keys(), ...receivedBySku.keys()])].sort();
+  const by_sku = skuCodes.map((skuCode) => {
+    const orderedQty = myLines.filter((l) => l.skuCode === skuCode).reduce((a, l) => a + (Number(l.orderedQty) || 0), 0);
+    const shippedQty = shippedBySku.get(skuCode) || 0;
+    const receivedQty = receivedBySku.get(skuCode) || 0;
     // variance = shipped − received (matches PO-grain shipped_vs_received_variance).
     // >0 short-received / still in transit, <0 over-received. NOT vs ordered — an
     // un-shipped SKU isn't a receiving discrepancy, just not shipped yet.
-    return { sku_code, ordered_qty, shipped_qty, received_qty, variance: shipped_qty - received_qty };
+    return { skuCode, orderedQty, shippedQty, receivedQty, variance: shippedQty - receivedQty };
   });
 
   return {
-    po_number: poNumber,
+    poNumber: poNumber,
     ordered_total, shipped_total, received_total,
-    has_shipping_data: hasShippingData,
+    hasShippingData: hasShippingData,
     remaining_to_ship: ordered_total - shipped_total,
     shipped_vs_received_variance: shipped_total - received_total,
     by_sku,

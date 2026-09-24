@@ -13,12 +13,12 @@
 // unfiltered table if that ever changes, or one caller's ATA would disagree with
 // another's for the same shipment.
 //
-// Returns Map(shipment_id → { date, method, confirmed }) — see mainlineReceiptMatch.
+// Returns Map(shipmentId → { date, method, confirmed }) — see mainlineReceiptMatch.
 
-const BaseModel = require('../../../models/BaseModel');
+const { models } = require('../../../models');
 const { ataByShipment } = require('./mainlineReceiptMatch');
 
-const readM = (f) => new BaseModel(`migrated/${f}.json`).read().catch(() => []);
+const readM = (f) => models[f].read().catch(() => []);
 
 async function loadAtaByShipment({ shipments, shipLegs, legs }) {
   const [itemReceipts, itemReceiptLines, rejections] = await Promise.all([
@@ -34,7 +34,7 @@ async function loadAtaByShipment({ shipments, shipLegs, legs }) {
     mlReceipts: itemReceipts,
     mlReceiptLines: itemReceiptLines,
     mlRejections: rejections,
-    poByLeg: new Map(legs.map((l) => [l.id, l.po_number])),
+    poByLeg: new Map(legs.map((l) => [l.id, l.poNumber])),
   });
 }
 
@@ -44,12 +44,12 @@ async function loadAtaByShipment({ shipments, shipLegs, legs }) {
 // mainlineShipmentService — two rules for one field is how two screens start
 // quoting different arrival dates.
 //   ataMatch: the Map above; shipment: a RAW mainline_shipments row
-// → { ata, ata_source: 'netsuite' | 'manual' | null }
+// → { ata, ataSource: 'netsuite' | 'manual' | null }
 function effectiveAta(ataMatch, shipment) {
   const irAta = (ataMatch.get(shipment.id) || {}).date || null;
   return {
     ata: irAta || shipment.ata || null,
-    ata_source: irAta ? 'netsuite' : (shipment.ata ? 'manual' : null),
+    ataSource: irAta ? 'netsuite' : (shipment.ata ? 'manual' : null),
   };
 }
 

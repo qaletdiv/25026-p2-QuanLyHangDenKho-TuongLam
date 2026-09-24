@@ -41,12 +41,12 @@ async function readLegend(file, label) {
     const service = norm(at('Service'));
     if (!service) return;
     rows.push({
-      service_raw: String(at('Service')),
+      serviceRaw: String(at('Service')),
       service,
       gl: at('Netsuite GL') === undefined || at('Netsuite GL') === null ? null : Number(at('Netsuite GL')),
-      gl_desc: norm(at('Description')) || null,
-      class_us: norm(at('Class')) || null,
-      class_ca: norm(at('Class (NRI CAN)')) || null,
+      glDesc: norm(at('Description')) || null,
+      classUs: norm(at('Class')) || null,
+      classCa: norm(at('Class (NRI CAN)')) || null,
       note: norm(at('Notes')) || null,
     });
   });
@@ -58,14 +58,14 @@ function analyse(rows) {
   const duplicates = [];
   for (const r of rows) {
     const k = chargeCodes.key(r.service);
-    if (seen.has(k)) duplicates.push({ key: k, raw: [seen.get(k).service_raw, r.service_raw] });
+    if (seen.has(k)) duplicates.push({ key: k, raw: [seen.get(k).serviceRaw, r.serviceRaw] });
     else seen.set(k, r);
   }
   return {
     duplicates,
-    whitespace: rows.filter(r => r.service_raw !== r.service).map(r => r.service_raw),
-    blankUsClass: rows.filter(r => !r.class_us).map(r => r.service),
-    blankCaClass: rows.filter(r => !r.class_ca).map(r => r.service),
+    whitespace: rows.filter(r => r.serviceRaw !== r.service).map(r => r.serviceRaw),
+    blankUsClass: rows.filter(r => !r.classUs).map(r => r.service),
+    blankCaClass: rows.filter(r => !r.classCa).map(r => r.service),
     noGl: rows.filter(r => r.gl === null || Number.isNaN(r.gl)).map(r => r.service),
     deduped: [...seen.values()],
   };
@@ -81,9 +81,9 @@ async function sync({ file = DEFAULT_LEGEND, buffer = null, label = null, dryRun
     .map(r => ({
       id: 'ncc_' + chargeCodes.key(r.service).toLowerCase().replace(/[^a-z0-9]+/g, '_'),
       service: r.service,
-      service_raw: r.service_raw === r.service ? undefined : r.service_raw,
-      gl: r.gl, gl_desc: r.gl_desc,
-      class_us: r.class_us, class_ca: r.class_ca,
+      serviceRaw: r.serviceRaw === r.service ? undefined : r.serviceRaw,
+      gl: r.gl, glDesc: r.glDesc,
+      classUs: r.classUs, classCa: r.classCa,
       note: r.note,
     }))
     .sort((x, y) => x.service.localeCompare(y.service));
@@ -116,7 +116,7 @@ if (require.main === module) {
     show('no GL', d.noGl);
     show('blank US class', d.blankUsClass);
     show('blank CA class', d.blankCaClass);
-    console.log('\nNote: blank-class rows are kept. They code to needs_coding for that');
+    console.log('\nNote: blank-class rows are kept. They code to needsCoding for that');
     console.log('entity rather than posting unclassed, which is what the workbook does today.');
   }).catch(e => { console.error('FAILED: ' + e.message); process.exitCode = 1; });
 }

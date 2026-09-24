@@ -1,8 +1,9 @@
+const { models } = require('../models');
 'use strict';
 
 // ONE resolver for "what may this role do", used by every consumer:
 // middleware/requirePermission (route gating), authController.login (the session
-// payload) and controllers/meController (the frontend's page gate).
+// payload) and modules/auth/meController (the frontend's page gate).
 //
 // Resolved from roles.json PER CALL and deliberately NOT cached — a permission
 // change must take effect immediately, not at the user's next login. (Same reason
@@ -13,7 +14,7 @@
 // Unknown role → EMPTY set, never "no permissions required": a token naming a
 // role that has since been deleted must not fall through to full access.
 
-const RoleModel = require('../models/RoleModel');
+const RoleModel = models.roles;
 
 /**
  * @param {string} roleName  role name as carried in the JWT (`req.user.role`)

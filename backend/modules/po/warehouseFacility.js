@@ -33,8 +33,8 @@ function splitWarehouseName(name) {
   return { facilityName: String(name).trim(), channelName: null };
 }
 
-// Build the normalized facility list + a legacy-warehouse-id → {facility_id,
-// allocation_channel_id} map from the legacy warehouses[] rows. Facility metadata
+// Build the normalized facility list + a legacy-warehouse-id → {facilityId,
+// allocationChannelId} map from the legacy warehouses[] rows. Facility metadata
 // (country/city/port) is carried over from the first legacy row of each facility.
 function deriveFromWarehouses(warehouses) {
   const facById = new Map();
@@ -49,13 +49,13 @@ function deriveFromWarehouses(warehouses) {
         name: facilityName,
         country: w.country || null,
         city: w.city || null,
-        port_of_discharge: w.port_of_discharge || '',
+        portOfDischarge: w.portOfDischarge || '',
         address: w.address || '',
       });
     }
     legacyMap.set(w.id, {
-      facility_id: fid,
-      allocation_channel_id: channelName ? channelIdByName.get(norm(channelName)) || null : null,
+      facilityId: fid,
+      allocationChannelId: channelName ? channelIdByName.get(norm(channelName)) || null : null,
     });
   });
   return { facilities: [...facById.values()], channels: CHANNELS, legacyMap };

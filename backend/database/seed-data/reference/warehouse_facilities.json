@@ -1,0 +1,42 @@
+[
+  {
+    "id": "fac_nri_us",
+    "name": "NRI US",
+    "country": "United States",
+    "city": "Los Angeles",
+    "portOfDischarge": "Los Angles",
+    "address": "9988 Redwood Avenue LH Building\nFontana, California 92335, United States\nContact: Yarumi Padilla\n1.323.345.6456\nyarumi.padilla@nri-distribution.com\nCarrier Appointment Email\nappt-LH@nri distribution.com\nConsignee EIN: 45-398196200"
+  },
+  {
+    "id": "fac_nri_ca",
+    "name": "NRI CA",
+    "country": "Canada",
+    "city": "Vancouver",
+    "portOfDischarge": "Vancouver",
+    "address": "8205 Dallas Dr\nKamloops, BC  V2C 6X2, Canada\nContact: Alyssa Clisby\n250 573 2619\nAlyssa.Clisby@nri-distribution.com\nCarrier Appointment Email\nappt-kam@nri-distribution.com"
+  },
+  {
+    "id": "fac_direct_us",
+    "name": "Direct US",
+    "country": "United States",
+    "city": "New York",
+    "portOfDischarge": "",
+    "address": ""
+  },
+  {
+    "id": "fac_direct_can",
+    "name": "Direct CAN",
+    "country": "Canada",
+    "city": "Toronto",
+    "portOfDischarge": "",
+    "address": ""
+  },
+  {
+    "id": "fac_direct_tentree",
+    "name": "Direct tentree",
+    "country": "Canada",
+    "city": "Vancouver",
+    "portOfDischarge": "Vancouver",
+    "address": "230 - 1275 Venables St,\nVancouver British Columbia, Canada, V6A 2E4\nContact: Kalindu / Sayeed\n604-829-2706\nlogstics@tentree.com"
+  }
+]

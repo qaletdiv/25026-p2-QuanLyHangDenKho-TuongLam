@@ -8,10 +8,11 @@
  *
  * Writes only this module's tables. Re-uploading an invoice REPLACES its lines
  * wholesale (never appends), and human overrides survive because they key on
- * (invoice_no, seq) rather than a position in a combined table.
+ * (invoiceNo, seq) rather than a position in a combined table.
  */
 
 const M = require('./NriInvoiceModels');
+const { models } = require('../../models');
 const parser = require('./invoiceParser');
 const chargeCodes = require('./chargeCodes');
 const rateCard = require('./rateCard');
@@ -35,7 +36,7 @@ async function orderMaster(entity = 'US') {
   const ent = norm(entity).toUpperCase() || 'US';
   if (orderCache && orderCache[ent]) return orderCache[ent];
   const workbook = process.env.NRI_ORDER_DATA_WORKBOOK
-    || require('path').join(__dirname, '..', '..', 'NRI US_ALL Invoices 2026.xlsx');
+    || require('path').join(__dirname, '..', '..', 'storage', 'reference', 'nri', 'NRI US_ALL Invoices 2026.xlsx');
   let master;
   try {
     // Rows uploaded through the UI are this warehouse's own, and they are ingested
@@ -77,8 +78,8 @@ exports.getOrderData = async (req, res) => {
   res.json({
     entity: ent,
     orders: master.orders, covers: master.covers, sources: master.sources,
-    stored_rows: stored.length,
-    csv_dir: orderData.DEFAULT_CSV_DIR,
+    storedRows: stored.length,
+    csvDir: orderData.DEFAULT_CSV_DIR,
   });
 };
 
@@ -87,7 +88,7 @@ exports.getOrderData = async (req, res) => {
  *
  * The order master is the ONLY source of channel (`OrderType`) and ship-to
  * country — neither appears on an invoice line — so without it the class cannot
- * be derived and lines come back `needs_class`. Uploading it here replaces the
+ * be derived and lines come back `needsClass`. Uploading it here replaces the
  * dependency on a mapped G: drive.
  *
  * Rows are UPSERTED by order number within the warehouse's entity: dropping in a
@@ -139,7 +140,7 @@ exports.uploadOrderData = async (req, res) => {
   res.json({
     entity: ent, file: file.originalname,
     read: rows.length, added, updated, skipped,
-    with_order_type: withChannel, with_country: withCountry,
+    withOrderType: withChannel, withCountry: withCountry,
     orders: master.orders, covers: master.covers,
   });
 };
@@ -151,21 +152,21 @@ async function indexes() {
 /** Apply stored per-line decisions on top of the derived result. */
 function applyOverrides(lines, overrides) {
   if (!overrides.length) return lines;
-  const byKey = new Map(overrides.map(o => [`${o.invoice_no}|${o.seq}`, o]));
+  const byKey = new Map(overrides.map(o => [`${o.invoiceNo}|${o.seq}`, o]));
   return lines.map(l => {
-    const o = byKey.get(`${l.invoice_no}|${l.seq}`);
+    const o = byKey.get(`${l.invoiceNo}|${l.seq}`);
     if (!o) return l;
     return {
       ...l,
       gl: o.gl === undefined || o.gl === null ? l.gl : o.gl,
       class: norm(o.class) || l.class,
-      class_basis: o.class ? 'manual' : l.class_basis,
-      class_confidence: o.class ? 'declared' : l.class_confidence,
-      coding_status: (o.gl ?? l.gl) !== null && (norm(o.class) || l.class) ? 'coded' : l.coding_status,
-      coding_reason: o.gl || o.class ? null : l.coding_reason,
-      override_note: norm(o.note) || null,
-      overridden_by: o.updated_by || null,
-      overridden_at: o.updated_at || null,
+      classBasis: o.class ? 'manual' : l.classBasis,
+      classConfidence: o.class ? 'declared' : l.classConfidence,
+      codingStatus: (o.gl ?? l.gl) !== null && (norm(o.class) || l.class) ? 'coded' : l.codingStatus,
+      codingReason: o.gl || o.class ? null : l.codingReason,
+      overrideNote: norm(o.note) || null,
+      overriddenBy: o.updatedBy || null,
+      overriddenAt: o.updatedAt || null,
     };
   });
 }
@@ -180,12 +181,12 @@ exports.listSources = async (req, res) => {
     M.invoices.read().catch(() => []),
   ]);
   const counted = arr(invoices).reduce((m, i) => m.set(i.entity, (m.get(i.entity) || 0) + 1), new Map());
-  res.json(rows.map((s) => ({ ...s, invoice_count: counted.get(String(s.entity).toUpperCase()) || 0 })));
+  res.json(rows.map((s) => ({ ...s, invoiceCount: counted.get(String(s.entity).toUpperCase()) || 0 })));
 };
 
 // POST /nri-invoices/sources — register another invoicing warehouse.
 //
-// It is a SHELL by design: `parser: null`, `upload_enabled: false`. Registering a
+// It is a SHELL by design: `parser: null`, `uploadEnabled: false`. Registering a
 // warehouse cannot invent a reader for a workbook layout nobody has seen, and
 // guessing one would load a misread invoice into the GL. So the tab, the invoice
 // list and its slice of the legend/rate card appear immediately, and uploads open
@@ -194,7 +195,7 @@ exports.addSource = async (req, res) => {
   const label = norm(req.body?.label);
   const code = sources.slug(req.body?.code || label);
   const entity = norm(req.body?.entity).toUpperCase() || code.toUpperCase().replace(/-/g, '_');
-  const facility_id = norm(req.body?.facility_id) || null;
+  const facilityId = norm(req.body?.facilityId) || null;
   if (!label) return res.status(400).json({ error: 'A warehouse name is required.' });
   if (!code) return res.status(400).json({ error: 'That name has no letters or digits to build a URL code from.' });
 
@@ -205,12 +206,12 @@ exports.addSource = async (req, res) => {
   if (rows.some((s) => String(s.entity).toUpperCase() === entity)) {
     return res.status(409).json({ error: `Entity "${entity}" is already used by ${rows.find((s) => String(s.entity).toUpperCase() === entity).label}.` });
   }
-  if (facility_id) {
-    const facilities = arr(await new (require('../../models/BaseModel'))('migrated/warehouse_facilities.json').read().catch(() => []));
-    if (!facilities.some((f) => f.id === facility_id)) return res.status(400).json({ error: `Unknown facility "${facility_id}".` });
+  if (facilityId) {
+    const facilities = arr(await models.warehouse_facilities.read().catch(() => []));
+    if (!facilities.some((f) => f.id === facilityId)) return res.status(400).json({ error: `Unknown facility "${facilityId}".` });
   }
 
-  const row = { code, label, entity, facility_id, parser: null, upload_enabled: false, note: null };
+  const row = { code, label, entity, facilityId, parser: null, uploadEnabled: false, note: null };
   await M.sources.write([...rows, row]);
   res.status(201).json(row);
 };
@@ -267,8 +268,8 @@ exports.preview = async (req, res) => {
   const { codeIndex, rateIndex } = await indexes();
   const result = svc.reconcile({ pdf, lines, entity, orderIndex: (await orderMaster(entity)).index, codeIndex, rateIndex });
 
-  result.source_file = detail.originalname;
-  result.has_summary = !!pdf;
+  result.sourceFile = detail.originalname;
+  result.hasSummary = !!pdf;
   res.json(result);
 };
 
@@ -295,10 +296,10 @@ exports.create = async (req, res) => {
     catch (e) { return res.status(400).json({ error: `Could not read the invoice PDF: ${e.message}` }); }
   }
 
-  const invoiceNo = norm(pdf?.invoice_no) || norm(req.body?.invoice_no);
+  const invoiceNo = norm(pdf?.invoiceNo) || norm(req.body?.invoiceNo);
   if (!invoiceNo) {
     return res.status(400).json({
-      error: 'No invoice number. Supply the invoice PDF, or pass invoice_no explicitly.',
+      error: 'No invoice number. Supply the invoice PDF, or pass invoiceNo explicitly.',
       hint: 'The detail workbook does not contain the invoice number — only the PDF does.',
     });
   }
@@ -310,11 +311,11 @@ exports.create = async (req, res) => {
   const { codeIndex, rateIndex } = await indexes();
   const result = svc.reconcile({ pdf, lines, entity, orderIndex: (await orderMaster(entity)).index, codeIndex, rateIndex });
 
-  if (result.tie_out.status === 'out_of_balance' && !force) {
+  if (result.tieOut.status === 'outOfBalance' && !force) {
     return res.status(422).json({
-      error: 'tie_out_failed',
-      message: result.tie_out.message,
-      tie_out: result.tie_out,
+      error: 'tieOutFailed',
+      message: result.tieOut.message,
+      tieOut: result.tieOut,
       hint: 'Re-export the detail from NRI, or resend with force=true to load it anyway (it will stay flagged).',
     });
   }
@@ -322,22 +323,22 @@ exports.create = async (req, res) => {
   const now = new Date().toISOString();
   const header = {
     id: `nri_${entity.toLowerCase()}_${invoiceNo}`,
-    invoice_no: invoiceNo,
+    invoiceNo: invoiceNo,
     entity,
     ...(result.invoice || {}),
-    invoice_no_source: pdf ? 'pdf' : 'manual',
-    source_file: detail.originalname,
-    has_summary: !!pdf,
-    tie_out: result.tie_out,
+    invoiceNoSource: pdf ? 'pdf' : 'manual',
+    sourceFile: detail.originalname,
+    hasSummary: !!pdf,
+    tieOut: result.tieOut,
     totals: result.totals,
-    by_gl: result.by_gl,
-    by_service: result.by_service,
+    byGl: result.byGl,
+    byService: result.byService,
     findings: result.findings,
     status: 'loaded',
-    loaded_by: req.user?.email || null,
-    loaded_at: now,
-    submitted_by: null,
-    submitted_at: null,
+    loadedBy: req.user?.email || null,
+    loadedAt: now,
+    submittedBy: null,
+    submittedAt: null,
   };
 
   // Wholesale replace, keyed on the invoice — a re-upload corrects, never doubles.
@@ -345,8 +346,8 @@ exports.create = async (req, res) => {
   await M.invoices.write([...invoices.filter(i => i.id !== header.id), header]);
 
   const allLines = arr(await M.lines.read().catch(() => []));
-  const stamped = result.lines.map(l => ({ invoice_id: header.id, invoice_no: invoiceNo, entity, ...l }));
-  await M.lines.write([...allLines.filter(l => l.invoice_id !== header.id), ...stamped]);
+  const stamped = result.lines.map(l => ({ invoiceId: header.id, invoiceNo: invoiceNo, entity, ...l }));
+  await M.lines.write([...allLines.filter(l => l.invoiceId !== header.id), ...stamped]);
 
   res.status(201).json({ ...header, lines: stamped.length });
 };
@@ -359,36 +360,36 @@ exports.list = async (req, res) => {
   const entity = asked ? String((await sources.find(asked))?.entity || asked).toUpperCase() : '';
   const rows = invoices
     .filter(i => !entity || i.entity === entity)
-    .map(({ by_gl, by_service, findings, tie_out, ...i }) => ({
+    .map(({ byGl, byService, findings, tieOut, ...i }) => ({
       ...i,
-      tie_out_status: tie_out?.status || null,
-      tie_out_variance: tie_out?.total_variance ?? null,
-      finding_count: arr(findings).length,
-      blocker_count: arr(findings).filter(f => f.severity === 'blocker').length,
+      tieOutStatus: tieOut?.status || null,
+      tieOutVariance: tieOut?.totalVariance ?? null,
+      findingCount: arr(findings).length,
+      blockerCount: arr(findings).filter(f => f.severity === 'blocker').length,
     }))
-    .sort((a, b) => norm(b.invoice_date).localeCompare(norm(a.invoice_date)));
+    .sort((a, b) => norm(b.invoiceDate).localeCompare(norm(a.invoiceDate)));
   res.json(rows);
 };
 
 // GET /nri-invoices/:id — one invoice with its coded lines and overrides applied.
 exports.get = async (req, res) => {
   const invoices = arr(await M.invoices.read().catch(() => []));
-  const header = invoices.find(i => i.id === req.params.id || i.invoice_no === req.params.id);
+  const header = invoices.find(i => i.id === req.params.id || i.invoiceNo === req.params.id);
   if (!header) return res.status(404).json({ error: 'Invoice not loaded.' });
 
-  const lines = arr(await M.lines.read().catch(() => [])).filter(l => l.invoice_id === header.id);
-  const overrides = arr(await M.overrides.read().catch(() => [])).filter(o => o.invoice_no === header.invoice_no);
+  const lines = arr(await M.lines.read().catch(() => [])).filter(l => l.invoiceId === header.id);
+  const overrides = arr(await M.overrides.read().catch(() => [])).filter(o => o.invoiceNo === header.invoiceNo);
   const withOverrides = applyOverrides(lines, overrides);
 
   // Rollups are DERIVED at read so an override moves the GL summary immediately.
   const rolled = svc.summarise(withOverrides);
   res.json({
     ...header,
-    by_gl: rolled.by_gl,
-    by_service: rolled.by_service,
-    findings: svc.findings(withOverrides, header.tie_out),
+    byGl: rolled.byGl,
+    byService: rolled.byService,
+    findings: svc.findings(withOverrides, header.tieOut),
     lines: withOverrides,
-    override_count: overrides.length,
+    overrideCount: overrides.length,
   });
 };
 
@@ -399,26 +400,26 @@ exports.setOverride = async (req, res) => {
   if (!invoiceNo || !Number.isInteger(seq) || seq < 1) return res.status(400).json({ error: 'Bad invoice/line reference.' });
 
   const invoices = arr(await M.invoices.read().catch(() => []));
-  if (!invoices.some(i => i.invoice_no === invoiceNo)) return res.status(404).json({ error: 'Invoice not loaded.' });
+  if (!invoices.some(i => i.invoiceNo === invoiceNo)) return res.status(404).json({ error: 'Invoice not loaded.' });
 
   const { gl, class: cls, note } = req.body || {};
   const overrides = arr(await M.overrides.read().catch(() => []));
-  const rest = overrides.filter(o => !(o.invoice_no === invoiceNo && o.seq === seq));
+  const rest = overrides.filter(o => !(o.invoiceNo === invoiceNo && o.seq === seq));
 
   // An empty body clears the override and the line reverts to the derived value.
   if (gl === null && !norm(cls) && !norm(note)) {
     await M.overrides.write(rest);
-    return res.json({ cleared: true, invoice_no: invoiceNo, seq });
+    return res.json({ cleared: true, invoiceNo: invoiceNo, seq });
   }
 
   const row = {
     id: `nlo_${invoiceNo}_${seq}`,
-    invoice_no: invoiceNo, seq,
+    invoiceNo: invoiceNo, seq,
     gl: gl === undefined || gl === null || gl === '' ? null : Number(gl),
     class: norm(cls) || null,
     note: norm(note) || null,
-    updated_by: req.user?.email || null,
-    updated_at: new Date().toISOString(),
+    updatedBy: req.user?.email || null,
+    updatedAt: new Date().toISOString(),
   };
   await M.overrides.write([...rest, row]);
   res.json(row);
@@ -427,38 +428,38 @@ exports.setOverride = async (req, res) => {
 // POST /nri-invoices/:id/submit — freeze the invoice for posting.
 exports.submit = async (req, res) => {
   const invoices = arr(await M.invoices.read().catch(() => []));
-  const i = invoices.findIndex(x => x.id === req.params.id || x.invoice_no === req.params.id);
+  const i = invoices.findIndex(x => x.id === req.params.id || x.invoiceNo === req.params.id);
   if (i === -1) return res.status(404).json({ error: 'Invoice not loaded.' });
   const header = invoices[i];
 
-  const lines = arr(await M.lines.read().catch(() => [])).filter(l => l.invoice_id === header.id);
-  const overrides = arr(await M.overrides.read().catch(() => [])).filter(o => o.invoice_no === header.invoice_no);
+  const lines = arr(await M.lines.read().catch(() => [])).filter(l => l.invoiceId === header.id);
+  const overrides = arr(await M.overrides.read().catch(() => [])).filter(o => o.invoiceNo === header.invoiceNo);
   const final = applyOverrides(lines, overrides);
 
-  const unresolved = final.filter(l => l.coding_status !== 'coded' && Math.abs(l.inv_amt) > 0.005);
+  const unresolved = final.filter(l => l.codingStatus !== 'coded' && Math.abs(l.invAmt) > 0.005);
   if (unresolved.length) {
     return res.status(422).json({
-      error: 'uncoded_lines',
+      error: 'uncodedLines',
       message: `${unresolved.length} line(s) carrying value still have no GL or class.`,
-      lines: unresolved.slice(0, 20).map(l => ({ seq: l.seq, service: l.service, amount: l.inv_amt, reason: l.coding_reason })),
+      lines: unresolved.slice(0, 20).map(l => ({ seq: l.seq, service: l.service, amount: l.invAmt, reason: l.codingReason })),
     });
   }
-  if (header.tie_out?.status === 'out_of_balance') {
-    return res.status(422).json({ error: 'tie_out_failed', message: header.tie_out.message, tie_out: header.tie_out });
+  if (header.tieOut?.status === 'outOfBalance') {
+    return res.status(422).json({ error: 'tieOutFailed', message: header.tieOut.message, tieOut: header.tieOut });
   }
 
   const rolled = svc.summarise(final);
   invoices[i] = {
     ...header,
     status: 'submitted',
-    submitted_by: req.user?.email || null,
-    submitted_at: new Date().toISOString(),
-    by_gl: rolled.by_gl,
-    by_service: rolled.by_service,
+    submittedBy: req.user?.email || null,
+    submittedAt: new Date().toISOString(),
+    byGl: rolled.byGl,
+    byService: rolled.byService,
     // Zero-value buckets are dropped: the NRI files carry a blank trailing row,
     // and a $0.00 line with no GL is not something anyone should post.
-    posting: rolled.by_gl
-      .flatMap(g => g.classes.map(c => ({ gl: g.gl, gl_desc: g.gl_desc, class: c.class, amount: c.amount })))
+    posting: rolled.byGl
+      .flatMap(g => g.classes.map(c => ({ gl: g.gl, glDesc: g.glDesc, class: c.class, amount: c.amount })))
       .filter(p => Math.abs(p.amount) > 0.005),
   };
   await M.invoices.write(invoices);
@@ -469,11 +470,11 @@ exports.submit = async (req, res) => {
 // re-upload of the same invoice number restores the decisions.
 exports.remove = async (req, res) => {
   const invoices = arr(await M.invoices.read().catch(() => []));
-  const header = invoices.find(i => i.id === req.params.id || i.invoice_no === req.params.id);
+  const header = invoices.find(i => i.id === req.params.id || i.invoiceNo === req.params.id);
   if (!header) return res.status(404).json({ error: 'Invoice not loaded.' });
   await M.invoices.write(invoices.filter(i => i.id !== header.id));
   const lines = arr(await M.lines.read().catch(() => []));
-  await M.lines.write(lines.filter(l => l.invoice_id !== header.id));
+  await M.lines.write(lines.filter(l => l.invoiceId !== header.id));
   res.json({ deleted: header.id, note: 'Line overrides retained for this invoice number.' });
 };
 
@@ -499,7 +500,7 @@ exports.getRateCard = async (req, res) => {
  *   2. an explicit `file` path;
  *   3. the shared-drive default.
  *
- * `dry_run=true` reports what it WOULD write plus the file's defects (duplicate
+ * `dryRun=true` reports what it WOULD write plus the file's defects (duplicate
  * services, trailing-space keys, blank classes, missing GLs) — the legend is the
  * basis for every GL on every line, so it gets inspected before it is adopted.
  */
@@ -511,16 +512,16 @@ exports.syncChargeCodes = async (req, res) => {
       file: norm(req.body?.file) || undefined,
       buffer: upload ? upload.buffer : null,
       label: upload ? upload.originalname : null,
-      dryRun: norm(req.body?.dry_run) === 'true',
+      dryRun: norm(req.body?.dryRun) === 'true',
     });
     res.json({
-      source: r.source, read: r.read, written: r.written, dry_run: r.dryRun,
+      source: r.source, read: r.read, written: r.written, dryRun: r.dryRun,
       defects: {
-        duplicate_keys: r.defects.duplicates.map(d => d.raw),
-        whitespace_keys: r.defects.whitespace,
-        blank_us_class: r.defects.blankUsClass,
-        blank_ca_class: r.defects.blankCaClass,
-        no_gl: r.defects.noGl,
+        duplicateKeys: r.defects.duplicates.map(d => d.raw),
+        whitespaceKeys: r.defects.whitespace,
+        blankUsClass: r.defects.blankUsClass,
+        blankCaClass: r.defects.blankCaClass,
+        noGl: r.defects.noGl,
       },
     });
   } catch (e) {
@@ -538,7 +539,7 @@ exports.summary = async (req, res) => {
   const entity = String((await sources.find(asked))?.entity || asked).toUpperCase();
   const invoices = arr(await M.invoices.read().catch(() => [])).filter(i => i.entity === entity);
   const ids = new Set(invoices.map(i => i.id));
-  const allLines = arr(await M.lines.read().catch(() => [])).filter(l => ids.has(l.invoice_id));
+  const allLines = arr(await M.lines.read().catch(() => [])).filter(l => ids.has(l.invoiceId));
   const overrides = arr(await M.overrides.read().catch(() => []));
   const lines = applyOverrides(allLines, overrides);
 
@@ -549,21 +550,21 @@ exports.summary = async (req, res) => {
 
   for (const l of lines) {
     const gk = `${l.gl ?? 'unmapped'}|${l.class || '(unclassed)'}|${l.month || '?'}`;
-    const g = byGl.get(gk) || { gl: l.gl, gl_desc: l.gl_desc, class: l.class || '(unclassed)', month: l.month, lines: 0, amount: 0 };
-    g.lines++; g.amount = round2(g.amount + l.inv_amt); byGl.set(gk, g);
+    const g = byGl.get(gk) || { gl: l.gl, glDesc: l.glDesc, class: l.class || '(unclassed)', month: l.month, lines: 0, amount: 0 };
+    g.lines++; g.amount = round2(g.amount + l.invAmt); byGl.set(gk, g);
 
     const m = byMonth.get(l.month || '?') || { month: l.month || '?', lines: 0, amount: 0 };
-    m.lines++; m.amount = round2(m.amount + l.inv_amt); byMonth.set(l.month || '?', m);
+    m.lines++; m.amount = round2(m.amount + l.invAmt); byMonth.set(l.month || '?', m);
 
     if (l.basis === 'per_month') {
       const k = `${l.service}|${l.month}`;
       const f = monthlyFees.get(k) || { service: l.service, month: l.month, count: 0, amount: 0, invoices: new Set() };
-      f.count++; f.amount = round2(f.amount + l.inv_amt); f.invoices.add(l.invoice_no); monthlyFees.set(k, f);
+      f.count++; f.amount = round2(f.amount + l.invAmt); f.invoices.add(l.invoiceNo); monthlyFees.set(k, f);
     }
-    if (l.basis === 'per_unit_month' && l.aging_multiple) {
+    if (l.basis === 'per_unit_month' && l.agingMultiple) {
       storage.push({
-        invoice_no: l.invoice_no, month: l.month, units: l.units, charges: l.charges,
-        effective_rate: l.effective_rate, aging_multiple: l.aging_multiple, premium: l.variance,
+        invoiceNo: l.invoiceNo, month: l.month, units: l.units, charges: l.charges,
+        effectiveRate: l.effectiveRate, agingMultiple: l.agingMultiple, premium: l.variance,
       });
     }
   }
@@ -574,13 +575,13 @@ exports.summary = async (req, res) => {
     entity,
     invoices: invoices.length,
     lines: lines.length,
-    total: round2(lines.reduce((s, l) => s + l.inv_amt, 0)),
-    by_gl: [...byGl.values()].sort((a, b) => b.amount - a.amount),
-    by_month: [...byMonth.values()].sort((a, b) => norm(a.month).localeCompare(norm(b.month))),
-    duplicate_monthly_fees: [...monthlyFees.values()]
+    total: round2(lines.reduce((s, l) => s + l.invAmt, 0)),
+    byGl: [...byGl.values()].sort((a, b) => b.amount - a.amount),
+    byMonth: [...byMonth.values()].sort((a, b) => norm(a.month).localeCompare(norm(b.month))),
+    duplicateMonthlyFees: [...monthlyFees.values()]
       .filter(f => f.count > 1)
       .map(f => ({ ...f, invoices: [...f.invoices] })),
-    storage_aging: storage,
-    storage_premium: round2(storage.reduce((s, x) => s + (x.premium || 0), 0)),
+    storageAging: storage,
+    storagePremium: round2(storage.reduce((s, x) => s + (x.premium || 0), 0)),
   });
 };

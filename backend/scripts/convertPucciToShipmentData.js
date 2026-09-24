@@ -28,13 +28,13 @@
 // Join: PL carton rows × Invoice attrs keyed on the FULL SKU (both sheets carry
 // the identical full SKU incl. size segment; 100% coverage verified). Unit price
 // and product attrs come from the Invoice; qty/carton/weights from the PL;
-// total = unit_price × pcs.
+// total = unitPrice × pcs.
 
 const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const DIR = path.join(__dirname, '..', 'data', 'converted docs', 'SMS');
+const DIR = path.join(__dirname, '..', 'storage', 'converted-docs', 'SMS');
 
 const SOURCES = [
   'PT04817-TENTREE BY AIR.xlsx',
@@ -68,9 +68,9 @@ function parseWorkbook(fileBuffer) {
     if (!isSku(r[1])) continue;           // skips metadata + repeated page headers
     if (!poNumber) poNumber = normPo(r[0]);
     attrs.set(S(r[1]), {
-      upc: S(r[2]), knit_woven: S(r[3]), style_description: S(r[4]),
+      upc: S(r[2]), knitWoven: S(r[3]), style_description: S(r[4]),
       color_description: S(r[5]), category: S(r[6]), gender: S(r[7]),
-      composition: S(r[8]), hts_code: S(r[9]), unit_price: N(r[11]),
+      composition: S(r[8]), htsCode: S(r[9]), unitPrice: N(r[11]),
     });
   }
 
@@ -90,15 +90,15 @@ function parseWorkbook(fileBuffer) {
       po: normPo(r[1]) || poNumber,
       sku,
       upc: a.upc || S(r[3]),
-      knit_woven: a.knit_woven || '',
+      knitWoven: a.knitWoven || '',
       style_description: a.style_description || S(r[4]),
       color_description: a.color_description || S(r[5]),
       category: a.category || '',
       gender: a.gender || '',
       composition: a.composition || '',
-      hts_code: a.hts_code || '',
-      unit_price: a.unit_price || 0,
-      total_usd: +((a.unit_price || 0) * qty).toFixed(2),
+      htsCode: a.htsCode || '',
+      unitPrice: a.unitPrice || 0,
+      totalUsd: +((a.unitPrice || 0) * qty).toFixed(2),
       pcs: qty,
       // weights/measure belong to the carton — emit only on its first row
       nw: newCarton ? N(r[7]) : '',
@@ -114,8 +114,8 @@ function build(rows) {
   const aoa = [TEMPLATE_HEADER];
   for (const r of rows) {
     aoa.push([
-      r.ctn, r.po, r.sku, r.upc, r.knit_woven, r.style_description, r.color_description,
-      r.category, r.gender, r.composition, r.hts_code, r.unit_price, r.total_usd,
+      r.ctn, r.po, r.sku, r.upc, r.knitWoven, r.style_description, r.color_description,
+      r.category, r.gender, r.composition, r.htsCode, r.unitPrice, r.totalUsd,
       r.pcs, r.nw, r.gw, r.measure,
     ]);
   }
@@ -132,7 +132,7 @@ for (const f of SOURCES) {
 
   const unmatched = rows.filter((r) => !r._matched);
   const totalPcs = rows.reduce((s, r) => s + r.pcs, 0);
-  const totalVal = +rows.reduce((s, r) => s + r.total_usd, 0).toFixed(2);
+  const totalVal = +rows.reduce((s, r) => s + r.totalUsd, 0).toFixed(2);
   const cartons = new Set(rows.map((r) => r.ctn));
   console.log(`\n${f}`);
   console.log(`  -> ${path.basename(out)}`);

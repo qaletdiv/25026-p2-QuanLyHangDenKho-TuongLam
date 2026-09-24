@@ -3,7 +3,7 @@
 /**
  * backfill-po-approval-status.js
  *
- * Fills `po_orders.approval_status` from NetSuite for the POs the portal already
+ * Fills `po_orders.approvalStatus` from NetSuite for the POs the portal already
  * holds, so the "Pending approval" badge works before the next sync.
  *
  * The column is new (2026-09-09). The sync writes and refreshes it from now on
@@ -23,8 +23,8 @@
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const integrationService = require('../services/integrationService');
 
-const BaseModel = require('../models/BaseModel');
-const { shutdown } = require('../db/tx');
+const { models } = require('../models');
+const { shutdown } = require('../database/tx');
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
@@ -32,11 +32,11 @@ const DRY_RUN = process.argv.includes('--dry-run');
 // DATA_BACKEND the portal is running on. Reading data/ with fs after the
 // Postgres migration would backfill the frozen pre-migration snapshot and
 // report an update the live portal never received.
-const PoOrders = new BaseModel('migrated/po_orders.json');
+const PoOrders = models.po_orders;
 
 async function main() {
   const orders = await PoOrders.read();
-  const held = orders.map((o) => o.po_number).filter(Boolean);
+  const held = orders.map((o) => o.poNumber).filter(Boolean);
   console.log(`Portal holds ${held.length} mainline POs — reading approval status from NetSuite…`);
 
   const statuses = await integrationService.fetchPoApprovalStatuses(held);
@@ -49,12 +49,12 @@ async function main() {
   const changes = [];
   const missing = [];
   for (const o of orders) {
-    const ns = statuses.get(o.po_number);
-    if (!ns) { missing.push(o.po_number); continue; }
+    const ns = statuses.get(o.poNumber);
+    if (!ns) { missing.push(o.poNumber); continue; }
     const next = ns.approval || null;
-    if ((o.approval_status ?? null) !== next) {
-      changes.push({ po: o.po_number, from: o.approval_status ?? null, to: next });
-      o.approval_status = next;
+    if ((o.approvalStatus ?? null) !== next) {
+      changes.push({ po: o.poNumber, from: o.approvalStatus ?? null, to: next });
+      o.approvalStatus = next;
     }
   }
 

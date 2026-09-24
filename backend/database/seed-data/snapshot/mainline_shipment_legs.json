@@ -1,0 +1,128 @@
+[
+  {
+    "id": "spl_1_50",
+    "shipmentId": "1",
+    "legId": "50",
+    "lotNumber": 1,
+    "expectedQuantity": 147
+  },
+  {
+    "id": "spl_2_31",
+    "shipmentId": "2",
+    "legId": "31",
+    "lotNumber": 1,
+    "expectedQuantity": 861
+  },
+  {
+    "id": "spl_2_5",
+    "shipmentId": "2",
+    "legId": "5",
+    "lotNumber": 1,
+    "expectedQuantity": 694
+  },
+  {
+    "id": "spl_3_20",
+    "shipmentId": "3",
+    "legId": "20",
+    "lotNumber": 1,
+    "expectedQuantity": 680
+  },
+  {
+    "id": "spl_3_2",
+    "shipmentId": "3",
+    "legId": "2",
+    "lotNumber": 1,
+    "expectedQuantity": 139
+  },
+  {
+    "id": "spl_4_77",
+    "shipmentId": "4",
+    "legId": "77",
+    "lotNumber": 1,
+    "expectedQuantity": 3516
+  },
+  {
+    "id": "spl_4_45",
+    "shipmentId": "4",
+    "legId": "45",
+    "lotNumber": 1,
+    "expectedQuantity": 2959
+  },
+  {
+    "id": "spl_5_73",
+    "shipmentId": "5",
+    "legId": "73",
+    "lotNumber": 1,
+    "expectedQuantity": 2959
+  },
+  {
+    "id": "spl_5_38",
+    "shipmentId": "5",
+    "legId": "38",
+    "lotNumber": 1,
+    "expectedQuantity": 1936
+  },
+  {
+    "id": "spl_6_77",
+    "shipmentId": "6",
+    "legId": "77",
+    "lotNumber": 2,
+    "expectedQuantity": 7279
+  },
+  {
+    "id": "spl_6_45",
+    "shipmentId": "6",
+    "legId": "45",
+    "lotNumber": 2,
+    "expectedQuantity": 13065
+  },
+  {
+    "id": "spl_7_28",
+    "shipmentId": "7",
+    "legId": "28",
+    "lotNumber": 1,
+    "expectedQuantity": 1271
+  },
+  {
+    "id": "spl_7_18",
+    "shipmentId": "7",
+    "legId": "18",
+    "lotNumber": 1,
+    "expectedQuantity": 1245
+  },
+  {
+    "id": "spl_8_77",
+    "shipmentId": "8",
+    "legId": "77",
+    "lotNumber": 3,
+    "expectedQuantity": 748
+  },
+  {
+    "id": "spl_8_57",
+    "shipmentId": "8",
+    "legId": "57",
+    "lotNumber": 1,
+    "expectedQuantity": 2320
+  },
+  {
+    "id": "spl_9_77",
+    "shipmentId": "9",
+    "legId": "77",
+    "lotNumber": 4,
+    "expectedQuantity": 1207
+  },
+  {
+    "id": "spl_9_45",
+    "shipmentId": "9",
+    "legId": "45",
+    "lotNumber": 3,
+    "expectedQuantity": 1909
+  },
+  {
+    "id": "spl_10_87",
+    "shipmentId": "10",
+    "legId": "87",
+    "lotNumber": 1,
+    "expectedQuantity": 1000
+  }
+]

@@ -27,14 +27,14 @@
 //
 // Output:
 //   { seasons: ["FW26", …],        // present in the mainline order book, newest first
-//     by_season: { all: [week…], FW26: [week…], … } }
+//     bySeason: { all: [week…], FW26: [week…], … } }
 //
 // and per week (sorted by chronology):
 //   { week: "W29 - 2026", weekNum,
-//     plan:   { units, cartons, warehouses, warehouse_channels, suppliers },
-//     actual: { units, cartons, warehouses, warehouse_channels, suppliers },
+//     plan:   { units, cartons, warehouses, warehouseChannels, suppliers },
+//     actual: { units, cartons, warehouses, warehouseChannels, suppliers },
 //     backed: { … },                                              // ⊆ actual
-//     units, cartons, warehouses, warehouse_channels, suppliers,  // = actual
+//     units, cartons, warehouses, warehouseChannels, suppliers,  // = actual
 //     lines: [ … ] }                                              // actual-week grain
 //
 // ⚠️ `backed` IS THE FOUNDATION, and it is a SUBSET of `actual` — never add them.
@@ -63,11 +63,11 @@
 // Filtering client-side would have meant re-deriving the plan series in the
 // browser, and the plan is leg-grained while the lines are part-grained, so the
 // two would have had to be reconciled by hand. Season is DERIVED at read
-// (leg → po_orders.trn_number → po_masters.season_id → seasons.code), per the
+// (leg → po_orders.trnNumber → po_masters.seasonId → seasons.code), per the
 // 3NF rule; `seasons` lists only what the order book actually holds, so the
 // dropdown can never offer a season that renders an empty page.
 //
-// Grain = PO leg. Each leg's expected qty (Σ allocated_qty) is placed whole onto
+// Grain = PO leg. Each leg's expected qty (Σ allocatedQty) is placed whole onto
 // the plan series, and split into mutually-exclusive parts on the actual series
 // (shipment legs + unshipped remainder) so the actual series reconciles too.
 // All derived at read-time; nothing stored.
@@ -76,22 +76,22 @@
 // known only once a packing list has been uploaded, which happens when a
 // consignment SHIPS — a plan has no cartons, and an unbooked leg has none either.
 // Do NOT estimate them from units: only 27% of forecast SKUs (726/2,736) have any
-// packing history and 622 of 748 packed SKUs have an inconsistent `pcs_per_ctn`
+// packing history and 622 of 748 packed SKUs have an inconsistent `pcsPerCtn`
 // (range 4–230, median 39, mean 50), so a flat divisor would put a confident
 // wrong number into a warehouse capacity plan.
 //
 // ⚠️ THE TWO GRAND TOTALS DO NOT MATCH, and that is real data. Plan sums
-// `allocated_qty` (264,349); actual sums what shipped plus what is left
+// `allocatedQty` (264,349); actual sums what shipped plus what is left
 // (264,948). The 599-unit difference is genuine over-shipment on three legs
 // (38 +30, 57 +120, 77 +449). Do not clamp it away — an over-ship is something a
 // planner needs to see, and G2 permits it by design.
 
-const BaseModel = require('../../../models/BaseModel');
+const { models } = require('../../../models');
 const status = require('../statuses');
 const { loadAtaByShipment, effectiveAta } = require('../receipts/ataLoader');
 
-const readM = (f) => new BaseModel(`migrated/${f}.json`).read().catch(() => []);
-const read  = (f) => new BaseModel(`${f}.json`).read().catch(() => []);
+const readM = (f) => models[f].read().catch(() => []);
+const read  = readM;
 
 // ISO week number (matches the previous forecast's helper, UTC-safe).
 function isoWeek(d) {
@@ -134,15 +134,15 @@ async function getMainlineForecast(req, res) {
   // same precedence every other mainline consumer uses.
   const ataMatch = await loadAtaByShipment({ shipments, shipLegs, legs });
 
-  const orderByPo = new Map(orders.map((o) => [o.po_number, o]));
+  const orderByPo = new Map(orders.map((o) => [o.poNumber, o]));
   const facName   = new Map(facilities.map((f) => [f.id, f.name]));
   const chanName  = new Map(channels.map((c) => [c.id, c.name]));
   const shipById  = new Map(shipments.map((s) => [s.id, s]));
-  const masterByTrn = new Map(masters.map((m) => [m.trn_number, m]));
+  const masterByTrn = new Map(masters.map((m) => [m.trnNumber, m]));
   const supName   = new Map(suppliers.map((s) => [s.id, s.name]));
   const modeName  = new Map(modes.map((m) => [m.id, m.name]));
   const seasonCode = new Map(seasons.map((s) => [s.id, s.code]));
-  const qtyByLeg  = legLines.reduce((m, l) => m.set(l.leg_id, (m.get(l.leg_id) || 0) + (Number(l.allocated_qty) || 0)), new Map());
+  const qtyByLeg  = legLines.reduce((m, l) => m.set(l.legId, (m.get(l.legId) || 0) + (Number(l.allocatedQty) || 0)), new Map());
   // ⚠️ A CANCELLED consignment is NOT incoming. Its junction rows are split out
   // here rather than filtered away, because those units have not vanished — the
   // booking still authorizes them, so they belong in the unshipped remainder under
@@ -150,24 +150,24 @@ async function getMainlineForecast(req, res) {
   // the bug this fixes: SHP-10 was cancelled and its 1,000 units still read
   // "In Transit" in W43, the only In-Transit row in the whole order book.
   const cancelledStatusId = await status.idForName('Cancelled');
-  const isCancelledShip = (shipmentId) => (shipById.get(shipmentId) || {}).status_id === cancelledStatusId;
+  const isCancelledShip = (shipmentId) => (shipById.get(shipmentId) || {}).statusId === cancelledStatusId;
   const shipLegsByLeg = shipLegs
-    .filter((j) => !isCancelledShip(j.shipment_id))
-    .reduce((m, j) => { (m[j.leg_id] = m[j.leg_id] || []).push(j); return m; }, {});
+    .filter((j) => !isCancelledShip(j.shipmentId))
+    .reduce((m, j) => { (m[j.legId] = m[j.legId] || []).push(j); return m; }, {});
   // Units whose consignment was cancelled, per leg. Counted as booked-not-shipped
   // only while the BOOKING is still approved — cancel the booking too and the units
   // are genuinely back to unbooked.
   const cancelledByLeg = new Map();
-  shipLegs.filter((j) => isCancelledShip(j.shipment_id)).forEach((j) => {
-    cancelledByLeg.set(j.leg_id, (cancelledByLeg.get(j.leg_id) || 0) + (Number(j.expected_quantity) || 0));
+  shipLegs.filter((j) => isCancelledShip(j.shipmentId)).forEach((j) => {
+    cancelledByLeg.set(j.legId, (cancelledByLeg.get(j.legId) || 0) + (Number(j.expectedQuantity) || 0));
   });
 
-  // confirmed carton count per (booking_id | leg_id) = distinct ctn_number
+  // confirmed carton count per (bookingId | legId) = distinct ctnNumber
   const cartonSets = new Map();
   cartons.forEach((c) => {
-    const k = `${c.booking_id}|${c.leg_id}`;
+    const k = `${c.bookingId}|${c.legId}`;
     if (!cartonSets.has(k)) cartonSets.set(k, new Set());
-    cartonSets.get(k).add(c.ctn_number);
+    cartonSets.get(k).add(c.ctnNumber);
   });
   const cartonCount = (bookingId, legId) => (cartonSets.get(`${bookingId}|${legId}`)?.size || 0);
 
@@ -177,31 +177,31 @@ async function getMainlineForecast(req, res) {
   // also label rejected and cancelled bookings as pending.
   const bookingById = new Map(bookings.map((b) => [b.id, b]));
   const statusName = new Map();
-  await Promise.all([...new Set(bookings.map((b) => b.booking_status_id))]
+  await Promise.all([...new Set(bookings.map((b) => b.bookingStatusId))]
     .map(async (id) => statusName.set(id, await status.nameForId(id))));
   const pendingLegs = new Set(
     bookingLegs
-      .filter((j) => statusName.get((bookingById.get(j.booking_id) || {}).booking_status_id) === 'Booking Pending')
-      .map((j) => j.leg_id));
+      .filter((j) => statusName.get((bookingById.get(j.bookingId) || {}).bookingStatusId) === 'Booking Pending')
+      .map((j) => j.legId));
   // Legs an APPROVED booking still stands behind. Paired with cancelledByLeg above
   // this gives the `Booked — Not Shipped` rung: authorized, no consignment carrying
   // it right now. More confident than Booking Pending (someone has signed it off),
   // less than In Transit (nothing is moving).
   const approvedLegs = new Set(
     bookingLegs
-      .filter((j) => statusName.get((bookingById.get(j.booking_id) || {}).booking_status_id) === 'Booking Approved')
-      .map((j) => j.leg_id));
+      .filter((j) => statusName.get((bookingById.get(j.bookingId) || {}).bookingStatusId) === 'Booking Approved')
+      .map((j) => j.legId));
 
   // Week accumulator, keyed "W## - YYYY". A week exists if EITHER series lands
   // there, so a consignment that slipped out of its planned week still leaves a
   // plan figure behind in it — that residue is the whole point of the comparison.
   // Each series carries the three breakdown maps the matrix can toggle between:
-  // `warehouses`, `warehouse_channels` ("Facility · Channel") and `suppliers`.
+  // `warehouses`, `warehouseChannels` ("Facility · Channel") and `suppliers`.
   // Season of a leg, derived: leg → order → TRN master → season code.
   const seasonOfLeg = (leg) => {
-    const order = orderByPo.get(leg.po_number) || {};
-    const master = masterByTrn.get(order.trn_number) || {};
-    return seasonCode.get(master.season_id) || null;
+    const order = orderByPo.get(leg.poNumber) || {};
+    const master = masterByTrn.get(order.trnNumber) || {};
+    return seasonCode.get(master.seasonId) || null;
   };
 
   // Seasons the order book actually holds, newest first ("SS27" → year, SS before
@@ -218,7 +218,7 @@ async function getMainlineForecast(req, res) {
   // shared, so a season switch costs one cheap pass over the legs.
   const rollup = (legList) => {
   const weeks = new Map();
-  const emptySeries = () => ({ units: 0, cartons: 0, warehouses: {}, warehouse_channels: {}, suppliers: {} });
+  const emptySeries = () => ({ units: 0, cartons: 0, warehouses: {}, warehouseChannels: {}, suppliers: {} });
   const weekAt = (key, weekNo, year) => {
     let w = weeks.get(key);
     if (!w) {
@@ -246,30 +246,30 @@ async function getMainlineForecast(req, res) {
       map[k].cartons += cartonsN;
     };
     add(s.warehouses, wh);
-    add(s.warehouse_channels, whc);
+    add(s.warehouseChannels, whc);
     add(s.suppliers, sup);
   };
 
   for (const leg of legList) {
-    const order = orderByPo.get(leg.po_number) || {};
-    const master = masterByTrn.get(order.trn_number) || {};
-    const orderFacility = facName.get(order.facility_id) || null;
-    const orderChannel = chanName.get(order.allocation_channel_id) || null;
-    const supplier = supName.get(master.supplier_id) || null;
+    const order = orderByPo.get(leg.poNumber) || {};
+    const master = masterByTrn.get(order.trnNumber) || {};
+    const orderFacility = facName.get(order.facilityId) || null;
+    const orderChannel = chanName.get(order.allocationChannelId) || null;
+    const supplier = supName.get(master.supplierId) || null;
     const legQty = qtyByLeg.get(leg.id) || 0;
     // The PLAN date: what the PO said, regardless of what later happened to it.
-    const planDate = leg.e_del || leg.etd_pol || null;
+    const planDate = leg.eDel || leg.etdPol || null;
 
     const ident = {
-      po_number: leg.po_number,
-      trn_number: order.trn_number || null,
+      poNumber: leg.poNumber,
+      trnNumber: order.trnNumber || null,
       supplier,
-      season: seasonCode.get(master.season_id) || null,
-      mode: modeName.get(leg.mode_id) || null,
-      leg_id: leg.id,
+      season: seasonCode.get(master.seasonId) || null,
+      mode: modeName.get(leg.modeId) || null,
+      legId: leg.id,
       crd: leg.crd || null,
-      plan_date: planDate,
-      plan_week: weekKeyOf(planDate)?.key || null,
+      planDate: planDate,
+      planWeek: weekKeyOf(planDate)?.key || null,
     };
 
     // ── PLAN series: the whole leg, on the PO's stated date. Placed once, even
@@ -283,14 +283,14 @@ async function getMainlineForecast(req, res) {
     // shipment legs — landed ones use their derived ATA, in-flight ones the
     // shipment's own E-DEL. Both are stronger evidence than the leg's E-DEL.
     for (const j of shipLegsByLeg[leg.id] || []) {
-      const ship = shipById.get(j.shipment_id) || {};
-      const qty = Number(j.expected_quantity) || 0;
+      const ship = shipById.get(j.shipmentId) || {};
+      const qty = Number(j.expectedQuantity) || 0;
       counted += qty;
       if (qty <= 0) continue;
       const eff = effectiveAta(ataMatch, ship);
-      const actualDate = eff.ata || ship.e_del || ship.eta_pod || ship.etd_pol || null;
-      const cartonsN = cartonCount(ship.booking_id, leg.id);
-      const shipFacility = facName.get(ship.facility_id) || orderFacility;
+      const actualDate = eff.ata || ship.eDel || ship.etaPod || ship.etdPol || null;
+      const cartonsN = cartonCount(ship.bookingId, leg.id);
+      const shipFacility = facName.get(ship.facilityId) || orderFacility;
       bucket('actual', actualDate, shipFacility, orderChannel, supplier, qty, cartonsN);
       // `backed` = the SUBSET of actual that rests on a real shipment, i.e. on an
       // approved booking rather than a date typed on a PO. It is the foundation
@@ -303,18 +303,18 @@ async function getMainlineForecast(req, res) {
         weekAt(wk.key, wk.weekNo, wk.year).lines.push({
           ...ident,
           stage: eff.ata ? 'Received' : 'In Transit',
-          date_basis: eff.ata ? 'receipt_ata'
-                    : ship.e_del ? 'shipment_e_del'
-                    : ship.eta_pod ? 'shipment_eta_pod' : 'shipment_etd_pol',
-          shipment_id: ship.id || null,
-          shipment_number: ship.shipment_number || null,
-          carrier_reference: ship.carrier_reference || null,
-          warehouse: facName.get(ship.facility_id) || orderFacility || 'Unknown',
+          dateBasis: eff.ata ? 'receipt_ata'
+                    : ship.eDel ? 'shipment_e_del'
+                    : ship.etaPod ? 'shipment_eta_pod' : 'shipment_etd_pol',
+          shipmentId: ship.id || null,
+          shipmentNumber: ship.shipmentNumber || null,
+          carrierReference: ship.carrierReference || null,
+          warehouse: facName.get(ship.facilityId) || orderFacility || 'Unknown',
           channel: orderChannel || 'Unassigned',
           units: qty,
           cartons: cartonsN,
-          actual_date: actualDate,
-          slip_days: dayDiff(planDate, actualDate),
+          actualDate: actualDate,
+          slipDays: dayDiff(planDate, actualDate),
         });
       }
     }
@@ -345,23 +345,23 @@ async function getMainlineForecast(req, res) {
         for (const part of parts) weekAt(wk.key, wk.weekNo, wk.year).lines.push({
           ...ident,
           stage: part.stage,
-          date_basis: leg.e_del ? 'leg_e_del' : 'leg_etd_pol',
-          shipment_id: null,
-          shipment_number: null,
-          carrier_reference: null,
+          dateBasis: leg.eDel ? 'leg_e_del' : 'leg_etd_pol',
+          shipmentId: null,
+          shipmentNumber: null,
+          carrierReference: null,
           warehouse: orderFacility || 'Unknown',
           channel: orderChannel || 'Unassigned',
           units: part.units,
           cartons: 0,
-          actual_date: planDate,
-          slip_days: 0,
+          actualDate: planDate,
+          slipDays: 0,
         });
       }
     }
   }
 
   // sort by real chronology (year, then week); strip the private _year field.
-  // `units`/`cartons`/`warehouses`/`warehouse_channels`/`suppliers` are mirrored
+  // `units`/`cartons`/`warehouses`/`warehouseChannels`/`suppliers` are mirrored
   // at the top level from the ACTUAL series — that is the best-known answer, and
   // it keeps the matrix cells, the drill-down and the Actual column all reading
   // the same figure. Drill-down lines sort biggest-first: the week is opened to
@@ -369,24 +369,24 @@ async function getMainlineForecast(req, res) {
   return [...weeks.values()]
     .sort((a, b) => a._year - b._year || a.weekNum - b.weekNum)
     .map(({ _year, ...w }) => {
-      w.lines.sort((a, b) => b.units - a.units || a.po_number.localeCompare(b.po_number));
+      w.lines.sort((a, b) => b.units - a.units || a.poNumber.localeCompare(b.poNumber));
       return {
         ...w,
         units: w.actual.units,
         cartons: w.actual.cartons,
         warehouses: w.actual.warehouses,
-        warehouse_channels: w.actual.warehouse_channels,
+        warehouseChannels: w.actual.warehouseChannels,
         suppliers: w.actual.suppliers,
       };
     });
   };
 
-  const by_season = { all: rollup(legs) };
+  const bySeason = { all: rollup(legs) };
   seasonsPresent.forEach((code) => {
-    by_season[code] = rollup(legs.filter((l) => seasonOfLeg(l) === code));
+    bySeason[code] = rollup(legs.filter((l) => seasonOfLeg(l) === code));
   });
 
-  res.json({ seasons: seasonsPresent, by_season });
+  res.json({ seasons: seasonsPresent, bySeason });
 }
 
 module.exports = { getMainlineForecast };

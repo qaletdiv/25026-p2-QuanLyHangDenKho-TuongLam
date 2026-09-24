@@ -6,7 +6,7 @@
 const Joi = require('joi');
 
 // POST /nri-invoices/sources — register another invoicing warehouse.
-// `parser` / `upload_enabled` are deliberately NOT accepted: a warehouse always
+// `parser` / `uploadEnabled` are deliberately NOT accepted: a warehouse always
 // starts as a shell with uploads off, and enabling one means mapping its file
 // layout in code, not posting a flag.
 const source = Joi.object({
@@ -15,7 +15,7 @@ const source = Joi.object({
     code:        Joi.string().trim().max(40).optional(),
     // the key the coding legend, rate card and invoice ids turn on
     entity:      Joi.string().trim().max(20).optional(),
-    facility_id: Joi.string().trim().max(60).allow('', null).optional(),
+    facilityId: Joi.string().trim().max(60).allow('', null).optional(),
 });
 
 module.exports = { source };

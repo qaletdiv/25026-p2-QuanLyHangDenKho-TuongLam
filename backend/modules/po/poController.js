@@ -1,14 +1,11 @@
 'use strict';
 
 // Shared PO hierarchy — READ path (Phase 1).
-//   po_masters (TRN) → po_orders (po_number) → po_order_lines
+//   po_masters (TRN) → po_orders (poNumber) → po_order_lines
 //                                            → mainline_po_legs → leg_lines
 // Lifecycle state and totals are DERIVED live (never stored), per the schema rule.
 
-const PoMasterModel = require('./PoMasterModel');
-const PoOrderModel  = require('./PoOrderModel');
-const LegReadModel  = require('./LegReadModel');
-const BaseModel     = require('../../models/BaseModel');
+const { models } = require('../../models');
 const { resolveVendorSupplierId } = require('../../utils/vendorScope');
 // pure date helper only — reused so the "expected ATA = E-DEL + 5" rule has ONE
 // definition shared with /reports/mainline rather than a second copy here.
@@ -45,22 +42,22 @@ const lifecycleOf = (legCount, splitOrders, orderCount) =>
 
 // loadAll(vendorSupplierId) — the SINGLE scoping point for the whole PO read path.
 //
-// supplier_id lives only on po_masters, and every read here already joins through
+// supplierId lives only on po_masters, and every read here already joins through
 // it, so filtering the five source tables once here scopes every handler at once:
 // the list endpoints return only the vendor's rows, and getOne/getLeg fall through
 // to their existing notFound() — a 404 rather than a 403, which is deliberate. A 403
 // would confirm that a TRN or leg id exists, letting a vendor enumerate other
 // suppliers' PO numbers; 404 is indistinguishable from "no such record".
 //
-// Pass null (staff) to disable scoping. Masters with a null supplier_id are excluded
+// Pass null (staff) to disable scoping. Masters with a null supplierId are excluded
 // for vendors, which is correct — an unattributed master is not theirs.
 async function loadAll(vendorSupplierId) {
   const [allMasters, allOrders, allOrderLines, allLegs, allLegLines] = await Promise.all([
-    PoMasterModel.read(),
-    PoOrderModel.readOrders(),
-    PoOrderModel.readOrderLines(),
-    LegReadModel.readLegs(),
-    LegReadModel.readLegLines(),
+    models.po_masters.read(),
+    models.po_orders.read(),
+    models.po_order_lines.read(),
+    models.mainline_po_legs.read(),
+    models.mainline_po_leg_lines.read(),
   ]);
 
   let masters = allMasters, orders = allOrders, orderLines = allOrderLines,
@@ -68,22 +65,22 @@ async function loadAll(vendorSupplierId) {
 
   if (vendorSupplierId != null) {
     const mine = String(vendorSupplierId);
-    masters = allMasters.filter((m) => m.supplier_id != null && String(m.supplier_id) === mine);
-    const trns = new Set(masters.map((m) => m.trn_number));
-    orders = allOrders.filter((o) => trns.has(o.trn_number));
-    const poNumbers = new Set(orders.map((o) => o.po_number));
-    orderLines = allOrderLines.filter((l) => poNumbers.has(l.po_number));
-    legs = allLegs.filter((l) => poNumbers.has(l.po_number));
+    masters = allMasters.filter((m) => m.supplierId != null && String(m.supplierId) === mine);
+    const trns = new Set(masters.map((m) => m.trnNumber));
+    orders = allOrders.filter((o) => trns.has(o.trnNumber));
+    const poNumbers = new Set(orders.map((o) => o.poNumber));
+    orderLines = allOrderLines.filter((l) => poNumbers.has(l.poNumber));
+    legs = allLegs.filter((l) => poNumbers.has(l.poNumber));
     const legIds = new Set(legs.map((l) => l.id));
-    legLines = allLegLines.filter((ll) => legIds.has(ll.leg_id));
+    legLines = allLegLines.filter((ll) => legIds.has(ll.legId));
   }
 
   return {
     masters, orders, orderLines, legs, legLines,
-    ordersByTrn:   groupBy(orders, 'trn_number'),
-    linesByPo:     groupBy(orderLines, 'po_number'),
-    legsByPo:      groupBy(legs, 'po_number'),
-    legLinesByLeg: groupBy(legLines, 'leg_id'),
+    ordersByTrn:   groupBy(orders, 'trnNumber'),
+    linesByPo:     groupBy(orderLines, 'poNumber'),
+    legsByPo:      groupBy(legs, 'poNumber'),
+    legLinesByLeg: groupBy(legLines, 'legId'),
   };
 }
 
@@ -96,81 +93,81 @@ async function loadAll(vendorSupplierId) {
 async function getLegs(req, res) {
   const [d, modes, incoterms, facilities, channels, suppliers, seasons] = await Promise.all([
     loadAll(await scopeOf(req)),
-    new BaseModel('modes.json').read(),
-    new BaseModel('incoterms.json').read(),
-    new BaseModel('migrated/warehouse_facilities.json').read(),
-    new BaseModel('migrated/allocation_channels.json').read(),
-    new BaseModel('suppliers.json').read(),
-    new BaseModel('migrated/seasons.json').read(),
+    models.modes.read(),
+    models.incoterms.read(),
+    models.warehouse_facilities.read(),
+    models.allocation_channels.read(),
+    models.suppliers.read(),
+    models.seasons.read(),
   ]);
   const modeName = nameMap(modes), incoName = nameMap(incoterms), facName = nameMap(facilities);
   const chanName = nameMap(channels);
   const supName = nameMap(suppliers), seasonName = nameMap(seasons, 'code');
-  const orderByPo = new Map(d.orders.map((o) => [o.po_number, o]));
-  const masterByTrn = new Map(d.masters.map((m) => [m.trn_number, m]));
+  const orderByPo = new Map(d.orders.map((o) => [o.poNumber, o]));
+  const masterByTrn = new Map(d.masters.map((m) => [m.trnNumber, m]));
 
   const legRows = d.legs.map((leg) => {
-    const order = orderByPo.get(leg.po_number) || {};
-    const master = masterByTrn.get(order.trn_number) || {};
-    const expected_qty = (d.legLinesByLeg[leg.id] || []).reduce((s, l) => s + (l.allocated_qty || 0), 0);
+    const order = orderByPo.get(leg.poNumber) || {};
+    const master = masterByTrn.get(order.trnNumber) || {};
+    const expectedQty = (d.legLinesByLeg[leg.id] || []).reduce((s, l) => s + (l.allocatedQty || 0), 0);
     return {
       id:                  leg.id,
-      po_number:           leg.po_number,
-      trn_number:          order.trn_number || null,
-      supplier:            supName.get(master.supplier_id) || null,
-      season:              seasonName.get(master.season_id) || null,
-      main_shoulder:       master.main_shoulder || null,
-      mode:                modeName.get(leg.mode_id) || null,
-      incoterm:            incoName.get(leg.incoterm_id) || null,
-      receiving_warehouse: facName.get(order.facility_id) || null,   // physical facility (NRI US, …)
-      allocation_channel:  chanName.get(order.allocation_channel_id) || null,  // Reserved/First
-      coo:                 order.coo_country || null,
+      poNumber:           leg.poNumber,
+      trnNumber:          order.trnNumber || null,
+      supplier:            supName.get(master.supplierId) || null,
+      season:              seasonName.get(master.seasonId) || null,
+      mainShoulder:       master.mainShoulder || null,
+      mode:                modeName.get(leg.modeId) || null,
+      incoterm:            incoName.get(leg.incotermId) || null,
+      receivingWarehouse: facName.get(order.facilityId) || null,   // physical facility (NRI US, …)
+      allocationChannel:  chanName.get(order.allocationChannelId) || null,  // Reserved/First
+      coo:                 order.cooCountry || null,
       crd:                 leg.crd || null,
-      etd_pol:             leg.etd_pol || null,
-      e_del:               leg.e_del || null,
-      expected_qty,
-      sku_count:           (d.legLinesByLeg[leg.id] || []).length,
+      etdPol:             leg.etdPol || null,
+      eDel:               leg.eDel || null,
+      expectedQty,
+      skuCount:           (d.legLinesByLeg[leg.id] || []).length,
       lifecycle:           'split',
       // NetSuite's sign-off state for the PO this leg belongs to ('Pending
       // Approval' | 'Approved' | null). Stored on the order by the NS sync; carried
       // here so the list can badge a PO no supervisor has approved yet — until now
       // an unapproved PO was indistinguishable from an approved one.
-      approval_status:     order.approval_status || null,
+      approvalStatus:     order.approvalStatus || null,
       bookable:            true,   // a leg is always bookable (it exists = PO is split)
     };
   });
 
   // Forecast rows: orders with no legs yet (synced from NetSuite / WIP-bootstrapped
   // but not split into air/sea). One row per such order.
-  const splitPoNumbers = new Set(d.legs.map((l) => l.po_number));
-  const forecastRows = d.orders.filter((o) => !splitPoNumbers.has(o.po_number)).map((order) => {
-    const master = masterByTrn.get(order.trn_number) || {};
-    const lines = d.linesByPo[order.po_number] || [];
+  const splitPoNumbers = new Set(d.legs.map((l) => l.poNumber));
+  const forecastRows = d.orders.filter((o) => !splitPoNumbers.has(o.poNumber)).map((order) => {
+    const master = masterByTrn.get(order.trnNumber) || {};
+    const lines = d.linesByPo[order.poNumber] || [];
     return {
-      id:                  `forecast_${order.po_number}`,   // synthetic key (no real leg)
-      po_number:           order.po_number,
-      trn_number:          order.trn_number || null,
-      supplier:            supName.get(master.supplier_id) || null,
-      season:              seasonName.get(master.season_id) || null,
-      main_shoulder:       master.main_shoulder || null,
+      id:                  `forecast_${order.poNumber}`,   // synthetic key (no real leg)
+      poNumber:           order.poNumber,
+      trnNumber:          order.trnNumber || null,
+      supplier:            supName.get(master.supplierId) || null,
+      season:              seasonName.get(master.seasonId) || null,
+      mainShoulder:       master.mainShoulder || null,
       mode:                null,                              // no split yet
       incoterm:            null,
-      receiving_warehouse: facName.get(order.facility_id) || null,
-      allocation_channel:  chanName.get(order.allocation_channel_id) || null,
-      coo:                 order.coo_country || null,
+      receivingWarehouse: facName.get(order.facilityId) || null,
+      allocationChannel:  chanName.get(order.allocationChannelId) || null,
+      coo:                 order.cooCountry || null,
       crd:                 null,
-      etd_pol:             null,
-      e_del:               null,
-      expected_qty:        lines.reduce((s, l) => s + (l.ordered_qty || 0), 0),
-      sku_count:           lines.length,
+      etdPol:             null,
+      eDel:               null,
+      expectedQty:        lines.reduce((s, l) => s + (l.orderedQty || 0), 0),
+      skuCount:           lines.length,
       lifecycle:           'forecast',
-      approval_status:     order.approval_status || null,
+      approvalStatus:     order.approvalStatus || null,
       bookable:            false,   // can't book until split into legs
     };
   });
 
   const rows = [...legRows, ...forecastRows].sort(
-    (a, b) => (a.po_number || '').localeCompare(b.po_number || '') || (a.mode || '~').localeCompare(b.mode || '~'),
+    (a, b) => (a.poNumber || '').localeCompare(b.poNumber || '') || (a.mode || '~').localeCompare(b.mode || '~'),
   );
   res.json(rows);
 }
@@ -179,21 +176,21 @@ async function getLegs(req, res) {
 async function getAll(req, res) {
   const d = await loadAll(await scopeOf(req));
   const result = d.masters.map((m) => {
-    const myOrders = d.ordersByTrn[m.trn_number] || [];
+    const myOrders = d.ordersByTrn[m.trnNumber] || [];
     let legCount = 0, ordered = 0, splitOrders = 0;
     myOrders.forEach((o) => {
-      const legs = d.legsByPo[o.po_number] || [];
+      const legs = d.legsByPo[o.poNumber] || [];
       legCount += legs.length;
       if (legs.length) splitOrders += 1;
-      (d.linesByPo[o.po_number] || []).forEach((l) => { ordered += l.ordered_qty || 0; });
+      (d.linesByPo[o.poNumber] || []).forEach((l) => { ordered += l.orderedQty || 0; });
     });
-    const lifecycle_state = lifecycleOf(legCount, splitOrders, myOrders.length);
+    const lifecycleState = lifecycleOf(legCount, splitOrders, myOrders.length);
     return {
       ...m,
-      order_count:       myOrders.length,
-      leg_count:         legCount,
-      total_ordered_qty: ordered,
-      lifecycle_state,
+      orderCount:       myOrders.length,
+      legCount:         legCount,
+      totalOrderedQty: ordered,
+      lifecycleState,
       bookable:          legCount > 0,   // leg-only booking rule
     };
   });
@@ -205,50 +202,50 @@ async function getOne(req, res) {
   const { trn } = req.params;
   const [d, facilities, channels, modes, suppliers, seasons] = await Promise.all([
     loadAll(await scopeOf(req)),
-    new BaseModel('migrated/warehouse_facilities.json').read(),
-    new BaseModel('migrated/allocation_channels.json').read(),
-    new BaseModel('modes.json').read(),
-    new BaseModel('suppliers.json').read(),
-    new BaseModel('migrated/seasons.json').read(),
+    models.warehouse_facilities.read(),
+    models.allocation_channels.read(),
+    models.modes.read(),
+    models.suppliers.read(),
+    models.seasons.read(),
   ]);
   const facName = nameMap(facilities), chanName = nameMap(channels), modeName = nameMap(modes);
   const supName = nameMap(suppliers), seasonName = nameMap(seasons, 'code');
-  const master = d.masters.find((m) => m.trn_number === trn);
+  const master = d.masters.find((m) => m.trnNumber === trn);
   if (!master) notFound(`PO master not found: ${trn}`);
 
   const myOrders = d.ordersByTrn[trn] || [];
   let totalLegs = 0, splitOrders = 0, totalOrdered = 0;
 
   const orders = myOrders.map((o) => {
-    const legs = (d.legsByPo[o.po_number] || []).map((leg) => ({
+    const legs = (d.legsByPo[o.poNumber] || []).map((leg) => ({
       ...leg,
-      mode: modeName.get(leg.mode_id) || null,
+      mode: modeName.get(leg.modeId) || null,
       leg_lines: d.legLinesByLeg[leg.id] || [],
-      expected_qty: (d.legLinesByLeg[leg.id] || []).reduce((s, l) => s + (l.allocated_qty || 0), 0),
+      expectedQty: (d.legLinesByLeg[leg.id] || []).reduce((s, l) => s + (l.allocatedQty || 0), 0),
     }));
     totalLegs += legs.length;
     if (legs.length) splitOrders += 1;
-    const order_lines = d.linesByPo[o.po_number] || [];
-    order_lines.forEach((l) => { totalOrdered += l.ordered_qty || 0; });
+    const order_lines = d.linesByPo[o.poNumber] || [];
+    order_lines.forEach((l) => { totalOrdered += l.orderedQty || 0; });
     return {
       ...o,
-      destination_facility: facName.get(o.facility_id) || null,   // physical destination name
-      allocation_channel:   chanName.get(o.allocation_channel_id) || null,  // Reserved/First
+      destinationFacility: facName.get(o.facilityId) || null,   // physical destination name
+      allocationChannel:   chanName.get(o.allocationChannelId) || null,  // Reserved/First
       order_lines,
       legs,
-      lifecycle_state: legs.length ? 'split' : 'forecast',
+      lifecycleState: legs.length ? 'split' : 'forecast',
     };
   });
 
   res.json({
     ...master,
-    supplier:          supName.get(master.supplier_id) || null,   // resolved name (display)
-    season:            seasonName.get(master.season_id) || null,
+    supplier:          supName.get(master.supplierId) || null,   // resolved name (display)
+    season:            seasonName.get(master.seasonId) || null,
     // same rollups as getAll() so detail and list share one shape (PoMasterSummary)
-    order_count:       myOrders.length,
-    leg_count:         totalLegs,
-    total_ordered_qty: totalOrdered,
-    lifecycle_state:   lifecycleOf(totalLegs, splitOrders, myOrders.length),
+    orderCount:       myOrders.length,
+    legCount:         totalLegs,
+    totalOrderedQty: totalOrdered,
+    lifecycleState:   lifecycleOf(totalLegs, splitOrders, myOrders.length),
     bookable:          totalLegs > 0,
     orders,
   });
@@ -258,40 +255,40 @@ async function getOne(req, res) {
 // context + SKU descriptions. Feeds the "item lines" download on the PO list.
 //
 // Dates come from TWO grains and are kept in SEPARATE columns, never merged:
-//   PLANNED — crd / e_del / etd_pol_planned, from the WIP-owned leg.
-//   ACTUAL  — etd_pol / eta_pod / e_del_actual / cargo_received_date / ata, from
+//   PLANNED — crd / eDel / etdPolPlanned, from the WIP-owned leg.
+//   ACTUAL  — etdPol / etaPod / eDelActual / cargoReceivedDate / ata, from
 //             the shipment(s) the leg was loaded onto (mainline_shipment_legs).
 // Overwriting the planned value with the actual would erase the very slip the
 // report exists to show, so both are emitted side by side.
 //
 // GRAIN IS PRESERVED: one row per (leg, SKU), as before. A leg may span several
-// shipments (live: 2 of 86), and fanning out would repeat allocated_qty — which is
+// shipments (live: 2 of 86), and fanning out would repeat allocatedQty — which is
 // per (leg, SKU) — on every fanned row, silently inflating any sum of that column.
 // So the leg's shipments are AGGREGATED into one date window instead:
-//   departure = EARLIEST etd_pol (the first box left)
-//   arrival   = LATEST eta_pod / cargo_received_date / ata / e_del (the leg is not
+//   departure = EARLIEST etdPol (the first box left)
+//   arrival   = LATEST etaPod / cargoReceivedDate / ata / eDel (the leg is not
 //               fully delivered until the last box lands)
-// shipment_count + shipment_numbers keep that aggregation visible rather than
+// shipmentCount + shipmentNumbers keep that aggregation visible rather than
 // hiding it. ISO date strings compare lexicographically, so min/max need no parsing.
 async function getAllLegLines(req, res) {
   const [d, modes, facilities, channels, suppliers, seasons, skus, shipments, shipLegs,
     invoices, cartons, receipts, receiptLines] = await Promise.all([
     loadAll(await scopeOf(req)),
-    new BaseModel('modes.json').read(),
-    new BaseModel('migrated/warehouse_facilities.json').read(),
-    new BaseModel('migrated/allocation_channels.json').read(),
-    new BaseModel('suppliers.json').read(),
-    new BaseModel('migrated/seasons.json').read(),
-    new BaseModel('migrated/product_skus.json').read(),
-    new BaseModel('migrated/mainline_shipments.json').read(),
-    new BaseModel('migrated/mainline_shipment_legs.json').read(),
+    models.modes.read(),
+    models.warehouse_facilities.read(),
+    models.allocation_channels.read(),
+    models.suppliers.read(),
+    models.seasons.read(),
+    models.product_skus.read(),
+    models.mainline_shipments.read(),
+    models.mainline_shipment_legs.read(),
     // Shipped + received per (leg, SKU) — the same derivation the PO leg page
     // reconciles with, via the shared `legActuals`. CI lines are derived from the
     // packing cartons, not stored.
-    new BaseModel('migrated/mainline_commercial_invoices.json').read().catch(() => []),
-    new BaseModel('migrated/mainline_packing_cartons.json').read().catch(() => []),
-    new BaseModel('migrated/mainline_item_receipts.json').read().catch(() => []),
-    new BaseModel('migrated/mainline_item_receipt_lines.json').read().catch(() => []),
+    models.mainline_commercial_invoices.read().catch(() => []),
+    models.mainline_packing_cartons.read().catch(() => []),
+    models.mainline_item_receipts.read().catch(() => []),
+    models.mainline_item_receipt_lines.read().catch(() => []),
   ]);
   // Built over ALL legs, not the vendor-scoped subset: the receipt split walks a
   // PO's legs in shipping-method order and capping it to a partial view would
@@ -302,12 +299,12 @@ async function getAllLegLines(req, res) {
   });
   const modeName = nameMap(modes), facName = nameMap(facilities), chanName = nameMap(channels);
   const supName = nameMap(suppliers), seasonName = nameMap(seasons, 'code');
-  const orderByPo = new Map(d.orders.map((o) => [o.po_number, o]));
-  const masterByTrn = new Map(d.masters.map((m) => [m.trn_number, m]));
+  const orderByPo = new Map(d.orders.map((o) => [o.poNumber, o]));
+  const masterByTrn = new Map(d.masters.map((m) => [m.trnNumber, m]));
   const legById = new Map(d.legs.map((l) => [l.id, l]));
-  const skuByCode = new Map(skus.map((s) => [s.sku_code, s]));
+  const skuByCode = new Map(skus.map((s) => [s.skuCode, s]));
 
-  // leg_id → aggregated shipment dates. Built over ALL shipments deliberately: the
+  // legId → aggregated shipment dates. Built over ALL shipments deliberately: the
   // ROW LIST (d.legLines) is already vendor-scoped by loadAll, and this is lookup
   // context — pruning it would blank dates rather than hide rows.
   const shipById = new Map((Array.isArray(shipments) ? shipments : []).map((s) => [s.id, s]));
@@ -321,69 +318,69 @@ async function getAllLegLines(req, res) {
   const ataMatch = await loadAtaByShipment({ shipments, shipLegs, legs: d.legs });
   const shipDatesByLeg = new Map();
   for (const j of (Array.isArray(shipLegs) ? shipLegs : [])) {
-    const s = shipById.get(j.shipment_id);
+    const s = shipById.get(j.shipmentId);
     if (!s) continue;
-    const agg = shipDatesByLeg.get(j.leg_id) || { numbers: [], count: 0 };
+    const agg = shipDatesByLeg.get(j.legId) || { numbers: [], count: 0 };
     agg.count += 1;
-    if (s.shipment_number) agg.numbers.push(s.shipment_number);
+    if (s.shipmentNumber) agg.numbers.push(s.shipmentNumber);
     // earliest departure, latest everything downstream
-    if (s.etd_pol && (!agg.etd_pol || s.etd_pol < agg.etd_pol)) agg.etd_pol = s.etd_pol;
-    for (const k of ['eta_pod', 'e_del', 'cargo_received_date']) {
+    if (s.etdPol && (!agg.etdPol || s.etdPol < agg.etdPol)) agg.etdPol = s.etdPol;
+    for (const k of ['etaPod', 'eDel', 'cargoReceivedDate']) {
       if (s[k] && (!agg[k] || s[k] > agg[k])) agg[k] = s[k];
     }
-    const { ata, ata_source } = effectiveAta(ataMatch, s);
-    if (ata && (!agg.ata || ata > agg.ata)) { agg.ata = ata; agg.ata_source = ata_source; }
-    shipDatesByLeg.set(j.leg_id, agg);
+    const { ata, ataSource } = effectiveAta(ataMatch, s);
+    if (ata && (!agg.ata || ata > agg.ata)) { agg.ata = ata; agg.ataSource = ataSource; }
+    shipDatesByLeg.set(j.legId, agg);
   }
 
   const rows = d.legLines.map((ll) => {
-    const leg = legById.get(ll.leg_id) || {};
-    const order = orderByPo.get(leg.po_number) || {};
-    const master = masterByTrn.get(order.trn_number) || {};
-    const sku = skuByCode.get(ll.sku_code) || {};
-    const ship = shipDatesByLeg.get(ll.leg_id) || null;
+    const leg = legById.get(ll.legId) || {};
+    const order = orderByPo.get(leg.poNumber) || {};
+    const master = masterByTrn.get(order.trnNumber) || {};
+    const sku = skuByCode.get(ll.skuCode) || {};
+    const ship = shipDatesByLeg.get(ll.legId) || null;
     // Expected ATA = best-known E-DEL + 5, derived never stored — the actual E-DEL
     // once shipped, else the leg's plan. Same basis rule as /reports/mainline.
-    const bestEDel = (ship && ship.e_del) || leg.e_del || null;
+    const bestEDel = (ship && ship.eDel) || leg.eDel || null;
     return {
-      po_number:           leg.po_number || null,
-      trn_number:          order.trn_number || null,
-      supplier:            supName.get(master.supplier_id) || null,
-      season:              seasonName.get(master.season_id) || null,
-      mode:                modeName.get(leg.mode_id) || null,
-      receiving_warehouse: facName.get(order.facility_id) || null,
-      allocation_channel:  chanName.get(order.allocation_channel_id) || null,
+      poNumber:           leg.poNumber || null,
+      trnNumber:          order.trnNumber || null,
+      supplier:            supName.get(master.supplierId) || null,
+      season:              seasonName.get(master.seasonId) || null,
+      mode:                modeName.get(leg.modeId) || null,
+      receivingWarehouse: facName.get(order.facilityId) || null,
+      allocationChannel:  chanName.get(order.allocationChannelId) || null,
       // planned (leg / WIP)
       crd:                 leg.crd || null,
-      e_del:               leg.e_del || null,
-      etd_pol_planned:     leg.etd_pol || null,
+      eDel:               leg.eDel || null,
+      etdPolPlanned:     leg.etdPol || null,
       // actual (shipment)
-      shipment_numbers:    ship && ship.numbers.length ? ship.numbers.join(', ') : null,
-      shipment_count:      ship ? ship.count : 0,
-      etd_pol:             (ship && ship.etd_pol) || null,
-      eta_pod:             (ship && ship.eta_pod) || null,
-      e_del_actual:        (ship && ship.e_del) || null,
-      cargo_received_date: (ship && ship.cargo_received_date) || null,
-      expected_ata:        addDays(bestEDel, 5),
+      shipmentNumbers:    ship && ship.numbers.length ? ship.numbers.join(', ') : null,
+      shipmentCount:      ship ? ship.count : 0,
+      etdPol:             (ship && ship.etdPol) || null,
+      etaPod:             (ship && ship.etaPod) || null,
+      eDelActual:        (ship && ship.eDel) || null,
+      cargoReceivedDate: (ship && ship.cargoReceivedDate) || null,
+      expectedAta:        addDays(bestEDel, 5),
       ata:                 (ship && ship.ata) || null,
       // which rule produced it: 'netsuite' = attributed Item Receipt, 'manual' =
       // the typed column. Worth a column in a spreadsheet people reconcile against
       // NetSuite — a date and no provenance invites re-checking every row.
-      ata_source:          (ship && ship.ata_source) || null,
-      leg_id:              ll.leg_id,
-      sku_code:            ll.sku_code,
-      item_name:           sku.item_name || null,
-      style_color:         sku.style_color || null,
+      ataSource:          (ship && ship.ataSource) || null,
+      legId:              ll.legId,
+      skuCode:            ll.skuCode,
+      itemName:           sku.itemName || null,
+      styleColor:         sku.styleColor || null,
       size:                sku.size || null,
-      allocated_qty:       ll.allocated_qty || 0,
+      allocatedQty:       ll.allocatedQty || 0,
       // 0, not null: at this grain a SKU with no CI line or no receipt has shipped
       // / received nothing, and a blank cell in a spreadsheet column people sum
       // would be read as missing data rather than as zero.
-      shipped_qty:         shippedByLegSku.get(`${ll.leg_id}|${ll.sku_code}`) || 0,
-      received_qty:        recvByLegSku.get(`${ll.leg_id}|${ll.sku_code}`) || 0,
-      unit_price:          sku.unit_price ?? null,
+      shippedQty:         shippedByLegSku.get(`${ll.legId}|${ll.skuCode}`) || 0,
+      receivedQty:        recvByLegSku.get(`${ll.legId}|${ll.skuCode}`) || 0,
+      unitPrice:          sku.unitPrice ?? null,
     };
-  }).sort((a, b) => (a.po_number || '').localeCompare(b.po_number || '') || (a.sku_code || '').localeCompare(b.sku_code || ''));
+  }).sort((a, b) => (a.poNumber || '').localeCompare(b.poNumber || '') || (a.skuCode || '').localeCompare(b.skuCode || ''));
   res.json(rows);
 }
 
@@ -394,59 +391,59 @@ async function getLeg(req, res) {
   const { id } = req.params;
   const [d, modes, incoterms, facilities, channels, suppliers, seasons, skus] = await Promise.all([
     loadAll(await scopeOf(req)),
-    new BaseModel('modes.json').read(),
-    new BaseModel('incoterms.json').read(),
-    new BaseModel('migrated/warehouse_facilities.json').read(),
-    new BaseModel('migrated/allocation_channels.json').read(),
-    new BaseModel('suppliers.json').read(),
-    new BaseModel('migrated/seasons.json').read(),
-    new BaseModel('migrated/product_skus.json').read(),
+    models.modes.read(),
+    models.incoterms.read(),
+    models.warehouse_facilities.read(),
+    models.allocation_channels.read(),
+    models.suppliers.read(),
+    models.seasons.read(),
+    models.product_skus.read(),
   ]);
   const leg = d.legs.find((l) => String(l.id) === String(id));
   if (!leg) notFound(`PO leg not found: ${id}`);
 
   const modeName = nameMap(modes), incoName = nameMap(incoterms), facName = nameMap(facilities);
   const chanName = nameMap(channels), supName = nameMap(suppliers), seasonName = nameMap(seasons, 'code');
-  const order = (d.orders.find((o) => o.po_number === leg.po_number)) || {};
-  const master = (d.masters.find((m) => m.trn_number === order.trn_number)) || {};
-  const skuByCode = new Map(skus.map((s) => [s.sku_code, s]));
+  const order = (d.orders.find((o) => o.poNumber === leg.poNumber)) || {};
+  const master = (d.masters.find((m) => m.trnNumber === order.trnNumber)) || {};
+  const skuByCode = new Map(skus.map((s) => [s.skuCode, s]));
 
   const line_items = (d.legLinesByLeg[leg.id] || []).map((ll) => {
-    const sku = skuByCode.get(ll.sku_code) || {};
+    const sku = skuByCode.get(ll.skuCode) || {};
     return {
-      sku_code:      ll.sku_code,
-      allocated_qty: ll.allocated_qty || 0,
-      item_name:     sku.item_name || null,
-      style_color:   sku.style_color || null,
+      skuCode:      ll.skuCode,
+      allocatedQty: ll.allocatedQty || 0,
+      itemName:     sku.itemName || null,
+      styleColor:   sku.styleColor || null,
       colorway:      sku.colorway || null,
       size:          sku.size || null,
       description:   sku.description || null,
-      unit_price:    sku.unit_price ?? null,
+      unitPrice:    sku.unitPrice ?? null,
     };
-  }).sort((a, b) => (a.sku_code || '').localeCompare(b.sku_code || ''));
+  }).sort((a, b) => (a.skuCode || '').localeCompare(b.skuCode || ''));
 
   res.json({
     id:                   leg.id,
-    po_number:            leg.po_number,
-    netsuite_id:          order.netsuite_id || null,   // component-PO NS internal id
-    trn_number:           order.trn_number || null,
-    supplier_id:          master.supplier_id || null,
-    supplier:             supName.get(master.supplier_id) || null,
-    season:               seasonName.get(master.season_id) || null,
-    main_shoulder:        master.main_shoulder || null,
-    mode_id:              leg.mode_id || null,
-    mode:                 modeName.get(leg.mode_id) || null,
-    incoterm:             incoName.get(leg.incoterm_id) || null,
-    destination_facility: facName.get(order.facility_id) || null,
-    facility_id:          order.facility_id || null,
-    allocation_channel:   chanName.get(order.allocation_channel_id) || null,
-    coo:                  order.coo_country || null,
-    approval_status:      order.approval_status || null,   // NS sign-off state (badge)
+    poNumber:            leg.poNumber,
+    netsuiteId:          order.netsuiteId || null,   // component-PO NS internal id
+    trnNumber:           order.trnNumber || null,
+    supplierId:          master.supplierId || null,
+    supplier:             supName.get(master.supplierId) || null,
+    season:               seasonName.get(master.seasonId) || null,
+    mainShoulder:        master.mainShoulder || null,
+    modeId:              leg.modeId || null,
+    mode:                 modeName.get(leg.modeId) || null,
+    incoterm:             incoName.get(leg.incotermId) || null,
+    destinationFacility: facName.get(order.facilityId) || null,
+    facilityId:          order.facilityId || null,
+    allocationChannel:   chanName.get(order.allocationChannelId) || null,
+    coo:                  order.cooCountry || null,
+    approvalStatus:      order.approvalStatus || null,   // NS sign-off state (badge)
     crd:                  leg.crd || null,
-    etd_pol:              leg.etd_pol || null,
-    e_del:                leg.e_del || null,
-    expected_qty:         line_items.reduce((s, l) => s + l.allocated_qty, 0),
-    sku_count:            line_items.length,
+    etdPol:              leg.etdPol || null,
+    eDel:                leg.eDel || null,
+    expectedQty:         line_items.reduce((s, l) => s + l.allocatedQty, 0),
+    skuCount:            line_items.length,
     line_items,
   });
 }

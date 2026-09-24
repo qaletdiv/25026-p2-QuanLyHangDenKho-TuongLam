@@ -1,0 +1,14 @@
+[
+  {
+    "id": "lcr_sms",
+    "module": "sms",
+    "freightPct": 40,
+    "dutyPct": 25
+  },
+  {
+    "id": "lcr_mainline",
+    "module": "mainline",
+    "freightPct": 40,
+    "dutyPct": 25
+  }
+]

@@ -4,7 +4,7 @@
  * Item Receipts the portal holds that NetSuite no longer has.
  *
  * THE BUG (PO04801, 2026-09-10): both receipt folds are upsert-only — they key on
- * `netsuite_ir_id`, refresh what NetSuite returns and add what is new, but never
+ * `netsuiteIrId`, refresh what NetSuite returns and add what is new, but never
  * remove. Delete an IR in NetSuite and post a replacement, re-sync, and the portal
  * keeps BOTH: PO04801 held IR65999 (315) + IR66000 (14) + IR66023 (329) = 658
  * received against the 329 NetSuite actually has. Received quantity feeds the
@@ -27,7 +27,7 @@
  *     auto-match (smsReceiptController.manualMatch), and it may deliberately point
  *     at an IR raised against a different PO — which is precisely why the
  *     PO-scoped query will not return it.
- *  3. Rows with no `netsuite_ir_id`. Nothing links them to NetSuite, so NetSuite
+ *  3. Rows with no `netsuiteIrId`. Nothing links them to NetSuite, so NetSuite
  *     cannot be the authority on whether they should exist.
  *
  * A stale row that carried a CONFIRMED match still goes — a confirmation pointing
@@ -49,22 +49,22 @@ function pruneStaleReceipts({ nsReceipts = [], queriedPoNumbers = [], receipts =
     const scope = queriedPoNumbers instanceof Set ? queriedPoNumbers : new Set(queriedPoNumbers);
 
     const stale = receipts.filter((r) => (
-        r.netsuite_ir_id                        // linked to NetSuite at all
+        r.netsuiteIrId                        // linked to NetSuite at all
         && r.source !== 'manual'                // not a human's override
-        && scope.has(r.po_number)               // its PO was actually in the question
-        && !live.has(String(r.netsuite_ir_id))  // and NetSuite did not return it
+        && scope.has(r.poNumber)               // its PO was actually in the question
+        && !live.has(String(r.netsuiteIrId))  // and NetSuite did not return it
     ));
     const staleIds = new Set(stale.map((r) => r.id));
 
     return {
         receipts: receipts.filter((r) => !staleIds.has(r.id)),
-        receiptLines: receiptLines.filter((l) => !staleIds.has(l.receipt_id)),
+        receiptLines: receiptLines.filter((l) => !staleIds.has(l.receiptId)),
         removed: stale.map((r) => ({
             id: r.id,
-            po_number: r.po_number,
-            ir: r.netsuite_ir_tranid || `#${r.netsuite_ir_id}`,
+            poNumber: r.poNumber,
+            ir: r.netsuiteIrTranid || `#${r.netsuiteIrId}`,
             // surfaced because deleting it also withdraws a human's assertion
-            was_confirmed: Boolean(r.confirmed_by || r.matched_shipment_id),
+            was_confirmed: Boolean(r.confirmedBy || r.matchedShipmentId),
         })),
     };
 }

@@ -27,7 +27,7 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const DIR = path.join(__dirname, '..', 'data', 'converted docs', 'Mainline');
+const DIR = path.join(__dirname, '..', 'storage', 'converted-docs', 'Mainline');
 
 const TEMPLATE_HEADER = [
   'CTN#', 'PO#', 'SKU', 'UPC', 'Knit/Woven', 'Style Description', 'Color Description',
@@ -75,9 +75,9 @@ function invAttrs(ci, hdr) {
     if (!sku) break;
     if (attrs.has(sku)) continue;                 // first line per SKU wins (constant price)
     attrs.set(sku, {
-      upc: S(r[2]), knit_woven: S(r[3]), style_description: S(r[4]), color_description: S(r[5]),
-      category: S(r[6]), gender: S(r[7]), composition: S(r[8]), hts_code: S(r[9]),
-      unit_price: N(r[11]),
+      upc: S(r[2]), knitWoven: S(r[3]), style_description: S(r[4]), color_description: S(r[5]),
+      category: S(r[6]), gender: S(r[7]), composition: S(r[8]), htsCode: S(r[9]),
+      unitPrice: N(r[11]),
     });
   }
   return attrs;
@@ -126,10 +126,10 @@ function packingRows(pl, plHdr, attrs, po) {
 
     raw.push({
       ctn, sku, upc: S(r[c.upc]) || (a ? a.upc : ''),
-      knit_woven: a ? a.knit_woven : '', style: a ? a.style_description : S(r[c.style]),
+      knitWoven: a ? a.knitWoven : '', style: a ? a.style_description : S(r[c.style]),
       color: a ? a.color_description : S(r[c.color]), category: a ? a.category : '',
-      gender: a ? a.gender : '', composition: a ? a.composition : '', hts: a ? a.hts_code : '',
-      unit: a ? a.unit_price : 0, pcs: N(r[c.pcs]), measure,
+      gender: a ? a.gender : '', composition: a ? a.composition : '', hts: a ? a.htsCode : '',
+      unit: a ? a.unitPrice : 0, pcs: N(r[c.pcs]), measure,
     });
   }
 
@@ -137,7 +137,7 @@ function packingRows(pl, plHdr, attrs, po) {
     const isFirst = cartonFirst.get(x.ctn) === idx;
     const w = cartonWeight.get(x.ctn);
     return [
-      x.ctn, po, x.sku, x.upc, x.knit_woven, x.style, x.color,
+      x.ctn, po, x.sku, x.upc, x.knitWoven, x.style, x.color,
       x.category, x.gender, x.composition, x.hts,
       x.unit, r2(x.unit * x.pcs), x.pcs,
       isFirst ? r2(w.nw) : '', isFirst ? r2(w.gw) : '', isFirst ? x.measure : '',

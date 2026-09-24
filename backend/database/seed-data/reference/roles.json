@@ -1,0 +1,100 @@
+[
+  {
+    "id": "admin",
+    "name": "Admin",
+    "description": "Full system access",
+    "protected": true,
+    "permissions": [
+      "purchase_orders",
+      "bookings",
+      "shipments",
+      "reports",
+      "forecast",
+      "contacts",
+      "settings",
+      "freight",
+      "landed_costs",
+      "booking_create_mainline",
+      "booking_create_sms",
+      "booking_approve",
+      "booking_delete",
+      "shipment_update_status",
+      "shipment_delete",
+      "shipment_import_export",
+      "po_edit",
+      "settings_edit",
+      "user_manage"
+    ]
+  },
+  {
+    "id": "logistics",
+    "name": "Logistics Coordinator",
+    "description": "Manage shipments, bookings, and master data",
+    "protected": false,
+    "permissions": [
+      "bookings",
+      "shipments",
+      "reports",
+      "forecast",
+      "contacts",
+      "settings",
+      "freight",
+      "landed_costs",
+      "booking_create_mainline",
+      "booking_create_sms",
+      "booking_approve",
+      "booking_delete",
+      "shipment_update_status",
+      "shipment_delete",
+      "shipment_import_export",
+      "po_edit",
+      "settings_edit",
+      "purchase_orders"
+    ]
+  },
+  {
+    "id": "production",
+    "name": "Production",
+    "description": "View shipments and update statuses",
+    "protected": false,
+    "permissions": [
+      "shipments",
+      "reports",
+      "forecast",
+      "purchase_orders",
+      "bookings",
+      "po_edit",
+      "booking_create_mainline",
+      "booking_create_sms",
+      "booking_approve",
+      "booking_delete",
+      "shipment_update_status",
+      "shipment_import_export",
+      "landed_costs"
+    ]
+  },
+  {
+    "id": "vendor",
+    "name": "Vendor",
+    "description": "Submit bookings and track shipments",
+    "protected": false,
+    "permissions": [
+      "purchase_orders",
+      "bookings",
+      "shipments",
+      "booking_create_mainline",
+      "booking_create_sms"
+    ]
+  },
+  {
+    "id": "freight_forwarder",
+    "name": "Freight Forwarder",
+    "description": "View and manage shipment logistics",
+    "protected": false,
+    "permissions": [
+      "shipments",
+      "bookings",
+      "shipment_update_status"
+    ]
+  }
+]

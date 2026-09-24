@@ -1,7 +1,7 @@
 # tentree Supply Chain Portal — Schema Redesign (JSON → Aurora PostgreSQL)
 
 Database-architect audit + 3NF target design. All field names below are the **real**
-keys observed in `backend/data/*.json` (sampled with node, not invented).
+keys observed in `backend/database/seed-data/*.json` (sampled with node, not invented).
 
 > **Scope: MAINLINE ONLY.** SMS is a totally separate module and is intentionally
 > out of scope here — it gets its own table family in a later pass. Mainline and SMS

@@ -1,0 +1,20 @@
+[
+  {
+    "code": "nri-us",
+    "label": "NRI US",
+    "entity": "US",
+    "facilityId": "fac_nri_us",
+    "parser": "nri_us",
+    "uploadEnabled": true,
+    "note": null
+  },
+  {
+    "code": "nri-ca",
+    "label": "NRI CA",
+    "entity": "CA",
+    "facilityId": "fac_nri_ca",
+    "parser": null,
+    "uploadEnabled": false,
+    "note": "Its detail workbook is built differently — Summary_Coded plus its own embedded coding legend (60 rows against the master's 61, and 'Transfer Order fulfillment & receipt' differs). Uploads open once a real CA workbook has been checked against a parser. The coding legend and rate card already hold CA columns, so loaded CA invoices will code and validate the moment the layout is mapped."
+  }
+]

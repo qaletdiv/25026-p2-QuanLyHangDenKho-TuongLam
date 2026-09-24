@@ -18,17 +18,17 @@
 //             caller sees an empty list. Correct for READS: a misconfigured
 //             account should render an empty page, not error the whole view.
 //
-// Never compare a supplier_id against the raw sentinel value — use it only as the
+// Never compare a supplierId against the raw sentinel value — use it only as the
 // needle in a filter, where "matches nothing" is the desired outcome.
 
-const BaseModel = require('../models/BaseModel');
+const { models } = require('../models');
 const { supplierKey } = require('./nameKey');
 
 // suppliers.json / users.json live in data/ root, not data/migrated
-const UsersModel = new BaseModel('users.json');
-const SuppliersModel = new BaseModel('suppliers.json');
+const UsersModel = models.users;
+const SuppliersModel = models.suppliers;
 
-// A value no real supplier id can equal, so `supplier_id === NO_SUPPLIER` is
+// A value no real supplier id can equal, so `supplierId === NO_SUPPLIER` is
 // always false and every filter using it yields an empty set.
 const NO_SUPPLIER = '__no_supplier__';
 

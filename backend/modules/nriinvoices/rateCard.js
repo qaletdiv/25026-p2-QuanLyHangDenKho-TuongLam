@@ -20,9 +20,9 @@
  *    the rate is checked — the verdict says so rather than pretending.
  */
 
-const BaseModel = require('../../models/BaseModel');
+const { models } = require('../../models');
 
-const rateTable = new BaseModel('nri/nri_rate_card.json');
+const rateTable = models.nri_rate_card;
 
 const norm = v => (v === undefined || v === null ? '' : String(v).trim());
 const key = v => norm(v).toUpperCase().replace(/\s+/g, ' ');
@@ -34,10 +34,10 @@ const VERDICT = Object.freeze({
   OVERCHARGE: 'overcharge',            // charged MORE than the agreement
   UNDERCHARGE: 'undercharge',          // charged LESS (still a variance worth seeing)
   DUPLICATE: 'duplicate',              // a per-month fee billed twice in one month
-  NO_RATE_ON_FILE: 'no_rate_on_file',  // service exists but no rate row covers this date
-  NO_CONTRACT_RATE: 'no_contract_rate',// agreement says "Market Rates" / says nothing
-  QTY_UNSUPPORTED: 'qty_unsupported',  // rate correct, quantity not evidenced on the line
-  AGING_PREMIUM: 'aging_premium',      // storage above base, within the aging schedule
+  NO_RATE_ON_FILE: 'noRateOnFile',  // service exists but no rate row covers this date
+  NO_CONTRACT_RATE: 'noContractRate',// agreement says "Market Rates" / says nothing
+  QTY_UNSUPPORTED: 'qtyUnsupported',  // rate correct, quantity not evidenced on the line
+  AGING_PREMIUM: 'agingPremium',      // storage above base, within the aging schedule
   OK: 'ok',
 });
 
@@ -65,7 +65,7 @@ function index(rows) {
     byService.get(k).push(r);
   }
   for (const list of byService.values()) {
-    list.sort((a, b) => norm(b.effective_from).localeCompare(norm(a.effective_from)));
+    list.sort((a, b) => norm(b.effectiveFrom).localeCompare(norm(a.effectiveFrom)));
   }
   return { rows, byService };
 }
@@ -77,8 +77,8 @@ function rateFor(idx, entity, service, date) {
   const d = norm(date);
   if (!d) return list[0] || null;
   for (const r of list) {
-    const from = norm(r.effective_from);
-    const to = norm(r.effective_to);
+    const from = norm(r.effectiveFrom);
+    const to = norm(r.effectiveTo);
     if (from && d < from) continue;
     if (to && d > to) continue;
     return r;
@@ -112,7 +112,7 @@ function checkLine(idx, line, opts) {
   const units = num(line.units);
   const rc = rateFor(idx, line.entity, service, line.date);
 
-  const base = { service, charge, units, rate: rc ? rc.rate : null, basis: rc ? rc.basis : null, rate_source: rc ? rc.source : null };
+  const base = { service, charge, units, rate: rc ? rc.rate : null, basis: rc ? rc.basis : null, rateSource: rc ? rc.source : null };
 
   if (!rc) {
     return { ...base, verdict: VERDICT.NO_RATE_ON_FILE, expected: null, variance: null,
@@ -131,7 +131,7 @@ function checkLine(idx, line, opts) {
       const hours = rc.rate ? charge / rc.rate : null;
       const clean = hours !== null && Math.abs(hours - Math.round(hours * 100) / 100) < 1e-6;
       return { ...base, verdict: VERDICT.QTY_UNSUPPORTED,
-        expected: null, variance: null, implied_hours: hours === null ? null : Math.round(hours * 10000) / 10000,
+        expected: null, variance: null, impliedHours: hours === null ? null : Math.round(hours * 10000) / 10000,
         detail: clean
           ? `${(Math.round(hours * 100) / 100).toFixed(2)} hrs at the contracted $${rc.rate.toFixed(2)}/hr — rate verified, hours not evidenced on the line`
           : `charge is not a clean multiple of $${rc.rate.toFixed(2)}/hr (implies ${hours === null ? '?' : hours.toFixed(4)} hrs)` };
@@ -163,8 +163,8 @@ function checkLine(idx, line, opts) {
       }
       const verdict = multiple > maxMultiple + 0.02 ? VERDICT.OVERCHARGE : VERDICT.AGING_PREMIUM;
       return { ...base, verdict, expected: atBase, variance: round2(charge - atBase),
-        effective_rate: Math.round(effective * 10000) / 10000,
-        aging_multiple: Math.round(multiple * 1000) / 1000,
+        effectiveRate: Math.round(effective * 10000) / 10000,
+        agingMultiple: Math.round(multiple * 1000) / 1000,
         detail: verdict === VERDICT.OVERCHARGE
           ? `$${effective.toFixed(4)}/unit is ${multiple.toFixed(2)}x the base rate — above the ${maxMultiple}x ceiling the aging schedule allows`
           : `$${effective.toFixed(4)}/unit = ${multiple.toFixed(2)}x base. Within the aging schedule (max ${maxMultiple}x), but the invoice gives no aging breakdown to prove it` };

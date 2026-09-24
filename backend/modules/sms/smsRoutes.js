@@ -90,7 +90,7 @@ router.get('/documents/:docId/file', asyncWrap(packingController.downloadDocumen
 // Item Receipt LINES sync from NetSuite (smsNetsuiteSync writes sms_item_receipts
 // /_lines) and feed the PO detail's reconciliation (smsService.reconcilePo) — no
 // line write endpoints. The only portal-owned write is the shipment↔IR MATCH
-// (matched_shipment_id), reactivated 2026-07-22 to target landed-cost pushes.
+// (matchedShipmentId), reactivated 2026-07-22 to target landed-cost pushes.
 router.get('/shipments/:id/receipt-matches', asyncWrap(receiptController.suggestForShipment));
 // Receiving confirmation — staff only; a vendor must not confirm receipt of their
 // own goods (`shipment_update_status`, which Vendor does not hold).

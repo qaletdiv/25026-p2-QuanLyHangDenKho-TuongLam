@@ -16,16 +16,16 @@
  *  3. `Warehouse Labor` -> GL 5211 but `Warehouse Labour` -> GL 5204. Same service,
  *     two spellings, two different accounts. Aliases collapse them.
  *  4. A LeftOuter miss yields a NULL GL, which the pivots render as GL 0. Here an
- *     unmapped service returns status `needs_coding` and never a GL.
+ *     unmapped service returns status `needsCoding` and never a GL.
  *
  * Class is entity-aware: the legend's `Class` column is US and
  * `Class (NRI CAN)` is CA — the CA workbook keeps its own diverged copy, which is
  * why both live in one table here.
  */
 
-const BaseModel = require('../../models/BaseModel');
+const { models } = require('../../models');
 
-const codesTable = new BaseModel('nri/nri_charge_codes.json');
+const codesTable = models.nri_charge_codes;
 
 const norm = v => (v === undefined || v === null ? '' : String(v).trim());
 /** Match key: trimmed, case-folded, inner whitespace collapsed. */
@@ -69,7 +69,7 @@ function reload() { cache = null; }
 
 /**
  * Code one line. Always returns an object — an unmapped service yields
- * `status: 'needs_coding'` with a null GL rather than a silent zero.
+ * `status: 'needsCoding'` with a null GL rather than a silent zero.
  */
 function code(index, service, entity) {
   const row = index.byKey.get(key(service));
@@ -77,23 +77,23 @@ function code(index, service, entity) {
 
   if (!row) {
     return {
-      service: norm(service), gl: null, gl_desc: null, class: null,
-      status: 'needs_coding',
+      service: norm(service), gl: null, glDesc: null, class: null,
+      status: 'needsCoding',
       reason: `service "${norm(service)}" is not in the coding legend`,
     };
   }
 
-  const cls = ent === 'CA' ? row.class_ca : row.class_us;
+  const cls = ent === 'CA' ? row.classCa : row.classUs;
   if (!norm(cls)) {
     return {
-      service: norm(service), gl: row.gl, gl_desc: row.gl_desc, class: null,
-      status: 'needs_coding',
+      service: norm(service), gl: row.gl, glDesc: row.glDesc, class: null,
+      status: 'needsCoding',
       reason: `legend has no ${ent} class for "${row.service}"`,
     };
   }
 
   return {
-    service: norm(service), gl: row.gl, gl_desc: row.gl_desc, class: norm(cls),
+    service: norm(service), gl: row.gl, glDesc: row.glDesc, class: norm(cls),
     status: 'coded', reason: null, note: row.note || null,
   };
 }

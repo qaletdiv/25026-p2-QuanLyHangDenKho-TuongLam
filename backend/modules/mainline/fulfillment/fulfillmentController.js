@@ -1,28 +1,22 @@
 'use strict';
 
 // GET /mainline/fulfillment/:trn — three-way match (ordered/allocated/shipped/received).
-const PoMasterModel = require('../../po/PoMasterModel');
-const PoOrderModel = require('../../po/PoOrderModel');
-const MainlineLegModel = require('../legs/MainlineLegModel');
-const MainlineCiModel = require('../ci/MainlineCiModel');
-const MainlinePackingModel = require('../packing/MainlinePackingModel');
-const ItemReceiptModel = require('../receipts/MainlineItemReceiptModel');
-const MainlineShipmentLegModel = require('../shipments/MainlineShipmentLegModel');
-const BaseModel = require('../../../models/BaseModel');
+const { models } = require('../../../models');
 const { deriveAllCiLines } = require('../ci/ciLines');
 const { compute, reconcilePo, reconcileLeg } = require('./fulfillmentService');
 const { assertTrnVisible, assertPoNumberVisible, assertLegVisible } = require('../vendorAccess');
 
 async function _ctx() {
   const [masters, orders, orderLines, legs, legLines, invoices, cartons, receipts, receiptLines, modes, shipmentLegs] = await Promise.all([
-    PoMasterModel.read(), PoOrderModel.readOrders(), PoOrderModel.readOrderLines(),
-    MainlineLegModel.readLegs(), MainlineLegModel.readLegLines(),
-    MainlineCiModel.readInvoices(), MainlinePackingModel.read(),
-    ItemReceiptModel.readReceipts().catch(() => []), ItemReceiptModel.readReceiptLines().catch(() => []),
-    new BaseModel('modes.json').read().catch(() => []),
+    models.po_masters.read(), models.po_orders.read(), models.po_order_lines.read(),
+    models.mainline_po_legs.read(), models.mainline_po_leg_lines.read(),
+    models.mainline_commercial_invoices.read(), models.mainline_packing_cartons.read(),
+    models.mainline_item_receipts.read().catch(() => []),
+    models.mainline_item_receipt_lines.read().catch(() => []),
+    models.modes.read().catch(() => []),
     // Only to answer "does a consignment exist for this leg" — that decides what
     // `variance` compares received against. See fulfillmentService.
-    MainlineShipmentLegModel.read().catch(() => []),
+    models.mainline_shipment_legs.read().catch(() => []),
   ]);
   const ciLines = deriveAllCiLines(cartons);   // derived from packing cartons (not stored)
   return { masters, orders, orderLines, legs, legLines, invoices, ciLines, receipts, receiptLines, modes, shipmentLegs };
@@ -33,7 +27,7 @@ async function getFulfillment(req, res) {
   const { trn } = req.params;
   await assertTrnVisible(req, trn, `PO master not found: ${trn}`);
   const c = await _ctx();
-  if (!c.masters.some((m) => m.trn_number === trn)) {
+  if (!c.masters.some((m) => m.trnNumber === trn)) {
     const e = new Error(`PO master not found: ${trn}`); e.statusCode = 404; throw e;
   }
   res.json(compute(trn, c));
@@ -45,7 +39,7 @@ async function getPoReconcile(req, res) {
   const { poNumber } = req.params;
   await assertPoNumberVisible(req, poNumber, `PO not found: ${poNumber}`);
   const c = await _ctx();
-  if (!c.orders.some((o) => o.po_number === poNumber)) {
+  if (!c.orders.some((o) => o.poNumber === poNumber)) {
     const e = new Error(`PO not found: ${poNumber}`); e.statusCode = 404; throw e;
   }
   res.json(reconcilePo(poNumber, c));

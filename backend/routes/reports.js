@@ -30,7 +30,7 @@ router.get('/mainline/transit-times', requirePermission('reports'), asyncWrap(ma
 router.get('/sms', requirePermission('reports'), asyncWrap(smsReportController.getSmsReport));
 
 // SMS incoming-quantity forecast: PO-grained rows (incoming = ordered − received)
-// anchored on expected_received_date; the client buckets by ISO week × facility.
+// anchored on expectedReceivedDate; the client buckets by ISO week × facility.
 router.get('/sms/forecast', requirePermission('forecast'), asyncWrap(smsForecastController.getSmsForecast));
 
 module.exports = router;

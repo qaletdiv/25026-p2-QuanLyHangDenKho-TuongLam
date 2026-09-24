@@ -29,7 +29,7 @@
 //    Color Desc(5), PCS/CTN(6), N/W(7), G/W(8), Carton size(9). CTN#/N/W/G/W/size
 //    sit on each carton's FIRST row only — CTN# is forward-filled, the per-carton
 //    weights/measure stay on the first row (parseShipmentData sums them once per
-//    distinct ctn_number).
+//    distinct ctnNumber).
 //
 // Parsing stops at each sheet's "TOTAL" row; the Summary block below it is skipped
 // by the SKU-shape guard.
@@ -38,9 +38,9 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const SRC_FILE = path.join(__dirname, '..', 'data', 'converted docs', 'SMS', 'TT-376 Canada Ho.xls');
-const OUT_DIR = path.join(__dirname, '..', 'data', 'converted docs', 'SMS');
-const SKU_CODES = new Set(require(path.join(__dirname, '..', 'data', 'migrated', 'product_skus.json')).map((s) => s.sku_code));
+const SRC_FILE = path.join(__dirname, '..', 'storage', 'converted-docs', 'SMS', 'TT-376 Canada Ho.xls');
+const OUT_DIR = path.join(__dirname, '..', 'storage', 'converted-docs', 'SMS');
+const SKU_CODES = new Set(require(path.join(__dirname, '..', 'database', 'seed-data', 'snapshot', 'product_skus.json')).map((s) => s.skuCode));
 
 const PO = 'PO04799';
 const TEMPLATE_HEADER = [

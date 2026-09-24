@@ -24,17 +24,17 @@
 // Idempotent. `--dry-run` prints and writes nothing.
 
 require('dotenv').config();
-const BaseModel = require('../models/BaseModel');
-const { atomically } = require('../db/tx');
+const { models } = require('../models');
+const { atomically } = require('../database/tx');
 
 const DRY = process.argv.includes('--dry-run');
 const OLD_ID = 'sms_bk_cancelled';
 const NEW_ID = 'sms_cancelled';
 
 (async () => {
-  const Statuses = new BaseModel('migrated/statuses.json');
-  const Bookings = new BaseModel('migrated/sms_bookings.json');
-  const Shipments = new BaseModel('migrated/sms_shipments.json');
+  const Statuses = models.statuses;
+  const Bookings = models.sms_bookings;
+  const Shipments = models.sms_shipments;
 
   const [rows, bookings, shipments] = await Promise.all([
     Statuses.read(), Bookings.read(), Shipments.read(),
@@ -55,8 +55,8 @@ const NEW_ID = 'sms_cancelled';
   }
 
   const refs = [
-    ...bookings.filter((b) => b.booking_status_id === OLD_ID).map((b) => `booking ${b.booking_number || b.id}`),
-    ...shipments.filter((s) => s.manual_status_id === OLD_ID).map((s) => `shipment ${s.id}`),
+    ...bookings.filter((b) => b.bookingStatusId === OLD_ID).map((b) => `booking ${b.bookingNumber || b.id}`),
+    ...shipments.filter((s) => s.manualStatusId === OLD_ID).map((s) => `shipment ${s.id}`),
   ];
   if (refs.length) {
     console.error(`REFUSING: ${refs.length} row(s) still point at ${OLD_ID} — renaming would orphan them:`);

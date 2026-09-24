@@ -24,7 +24,7 @@ const isLive = (statusName) => !DEAD_STATUSES.includes(statusName || '');
 
 // booking id → status NAME, for the live/dead test
 function bookingStatusNames(bookings, idToStatusName) {
-  return new Map(bookings.map((b) => [b.id, idToStatusName.get(b.booking_status_id) || null]));
+  return new Map(bookings.map((b) => [b.id, idToStatusName.get(b.bookingStatusId) || null]));
 }
 
 function liveBookingIds(bookings, idToStatusName, { excludeBookingId = null } = {}) {
@@ -33,25 +33,25 @@ function liveBookingIds(bookings, idToStatusName, { excludeBookingId = null } = 
 }
 
 // G1: every requested PO must belong to the booking's supplier.
-// Returns { ok, offending:[{po_number, supplier_id}] }.
+// Returns { ok, offending:[{poNumber, supplierId}] }.
 function checkSupplierMatch(poNumbers, supplierId, poByNumber) {
   const offending = poNumbers
-    .map((po) => ({ po_number: po, supplier_id: (poByNumber.get(po) || {}).supplier_id ?? null }))
-    .filter((x) => x.supplier_id !== supplierId);
+    .map((po) => ({ poNumber: po, supplierId: (poByNumber.get(po) || {}).supplierId ?? null }))
+    .filter((x) => x.supplierId !== supplierId);
   return { ok: offending.length === 0, offending };
 }
 
 // G3: one destination facility across the booked POs (SMS has no mode axis).
 // Returns { ok, facilities:[] } so the caller can report the conflict.
 function checkSameConsignment(poNumbers, poByNumber) {
-  const facilities = new Set(poNumbers.map((po) => (poByNumber.get(po) || {}).facility_id ?? null));
+  const facilities = new Set(poNumbers.map((po) => (poByNumber.get(po) || {}).facilityId ?? null));
   return { ok: facilities.size <= 1, facilities: [...facilities] };
 }
 
 // ordered qty per PO (the booking/shipping capacity), Σ over sms_po_lines
 function orderedByPo(poLines) {
   const ordered = new Map();
-  poLines.forEach((l) => ordered.set(l.po_number, (ordered.get(l.po_number) || 0) + (Number(l.ordered_qty) || 0)));
+  poLines.forEach((l) => ordered.set(l.poNumber, (ordered.get(l.poNumber) || 0) + (Number(l.orderedQty) || 0)));
   return ordered;
 }
 
@@ -60,8 +60,8 @@ function bookedUnitsByPo(bookings, bookingPos, idToStatusName, { excludeBookingI
   const live = liveBookingIds(bookings, idToStatusName, { excludeBookingId });
   const booked = new Map();
   bookingPos.forEach((bp) => {
-    if (!live.has(bp.booking_id)) return;
-    booked.set(bp.po_number, (booked.get(bp.po_number) || 0) + (Number(bp.units) || 0));
+    if (!live.has(bp.bookingId)) return;
+    booked.set(bp.poNumber, (booked.get(bp.poNumber) || 0) + (Number(bp.units) || 0));
   });
   return booked;
 }
@@ -70,12 +70,12 @@ function bookedUnitsByPo(bookings, bookingPos, idToStatusName, { excludeBookingI
 function overbookWarnings(entries, { ordered, bookedByPo }) {
   const warnings = [];
   entries.forEach((e) => {
-    const cap = ordered.get(e.po_number) || 0;
-    const already = bookedByPo.get(e.po_number) || 0;
+    const cap = ordered.get(e.poNumber) || 0;
+    const already = bookedByPo.get(e.poNumber) || 0;
     const requested = Number(e.units) || 0;
     if (already + requested > cap) {
       warnings.push({
-        po_number: e.po_number,
+        poNumber: e.poNumber,
         ordered: cap,
         already_booked: already,
         requested,
@@ -90,22 +90,22 @@ function overbookWarnings(entries, { ordered, bookedByPo }) {
 // hard conflict (not force-able — it would double-authorize the same goods).
 function lotConflicts(entries, bookings, bookingPos, idToStatusName, { excludeBookingId = null } = {}) {
   const live = liveBookingIds(bookings, idToStatusName, { excludeBookingId });
-  const heldBy = new Map();     // "po|lot" → booking_number
-  const numberById = new Map(bookings.map((b) => [b.id, b.booking_number]));
+  const heldBy = new Map();     // "po|lot" → bookingNumber
+  const numberById = new Map(bookings.map((b) => [b.id, b.bookingNumber]));
   bookingPos.forEach((bp) => {
-    if (!live.has(bp.booking_id)) return;
-    heldBy.set(`${bp.po_number}|${bp.lot_number}`, numberById.get(bp.booking_id) || bp.booking_id);
+    if (!live.has(bp.bookingId)) return;
+    heldBy.set(`${bp.poNumber}|${bp.lotNumber}`, numberById.get(bp.bookingId) || bp.bookingId);
   });
   return entries
-    .filter((e) => e.lot_number != null && heldBy.has(`${e.po_number}|${e.lot_number}`))
-    .map((e) => ({ po_number: e.po_number, lot_number: e.lot_number, booking_number: heldBy.get(`${e.po_number}|${e.lot_number}`) }));
+    .filter((e) => e.lotNumber != null && heldBy.has(`${e.poNumber}|${e.lotNumber}`))
+    .map((e) => ({ poNumber: e.poNumber, lotNumber: e.lotNumber, bookingNumber: heldBy.get(`${e.poNumber}|${e.lotNumber}`) }));
 }
 
 // Next free lot for a PO: one past the highest lot already SHIPPED or BOOKED, so a
 // booked-but-unshipped lot can't be handed out twice.
 function nextLotForPo(poNumber, { shipmentPos, bookingPos }) {
-  const mx = (rows) => rows.filter((r) => r.po_number === poNumber)
-    .reduce((m, r) => Math.max(m, Number(r.lot_number) || 0), 0);
+  const mx = (rows) => rows.filter((r) => r.poNumber === poNumber)
+    .reduce((m, r) => Math.max(m, Number(r.lotNumber) || 0), 0);
   return Math.max(mx(shipmentPos), mx(bookingPos)) + 1;
 }
 
@@ -122,47 +122,47 @@ function enrichBookings(bookings, {
   const modeName = new Map(modes.map((m) => [m.id, m.name]));
   const seasonCode = new Map(seasons.map((s) => [s.id, s.code]));
   const facName = new Map(facilities.map((f) => [f.id, f.name]));
-  const poByNumber = new Map(pos.map((p) => [p.po_number, p]));
-  const byBooking = bookingPos.reduce((m, bp) => ((m[bp.booking_id] = m[bp.booking_id] || []).push(bp), m), {});
+  const poByNumber = new Map(pos.map((p) => [p.poNumber, p]));
+  const byBooking = bookingPos.reduce((m, bp) => ((m[bp.bookingId] = m[bp.bookingId] || []).push(bp), m), {});
   // shipped units per (po, lot) → the booked-vs-shipped variance, derived
-  const shippedByLot = new Map(shipmentPos.map((j) => [`${j.po_number}|${j.lot_number}`, Number(j.units) || 0]));
+  const shippedByLot = new Map(shipmentPos.map((j) => [`${j.poNumber}|${j.lotNumber}`, Number(j.units) || 0]));
 
   return bookings.map((b) => {
     const myPos = (byBooking[b.id] || []).slice()
-      .sort((x, y) => x.po_number.localeCompare(y.po_number) || (x.lot_number || 0) - (y.lot_number || 0));
-    const seasonSet = [...new Set(myPos.map((bp) => seasonCode.get((poByNumber.get(bp.po_number) || {}).season_id)).filter(Boolean))];
-    const facilitySet = [...new Set(myPos.map((bp) => (poByNumber.get(bp.po_number) || {}).facility_id).filter(Boolean))];
-    const myShipments = shipments.filter((s) => s.booking_id === b.id);
+      .sort((x, y) => x.poNumber.localeCompare(y.poNumber) || (x.lotNumber || 0) - (y.lotNumber || 0));
+    const seasonSet = [...new Set(myPos.map((bp) => seasonCode.get((poByNumber.get(bp.poNumber) || {}).seasonId)).filter(Boolean))];
+    const facilitySet = [...new Set(myPos.map((bp) => (poByNumber.get(bp.poNumber) || {}).facilityId).filter(Boolean))];
+    const myShipments = shipments.filter((s) => s.bookingId === b.id);
     return {
       ...b,
-      supplier_name: supName.get(b.supplier_id) || null,
-      incoterm: incoName.get(b.incoterm_id) || null,
+      supplierName: supName.get(b.supplierId) || null,
+      incoterm: incoName.get(b.incotermId) || null,
       // planned carrier + mode (names JOINED, never stored). Null on the bookings
       // created before 2026-08-24, when approve hardcoded FedEx instead.
-      courier: courierName.get(b.courier_id) || null,
-      mode: modeName.get(b.mode_id) || null,
-      booking_status: idToStatusName.get(b.booking_status_id) || null,
+      courier: courierName.get(b.courierId) || null,
+      mode: modeName.get(b.modeId) || null,
+      bookingStatus: idToStatusName.get(b.bookingStatusId) || null,
       season: seasonSet.join(', ') || null,
       destination: facilitySet.map((f) => facName.get(f) || f).join(', ') || null,
       pos: myPos.map((bp) => ({
         ...bp,
-        supplier: supName.get((poByNumber.get(bp.po_number) || {}).supplier_id) || null,
-        shipped_units: shippedByLot.get(`${bp.po_number}|${bp.lot_number}`) ?? null,
+        supplier: supName.get((poByNumber.get(bp.poNumber) || {}).supplierId) || null,
+        shippedUnits: shippedByLot.get(`${bp.poNumber}|${bp.lotNumber}`) ?? null,
       })),
-      // totals — DERIVED from the junction, never stored. weight_kg is a decimal,
+      // totals — DERIVED from the junction, never stored. weightKg is a decimal,
       // so the Σ is rounded to 2dp: adding 12.3 + 4.55 in binary float otherwise
       // surfaces as 16.849999999999998 in the UI.
-      total_units: myPos.reduce((a, bp) => a + (Number(bp.units) || 0), 0),
-      total_cartons: myPos.reduce((a, bp) => a + (Number(bp.cartons) || 0), 0),
-      total_weight_kg: +myPos.reduce((a, bp) => a + (Number(bp.weight_kg) || 0), 0).toFixed(2),
+      totalUnits: myPos.reduce((a, bp) => a + (Number(bp.units) || 0), 0),
+      totalCartons: myPos.reduce((a, bp) => a + (Number(bp.cartons) || 0), 0),
+      totalWeightKg: +myPos.reduce((a, bp) => a + (Number(bp.weightKg) || 0), 0).toFixed(2),
       shipments: myShipments.map((s) => ({
         id: s.id,
-        tracking_number: s.tracking_number || null,
-        courier_id: s.courier_id || null,
-        mode_id: s.mode_id || null,
-        facility_id: s.facility_id || null,
-        ship_date: s.ship_date || null,
-        is_draft: !s.tracking_number,          // derived: approved but not yet shipped
+        trackingNumber: s.trackingNumber || null,
+        courierId: s.courierId || null,
+        modeId: s.modeId || null,
+        facilityId: s.facilityId || null,
+        shipDate: s.shipDate || null,
+        isDraft: !s.trackingNumber,          // derived: approved but not yet shipped
       })),
     };
   });

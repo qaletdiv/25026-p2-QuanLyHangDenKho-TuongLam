@@ -10,16 +10,16 @@
 //     and names the slipped segment when a shipped leg runs late;
 //   • GET /reports/mainline/transit-times — the actual-vs-standard overview.
 
-const BaseModel = require('../../../models/BaseModel');
+const { models } = require('../../../models');
 
 // Ordered journey segments. `from`/`to` name shipment date fields; the first
 // segment starts at the leg's CRD (earliest across the shipment's legs).
 const SEGMENTS = [
-  { key: 'production_handover', label: 'CRD → Received',        from: 'crd',                 to: 'cargo_received_date' },
-  { key: 'origin_dwell',        label: 'Received → Depart',     from: 'cargo_received_date', to: 'etd_pol' },
-  { key: 'port_to_port',        label: 'Port → Port',           from: 'etd_pol',             to: 'eta_pod' },
-  { key: 'destination_leg',     label: 'Port → DC',             from: 'eta_pod',             to: 'e_del' },
-  { key: 'receiving',           label: 'DC → NetSuite Receive', from: 'e_del',               to: 'ata' },
+  { key: 'productionHandover', label: 'CRD → Received',        from: 'crd',                 to: 'cargoReceivedDate' },
+  { key: 'originDwell',        label: 'Received → Depart',     from: 'cargoReceivedDate', to: 'etdPol' },
+  { key: 'portToPort',        label: 'Port → Port',           from: 'etdPol',             to: 'etaPod' },
+  { key: 'destinationLeg',     label: 'Port → DC',             from: 'etaPod',             to: 'eDel' },
+  { key: 'receiving',           label: 'DC → NetSuite Receive', from: 'eDel',               to: 'ata' },
 ];
 // CRD → E-DEL (what a projection needs; `receiving` is the E-DEL → ATA tail).
 const PRE_DELIVERY = SEGMENTS.slice(0, 4).map((s) => s.key);
@@ -42,15 +42,15 @@ function addDays(dateStr, n) {
 }
 
 async function getStandards() {
-  return new BaseModel('migrated/transit_time_standards.json').read().catch(() => []);
+  return models.transit_time_standards.read().catch(() => []);
 }
 
-// rows → Map<mode_id, { segment: days }>
+// rows → Map<modeId, { segment: days }>
 function standardsByMode(rows) {
   const m = new Map();
   rows.forEach((r) => {
-    if (!m.has(r.mode_id)) m.set(r.mode_id, {});
-    m.get(r.mode_id)[r.segment] = Number(r.days);
+    if (!m.has(r.modeId)) m.set(r.modeId, {});
+    m.get(r.modeId)[r.segment] = Number(r.days);
   });
   return m;
 }

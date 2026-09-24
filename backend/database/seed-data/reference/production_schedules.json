@@ -1,0 +1,17 @@
+[
+  {
+    "seasonId": "season_1",
+    "ontimeBy": "2026-07-07",
+    "atriskBy": "2026-07-15"
+  },
+  {
+    "seasonId": "season_ss27",
+    "ontimeBy": "2027-07-01",
+    "atriskBy": "2027-12-01"
+  },
+  {
+    "seasonId": "season_fw27",
+    "ontimeBy": null,
+    "atriskBy": null
+  }
+]

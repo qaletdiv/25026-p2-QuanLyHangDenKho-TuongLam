@@ -23,7 +23,7 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const DIR = path.join(__dirname, '..', 'data', 'converted docs', 'Mainline');
+const DIR = path.join(__dirname, '..', 'storage', 'converted-docs', 'Mainline');
 
 const TEMPLATE_HEADER = [
   'CTN#', 'PO#', 'SKU', 'UPC', 'Knit/Woven', 'Style Description', 'Color Description',
@@ -58,9 +58,9 @@ function invAttrs(grid) {
     if (!sku) break;                      // blank SKU ends the invoice block
     if (attrs.has(sku)) continue;         // first line per SKU wins (price is constant)
     attrs.set(sku, {
-      upc: S(r[2]), knit_woven: S(r[3]), style_description: S(r[4]), color_description: S(r[5]),
-      category: S(r[6]), gender: S(r[7]), composition: S(r[8]), hts_code: S(r[9]),
-      unit_price: N(r[11]),
+      upc: S(r[2]), knitWoven: S(r[3]), style_description: S(r[4]), color_description: S(r[5]),
+      category: S(r[6]), gender: S(r[7]), composition: S(r[8]), htsCode: S(r[9]),
+      unitPrice: N(r[11]),
     });
   }
   return attrs;
@@ -93,11 +93,11 @@ function packingRows(grid, attrs, po) {
     const a = attrs.get(sku);
     if (!a) unmatched.add(sku);
     const pcs = N(r[6]);
-    const unit = a ? a.unit_price : 0;
+    const unit = a ? a.unitPrice : 0;
     out.push([
       ctn, po, sku, S(r[3]) || (a ? a.upc : ''),
-      a ? a.knit_woven : '', a ? a.style_description : S(r[4]), a ? a.color_description : S(r[5]),
-      a ? a.category : '', a ? a.gender : '', a ? a.composition : '', a ? a.hts_code : '',
+      a ? a.knitWoven : '', a ? a.style_description : S(r[4]), a ? a.color_description : S(r[5]),
+      a ? a.category : '', a ? a.gender : '', a ? a.composition : '', a ? a.htsCode : '',
       unit, r2(unit * pcs), pcs,
       // weights/measure are per carton → first row only (ciParser dedups by CTN#)
       firstRowOfCarton ? nw : '', firstRowOfCarton ? gw : '', firstRowOfCarton ? measure : '',

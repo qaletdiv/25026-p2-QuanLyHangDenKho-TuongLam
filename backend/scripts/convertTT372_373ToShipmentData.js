@@ -24,7 +24,7 @@
 // CTN# / N/W / G/W / MEASURE appear on a carton's FIRST row only; subsequent SKUs
 // in the same carton have them blank. CTN# is forward-filled; the weights/measure
 // are emitted ONLY on the first row, because parseShipmentData sums them once per
-// distinct ctn_number (writing them on every row would multiply a carton's weight
+// distinct ctnNumber (writing them on every row would multiply a carton's weight
 // by its SKU count).
 //
 // Both sheets carry repeated header rows and a trailing totals / BOX SIZE block;
@@ -71,8 +71,8 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const DIR = path.join(__dirname, '..', 'data', 'converted docs', 'Mainline');
-const SKU_CODES = new Set(require(path.join(__dirname, '..', 'data', 'migrated', 'product_skus.json')).map((s) => s.sku_code));
+const DIR = path.join(__dirname, '..', 'storage', 'converted-docs', 'Mainline');
+const SKU_CODES = new Set(require(path.join(__dirname, '..', 'database', 'seed-data', 'snapshot', 'product_skus.json')).map((s) => s.skuCode));
 const dryRun = process.argv.includes('--dry-run');
 
 const TEMPLATE_HEADER = [

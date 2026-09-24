@@ -10,7 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const DIR = path.join(__dirname, '..', 'data', 'converted docs');
+const DIR = path.join(__dirname, '..', 'storage', 'converted-docs');
 
 const TEMPLATE_HEADER = [
   'CTN#', 'PO#', 'SKU', 'UPC', 'Knit/Woven', 'Style Description', 'Color Description',
@@ -43,9 +43,9 @@ function parseWorkbook(fileBuffer) {
     if (!sc) break;                 // blank row ends the block
     poNumbers.add(S(r[0]));
     attrs.set(sc, {
-      knit_woven: S(r[2]), style_description: S(r[3]), color_description: S(r[4]),
-      category: S(r[5]), gender: S(r[6]), composition: S(r[7]), hts_code: S(r[8]),
-      unit_price: N(r[10]),
+      knitWoven: S(r[2]), style_description: S(r[3]), color_description: S(r[4]),
+      category: S(r[5]), gender: S(r[6]), composition: S(r[7]), htsCode: S(r[8]),
+      unitPrice: N(r[10]),
     });
   }
 
@@ -70,12 +70,12 @@ function parseWorkbook(fileBuffer) {
     const a = attrs.get(styleColor(sku)) || {};
     rows.push({
       ctn, po, sku, upc: S(r[3]),
-      knit_woven: a.knit_woven || '',
+      knitWoven: a.knitWoven || '',
       style_description: a.style_description || S(r[4]),
       color_description: a.color_description || S(r[5]),
       category: a.category || '', gender: a.gender || '', composition: a.composition || '',
-      hts_code: a.hts_code || '', unit_price: a.unit_price || 0,
-      total_usd: +((a.unit_price || 0) * qty).toFixed(2),
+      htsCode: a.htsCode || '', unitPrice: a.unitPrice || 0,
+      totalUsd: +((a.unitPrice || 0) * qty).toFixed(2),
       pcs: qty, nw, gw, measure,
       _matched: attrs.has(styleColor(sku)),
     });
@@ -87,8 +87,8 @@ function build(rows) {
   const aoa = [TEMPLATE_HEADER];
   for (const r of rows) {
     aoa.push([
-      r.ctn, r.po, r.sku, r.upc, r.knit_woven, r.style_description, r.color_description,
-      r.category, r.gender, r.composition, r.hts_code, r.unit_price, r.total_usd,
+      r.ctn, r.po, r.sku, r.upc, r.knitWoven, r.style_description, r.color_description,
+      r.category, r.gender, r.composition, r.htsCode, r.unitPrice, r.totalUsd,
       r.pcs, r.nw, r.gw, r.measure,
     ]);
   }
@@ -106,11 +106,11 @@ for (const f of files) {
 
   const unmatched = rows.filter((r) => !r._matched);
   const totalPcs = rows.reduce((s, r) => s + r.pcs, 0);
-  const totalVal = +rows.reduce((s, r) => s + r.total_usd, 0).toFixed(2);
+  const totalVal = +rows.reduce((s, r) => s + r.totalUsd, 0).toFixed(2);
   const cartons = new Set(rows.map((r) => r.ctn));
   console.log(`\n${f}`);
   console.log(`  -> ${path.basename(out)}`);
   console.log(`     PO ${po} | ${rows.length} rows | ${cartons.size} carton(s) | ${totalPcs} pcs | $${totalVal}`);
   if (unmatched.length) console.log(`     !! UNMATCHED style-color: ${unmatched.map((r) => r.sku).join(', ')}`);
-  rows.forEach((r) => console.log(`     ${r.ctn} | ${r.sku} | ${r.pcs} | $${r.unit_price} | $${r.total_usd} | ${r.measure}`));
+  rows.forEach((r) => console.log(`     ${r.ctn} | ${r.sku} | ${r.pcs} | $${r.unitPrice} | $${r.totalUsd} | ${r.measure}`));
 }

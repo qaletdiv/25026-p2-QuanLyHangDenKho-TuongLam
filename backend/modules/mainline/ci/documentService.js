@@ -1,7 +1,7 @@
 'use strict';
 
 // Generates CI + Packing-List artifacts from parsed shipment-data rows, at two grains:
-//   • COMBINED — all the booking's rows (leg_id = null)
+//   • COMBINED — all the booking's rows (legId = null)
 //   • PER-PO   — one set per PO/leg (only when the booking spans >1 PO)
 // Both are produced from the SAME full rows in one pass (no re-generation, no detail
 // loss). Returns mainline_documents records; the caller persists them.
@@ -9,7 +9,7 @@
 const { Readable } = require('stream');
 const { generateCI } = require('../../../services/ciGenerator');
 const { generatePL } = require('../../../services/plGenerator');
-const driveStorage = require('../../../driveStorage');
+const fileStorage = require('../../../storage/fileStorage');
 
 const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
@@ -17,23 +17,23 @@ function summarize(rows) {
   const seen = new Set();
   let pcs = 0, val = 0, net = 0, gross = 0, cbm = 0;
   rows.forEach((r) => {
-    pcs += +r.pcs_per_ctn || 0; val += +r.total_usd || 0;
+    pcs += +r.pcsPerCtn || 0; val += +r.totalUsd || 0;
     // `_group_key` (po#ctn) keeps cartons distinct across POs — two POs may both
-    // start at carton #1; falls back to ctn_number for single-PO / SMS callers.
-    const ck = r._group_key ?? r.ctn_number;
+    // start at carton #1; falls back to ctnNumber for single-PO / SMS callers.
+    const ck = r._group_key ?? r.ctnNumber;
     if (!seen.has(ck)) {
       seen.add(ck);
-      net += +r.net_weight_kgs || 0; gross += +r.gross_weight_kgs || 0;
-      const d = String(r.measure_cm || '').split(/[*×xX]/).map((p) => parseFloat(p.trim()));
+      net += +r.netWeightKgs || 0; gross += +r.grossWeightKgs || 0;
+      const d = String(r.measureCm || '').split(/[*×xX]/).map((p) => parseFloat(p.trim()));
       if (d.length === 3 && d.every((v) => !isNaN(v))) cbm += (d[0] * d[1] * d[2]) / 1e6;
     }
   });
-  return { total_pcs: pcs, total_cartons: seen.size, total_value: +val.toFixed(2), total_net_weight: +net.toFixed(2), total_gross_weight: +gross.toFixed(2), total_cbm: +cbm.toFixed(3) };
+  return { totalPcs: pcs, totalCartons: seen.size, totalValue: +val.toFixed(2), totalNetWeight: +net.toFixed(2), totalGrossWeight: +gross.toFixed(2), totalCbm: +cbm.toFixed(3) };
 }
 
 async function _save(name, buffer) {
   const s = new Readable(); s.push(Buffer.from(buffer)); s.push(null);
-  return driveStorage.uploadFile(name, s, XLSX_MIME);
+  return fileStorage.uploadFile(name, s, XLSX_MIME);
 }
 
 // The booking's full carton row set, in the shape the generators want. ONE
@@ -43,18 +43,18 @@ async function _save(name, buffer) {
 // unique across POs, both of which may number their cartons from #1.
 function rowsFromCartons(bookingCartons, legIdToPo, skuByCode) {
   return bookingCartons.map((c) => {
-    const s = skuByCode.get(c.sku_code) || {};
-    const po = legIdToPo.get(String(c.leg_id)) || null;
+    const s = skuByCode.get(c.skuCode) || {};
+    const po = legIdToPo.get(String(c.legId)) || null;
     return {
-      _group_key: `${po || 'unm'}#${c.ctn_number}`,
-      ctn_number: c.ctn_number, po_number: po, sku: c.sku_code,
-      upc: s.upc || '', knit_woven: s.knit_woven || '',
-      style_description: s.item_name || s.description || '', color_description: s.colorway || '',
-      category: s.category || '', gender: s.gender || '', composition: s.composition || '', hts_code: s.hts_code || '',
-      unit_price: c.unit_price || 0, total_usd: c.total_usd || 0, pcs_per_ctn: c.pcs_per_ctn || 0,
-      net_weight_kgs: c.net_weight_kgs || 0, gross_weight_kgs: c.gross_weight_kgs || 0, measure_cm: c.measure_cm || '',
+      _group_key: `${po || 'unm'}#${c.ctnNumber}`,
+      ctnNumber: c.ctnNumber, poNumber: po, sku: c.skuCode,
+      upc: s.upc || '', knitWoven: s.knitWoven || '',
+      style_description: s.itemName || s.description || '', color_description: s.colorway || '',
+      category: s.category || '', gender: s.gender || '', composition: s.composition || '', htsCode: s.htsCode || '',
+      unitPrice: c.unitPrice || 0, totalUsd: c.totalUsd || 0, pcsPerCtn: c.pcsPerCtn || 0,
+      netWeightKgs: c.netWeightKgs || 0, grossWeightKgs: c.grossWeightKgs || 0, measureCm: c.measureCm || '',
     };
-  }).sort((a, b) => (a.po_number || '').localeCompare(b.po_number || '') || (a.ctn_number - b.ctn_number));
+  }).sort((a, b) => (a.poNumber || '').localeCompare(b.poNumber || '') || (a.ctnNumber - b.ctnNumber));
 }
 
 function _meta(booking, poNumbers, invoiceNumber, { supplier, warehouse, notify, shippingMode }) {
@@ -62,14 +62,14 @@ function _meta(booking, poNumbers, invoiceNumber, { supplier, warehouse, notify,
     vendor_name: supplier.name || '', vendor_address: supplier.address || '',
     // The factory, which may not be the company being invoiced. The generator
     // falls back to the vendor when these are blank.
-    manufacturer_name: supplier.manufacturer_name || '',
-    manufacturer_address: supplier.manufacturer_address || '',
-    po_number: poNumbers.join(', '), invoice_number: invoiceNumber,
-    date: new Date().toISOString().slice(0, 10), shipment_number: booking.booking_number || '',
-    country_of_origin: supplier.country || '', port_of_loading: supplier.port_of_loading || '',
+    manufacturerName: supplier.manufacturerName || '',
+    manufacturerAddress: supplier.manufacturerAddress || '',
+    poNumber: poNumbers.join(', '), invoiceNumber: invoiceNumber,
+    date: new Date().toISOString().slice(0, 10), shipmentNumber: booking.bookingNumber || '',
+    country_of_origin: supplier.country || '', portOfLoading: supplier.portOfLoading || '',
     // The CONSIGNEE is the destination the PO names (NRI CA / NRI US / Direct) —
-    // warehouse_facilities, joined through po_orders.facility_id.
-    port_of_discharge: warehouse.port_of_discharge || '', consignee_name: warehouse.name || '',
+    // warehouse_facilities, joined through po_orders.facilityId.
+    portOfDischarge: warehouse.portOfDischarge || '', consignee_name: warehouse.name || '',
     consignee_address: warehouse.address || '',
     // Notify party is the SINGLETON `notify_party` row — always tentree, whatever
     // the destination or module.
@@ -84,13 +84,13 @@ function _meta(booking, poNumbers, invoiceNumber, { supplier, warehouse, notify,
 }
 
 // The two document grains, in one place so generateAll and rebuild() can never
-// disagree about which rows belong to which document: COMBINED (leg_id null) plus
+// disagree about which rows belong to which document: COMBINED (legId null) plus
 // one per PO when the booking spans more than one.
 function _groups(rows, legPoToId) {
-  const distinctPOs = [...new Set(rows.map((r) => r.po_number).filter(Boolean))];
+  const distinctPOs = [...new Set(rows.map((r) => r.poNumber).filter(Boolean))];
   const groups = [{ legId: null, scope: 'ALL', pos: distinctPOs, rows }];
   if (distinctPOs.length > 1) {
-    distinctPOs.forEach((po) => groups.push({ legId: legPoToId.get(po) || null, scope: po, pos: [po], rows: rows.filter((r) => r.po_number === po) }));
+    distinctPOs.forEach((po) => groups.push({ legId: legPoToId.get(po) || null, scope: po, pos: [po], rows: rows.filter((r) => r.poNumber === po) }));
   }
   return groups;
 }
@@ -98,21 +98,21 @@ function _groups(rows, legPoToId) {
 // ctx: { legPoToId:Map<po,legId>, suppliers, facilities, orders, legs, modes, notifyParty }
 function _resolvers(booking, ctx) {
   const { legPoToId, suppliers, facilities, orders, legs, modes = [], notifyParty = [] } = ctx;
-  const supplier = suppliers.find((s) => s.id === booking.supplier_id) || {};
+  const supplier = suppliers.find((s) => s.id === booking.supplierId) || {};
   const notify = notifyParty[0] || {};
   const modeName = new Map(modes.map((m) => [m.id, m.name]));
   const legById = new Map(legs.map((l) => [l.id, l]));
   const whFor = (poNumber) => {
-    const leg = legs.find((l) => l.po_number === poNumber);
-    const order = leg && orders.find((o) => o.po_number === leg.po_number);
-    return (order && facilities.find((w) => w.id === order.facility_id)) || {};
+    const leg = legs.find((l) => l.poNumber === poNumber);
+    const order = leg && orders.find((o) => o.poNumber === leg.poNumber);
+    return (order && facilities.find((w) => w.id === order.facilityId)) || {};
   };
   // Resolve through legPoToId (THIS booking's legs), not `legs.find(po)` — a PO
   // split air + sea has two legs and the first one found may belong to another
   // booking, which would print the other consignment's mode.
   const modeFor = (poNumbers) => [...new Set(poNumbers
     .map((po) => legById.get(legPoToId.get(po)))
-    .map((l) => l && modeName.get(l.mode_id))
+    .map((l) => l && modeName.get(l.modeId))
     .filter(Boolean))].join(' / ');
   return { supplier, notify, whFor, modeFor };
 }
@@ -126,7 +126,7 @@ function _build(booking, group, invoiceNumber, r) {
 
 async function generateAll(booking, rows, ctx) {
   const r = _resolvers(booking, ctx);
-  const bkg = (booking.booking_number || booking.id).replace(/[^0-9]/g, '') || booking.id;
+  const bkg = (booking.bookingNumber || booking.id).replace(/[^0-9]/g, '') || booking.id;
   const ds = new Date().toISOString().slice(2, 10).replace(/-/g, '');
   const ts = Date.now();
 
@@ -142,8 +142,8 @@ async function generateAll(booking, rows, ctx) {
     ]);
     const now = new Date().toISOString();
     docs.push(
-      { id: `doc_${booking.id}_${slug}_ci`, booking_id: booking.id, leg_id: g.legId, doc_type: 'commercial_invoice', file_url: ciDoc.url, invoice_number: invoiceNumber, generated_at: now },
-      { id: `doc_${booking.id}_${slug}_pl`, booking_id: booking.id, leg_id: g.legId, doc_type: 'packing_list', file_url: plDoc.url, invoice_number: invoiceNumber, generated_at: now },
+      { id: `doc_${booking.id}_${slug}_ci`, bookingId: booking.id, legId: g.legId, docType: 'commercial_invoice', fileUrl: ciDoc.url, invoiceNumber: invoiceNumber, generatedAt: now },
+      { id: `doc_${booking.id}_${slug}_pl`, bookingId: booking.id, legId: g.legId, docType: 'packing_list', fileUrl: plDoc.url, invoiceNumber: invoiceNumber, generatedAt: now },
     );
   }
   return docs;
@@ -155,14 +155,14 @@ async function generateAll(booking, rows, ctx) {
 // party) comes from master data that is edited long after the upload, so a stored
 // xlsx freezes whatever was blank at generation time — which is exactly how every
 // downloaded CI ended up with an empty consignee block. Downloads rebuild instead:
-// same cartons, same `invoice_number` (the document's identity — a new one would
+// same cartons, same `invoiceNumber` (the document's identity — a new one would
 // be a different invoice), current master data.
 async function rebuild(doc, booking, rows, ctx) {
   const r = _resolvers(booking, ctx);
-  const group = _groups(rows, ctx.legPoToId).find((g) => (g.legId || null) === (doc.leg_id || null));
+  const group = _groups(rows, ctx.legPoToId).find((g) => (g.legId || null) === (doc.legId || null));
   if (!group) return null;
-  const { meta, ...shipmentData } = _build(booking, group, doc.invoice_number, r);
-  return doc.doc_type === 'packing_list'
+  const { meta, ...shipmentData } = _build(booking, group, doc.invoiceNumber, r);
+  return doc.docType === 'packing_list'
     ? generatePL(shipmentData, meta)
     : generateCI(shipmentData, meta);
 }

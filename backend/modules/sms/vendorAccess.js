@@ -5,7 +5,7 @@
 // tables, and only the pure resolver in utils/vendorScope is common.
 //
 // SMS has no supplier column on the shipment: a consignment's supplier comes from
-// its POs via the sms_shipment_pos junction (sms_pos.supplier_id).
+// its POs via the sms_shipment_pos junction (sms_pos.supplierId).
 //
 // TWO DELIBERATE EDGE CASES:
 //
@@ -29,7 +29,7 @@ const scope = (req) => resolveVendorSupplierId(req.user, { onUnlinked: 'deny' })
 /**
  * Build a predicate: is this SMS shipment visible to the given vendor?
  * @param {Array} shipmentPos  sms_shipment_pos rows
- * @param {Map|Object} poSupplierByNumber  po_number → supplier_id
+ * @param {Map|Object} poSupplierByNumber  poNumber → supplierId
  * @param {string|null} vendorSupplierId   null = staff, everything visible
  */
 function shipmentVisibilityFn(shipmentPos, poSupplierByNumber, vendorSupplierId) {
@@ -37,9 +37,9 @@ function shipmentVisibilityFn(shipmentPos, poSupplierByNumber, vendorSupplierId)
   const mine = String(vendorSupplierId);
   const get = (po) => (poSupplierByNumber instanceof Map
     ? poSupplierByNumber.get(po)
-    : (poSupplierByNumber[po] || {}).supplier_id);
+    : (poSupplierByNumber[po] || {}).supplierId);
   const byShipment = shipmentPos.reduce((m, j) => {
-    (m[j.shipment_id] = m[j.shipment_id] || []).push(j.po_number);
+    (m[j.shipmentId] = m[j.shipmentId] || []).push(j.poNumber);
     return m;
   }, {});
   return (shipmentId) => {
@@ -63,7 +63,7 @@ async function assertShipmentVisible(req, shipmentId, label = 'SMS shipment not 
     M.shipments.read(), M.shipmentPos.read(), M.pos.read(),
   ]);
   if (!shipments.some((s) => s.id === shipmentId)) notFound(label);
-  const supplierOf = new Map(pos.map((p) => [p.po_number, p.supplier_id]));
+  const supplierOf = new Map(pos.map((p) => [p.poNumber, p.supplierId]));
   const visible = shipmentVisibilityFn(shipmentPos, supplierOf, vendorSid);
   if (!visible(shipmentId)) notFound(label);                        // 404, never 403
   return vendorSid;

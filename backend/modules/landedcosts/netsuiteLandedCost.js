@@ -74,8 +74,8 @@ function buildPayloads(input) {
   // 2026-08-07 a BOOKED SMS consignment can carry one too (it clears customs
   // formally). Only an unbooked courier shipment has no entry: there we fall back
   // to courier + tracking, so the field reads e.g. "FedEx 874201930996".
-  const customsEntry = input.customs_entry_number
-    || (isSms ? ([input.courier, input.tracking_number].filter(Boolean).join(' ') || null) : null);
+  const customsEntry = input.customsEntryNumber
+    || (isSms ? ([input.courier, input.trackingNumber].filter(Boolean).join(' ') || null) : null);
 
   return (input.split || []).map((s) => {
     const items = [
@@ -86,7 +86,9 @@ function buildPayloads(input) {
     const commission = round2(s.commission);
     if (commission > 0) items.push({ category: { id: CATEGORY_COMMISSION }, amount: commission }); // Commission
     const body = {
-      memo: s.po_number,
+      // ⚠️ `custbody_*` / `landedCost*` / `custbody16` are NETSUITE field names
+      // and must stay exactly as NetSuite spells them. Only our own keys moved.
+      memo: s.poNumber,
       custbody_tt_customs_entry_number: customsEntry,
       landedCostMethod: { id: 'VALUE' },
       landedCosts: { items },
@@ -96,7 +98,7 @@ function buildPayloads(input) {
     // always has one, and a mode it can't map is left off rather than guessed.
     const id = shipMethodId(input.mode) || (isSms ? SHIPMETHOD_COURIER : null);
     if (id) body.custbody16 = { id };
-    return { po_number: s.po_number, ci_value: s.ci_value, body };
+    return { poNumber: s.poNumber, ciValue: s.ciValue, body };
   });
 }
 

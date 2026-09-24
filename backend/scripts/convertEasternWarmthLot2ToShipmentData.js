@@ -50,8 +50,8 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const DIR = path.join(__dirname, '..', 'data', 'converted docs', 'Mainline');
-const MIGRATED = path.join(__dirname, '..', 'data', 'migrated');
+const DIR = path.join(__dirname, '..', 'storage', 'converted-docs', 'Mainline');
+const MIGRATED = path.join(__dirname, '..', 'database', 'seed-data', 'snapshot');
 
 const TEMPLATE_HEADER = [
   'CTN#', 'PO#', 'SKU', 'UPC', 'Knit/Woven', 'Style Description', 'Color Description',
@@ -88,7 +88,7 @@ function splitItem(item) {
 
 const skuMaster = new Map(
   JSON.parse(fs.readFileSync(path.join(MIGRATED, 'product_skus.json'), 'utf8'))
-    .map((s) => [String(s.sku_code).toUpperCase(), s]),
+    .map((s) => [String(s.skuCode).toUpperCase(), s]),
 );
 const orderLines = JSON.parse(fs.readFileSync(path.join(MIGRATED, 'po_order_lines.json'), 'utf8'));
 
@@ -153,7 +153,7 @@ function packingRows(grid, ctx) {
     if (!a) unmatched.add(k);
     const master = skuMaster.get(sku) || {};
     if (!skuMaster.has(sku)) notInCatalogue.add(sku);
-    if (!orderLines.some((l) => l.po_number === po && String(l.sku_code).toUpperCase() === sku)) notOnPo.add(sku);
+    if (!orderLines.some((l) => l.poNumber === po && String(l.skuCode).toUpperCase() === sku)) notOnPo.add(sku);
 
     const pcs = N(r[C.pcs]);
     const unit = a ? a.unit : 0;
@@ -162,11 +162,11 @@ function packingRows(grid, ctx) {
 
     rows.push([
       ctn, po, sku, S(r[C.upc]) || master.upc || '',
-      knitWoven || master.knit_woven || '',
+      knitWoven || master.knitWoven || '',
       S(r[C.style]) || (a ? a.style : ''), S(r[C.colour]) || (a ? a.colour : ''),
       (a && a.category) || master.category || '', (a && a.gender) || master.gender || '',
       (a && a.composition) || master.composition || '',
-      (a && a.hts) || master.hts_code || '',
+      (a && a.hts) || master.htsCode || '',
       unit, r2(unit * pcs), pcs,
       // per-carton facts on the carton's FIRST row only
       firstOfCarton ? cartons.get(ctn).nw || '' : '',
@@ -221,17 +221,17 @@ for (const { file, po, out } of FILES) {
   // shipped-vs-ordered (this lot alone; lot 1 shipped against the same PO)
   const over = [];
   for (const [sku, q] of shipped) {
-    const ol = orderLines.find((l) => l.po_number === po && String(l.sku_code).toUpperCase() === sku);
-    if (ol && q > N(ol.ordered_qty)) over.push(`${sku} ${q}>${ol.ordered_qty}`);
+    const ol = orderLines.find((l) => l.poNumber === po && String(l.skuCode).toUpperCase() === sku);
+    if (ol && q > N(ol.orderedQty)) over.push(`${sku} ${q}>${ol.orderedQty}`);
   }
   if (over.length) console.log(`     !! lot-2 qty exceeds ordered on ${over.length} SKU(s): ${over.slice(0, 10).join(', ')}`);
 
   // CI rate vs PO line price — the CI wins, but surface the gap
   const priced = new Map();
   for (const [sku] of shipped) {
-    const ol = orderLines.find((l) => l.po_number === po && String(l.sku_code).toUpperCase() === sku);
+    const ol = orderLines.find((l) => l.poNumber === po && String(l.skuCode).toUpperCase() === sku);
     const row = rows.find((r) => r[2] === sku);
-    if (ol && row && N(row[11]) !== N(ol.unit_price)) priced.set(sku, `${N(row[11])} vs PO ${N(ol.unit_price)}`);
+    if (ol && row && N(row[11]) !== N(ol.unitPrice)) priced.set(sku, `${N(row[11])} vs PO ${N(ol.unitPrice)}`);
   }
   if (priced.size) console.log(`     ~  CI rate ≠ PO line price on ${priced.size}/${shipped.size} SKUs (CI used) e.g. ${[...priced.entries()].slice(0, 3).map(([s, v]) => `${s} ${v}`).join(', ')}`);
 }

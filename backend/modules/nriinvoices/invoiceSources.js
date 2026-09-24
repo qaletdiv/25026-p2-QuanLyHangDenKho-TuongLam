@@ -16,8 +16,8 @@
 // the legend/rate card, and uploads open when its layout is mapped.
 //
 // `entity` stays the key the rest of the module already turns on (nri_charge_codes
-// `class_us`/`class_ca`, the entity-keyed rate card, `lineClass`, the `nri_<entity>_
-// <invoice_no>` id). The registry does not replace that — it just stops the
+// `classUs`/`classCa`, the entity-keyed rate card, `lineClass`, the `nri_<entity>_
+// <invoiceNo>` id). The registry does not replace that — it just stops the
 // controller from hardcoding which entities exist.
 
 const M = require('./NriInvoiceModels');
@@ -48,7 +48,7 @@ function uploadable(source, codeOrEntity) {
   if (!source) {
     return { ok: false, status: 404, error: `Unknown warehouse "${codeOrEntity}". Check Invoices → the tab strip for the registered ones.` };
   }
-  if (!source.parser || !source.upload_enabled) {
+  if (!source.parser || !source.uploadEnabled) {
     return {
       ok: false,
       status: 400,

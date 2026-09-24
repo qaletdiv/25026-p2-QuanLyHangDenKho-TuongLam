@@ -3,8 +3,8 @@
 // CI line items are DERIVED from mainline_packing_cartons — not stored (folded
 // 2026-07-07). Both used to be written from the same shipment-data upload, so the
 // packing cartons are the single source. This reproduces the EXACT former write
-// logic (per (booking, sku): qty = Σ pcs_per_ctn, weight = Σ net_weight_kgs,
-// cbm = Σ from measure_cm; matched_leg_id = the carton's leg; ids `cil_<booking>_<n>`)
+// logic (per (booking, sku): qty = Σ pcsPerCtn, weight = Σ netWeightKgs,
+// cbm = Σ from measureCm; matched_leg_id = the carton's leg; ids `cil_<booking>_<n>`)
 // so every consumer sees byte-identical output to the old stored table.
 
 const cbmOf = (measure) => {
@@ -20,22 +20,22 @@ const cbmOf = (measure) => {
 function linesForBooking(cartons, bookingId) {
   const bySku = new Map();
   for (const c of cartons) {
-    if (c.booking_id !== bookingId || !c.sku_code) continue;
-    const legKey = c.leg_id || null;
-    const key = `${legKey}||${c.sku_code}`;
-    const cur = bySku.get(key) || { sku_code: c.sku_code, matched_leg_id: legKey, qty: 0, weight_kg: 0, cbm: 0 };
-    cur.qty += Number(c.pcs_per_ctn) || 0;
-    cur.weight_kg += Number(c.net_weight_kgs) || 0;
-    cur.cbm += cbmOf(c.measure_cm);
+    if (c.bookingId !== bookingId || !c.skuCode) continue;
+    const legKey = c.legId || null;
+    const key = `${legKey}||${c.skuCode}`;
+    const cur = bySku.get(key) || { skuCode: c.skuCode, matched_leg_id: legKey, qty: 0, weightKg: 0, cbm: 0 };
+    cur.qty += Number(c.pcsPerCtn) || 0;
+    cur.weightKg += Number(c.netWeightKgs) || 0;
+    cur.cbm += cbmOf(c.measureCm);
     bySku.set(key, cur);
   }
   return [...bySku.values()].map((x, i) => ({
     id: `cil_${bookingId}_${i + 1}`,
     invoice_id: `ci_${bookingId}`,
-    sku_code: x.sku_code,
+    skuCode: x.skuCode,
     matched_leg_id: x.matched_leg_id,
     qty: x.qty,
-    weight_kg: +x.weight_kg.toFixed(2),
+    weightKg: +x.weightKg.toFixed(2),
     cbm: +x.cbm.toFixed(3),
     match_status: x.matched_leg_id ? 'matched' : 'unmatched',
   }));
@@ -43,7 +43,7 @@ function linesForBooking(cartons, bookingId) {
 
 // CI lines for EVERY booking present in the cartons (for the fulfillment match).
 function deriveAllCiLines(cartons) {
-  const bookingIds = [...new Set(cartons.map((c) => c.booking_id))];
+  const bookingIds = [...new Set(cartons.map((c) => c.bookingId))];
   return bookingIds.flatMap((bid) => linesForBooking(cartons, bid));
 }
 

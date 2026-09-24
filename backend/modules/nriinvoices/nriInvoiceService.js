@@ -26,10 +26,10 @@ const lineClass = require('./lineClass');
  */
 const GL_RULES = [
   {
-    id: 'data_entry_vendor_compliance',
-    when: l => norm(l.service) === 'Data Entry Labour' && /vendor\s*compliance/i.test(norm(l.client_ref_1)),
+    id: 'dataEntryVendorCompliance',
+    when: l => norm(l.service) === 'Data Entry Labour' && /vendor\s*compliance/i.test(norm(l.clientRef1)),
     gl: 5211,
-    gl_desc: 'COGS : Distribution/Logistics : Fulfillment - VAS',
+    glDesc: 'COGS : Distribution/Logistics : Fulfillment - VAS',
     reason: 'Data Entry Labour raised for Vendor Compliance is VAS, not an Extra Charge',
   },
 ];
@@ -43,7 +43,7 @@ const skey = v => norm(v).toUpperCase().replace(/\s+/g, ' ');
 /**
  * Does the detail reconcile to the invoice? Compared PER SERVICE, not just on the
  * grand total — a compensating pair of errors would pass a total-only check.
- * Returns `status: 'no_summary'` when there is no PDF, so the invoice can still
+ * Returns `status: 'noSummary'` when there is no PDF, so the invoice can still
  * be coded but is visibly unproven.
  */
 function tieOut(pdf, lines) {
@@ -62,12 +62,12 @@ function tieOut(pdf, lines) {
 
   if (!pdf) {
     return {
-      status: 'no_summary',
+      status: 'noSummary',
       message: 'No invoice PDF supplied, so the detail cannot be proven complete.',
-      detail_charges: detailCharges, detail_taxes: detailTaxes,
-      detail_total: round2(detailCharges + detailTaxes),
-      services: [...detail.values()].map(e => ({ ...e, invoice_amount: null, variance: null, status: 'unproven' })),
-      unmatched_on_invoice: [], mismatched: 0,
+      detailCharges: detailCharges, detailTaxes: detailTaxes,
+      detailTotal: round2(detailCharges + detailTaxes),
+      services: [...detail.values()].map(e => ({ ...e, invoiceAmount: null, variance: null, status: 'unproven' })),
+      unmatchedOnInvoice: [], mismatched: 0,
     };
   }
 
@@ -87,14 +87,14 @@ function tieOut(pdf, lines) {
       // A zero-dollar service in the detail is noise, not a break — the NRI files
       // carry a blank trailing row. Only a service with money behind it can fail
       // the tie-out.
-      status = Math.abs(charges) > 0.005 ? 'not_on_invoice' : 'ok';
-    } else if (!d) status = 'missing_from_detail';  // invoice bills a service the detail lacks
+      status = Math.abs(charges) > 0.005 ? 'notOnInvoice' : 'ok';
+    } else if (!d) status = 'missingFromDetail';  // invoice bills a service the detail lacks
     else if (Math.abs(variance) > 0.005) status = 'variance';
     if (status !== 'ok') mismatched++;
     services.push({
       service: (d && d.service) || (s && s.service) || k || '(blank)',
       lines: d ? d.lines : 0, charges, taxes: d ? d.taxes : 0,
-      invoice_amount: invoiceAmount, variance, status,
+      invoiceAmount: invoiceAmount, variance, status,
     });
   }
   services.sort((a, b) => Math.abs(b.charges) - Math.abs(a.charges));
@@ -107,16 +107,16 @@ function tieOut(pdf, lines) {
     && (totalVar === null || Math.abs(totalVar) <= 0.005);
 
   return {
-    status: balanced ? 'balanced' : 'out_of_balance',
+    status: balanced ? 'balanced' : 'outOfBalance',
     message: balanced
-      ? `Detail ties to invoice ${pdf.invoice_no || ''} across all ${services.length} services.`
-      : `${mismatched} service(s) do not tie to invoice ${pdf.invoice_no || ''}.`,
-    detail_charges: detailCharges, detail_taxes: detailTaxes,
-    detail_total: round2(detailCharges + detailTaxes),
-    invoice_subtotal: pdf.subtotal, invoice_taxes: pdf.taxes, invoice_total: pdf.total,
-    subtotal_variance: subtotalVar, tax_variance: taxVar, total_variance: totalVar,
+      ? `Detail ties to invoice ${pdf.invoiceNo || ''} across all ${services.length} services.`
+      : `${mismatched} service(s) do not tie to invoice ${pdf.invoiceNo || ''}.`,
+    detailCharges: detailCharges, detailTaxes: detailTaxes,
+    detailTotal: round2(detailCharges + detailTaxes),
+    invoiceSubtotal: pdf.subtotal, invoiceTaxes: pdf.taxes, invoiceTotal: pdf.total,
+    subtotalVariance: subtotalVar, taxVariance: taxVar, totalVariance: totalVar,
     services, mismatched,
-    unmatched_on_invoice: services.filter(s => s.status === 'missing_from_detail').map(s => s.service),
+    unmatchedOnInvoice: services.filter(s => s.status === 'missingFromDetail').map(s => s.service),
   };
 }
 
@@ -146,12 +146,12 @@ function codeAndValidate(lines, ctx) {
 
     // GL: legend, then the hand-rules finance applies every month.
     let gl = coded.gl;
-    let glDesc = coded.gl_desc;
+    let glDesc = coded.glDesc;
     let glBasis = coded.status === 'coded' ? 'legend' : null;
     let glRule = null;
     for (const r of GL_RULES) {
       if (coded.status !== 'coded' || !r.when(l)) continue;
-      gl = r.gl; glDesc = r.gl_desc; glBasis = 'rule'; glRule = r.reason;
+      gl = r.gl; glDesc = r.glDesc; glBasis = 'rule'; glRule = r.reason;
       break;
     }
 
@@ -161,18 +161,18 @@ function codeAndValidate(lines, ctx) {
     let status = coded.status;
     let reason = coded.reason;
     const rc = lineClass.resolveClass(
-      { service: l.service, clientRef1: l.client_ref_1, clientRef2: l.client_ref_2, customer: l.customer, legendClass: coded.class },
+      { service: l.service, clientRef1: l.clientRef1, clientRef2: l.clientRef2, customer: l.customer, legendClass: coded.class },
       orderIndex,
     );
     let cls = rc.class;
     const classBasis = rc.basis;
     const classConfidence = rc.confidence;
-    const orderType = rc.order_type;
+    const orderType = rc.orderType;
 
     if (coded.status === 'coded' && !rc.resolved) {
       // Surfaced, never silently defaulted to wholesale — that default is what
       // makes the workbook read US - Whsle $38,369 against finance's $26,543.
-      status = 'needs_class';
+      status = 'needsClass';
       reason = rc.reason || 'class could not be resolved from the order data';
     }
 
@@ -184,16 +184,16 @@ function codeAndValidate(lines, ctx) {
     return {
       seq: i + 1,
       ...l,
-      gl, gl_desc: glDesc, gl_basis: glBasis, gl_rule: glRule,
-      class: cls, class_basis: classBasis, class_confidence: classConfidence, order_type: orderType,
-      ship_to_country: rc.country || null,
-      legend_gl: coded.gl, legend_class: coded.class, legend_note: coded.note || null,
-      coding_status: status, coding_reason: reason,
+      gl, glDesc: glDesc, glBasis: glBasis, glRule: glRule,
+      class: cls, classBasis: classBasis, classConfidence: classConfidence, orderType: orderType,
+      shipToCountry: rc.country || null,
+      legendGl: coded.gl, legendClass: coded.class, legendNote: coded.note || null,
+      codingStatus: status, codingReason: reason,
       verdict: check.verdict, expected: check.expected, variance: check.variance,
-      rate: check.rate, basis: check.basis, check_detail: check.detail,
-      implied_hours: check.implied_hours === undefined ? null : check.implied_hours,
-      effective_rate: check.effective_rate === undefined ? null : check.effective_rate,
-      aging_multiple: check.aging_multiple === undefined ? null : check.aging_multiple,
+      rate: check.rate, basis: check.basis, checkDetail: check.detail,
+      impliedHours: check.impliedHours === undefined ? null : check.impliedHours,
+      effectiveRate: check.effectiveRate === undefined ? null : check.effectiveRate,
+      agingMultiple: check.agingMultiple === undefined ? null : check.agingMultiple,
     };
   });
 }
@@ -206,39 +206,39 @@ function summarise(coded) {
 
   for (const l of coded) {
     const glKey = l.gl === null ? 'unmapped' : String(l.gl);
-    const g = byGl.get(glKey) || { gl: l.gl, gl_desc: l.gl_desc, classes: new Map(), lines: 0, charges: 0, taxes: 0, amount: 0 };
+    const g = byGl.get(glKey) || { gl: l.gl, glDesc: l.glDesc, classes: new Map(), lines: 0, charges: 0, taxes: 0, amount: 0 };
     g.lines++; g.charges = round2(g.charges + l.charges); g.taxes = round2(g.taxes + l.taxes);
-    g.amount = round2(g.amount + l.inv_amt);
+    g.amount = round2(g.amount + l.invAmt);
     const ck = l.class || '(unclassed)';
-    g.classes.set(ck, round2((g.classes.get(ck) || 0) + l.inv_amt));
+    g.classes.set(ck, round2((g.classes.get(ck) || 0) + l.invAmt));
     byGl.set(glKey, g);
 
     const sk = skey(l.service);
     const s = byService.get(sk) || {
       service: norm(l.service) || '(blank)', gl: l.gl, basis: l.basis, lines: 0, units: 0,
-      charges: 0, amount: 0, expected: 0, variance: 0, has_expected: false, verdicts: [],
+      charges: 0, amount: 0, expected: 0, variance: 0, hasExpected: false, verdicts: [],
     };
     s.lines++; s.units += (l.units || 0);
     s.charges = round2(s.charges + l.charges);
-    s.amount = round2(s.amount + l.inv_amt);
+    s.amount = round2(s.amount + l.invAmt);
     if (l.expected !== null && l.expected !== undefined) {
       s.expected = round2(s.expected + l.expected);
       s.variance = round2(s.variance + (l.variance || 0));
-      s.has_expected = true;
+      s.hasExpected = true;
     }
     s.verdicts.push(l.verdict);
     byService.set(sk, s);
   }
 
   return {
-    by_gl: [...byGl.values()]
+    byGl: [...byGl.values()]
       .map(g => ({ ...g, classes: [...g.classes.entries()].map(([cls, amount]) => ({ class: cls, amount })) }))
       .sort((a, b) => b.amount - a.amount),
-    by_service: [...byService.values()]
+    byService: [...byService.values()]
       .map(s => ({
         ...s,
-        expected: s.has_expected ? s.expected : null,
-        variance: s.has_expected ? s.variance : null,
+        expected: s.hasExpected ? s.expected : null,
+        variance: s.hasExpected ? s.variance : null,
         verdict: rateCard.worst(s.verdicts),
         verdicts: undefined,
       }))
@@ -254,14 +254,14 @@ function findings(coded, tie) {
   const out = [];
   // Coding findings must explain the CODING, not the rate check — a line can be
   // priced correctly and still have nowhere to post.
-  const CODING_TYPES = new Set(['needs_coding', 'needs_class']);
+  const CODING_TYPES = new Set(['needsCoding', 'needsClass']);
   const push = (severity, type, title, rows, extra) => {
     if (!rows.length) return;
-    const detailOf = l => (CODING_TYPES.has(type) ? (l.coding_reason || l.check_detail) : (l.check_detail || l.coding_reason));
+    const detailOf = l => (CODING_TYPES.has(type) ? (l.codingReason || l.checkDetail) : (l.checkDetail || l.codingReason));
     out.push({
       severity, type, title,
       lines: rows.length,
-      amount: round2(rows.reduce((s, l) => s + l.inv_amt, 0)),
+      amount: round2(rows.reduce((s, l) => s + l.invAmt, 0)),
       variance: round2(rows.reduce((s, l) => s + (l.variance || 0), 0)),
       services: [...new Set(rows.map(l => norm(l.service) || '(blank)'))].slice(0, 6),
       examples: rows.slice(0, 5).map(l => ({
@@ -273,14 +273,14 @@ function findings(coded, tie) {
   };
 
   const V = rateCard.VERDICT;
-  if (tie && tie.status === 'out_of_balance') {
+  if (tie && tie.status === 'outOfBalance') {
     out.push({
-      severity: 'blocker', type: 'tie_out', title: 'Detail does not tie to the invoice',
-      lines: tie.mismatched, amount: round2(tie.total_variance || 0), variance: round2(tie.total_variance || 0),
+      severity: 'blocker', type: 'tieOut', title: 'Detail does not tie to the invoice',
+      lines: tie.mismatched, amount: round2(tie.totalVariance || 0), variance: round2(tie.totalVariance || 0),
       services: tie.services.filter(s => s.status !== 'ok').map(s => s.service).slice(0, 6),
       examples: tie.services.filter(s => s.status !== 'ok').slice(0, 5).map(s => ({
-        service: s.service, charges: s.charges, expected: s.invoice_amount,
-        detail: `detail $${s.charges.toFixed(2)} vs invoice ${s.invoice_amount === null ? 'n/a' : '$' + s.invoice_amount.toFixed(2)} (${s.status})`,
+        service: s.service, charges: s.charges, expected: s.invoiceAmount,
+        detail: `detail $${s.charges.toFixed(2)} vs invoice ${s.invoiceAmount === null ? 'n/a' : '$' + s.invoiceAmount.toFixed(2)} (${s.status})`,
       })),
     });
   }
@@ -288,36 +288,36 @@ function findings(coded, tie) {
   // Value-bearing only, so the finding list and the submit gate agree. The NRI
   // files carry a blank trailing row; flagging a $0.00 line as a blocker would
   // put permanent noise at the top of every invoice's review queue.
-  const hasValue = l => Math.abs(l.inv_amt) > 0.005;
+  const hasValue = l => Math.abs(l.invAmt) > 0.005;
 
   push('blocker', 'duplicate', 'Fixed monthly fee billed more than once in a month',
     coded.filter(l => l.verdict === V.DUPLICATE));
-  push('blocker', 'needs_coding', 'No GL mapping for this service',
-    coded.filter(l => l.coding_status === 'needs_coding' && hasValue(l)));
+  push('blocker', 'needsCoding', 'No GL mapping for this service',
+    coded.filter(l => l.codingStatus === 'needsCoding' && hasValue(l)));
   // Not a judgement call — a MISSING INPUT. The class needs the order data
   // covering the invoice's activity period, and NRI delivers that as separate
   // periodic CSVs that can lag the invoice.
-  push('blocker', 'needs_class', 'Class unresolved — order data missing for this period',
-    coded.filter(l => l.coding_status === 'needs_class' && hasValue(l)));
+  push('blocker', 'needsClass', 'Class unresolved — order data missing for this period',
+    coded.filter(l => l.codingStatus === 'needsClass' && hasValue(l)));
   push('warning', 'overcharge', 'Charged above the rate agreement',
     coded.filter(l => l.verdict === V.OVERCHARGE));
   push('info', 'undercharge', 'Charged below the rate agreement',
     coded.filter(l => l.verdict === V.UNDERCHARGE));
-  push('warning', 'no_rate_on_file', 'No rate on file for this service and date',
+  push('warning', 'noRateOnFile', 'No rate on file for this service and date',
     coded.filter(l => l.verdict === V.NO_RATE_ON_FILE && hasValue(l)));
 
   const aging = coded.filter(l => l.verdict === V.AGING_PREMIUM);
-  push('warning', 'aging_premium', 'Storage above the base rate — no aging breakdown on the invoice', aging,
+  push('warning', 'agingPremium', 'Storage above the base rate — no aging breakdown on the invoice', aging,
     aging.length ? {
-      max_aging_multiple: Math.max(...aging.map(l => l.aging_multiple || 0)),
+      maxAgingMultiple: Math.max(...aging.map(l => l.agingMultiple || 0)),
       premium: round2(aging.reduce((s, l) => s + (l.variance || 0), 0)),
     } : undefined);
 
   const hourly = coded.filter(l => l.verdict === V.QTY_UNSUPPORTED && l.basis === 'per_hour');
-  push('info', 'qty_unsupported', 'Hourly labour — rate verified, hours not evidenced', hourly,
-    hourly.length ? { implied_hours: round2(hourly.reduce((s, l) => s + (l.implied_hours || 0), 0)) } : undefined);
+  push('info', 'qtyUnsupported', 'Hourly labour — rate verified, hours not evidenced', hourly,
+    hourly.length ? { impliedHours: round2(hourly.reduce((s, l) => s + (l.impliedHours || 0), 0)) } : undefined);
 
-  push('info', 'no_contract_rate', 'No rate in the agreement — cannot be validated',
+  push('info', 'noContractRate', 'No rate in the agreement — cannot be validated',
     coded.filter(l => l.verdict === V.NO_CONTRACT_RATE));
 
   const rank = { blocker: 0, warning: 1, info: 2 };
@@ -334,23 +334,23 @@ function reconcile({ pdf, lines, codeIndex, rateIndex, orderIndex, entity = 'US'
   return {
     entity,
     invoice: pdf ? {
-      invoice_no: pdf.invoice_no, invoice_date: pdf.invoice_date, ending_date: pdf.ending_date,
-      payment_terms: pdf.payment_terms, due_date: pdf.due_date, fx_rate: pdf.fx_rate,
+      invoiceNo: pdf.invoiceNo, invoiceDate: pdf.invoiceDate, endingDate: pdf.endingDate,
+      paymentTerms: pdf.paymentTerms, dueDate: pdf.dueDate, fxRate: pdf.fxRate,
       subtotal: pdf.subtotal, taxes: pdf.taxes, total: pdf.total,
-      tax_lines: pdf.tax_lines || [], is_credit: !!pdf.is_credit,
+      taxLines: pdf.taxLines || [], isCredit: !!pdf.isCredit,
     } : null,
-    tie_out: tie,
+    tieOut: tie,
     totals: {
       lines: coded.length,
-      charges: tie.detail_charges, taxes: tie.detail_taxes, amount: tie.detail_total,
-      coded: coded.filter(l => l.coding_status === 'coded').length,
-      needs_attention: coded.filter(l => l.coding_status !== 'coded').length,
-      validated_ok: coded.filter(l => l.verdict === rateCard.VERDICT.OK).length,
+      charges: tie.detailCharges, taxes: tie.detailTaxes, amount: tie.detailTotal,
+      coded: coded.filter(l => l.codingStatus === 'coded').length,
+      needsAttention: coded.filter(l => l.codingStatus !== 'coded').length,
+      validatedOk: coded.filter(l => l.verdict === rateCard.VERDICT.OK).length,
       unvalidatable: coded.filter(l => l.verdict === rateCard.VERDICT.NO_CONTRACT_RATE).length,
       variance: round2(coded.reduce((s, l) => s + (l.variance || 0), 0)),
     },
-    by_gl: rolled.by_gl,
-    by_service: rolled.by_service,
+    byGl: rolled.byGl,
+    byService: rolled.byService,
     findings: found,
     lines: coded,
   };

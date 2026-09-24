@@ -6,9 +6,9 @@
 //
 // Ownership: NetSuite owns sms_pos + sms_po_lines outright (no portal-managed
 // fields there) → wholesale upsert, no protect rules. Receipts accumulate per PO
-// (many IRs → one po_number, summed in smsService.reconcilePo). The confirmation
-// columns (matched_shipment_id / confirmed_by / confirmed_at) are PORTAL-owned:
-// the old receiving-UI confirm was retired 2026-07-03, but matched_shipment_id was
+// (many IRs → one poNumber, summed in smsService.reconcilePo). The confirmation
+// columns (matchedShipmentId / confirmedBy / confirmedAt) are PORTAL-owned:
+// the old receiving-UI confirm was retired 2026-07-03, but matchedShipmentId was
 // REACTIVATED 2026-07-22 to record which shipment (lot) an IR received — this is
 // what targets a landed-cost push to the right IR when a PO has several receipts
 // (see ../sms/receiptMatch + smsReceiptController). Re-syncing an IR refreshes its
@@ -69,114 +69,114 @@ function buildUpserts(nsPos, nsReceipts, existing) {
     if (!s) { s = { id: `season_${norm(code).replace(/[^a-z0-9]+/g, '_')}`, code: String(code).trim() }; seasons.push(s); seasonByCode.set(norm(code), s); added.seasons++; }
     return s.id;
   };
-  // resolve a NS location to { facility_id, allocation_channel_id } in one pass
+  // resolve a NS location to { facilityId, allocationChannelId } in one pass
   const locationIds = (location, ctx) => {
-    if (!location) return { facility_id: null, allocation_channel_id: null };
+    if (!location) return { facilityId: null, allocationChannelId: null };
     const { facilityName, channelName } = resolveLocation(location);
     const f = facByName.get(norm(facilityName));
-    if (!f) { warnings.push(`unresolved location "${location}"${ctx ? ' @ ' + ctx : ''}`); return { facility_id: null, allocation_channel_id: null }; }
+    if (!f) { warnings.push(`unresolved location "${location}"${ctx ? ' @ ' + ctx : ''}`); return { facilityId: null, allocationChannelId: null }; }
     return {
-      facility_id: f.id,
-      allocation_channel_id: channelName ? (channelIdByName.get(norm(channelName)) || null) : null,
+      facilityId: f.id,
+      allocationChannelId: channelName ? (channelIdByName.get(norm(channelName)) || null) : null,
     };
   };
 
   // --- sms_pos + sms_po_lines: NS-owned, wholesale per PO ---
-  const posByNumber = new Map(pos.map((p) => [p.po_number, p]));
-  const linesByPo = poLines.reduce((m, l) => ((m[l.po_number] = m[l.po_number] || []).push(l), m), {});
-  const skuByCode = new Map(skus.map((s) => [s.sku_code, s]));
+  const posByNumber = new Map(pos.map((p) => [p.poNumber, p]));
+  const linesByPo = poLines.reduce((m, l) => ((m[l.poNumber] = m[l.poNumber] || []).push(l), m), {});
+  const skuByCode = new Map(skus.map((s) => [s.skuCode, s]));
   let lineSeq = poLines.reduce((mx, l) => Math.max(mx, +String(l.id).replace(/\D/g, '') || 0), 0);
   let posUpserted = 0, linesUpserted = 0, skusAdded = 0;
 
   for (const po of nsPos) {
-    if (!po.po_number) continue;
-    const loc = locationIds(po.receiving_warehouse, po.po_number);
-    posByNumber.set(po.po_number, {
-      po_number:       po.po_number,
-      trn_number:      po.trn_number || null,
-      supplier_id:     supplierId(po.supplier, po.po_number),
-      season_id:       seasonId(po.season),
+    if (!po.poNumber) continue;
+    const loc = locationIds(po.receivingWarehouse, po.poNumber);
+    posByNumber.set(po.poNumber, {
+      poNumber:       po.poNumber,
+      trnNumber:      po.trnNumber || null,
+      supplierId:     supplierId(po.supplier, po.poNumber),
+      seasonId:       seasonId(po.season),
       hod:             po.hod || null,
       // NS "Due Date" (t.duedate) is labelled Expected Receive Date for SMS POs
       // (Lam, 2026-07-06) — the forecast's arrival anchor. mapSuiteQLRow already
-      // surfaces duedate as etd_pol, so no query change is needed.
-      expected_received_date: po.etd_pol || null,
-      ship_method:     po.mode || null,
-      approval_status: po.approval_status || null,
-      facility_id:     loc.facility_id,
-      allocation_channel_id: loc.allocation_channel_id,
-      netsuite_id:     po.netsuite_id ? String(po.netsuite_id) : null,
+      // surfaces duedate as etdPol, so no query change is needed.
+      expectedReceivedDate: po.etdPol || null,
+      shipMethod:     po.mode || null,
+      approvalStatus: po.approvalStatus || null,
+      facilityId:     loc.facilityId,
+      allocationChannelId: loc.allocationChannelId,
+      netsuiteId:     po.netsuiteId ? String(po.netsuiteId) : null,
     });
     posUpserted++;
 
-    // IDENTITY = the NetSuite transaction LINE, not (po_number, sku_code).
+    // IDENTITY = the NetSuite transaction LINE, not (poNumber, skuCode).
     // NetSuite legitimately puts one item on several PO lines (split by receipt
     // date / location, or a price-correction line), so (po, sku) is NOT a
     // determinant — PO04792 carries 54 SKUs × 3 lines each, and PO04697 has the
-    // same SKU at two different prices. Keying the row on `netsuite_line_id`
+    // same SKU at two different prices. Keying the row on `netsuiteLineId`
     // (a) makes the id STABLE across syncs — `spol_${++lineSeq}` renumbered every
     // row on every sync, so the PK churned constantly — and (b) gives Postgres a
     // real unique column to enforce. Consumers only ever aggregate per PO or per
     // (po, sku), so keeping both lines is lossless. Rows synced before this change
-    // keep their old `spol_N` id and a null netsuite_line_id until their PO is
+    // keep their old `spol_N` id and a null netsuiteLineId until their PO is
     // re-synced; Postgres allows multiple NULLs in a unique index, so both shapes
     // load. Fallback to the sequence only if NetSuite gave us no line id at all.
-    linesByPo[po.po_number] = (po.line_items || []).map((li) => ({
-      id: li.netsuite_line_id ? `spol_ns_${li.netsuite_line_id}` : `spol_${++lineSeq}`,
-      po_number: po.po_number,
-      sku_code: li.sku_code,
-      ordered_qty: Number(li.expected_qty) || 0,
-      unit_price: Number(li.unit_price) || null,
-      netsuite_line_id: li.netsuite_line_id || null,
+    linesByPo[po.poNumber] = (po.line_items || []).map((li) => ({
+      id: li.netsuiteLineId ? `spol_ns_${li.netsuiteLineId}` : `spol_${++lineSeq}`,
+      poNumber: po.poNumber,
+      skuCode: li.skuCode,
+      orderedQty: Number(li.expectedQty) || 0,
+      unitPrice: Number(li.unitPrice) || null,
+      netsuiteLineId: li.netsuiteLineId || null,
     }));
-    linesUpserted += linesByPo[po.po_number].length;
+    linesUpserted += linesByPo[po.poNumber].length;
 
     for (const li of po.line_items || []) {
-      if (!li.sku_code) continue;
+      if (!li.skuCode) continue;
       // NS item description (e.g. "Wool Kurt Beanie (Meteorite Black Marled)"),
-      // distinct from the sku_code (itemid). Guard against the old itemid-as-desc.
-      const niceName = li.description && li.description !== li.sku_code ? li.description : null;
+      // distinct from the skuCode (itemid). Guard against the old itemid-as-desc.
+      const niceName = li.description && li.description !== li.skuCode ? li.description : null;
       // Descriptive attrs NetSuite may carry (see integrationService SKU_ATTR_COLUMNS).
       // The CI / packing list fall back to these when a vendor's sheet omits a column.
-      const ATTRS = ['upc', 'gender', 'category', 'composition', 'knit_woven'];
-      const existing = skuByCode.get(li.sku_code);
+      const ATTRS = ['upc', 'gender', 'category', 'composition', 'knitWoven'];
+      const existing = skuByCode.get(li.skuCode);
       if (existing) {
         // skus are otherwise INSERT-only, but backfill MISSING descriptive fields
         // from NetSuite so re-syncing populates rows synced before this fix.
-        if (niceName && !existing.item_name) {
-          existing.item_name = niceName;
+        if (niceName && !existing.itemName) {
+          existing.itemName = niceName;
           if (!existing.description) existing.description = li.description || null;
         }
         for (const a of ATTRS) if (li[a] && !existing[a]) existing[a] = li[a];
-        // unit_price is a NetSuite-owned fact, corrected to transaction-currency
+        // unitPrice is a NetSuite-owned fact, corrected to transaction-currency
         // USD 2026-07-22. REFRESH it (not just backfill-if-missing) so rows synced
         // with the old inflated base-currency price self-correct on re-sync. Skip
         // 0/empty so a priceless line never clobbers a good value. A SKU on several
         // POs takes the last seen — sms_po_lines holds the authoritative per-PO
         // price; this master value is only a display fallback.
-        if (li.unit_price && Number(li.unit_price) !== existing.unit_price) {
-          existing.unit_price = Number(li.unit_price);
+        if (li.unitPrice && Number(li.unitPrice) !== existing.unitPrice) {
+          existing.unitPrice = Number(li.unitPrice);
         }
         continue;
       }
-      const parts = String(li.sku_code).split('-');
+      const parts = String(li.skuCode).split('-');
       const sku = {
-        sku_code: li.sku_code,
-        style_color: parts.slice(0, -1).join('-') || null,
-        item_name: niceName,
+        skuCode: li.skuCode,
+        styleColor: parts.slice(0, -1).join('-') || null,
+        itemName: niceName,
         description: li.description || null,
         colorway: null,
         size: li.size || (parts.length > 2 ? parts[parts.length - 1] : null),
-        hts_code: null,
-        unit_price: Number(li.unit_price) || null,
+        htsCode: null,
+        unitPrice: Number(li.unitPrice) || null,
       };
       for (const a of ATTRS) if (li[a]) sku[a] = li[a];
-      skus.push(sku); skuByCode.set(sku.sku_code, sku); skusAdded++;
+      skus.push(sku); skuByCode.set(sku.skuCode, sku); skusAdded++;
     }
   }
 
-  // --- receipts: keyed on netsuite_ir_id; portal confirmation preserved ---
-  const receiptByIr = new Map(receipts.filter((r) => r.netsuite_ir_id).map((r) => [r.netsuite_ir_id, r]));
+  // --- receipts: keyed on netsuiteIrId; portal confirmation preserved ---
+  const receiptByIr = new Map(receipts.filter((r) => r.netsuiteIrId).map((r) => [r.netsuiteIrId, r]));
   const knownPoNumbers = new Set(posByNumber.keys());
   let irSeq = receipts.reduce((mx, r) => Math.max(mx, +String(r.id).replace(/\D/g, '') || 0), 0);
   let receiptsUpserted = 0, receiptLinesUpserted = 0;
@@ -184,34 +184,34 @@ function buildUpserts(nsPos, nsReceipts, existing) {
   let outReceiptLines = [...receiptLines];
 
   for (const ir of nsReceipts) {
-    if (!ir.po_number || !knownPoNumbers.has(ir.po_number)) {
-      warnings.push(`IR ${ir.ir_tranid || ir.ir_id} references unknown SMS PO "${ir.po_number}" — skipped`);
+    if (!ir.poNumber || !knownPoNumbers.has(ir.poNumber)) {
+      warnings.push(`IR ${ir.ir_tranid || ir.ir_id} references unknown SMS PO "${ir.poNumber}" — skipped`);
       continue;
     }
     let r = receiptByIr.get(ir.ir_id);
     if (!r) {
       r = {
         id: `sir_${++irSeq}`,
-        netsuite_ir_id: ir.ir_id,           // internal id — REST push target (itemReceipt/{id})
-        netsuite_ir_tranid: ir.ir_tranid || null,  // document number (e.g. IR65377) — what users reconcile against
-        po_number: ir.po_number,
-        receipt_date: ir.receipt_date || null,
+        netsuiteIrId: ir.ir_id,           // internal id — REST push target (itemReceipt/{id})
+        netsuiteIrTranid: ir.ir_tranid || null,  // document number (e.g. IR65377) — what users reconcile against
+        poNumber: ir.poNumber,
+        receiptDate: ir.receiptDate || null,
         source: 'netsuite',
-        matched_shipment_id: null, confirmed_by: null, confirmed_at: null,
+        matchedShipmentId: null, confirmedBy: null, confirmedAt: null,
       };
       outReceipts.push(r);
       receiptByIr.set(ir.ir_id, r);
     } else {
       // refresh NS facts in place; NEVER touch the deactivated confirmation
-      // columns (matched_shipment_id/confirmed_*) — reserved, see file header.
-      r.po_number = ir.po_number;
-      r.netsuite_ir_tranid = ir.ir_tranid || r.netsuite_ir_tranid || null;   // backfill on re-sync
-      r.receipt_date = ir.receipt_date || r.receipt_date;
+      // columns (matchedShipmentId/confirmed_*) — reserved, see file header.
+      r.poNumber = ir.poNumber;
+      r.netsuiteIrTranid = ir.ir_tranid || r.netsuiteIrTranid || null;   // backfill on re-sync
+      r.receiptDate = ir.receiptDate || r.receiptDate;
       r.source = 'netsuite';
     }
     receiptsUpserted++;
-    outReceiptLines = outReceiptLines.filter((l) => l.receipt_id !== r.id);
-    ir.lines.forEach((l, i) => outReceiptLines.push({ id: `sirl_${r.id.replace(/\D/g, '')}_${i + 1}`, receipt_id: r.id, sku_code: l.sku_code, qty: l.qty }));
+    outReceiptLines = outReceiptLines.filter((l) => l.receiptId !== r.id);
+    ir.lines.forEach((l, i) => outReceiptLines.push({ id: `sirl_${r.id.replace(/\D/g, '')}_${i + 1}`, receiptId: r.id, skuCode: l.skuCode, qty: l.qty }));
     receiptLinesUpserted += ir.lines.length;
   }
 
@@ -222,13 +222,13 @@ function buildUpserts(nsPos, nsReceipts, existing) {
   // about; see utils/pruneStaleReceipts for what it refuses to touch.
   const pruned = pruneStaleReceipts({
     nsReceipts,
-    queriedPoNumbers: new Set(nsPos.map((p) => p.po_number).filter(Boolean)),
+    queriedPoNumbers: new Set(nsPos.map((p) => p.poNumber).filter(Boolean)),
     receipts: outReceipts,
     receiptLines: outReceiptLines,
   });
   const staleReceipts = pruned.removed;
   staleReceipts.forEach((r) => warnings.push(
-    `Receipt ${r.ir} (${r.po_number}) no longer exists in NetSuite — removed${r.was_confirmed ? ' (it carried a CONFIRMED match)' : ''}`,
+    `Receipt ${r.ir} (${r.poNumber}) no longer exists in NetSuite — removed${r.was_confirmed ? ' (it carried a CONFIRMED match)' : ''}`,
   ));
 
   return {
@@ -259,7 +259,7 @@ async function sync({ fetchPos, fetchReceipts } = {}) {
   let nsPos = [], nsReceipts = [], fetchError = null;
   try {
     nsPos = await getPos();
-    const poIds = nsPos.map((p) => p.netsuite_id).filter(Boolean);
+    const poIds = nsPos.map((p) => p.netsuiteId).filter(Boolean);
     nsReceipts = fetchReceipts
       ? await fetchReceipts(poIds)
       : await integrationService.fetchNetSuiteItemReceipts(poIds);

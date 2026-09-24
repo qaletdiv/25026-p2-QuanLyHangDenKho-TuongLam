@@ -23,7 +23,7 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const DIR = path.join(__dirname, '..', 'data', 'converted docs', 'Mainline');
+const DIR = path.join(__dirname, '..', 'storage', 'converted-docs', 'Mainline');
 const SRC = 'INV#.022-PO04774.86-CW6648.9.5674.7113-TCM6684.6797-NRI DIST-TENTREE-USA-SEA-MJA-MAY.07.xlsx';
 
 const TEMPLATE_HEADER = [
@@ -60,9 +60,9 @@ function invAttrs(inv) {
     if (!sc) break;                       // blank row ends the item block
     if (/total/i.test(S(inv[i][0]))) break;
     byStyleColor.set(sc, {
-      knit_woven: S(inv[i][2]), style_description: S(inv[i][3]), color_description: S(inv[i][4]),
+      knitWoven: S(inv[i][2]), style_description: S(inv[i][3]), color_description: S(inv[i][4]),
       category: S(inv[i][5]), gender: S(inv[i][6]), composition: S(inv[i][7]),
-      hts_code: S(inv[i][8]), unit_price: N(inv[i][10]),
+      htsCode: S(inv[i][8]), unitPrice: N(inv[i][10]),
     });
     add(byLooseSc, looseSc(sc), sc);
     add(byLooseNo, looseNo(sc), sc);
@@ -104,10 +104,10 @@ function build(rows, attrs) {
       if (cand && cand.size === 1) { const m = [...cand][0]; a = attrs.byStyleColor.get(m); fuzzy.push(`${sc} → ${m}`); }
     }
     if (!a) { a = {}; unmatched.push(r.sku); }
-    const unit = a.unit_price || 0;
+    const unit = a.unitPrice || 0;
     aoa.push([
-      r.ctn, r.po, r.sku, r.upc, a.knit_woven || '', a.style_description || '', a.color_description || '',
-      a.category || '', a.gender || '', a.composition || '', a.hts_code || '',
+      r.ctn, r.po, r.sku, r.upc, a.knitWoven || '', a.style_description || '', a.color_description || '',
+      a.category || '', a.gender || '', a.composition || '', a.htsCode || '',
       unit, r2(unit * r.pcs), r.pcs, r.nw, r.gw, r.measure,
     ]);
   }

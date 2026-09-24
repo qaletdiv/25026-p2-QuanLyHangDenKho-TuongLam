@@ -82,13 +82,13 @@ async function generatePL(shipmentData, meta) {
     // right edge is the carton table's right edge. Its own column group, so the
     // left-hand address block grows past it without disturbing it.
     const labels = [
-        ['PO #',              meta.po_number],
-        ['Invoice #',         meta.invoice_number],
+        ['PO #',              meta.poNumber],
+        ['Invoice #',         meta.invoiceNumber],
         ['Date',              meta.date || new Date().toISOString().slice(0, 10)],
         ['Shipping Mode',     meta.shipping_mode],
-        ['Shipment #',        meta.shipment_number],
-        ['Port of Loading',   meta.port_of_loading],
-        ['Port of Discharge', meta.port_of_discharge],
+        ['Shipment #',        meta.shipmentNumber],
+        ['Port of Loading',   meta.portOfLoading],
+        ['Port of Discharge', meta.portOfDischarge],
         ['Country of Origin', meta.country_of_origin],
     ];
     labels.forEach(([label, value], i) => {
@@ -135,10 +135,10 @@ async function generatePL(shipmentData, meta) {
 
     // ── Group rows by carton (preserve order) ────────────────────────────
     // Group on `_group_key` (po#ctn) when present so two POs that both number
-    // cartons from #1 stay separate; falls back to ctn_number (single-PO / SMS).
+    // cartons from #1 stay separate; falls back to ctnNumber (single-PO / SMS).
     const cartonGroups = new Map();
     for (const r of shipmentData.rows) {
-        const key = r._group_key ?? r.ctn_number;
+        const key = r._group_key ?? r.ctnNumber;
         if (!cartonGroups.has(key)) {
             cartonGroups.set(key, []);
         }
@@ -146,7 +146,7 @@ async function generatePL(shipmentData, meta) {
     }
 
     // Sort carton groups by carton number ascending (by the group's own ctn number)
-    const sortedCartons = [...cartonGroups.entries()].sort((a, b) => a[1][0].ctn_number - b[1][0].ctn_number);
+    const sortedCartons = [...cartonGroups.entries()].sort((a, b) => a[1][0].ctnNumber - b[1][0].ctnNumber);
 
     // ── Data rows (immediately under the header) ─────────────────────────
     let dataRow = headerRowNum + 1;
@@ -156,15 +156,15 @@ async function generatePL(shipmentData, meta) {
     let totalCartons = 0;
 
     for (const [, rows] of sortedCartons) {
-        const ctnNum = rows[0].ctn_number;   // displayed carton number (group key may be po#ctn)
+        const ctnNum = rows[0].ctnNumber;   // displayed carton number (group key may be po#ctn)
         const startRow = dataRow;
         const groupSize = rows.length;
         totalCartons++;
 
         // Per-carton weight/measure from first row in group
-        const nw = rows[0].net_weight_kgs || 0;
-        const gw = rows[0].gross_weight_kgs || 0;
-        const measure = rows[0].measure_cm || '';
+        const nw = rows[0].netWeightKgs || 0;
+        const gw = rows[0].grossWeightKgs || 0;
+        const measure = rows[0].measureCm || '';
 
         totalNetWeight += nw;
         totalGrossWeight += gw;
@@ -174,12 +174,12 @@ async function generatePL(shipmentData, meta) {
             const row = ws.getRow(dataRow);
 
             row.getCell(1).value = ctnNum;                     // CTN#
-            row.getCell(2).value = r.po_number || '';           // PO#
+            row.getCell(2).value = r.poNumber || '';           // PO#
             row.getCell(3).value = r.sku;                       // SKU#
             row.getCell(4).value = r.upc || '';                 // UPC
             row.getCell(5).value = r.style_description || '';   // Style Description
             row.getCell(6).value = r.color_description || '';   // Color Description
-            row.getCell(7).value = r.pcs_per_ctn;              // PCS/CTN
+            row.getCell(7).value = r.pcsPerCtn;              // PCS/CTN
 
             // Weight/Measure only on first row (will be merged)
             if (ri === 0) {
@@ -193,7 +193,7 @@ async function generatePL(shipmentData, meta) {
                 row.getCell(c).border = borderThin;
             }
 
-            totalPcs += r.pcs_per_ctn;
+            totalPcs += r.pcsPerCtn;
             dataRow++;
         }
 
@@ -247,7 +247,7 @@ async function generatePL(shipmentData, meta) {
     dataRow += 2;
     ws.getCell(`A${dataRow}`).value = 'Total CBM:';
     ws.getCell(`A${dataRow}`).font = bold;
-    ws.getCell(`B${dataRow}`).value = shipmentData.summary.total_cbm;
+    ws.getCell(`B${dataRow}`).value = shipmentData.summary.totalCbm;
     ws.getCell(`B${dataRow}`).numFmt = '#,##0.000';
 
     // ── Signature block ──────────────────────────────────────────────────

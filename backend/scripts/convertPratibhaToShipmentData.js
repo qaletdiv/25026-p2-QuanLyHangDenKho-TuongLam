@@ -11,9 +11,9 @@
 // and NO UPC — the CI/PL are keyed on STYLE + SHADE (colour name) only. So the
 // line facts below are transcribed from the source PDFs, and the SKU + style
 // description are resolved from product_skus.json at run-time:
-//   SKU = style_color (style-colourcode, e.g. "Slate Moss Heather" -> ZCM5552-6933);
+//   SKU = styleColor (style-colourcode, e.g. "Slate Moss Heather" -> ZCM5552-6933);
 //         this uniquely identifies each CI line even though size is unknown.
-//   Style Description = catalogue item_name, minus the gender prefix + "(colour)".
+//   Style Description = catalogue itemName, minus the gender prefix + "(colour)".
 // UPC is left blank (absent from source). Each PO = a single carton; N/W, G/W &
 // MEASURE sit on the carton's first row (the layout parseShipmentData expects).
 //
@@ -28,8 +28,8 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const DIR = path.join(__dirname, '..', 'data', 'converted docs');
-const SKUS = require(path.join(__dirname, '..', 'data', 'migrated', 'product_skus.json'));
+const DIR = path.join(__dirname, '..', 'storage', 'converted-docs');
+const SKUS = require(path.join(__dirname, '..', 'database', 'seed-data', 'snapshot', 'product_skus.json'));
 
 const TEMPLATE_HEADER = [
   'CTN#', 'PO#', 'SKU', 'UPC', 'Knit/Woven', 'Style Description', 'Color Description',
@@ -79,28 +79,28 @@ const LINES = [
 ].map(([po, style, color, qty, price, hts, composition, gender, category]) =>
   ({ po, style, color, qty, price, hts, composition, gender, category }));
 
-// ── Resolve style + colour name -> { style_color, description } from the catalogue.
-// The catalogue embeds the colour name in item_name, e.g.
-//   "M Freemont Henley (Dark Grey Heather)" @ style_color ZCM5552-0812.
+// ── Resolve style + colour name -> { styleColor, description } from the catalogue.
+// The catalogue embeds the colour name in itemName, e.g.
+//   "M Freemont Henley (Dark Grey Heather)" @ styleColor ZCM5552-0812.
 function buildResolver() {
-  const byStyle = new Map();          // style -> [{ style_color, item_name }]
+  const byStyle = new Map();          // style -> [{ styleColor, itemName }]
   for (const s of SKUS) {
-    const sc = s.style_color || (s.sku_code || '').split('-').slice(0, 2).join('-');
+    const sc = s.styleColor || (s.skuCode || '').split('-').slice(0, 2).join('-');
     const style = (sc || '').split('-')[0];
     if (!style) continue;
     if (!byStyle.has(style)) byStyle.set(style, []);
-    byStyle.get(style).push({ style_color: sc, item_name: s.item_name || s.description || '' });
+    byStyle.get(style).push({ styleColor: sc, itemName: s.itemName || s.description || '' });
   }
   return (style, color) => {
     const cands = byStyle.get(style) || [];
     const hit = cands.find((c) => {
-      const m = /\(([^)]+)\)\s*$/.exec(c.item_name);
+      const m = /\(([^)]+)\)\s*$/.exec(c.itemName);
       return m && norm(m[1]) === norm(color);
     });
-    if (!hit) return { style_color: style, description: '', matched: false };
+    if (!hit) return { styleColor: style, description: '', matched: false };
     // strip leading gender letter ("M "/"W "/"U ") and the trailing "(colour)"
-    const description = hit.item_name.replace(/\s*\([^)]*\)\s*$/, '').replace(/^[MWU]\s+/, '').trim();
-    return { style_color: hit.style_color, description, matched: true };
+    const description = hit.itemName.replace(/\s*\([^)]*\)\s*$/, '').replace(/^[MWU]\s+/, '').trim();
+    return { styleColor: hit.styleColor, description, matched: true };
   };
 }
 
@@ -115,12 +115,12 @@ for (const [po, lines] of Object.entries(
   let totalPcs = 0, totalVal = 0;
 
   lines.forEach((l, i) => {
-    const { style_color, description, matched } = resolve(l.style, l.color);
+    const { styleColor, description, matched } = resolve(l.style, l.color);
     if (!matched) unmatched.push(`${l.style} / ${l.color}`);
     totalPcs += l.qty;
     totalVal += l.price * l.qty;
     aoa.push([
-      1, po, style_color, '', 'Knit', description, l.color,
+      1, po, styleColor, '', 'Knit', description, l.color,
       l.category, l.gender, l.composition, l.hts,
       l.price, r2(l.price * l.qty), l.qty,
       // single carton: weights & measure on the first row only

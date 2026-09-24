@@ -40,7 +40,7 @@ router.delete('/sources/:code',   requireInvoices, asyncWrap(controller.removeSo
 //
 // The legend is the GL lookup basis, and it is CONFIGURED here: the sync accepts
 // an uploaded workbook (`legend`), so it no longer requires the shared drive to be
-// mapped. `dry_run=true` reports the defects without adopting the file.
+// mapped. `dryRun=true` reports the defects without adopting the file.
 const legendFile = upload.fields([{ name: 'legend', maxCount: 1 }]);
 router.get('/charge-codes',       requireInvoices, asyncWrap(controller.getChargeCodes));
 router.post('/charge-codes/sync', requireInvoices, legendFile, asyncWrap(controller.syncChargeCodes));
@@ -70,7 +70,7 @@ router.get('/:id',                requireInvoices, asyncWrap(controller.get));
 router.post('/:id/submit',        requireInvoices, asyncWrap(controller.submit));
 router.delete('/:id',             requireInvoices, asyncWrap(controller.remove));
 
-// Per-line coding decision, keyed on (invoice_no, seq) — stable within an invoice
+// Per-line coding decision, keyed on (invoiceNo, seq) — stable within an invoice
 router.put('/:invoiceNo/lines/:seq', requireInvoices, asyncWrap(controller.setOverride));
 
 module.exports = router;

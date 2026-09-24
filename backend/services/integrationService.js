@@ -102,23 +102,30 @@ function mapLineItemRow(row) {
     const rate = Number(row.rate) || 0;
     const exch = Number(row.exch_rate) || 1;
     const rawPrice = qty && amt ? amt / qty : (exch ? rate / exch : rate);
-    const unit_price = Math.round(rawPrice * 100) / 100;
+    const unitPrice = Math.round(rawPrice * 100) / 100;
 
+    // ⚠️ KEYS are ours (camelCase, matching the models); `row.*` are the SuiteQL
+    // ALIASES from buildLineItemsQuery and stay snake_case. Do not "tidy" the
+    // right-hand side — NetSuite lowercases returned aliases, so renaming them
+    // would silently yield undefined on every field.
     const li = {
-        id:               `li_ns_${row.line_id}`,
-        sku_code:         row.sku_code        || '',
-        description:      row.description     || '',
+        id:              `li_ns_${row.line_id}`,
+        skuCode:         row.sku_code        || '',
+        description:     row.description     || '',
         color,
         size,
-        expected_qty:     qty,
-        unit_price,
-        netsuite_line_id: String(row.line_id  || ''),
+        expectedQty:     qty,
+        unitPrice,
+        netsuiteLineId:  String(row.line_id  || ''),
     };
     // SKU descriptive attributes (only the columns the query actually emitted —
     // see SKU_ATTR_COLUMNS). These feed the product_skus master so the CI/packing
     // list can fall back to them when a vendor's uploaded sheet omits a column.
+    // `key` is the SQL alias (snake_case, see skuAttrSelects); the property we
+    // store is the model's camelCase attribute — e.g. knit_woven -> knitWoven.
+    const camel = (k) => k.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase());
     for (const { key } of SKU_ATTR_COLUMNS) {
-        if (row[key] != null && row[key] !== '') li[key] = String(row[key]).trim();
+        if (row[key] != null && row[key] !== '') li[camel(key)] = String(row[key]).trim();
     }
     return li;
 }
@@ -164,21 +171,24 @@ function skuAttrSelects() {
 function mapSuiteQLRow(row) {
     const fmtDate = (d) => (d ? String(d).replace(/\//g, '-').split('T')[0] : '');
     return {
-        po_number: row.tranid || '',
+        // ⚠️ KEYS are ours (camelCase); `row.*` are the SuiteQL ALIASES and stay
+        // snake_case — NetSuite lowercases returned aliases, so renaming the
+        // right-hand side would silently yield undefined on every field.
+        poNumber: row.tranid || '',
         supplier: row.supplier || '',
         etd: fmtDate(row.shipdate),      // ETD (Ship Date in NS)
-        etd_pol: fmtDate(row.duedate),   // ETD POL (Due Date in NS)
-        expected_qty: Number(row.total_qty) || '',
+        etdPol: fmtDate(row.duedate),    // ETD POL (Due Date in NS)
+        expectedQty: Number(row.total_qty) || '',
         mode: row.mode || '',   // custbody16 AS mode
         incoterm: row.incoterm || '',
-        receiving_warehouse: row.receiving_warehouse || '',
+        receivingWarehouse: row.receiving_warehouse || '',
         season: row.season || '',   // custbody7 AS season
-        trn_number: row.trn_number || '',   // custbody_tentree_po AS trn_number
+        trnNumber: row.trn_number || '',   // custbody_tentree_po AS trn_number
         hod: fmtDate(row.hod),               // custbody8 — handover date (SMS "CRD")
-        approval_status: row.approval_status || '',   // approvalstatus display value
-        netsuite_id: row.id || '',
-        booking_status: 'No Booking',
-        booking_number: null,
+        approvalStatus: row.approval_status || '',   // approvalstatus display value
+        netsuiteId: row.id || '',
+        bookingStatus: 'No Booking',
+        bookingNumber: null,
         type: row.type || '',   // custbody_tt_po_type AS type
         line_items: [],         // populated by fetchNetSuitePOs after line items query
     };
@@ -484,7 +494,7 @@ class IntegrationService {
             .slice(0, maxResults || headerRows.length)
             .map(row => {
                 const po = mapSuiteQLRow(row);
-                po.line_items = lineItemsByPO.get(po.po_number) || [];
+                po.line_items = lineItemsByPO.get(po.poNumber) || [];
                 // SMS sync: normalise type so these POs surface under the SMS tab,
                 // whose frontend filter checks `type === 'sms'`.
                 if (type === 'sms') po.type = 'sms';
@@ -556,13 +566,15 @@ class IntegrationService {
         const byIr = new Map();
         for (const r of rows) {
             if (!byIr.has(r.ir_id)) {
-                byIr.set(r.ir_id, { ir_id: String(r.ir_id), ir_tranid: r.ir_tranid || null, po_number: r.po_number || null, receipt_date: fmtDate(r.receipt_date), lines: [] });
+                // Keys are OURS (camelCase, consumed by the receipt folds);
+                // `r.*` are the SuiteQL aliases and stay snake_case.
+                byIr.set(r.ir_id, { ir_id: String(r.ir_id), ir_tranid: r.ir_tranid || null, poNumber: r.po_number || null, receiptDate: fmtDate(r.receipt_date), lines: [] });
             }
             // receipt lines can repeat a SKU across bins — aggregate per SKU
             const ir = byIr.get(r.ir_id);
             const qty = Math.abs(Number(r.qty) || 0);
-            const line = ir.lines.find((l) => l.sku_code === r.sku_code);
-            if (line) line.qty += qty; else ir.lines.push({ sku_code: r.sku_code || '', qty });
+            const line = ir.lines.find((l) => l.skuCode === r.sku_code);
+            if (line) line.qty += qty; else ir.lines.push({ skuCode: r.sku_code || '', qty });
         }
         const receipts = [...byIr.values()];
         console.log(`[Integration] fetchNetSuiteItemReceipts — ${receipts.length} receipts, ${rows.length} lines`);
@@ -660,7 +672,7 @@ class IntegrationService {
         if (!rows.length) return null;
         const r = rows[0];
         const fmtDate = (d) => (d ? String(d).replace(/\//g, '-').split('T')[0] : null);
-        return { ir_id: String(r.id), ir_tranid: r.tranid || t, receipt_date: fmtDate(r.trandate) };
+        return { ir_id: String(r.id), ir_tranid: r.tranid || t, receiptDate: fmtDate(r.trandate) };
     }
 
     /**

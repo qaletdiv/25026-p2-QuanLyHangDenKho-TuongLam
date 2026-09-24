@@ -4,8 +4,7 @@
 // Per-SKU ordered qty summed across all warehouse orders under a TRN. Distinct
 // from the /forecast page (shipment-arrival-by-week). Derived live, never stored.
 
-const PoMasterModel = require('./PoMasterModel');
-const PoOrderModel  = require('./PoOrderModel');
+const { models } = require('../../models');
 const { assertTrnVisible } = require('../mainline/vendorAccess');
 
 const notFound = (msg) => { const e = new Error(msg); e.statusCode = 404; throw e; };
@@ -15,31 +14,31 @@ async function getOrderIntent(req, res) {
   const { trn } = req.params;
   await assertTrnVisible(req, trn, `PO master not found: ${trn}`);
   const [masters, orders, orderLines] = await Promise.all([
-    PoMasterModel.read(),
-    PoOrderModel.readOrders(),
-    PoOrderModel.readOrderLines(),
+    models.po_masters.read(),
+    models.po_orders.read(),
+    models.po_order_lines.read(),
   ]);
 
-  const master = masters.find((m) => m.trn_number === trn);
+  const master = masters.find((m) => m.trnNumber === trn);
   if (!master) notFound(`PO master not found: ${trn}`);
 
-  const poNumbers = new Set(orders.filter((o) => o.trn_number === trn).map((o) => o.po_number));
+  const poNumbers = new Set(orders.filter((o) => o.trnNumber === trn).map((o) => o.poNumber));
 
-  // sum ordered_qty per sku across this TRN's orders
+  // sum orderedQty per sku across this TRN's orders
   const bySku = new Map();
   orderLines.forEach((l) => {
-    if (!poNumbers.has(l.po_number)) return;
-    bySku.set(l.sku_code, (bySku.get(l.sku_code) || 0) + (l.ordered_qty || 0));
+    if (!poNumbers.has(l.poNumber)) return;
+    bySku.set(l.skuCode, (bySku.get(l.skuCode) || 0) + (l.orderedQty || 0));
   });
 
   const totals = [...bySku.entries()]
-    .map(([sku_code, ordered_qty]) => ({ sku_code, ordered_qty }))
-    .sort((a, b) => a.sku_code.localeCompare(b.sku_code));
+    .map(([skuCode, orderedQty]) => ({ skuCode, orderedQty }))
+    .sort((a, b) => a.skuCode.localeCompare(b.skuCode));
 
   res.json({
-    trn_number: trn,
-    sku_count:  totals.length,
-    total_qty:  totals.reduce((s, t) => s + t.ordered_qty, 0),
+    trnNumber: trn,
+    skuCount:  totals.length,
+    total_qty:  totals.reduce((s, t) => s + t.orderedQty, 0),
     totals,
   });
 }

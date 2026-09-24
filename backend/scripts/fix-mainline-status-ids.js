@@ -33,8 +33,8 @@ const DATA = path.resolve(__dirname, '../data/migrated');
 
 // table file → { field, categories that are valid for this table }
 const TARGETS = [
-  { file: 'mainline_bookings.json',  field: 'booking_status_id', ok: ['booking', 'both'] },
-  { file: 'mainline_shipments.json', field: 'status_id',         ok: ['shipment', 'both'] },
+  { file: 'mainline_bookings.json',  field: 'bookingStatusId', ok: ['booking', 'both'] },
+  { file: 'mainline_shipments.json', field: 'statusId',         ok: ['shipment', 'both'] },
 ];
 
 const readJson = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));

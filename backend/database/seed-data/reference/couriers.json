@@ -1,0 +1,17 @@
+[
+  {
+    "id": "c1",
+    "name": "FedEx",
+    "providesCostInvoices": false
+  },
+  {
+    "id": "c2",
+    "name": "DHL",
+    "providesCostInvoices": false
+  },
+  {
+    "id": "c3",
+    "name": "Ceva",
+    "providesCostInvoices": true
+  }
+]

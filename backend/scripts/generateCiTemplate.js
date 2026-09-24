@@ -704,7 +704,7 @@ async function generate() {
   buildPlSheet(wb);
   buildInstructionsSheet(wb);
 
-  const outputPath = path.join(__dirname, '..', 'data', 'templates', 'tentree_CI_Template.xlsx');
+  const outputPath = path.join(__dirname, '..', 'storage', 'templates', 'tentree_CI_Template.xlsx');
   await wb.xlsx.writeFile(outputPath);
   console.log(`✅ Template written to ${outputPath}`);
   console.log(`   Sheets: ${wb.worksheets.map(s => s.name).join(', ')}`);

@@ -1,0 +1,5182 @@
+{
+  "tables": [
+    {
+      "name": "contacts",
+      "file": "contacts.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "email",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "company",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "role",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "group",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "phone",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": false
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 4,
+      "inDbml": true
+    },
+    {
+      "name": "couriers",
+      "file": "couriers.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "providesCostInvoices",
+          "type": "boolean",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "name"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 3,
+      "inDbml": true
+    },
+    {
+      "name": "freights",
+      "file": "freights.json",
+      "columns": [],
+      "primaryKey": null,
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 0,
+      "inDbml": false
+    },
+    {
+      "name": "incoterms",
+      "file": "incoterms.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "name"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 5,
+      "inDbml": true
+    },
+    {
+      "name": "modes",
+      "file": "modes.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "name"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 3,
+      "inDbml": true
+    },
+    {
+      "name": "roles",
+      "file": "roles.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "protected",
+          "type": "boolean",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "permissions",
+          "type": "json",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "name"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 5,
+      "inDbml": true
+    },
+    {
+      "name": "legacy_statuses",
+      "file": "statuses.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "color",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 7,
+      "inDbml": false
+    },
+    {
+      "name": "suppliers",
+      "file": "suppliers.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "country",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "address",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "portOfLoading",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "manufacturerName",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": false
+        },
+        {
+          "name": "manufacturerAddress",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": false
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "name"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 15,
+      "inDbml": true
+    },
+    {
+      "name": "users",
+      "file": "users.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "email",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "password",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "role",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "supplier",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "mustChangePassword",
+          "type": "boolean",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "roleId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": false
+        },
+        {
+          "name": "supplierId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": false
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "email"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "roleId",
+          "table": "roles",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "supplierId",
+          "table": "suppliers",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 5,
+      "inDbml": true
+    },
+    {
+      "name": "warehouses",
+      "file": "warehouses.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "country",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "city",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "email",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "address",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "portOfDischarge",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "name"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 6,
+      "inDbml": true
+    },
+    {
+      "name": "allocation_channels",
+      "file": "migrated/allocation_channels.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "name"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 2,
+      "inDbml": true
+    },
+    {
+      "name": "container_types",
+      "file": "migrated/container_types.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "name"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 2,
+      "inDbml": true
+    },
+    {
+      "name": "courier_status_map",
+      "file": "migrated/courier_status_map.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "courierId",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "courierCode",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "statusId",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "courierId",
+            "courierCode"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "statusId",
+          "table": "statuses",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 24,
+      "inDbml": true
+    },
+    {
+      "name": "landed_costs",
+      "file": "migrated/landed_costs.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "module",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "shipmentId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "poNumber",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "invoiceValue",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "freightPct",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "dutyPct",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "freight",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "duty",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "commission",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "postedBy",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "postedAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "netsuitePushedAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "module",
+            "shipmentId",
+            "poNumber"
+          ],
+          "nullsNotDistinct": true
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "postedBy",
+          "table": "users",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 54,
+      "inDbml": true
+    },
+    {
+      "name": "landed_cost_commissions_mainline",
+      "file": "migrated/landed_cost_commissions_mainline.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "supplierId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "commissionPct",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 1,
+      "inDbml": false
+    },
+    {
+      "name": "landed_cost_commissions_sms",
+      "file": "migrated/landed_cost_commissions_sms.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "supplierId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "commissionPct",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 1,
+      "inDbml": false
+    },
+    {
+      "name": "landed_cost_rates",
+      "file": "migrated/landed_cost_rates.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "module",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "freightPct",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "dutyPct",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 2,
+      "inDbml": true
+    },
+    {
+      "name": "mainline_asns",
+      "file": "migrated/mainline_asns.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "shipmentId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "fileUrl",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "generatedAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "shipmentId",
+          "table": "mainline_shipments",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 2,
+      "inDbml": true
+    },
+    {
+      "name": "mainline_bookings",
+      "file": "migrated/mainline_bookings.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "bookingNumber",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "supplierId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "incotermId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "courierId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "cargoReadyDate",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "bookingStatusId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "submittedAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "approvedAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "overbooked",
+          "type": "boolean",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "bookingNumber"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "supplierId",
+          "table": "suppliers",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "incotermId",
+          "table": "incoterms",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "courierId",
+          "table": "couriers",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "bookingStatusId",
+          "table": "statuses",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 9,
+      "inDbml": true
+    },
+    {
+      "name": "mainline_booking_po_legs",
+      "file": "migrated/mainline_booking_po_legs.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "bookingId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "legId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "units",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "cartons",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "weightKg",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "cbm",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "bookingId",
+            "legId"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "bookingId",
+          "table": "mainline_bookings",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "legId",
+          "table": "mainline_po_legs",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 17,
+      "inDbml": true
+    },
+    {
+      "name": "mainline_commercial_invoices",
+      "file": "migrated/mainline_commercial_invoices.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "bookingId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "invoiceNumber",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "invoiceDate",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "confirmedAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "fileUrl",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": false
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "bookingId"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "bookingId",
+          "table": "mainline_bookings",
+          "refColumn": "id",
+          "oneToOne": true
+        }
+      ],
+      "rowCount": 8,
+      "inDbml": true
+    },
+    {
+      "name": "mainline_documents",
+      "file": "migrated/mainline_documents.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "bookingId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "legId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "docType",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "fileUrl",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "invoiceNumber",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "generatedAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 48,
+      "inDbml": false
+    },
+    {
+      "name": "mainline_item_receipts",
+      "file": "migrated/mainline_item_receipts.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "netsuiteIrId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "netsuiteIrTranid",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "poNumber",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "receiptDate",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "matchedShipmentId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "confirmedBy",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "confirmedAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "netsuiteIrId"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "poNumber",
+          "table": "po_orders",
+          "refColumn": "poNumber",
+          "oneToOne": false
+        },
+        {
+          "column": "matchedShipmentId",
+          "table": "mainline_shipments",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 94,
+      "inDbml": true
+    },
+    {
+      "name": "mainline_item_receipt_lines",
+      "file": "migrated/mainline_item_receipt_lines.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "receiptId",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "skuCode",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "qty",
+          "type": "integer",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "receiptId",
+            "skuCode"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "receiptId",
+          "table": "mainline_item_receipts",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "skuCode",
+          "table": "product_skus",
+          "refColumn": "skuCode",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 10044,
+      "inDbml": true
+    },
+    {
+      "name": "mainline_packing_cartons",
+      "file": "migrated/mainline_packing_cartons.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "bookingId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "ctnNumber",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "legId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "skuCode",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "pcsPerCtn",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "unitPrice",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "totalUsd",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "netWeightKgs",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "grossWeightKgs",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "measureCm",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "bookingId",
+          "table": "mainline_bookings",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "legId",
+          "table": "mainline_po_legs",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "skuCode",
+          "table": "product_skus",
+          "refColumn": "skuCode",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 2275,
+      "inDbml": true
+    },
+    {
+      "name": "mainline_po_legs",
+      "file": "migrated/mainline_po_legs.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "poNumber",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "modeId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "incotermId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "crd",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "etdPol",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "eDel",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "poNumber",
+            "modeId",
+            "crd"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "poNumber",
+          "table": "po_orders",
+          "refColumn": "poNumber",
+          "oneToOne": false
+        },
+        {
+          "column": "modeId",
+          "table": "modes",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "incotermId",
+          "table": "incoterms",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 86,
+      "inDbml": true
+    },
+    {
+      "name": "mainline_po_leg_lines",
+      "file": "migrated/mainline_po_leg_lines.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "legId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "skuCode",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "allocatedQty",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": null,
+      "uniques": [],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "legId",
+          "table": "mainline_po_legs",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "skuCode",
+          "table": "product_skus",
+          "refColumn": "skuCode",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 9982,
+      "inDbml": true
+    },
+    {
+      "name": "mainline_receipt_match_rejections",
+      "file": "migrated/mainline_receipt_match_rejections.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": false
+        },
+        {
+          "name": "receiptId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": false
+        },
+        {
+          "name": "shipmentId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": false
+        },
+        {
+          "name": "rejectedBy",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": false
+        },
+        {
+          "name": "rejectedAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": false
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "receiptId",
+            "shipmentId"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "receiptId",
+          "table": "mainline_item_receipts",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "shipmentId",
+          "table": "mainline_shipments",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 0,
+      "inDbml": true
+    },
+    {
+      "name": "mainline_shipments",
+      "file": "migrated/mainline_shipments.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "shipmentNumber",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "bookingId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "facilityId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "modeId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "statusId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "containerTypeId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "polPortId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "podPortId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "blNo",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "carrierReference",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "etdPol",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "etaPod",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "eDel",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "cargoReceivedDate",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "ata",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "netsuiteId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "invoiceValue",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "duty",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "freight",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "courierId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "customsEntryNumber",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "shipmentNumber"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "bookingId",
+          "table": "mainline_bookings",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "facilityId",
+          "table": "warehouse_facilities",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "modeId",
+          "table": "modes",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "statusId",
+          "table": "statuses",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "containerTypeId",
+          "table": "container_types",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "polPortId",
+          "table": "ports",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "podPortId",
+          "table": "ports",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "courierId",
+          "table": "couriers",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 9,
+      "inDbml": true
+    },
+    {
+      "name": "mainline_shipment_legs",
+      "file": "migrated/mainline_shipment_legs.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "shipmentId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "legId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "lotNumber",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "expectedQuantity",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "shipmentId",
+            "legId"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "shipmentId",
+          "table": "mainline_shipments",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "legId",
+          "table": "mainline_po_legs",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 17,
+      "inDbml": true
+    },
+    {
+      "name": "notify_party",
+      "file": "migrated/notify_party.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "address",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 1,
+      "inDbml": true
+    },
+    {
+      "name": "ports",
+      "file": "migrated/ports.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "code",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "country",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "role",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "code"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 10,
+      "inDbml": true
+    },
+    {
+      "name": "po_masters",
+      "file": "migrated/po_masters.json",
+      "columns": [
+        {
+          "name": "trnNumber",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "supplierId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "seasonId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "mainShoulder",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "netsuiteId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "trnNumber"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "supplierId",
+          "table": "suppliers",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "seasonId",
+          "table": "seasons",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 42,
+      "inDbml": true
+    },
+    {
+      "name": "po_orders",
+      "file": "migrated/po_orders.json",
+      "columns": [
+        {
+          "name": "poNumber",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "trnNumber",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "facilityId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "allocationChannelId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "cooCountry",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "netsuiteId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "approvalStatus",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "poNumber"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "trnNumber",
+          "table": "po_masters",
+          "refColumn": "trnNumber",
+          "oneToOne": false
+        },
+        {
+          "column": "facilityId",
+          "table": "warehouse_facilities",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "allocationChannelId",
+          "table": "allocation_channels",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 81,
+      "inDbml": true
+    },
+    {
+      "name": "po_order_lines",
+      "file": "migrated/po_order_lines.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "poNumber",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "netsuiteLineId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "skuCode",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "orderedQty",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "unitPrice",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "poNumber",
+            "netsuiteLineId"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [
+        [
+          "poNumber",
+          "skuCode"
+        ]
+      ],
+      "refs": [
+        {
+          "column": "poNumber",
+          "table": "po_orders",
+          "refColumn": "poNumber",
+          "oneToOne": false
+        },
+        {
+          "column": "skuCode",
+          "table": "product_skus",
+          "refColumn": "skuCode",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 11946,
+      "inDbml": true
+    },
+    {
+      "name": "production_schedules",
+      "file": "migrated/production_schedules.json",
+      "columns": [
+        {
+          "name": "seasonId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "ontimeBy",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "atriskBy",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "seasonId"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "seasonId",
+          "table": "seasons",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 3,
+      "inDbml": true
+    },
+    {
+      "name": "product_skus",
+      "file": "migrated/product_skus.json",
+      "columns": [
+        {
+          "name": "skuCode",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "styleColor",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "itemName",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "colorway",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "size",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "htsCode",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "unitPrice",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "upc",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "knitWoven",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "category",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "gender",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "composition",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "skuCode"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 4960,
+      "inDbml": true
+    },
+    {
+      "name": "seasons",
+      "file": "migrated/seasons.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "code",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "code"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 3,
+      "inDbml": true
+    },
+    {
+      "name": "sms_bookings",
+      "file": "migrated/sms_bookings.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "bookingNumber",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "supplierId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "incotermId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "courierId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "modeId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "cargoReadyDate",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "bookingStatusId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "submittedAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "approvedAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "bookingNumber"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "supplierId",
+          "table": "suppliers",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "incotermId",
+          "table": "incoterms",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "courierId",
+          "table": "couriers",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "modeId",
+          "table": "modes",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "bookingStatusId",
+          "table": "statuses",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 5,
+      "inDbml": true
+    },
+    {
+      "name": "sms_booking_pos",
+      "file": "migrated/sms_booking_pos.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "bookingId",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "poNumber",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "lotNumber",
+          "type": "integer",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "units",
+          "type": "integer",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "cartons",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "weightKg",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "cbm",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "bookingId",
+            "poNumber",
+            "lotNumber"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "bookingId",
+          "table": "sms_bookings",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "poNumber",
+          "table": "sms_pos",
+          "refColumn": "poNumber",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 5,
+      "inDbml": true
+    },
+    {
+      "name": "sms_cartons",
+      "file": "migrated/sms_cartons.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "shipmentId",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "ctnNumber",
+          "type": "integer",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "netWeightKgs",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "grossWeightKgs",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "measureCm",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "shipmentId",
+            "ctnNumber"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "shipmentId",
+          "table": "sms_shipments",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 145,
+      "inDbml": true
+    },
+    {
+      "name": "sms_documents",
+      "file": "migrated/sms_documents.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "shipmentId",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "poNumber",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "docType",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "fileUrl",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "invoiceNumber",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "generatedAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "shipmentId",
+          "table": "sms_shipments",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "poNumber",
+          "table": "sms_pos",
+          "refColumn": "poNumber",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 84,
+      "inDbml": true
+    },
+    {
+      "name": "sms_item_receipts",
+      "file": "migrated/sms_item_receipts.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "netsuiteIrId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "poNumber",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "receiptDate",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "matchedShipmentId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "confirmedBy",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "confirmedAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "netsuiteIrTranid",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "netsuiteIrId"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "poNumber",
+          "table": "sms_pos",
+          "refColumn": "poNumber",
+          "oneToOne": false
+        },
+        {
+          "column": "matchedShipmentId",
+          "table": "sms_shipments",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 173,
+      "inDbml": true
+    },
+    {
+      "name": "sms_item_receipt_lines",
+      "file": "migrated/sms_item_receipt_lines.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "receiptId",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "skuCode",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "qty",
+          "type": "integer",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "receiptId",
+            "skuCode"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "receiptId",
+          "table": "sms_item_receipts",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "skuCode",
+          "table": "product_skus",
+          "refColumn": "skuCode",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 4230,
+      "inDbml": true
+    },
+    {
+      "name": "sms_packing_cartons",
+      "file": "migrated/sms_packing_cartons.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "shipmentId",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "poNumber",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "ctnNumber",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "skuCode",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "pcsPerCtn",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "unitPrice",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "shipmentId",
+            "ctnNumber",
+            "skuCode"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "shipmentId",
+          "table": "sms_shipments",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "poNumber",
+          "table": "sms_pos",
+          "refColumn": "poNumber",
+          "oneToOne": false
+        },
+        {
+          "column": "skuCode",
+          "table": "product_skus",
+          "refColumn": "skuCode",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 1079,
+      "inDbml": true
+    },
+    {
+      "name": "sms_pos",
+      "file": "migrated/sms_pos.json",
+      "columns": [
+        {
+          "name": "poNumber",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "trnNumber",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "supplierId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "seasonId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "hod",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "expectedReceivedDate",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "shipMethod",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "approvalStatus",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "facilityId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "allocationChannelId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "netsuiteId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "poNumber"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "netsuiteId"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "supplierId",
+          "table": "suppliers",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "seasonId",
+          "table": "seasons",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "facilityId",
+          "table": "warehouse_facilities",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "allocationChannelId",
+          "table": "allocation_channels",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 120,
+      "inDbml": true
+    },
+    {
+      "name": "sms_po_lines",
+      "file": "migrated/sms_po_lines.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "poNumber",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "skuCode",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "orderedQty",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "unitPrice",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "netsuiteLineId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": null,
+      "uniques": [
+        {
+          "columns": [
+            "poNumber",
+            "netsuiteLineId"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [
+        [
+          "poNumber",
+          "skuCode"
+        ]
+      ],
+      "refs": [
+        {
+          "column": "poNumber",
+          "table": "sms_pos",
+          "refColumn": "poNumber",
+          "oneToOne": false
+        },
+        {
+          "column": "skuCode",
+          "table": "product_skus",
+          "refColumn": "skuCode",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 4961,
+      "inDbml": true
+    },
+    {
+      "name": "sms_receipt_match_rejections",
+      "file": "migrated/sms_receipt_match_rejections.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "receiptId",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "shipmentId",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "rejectedBy",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "rejectedAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "receiptId",
+            "shipmentId"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "receiptId",
+          "table": "sms_item_receipts",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "shipmentId",
+          "table": "sms_shipments",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 1,
+      "inDbml": true
+    },
+    {
+      "name": "sms_shipments",
+      "file": "migrated/sms_shipments.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "courierId",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "trackingNumber",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "shipDate",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "facilityId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "manualStatusId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "createdBy",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "bookingId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "customsEntryNumber",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "duty",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "freight",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "modeId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "trackingNumber"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "modeId",
+          "table": "modes",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "facilityId",
+          "table": "warehouse_facilities",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "manualStatusId",
+          "table": "statuses",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "bookingId",
+          "table": "sms_bookings",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 42,
+      "inDbml": true
+    },
+    {
+      "name": "sms_shipment_pos",
+      "file": "migrated/sms_shipment_pos.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "shipmentId",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "poNumber",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "lotNumber",
+          "type": "integer",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "units",
+          "type": "integer",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "cartons",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "poNumber",
+            "lotNumber"
+          ],
+          "nullsNotDistinct": false
+        },
+        {
+          "columns": [
+            "shipmentId",
+            "poNumber"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "shipmentId",
+          "table": "sms_shipments",
+          "refColumn": "id",
+          "oneToOne": false
+        },
+        {
+          "column": "poNumber",
+          "table": "sms_pos",
+          "refColumn": "poNumber",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 42,
+      "inDbml": true
+    },
+    {
+      "name": "sms_tracking_events",
+      "file": "migrated/sms_tracking_events.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "shipmentId",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "eventTime",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "courierCode",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "location",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "shipmentId",
+          "table": "sms_shipments",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 715,
+      "inDbml": true
+    },
+    {
+      "name": "statuses",
+      "file": "migrated/statuses.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "module",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "category",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "color",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "sortOrder",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "module",
+            "name"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 21,
+      "inDbml": true
+    },
+    {
+      "name": "transit_time_standards",
+      "file": "migrated/transit_time_standards.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "modeId",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "segment",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "days",
+          "type": "integer",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "modeId",
+            "segment"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [
+        {
+          "column": "modeId",
+          "table": "modes",
+          "refColumn": "id",
+          "oneToOne": false
+        }
+      ],
+      "rowCount": 10,
+      "inDbml": true
+    },
+    {
+      "name": "warehouse_facilities",
+      "file": "migrated/warehouse_facilities.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "notNull": true,
+          "declaredNotNull": true,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "country",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "city",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "portOfDischarge",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "address",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [
+        {
+          "columns": [
+            "name"
+          ],
+          "nullsNotDistinct": false
+        }
+      ],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 5,
+      "inDbml": true
+    },
+    {
+      "name": "nri_charge_codes",
+      "file": "nri/nri_charge_codes.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "service",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "serviceRaw",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "gl",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "glDesc",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "classUs",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "classCa",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "note",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 60,
+      "inDbml": false
+    },
+    {
+      "name": "nri_invoices",
+      "file": "nri/nri_invoices.json",
+      "columns": [],
+      "primaryKey": null,
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 0,
+      "inDbml": false
+    },
+    {
+      "name": "nri_invoice_lines",
+      "file": "nri/nri_invoice_lines.json",
+      "columns": [],
+      "primaryKey": null,
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 0,
+      "inDbml": false
+    },
+    {
+      "name": "nri_invoice_sources",
+      "file": "nri/nri_invoice_sources.json",
+      "columns": [
+        {
+          "name": "code",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "label",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "entity",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "facilityId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "parser",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "uploadEnabled",
+          "type": "boolean",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "note",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        }
+      ],
+      "primaryKey": null,
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 2,
+      "inDbml": false
+    },
+    {
+      "name": "nri_line_overrides",
+      "file": "nri/nri_line_overrides.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "invoiceNo",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "seq",
+          "type": "integer",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "gl",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "class",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "note",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "updatedBy",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamptz",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 5,
+      "inDbml": false
+    },
+    {
+      "name": "nri_order_master",
+      "file": "nri/nri_order_master.json",
+      "columns": [
+        {
+          "name": "entity",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "orderNo",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "ref2",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "custCode",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "custName",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "orderType",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "country",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "completed",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        }
+      ],
+      "primaryKey": null,
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 32201,
+      "inDbml": false
+    },
+    {
+      "name": "nri_rate_card",
+      "file": "nri/nri_rate_card.json",
+      "columns": [
+        {
+          "name": "id",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "entity",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "service",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "basis",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "fixed",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "rate",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "uom",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "tiers",
+          "type": "json",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "monthlyMinimum",
+          "type": "numeric",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "effectiveFrom",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "effectiveTo",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": false,
+          "inData": true
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniques": [],
+      "indexes": [],
+      "refs": [],
+      "rowCount": 41,
+      "inDbml": false
+    }
+  ],
+  "documents": [
+    {
+      "file": "notification_seen.json",
+      "name": "notification_seen"
+    }
+  ],
+  "foreignKeys": [
+    {
+      "table": "users",
+      "column": "roleId",
+      "refTable": "roles",
+      "refColumn": "id"
+    },
+    {
+      "table": "users",
+      "column": "supplierId",
+      "refTable": "suppliers",
+      "refColumn": "id"
+    },
+    {
+      "table": "courier_status_map",
+      "column": "statusId",
+      "refTable": "statuses",
+      "refColumn": "id"
+    },
+    {
+      "table": "landed_costs",
+      "column": "postedBy",
+      "refTable": "users",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_asns",
+      "column": "shipmentId",
+      "refTable": "mainline_shipments",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_bookings",
+      "column": "supplierId",
+      "refTable": "suppliers",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_bookings",
+      "column": "incotermId",
+      "refTable": "incoterms",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_bookings",
+      "column": "courierId",
+      "refTable": "couriers",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_bookings",
+      "column": "bookingStatusId",
+      "refTable": "statuses",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_booking_po_legs",
+      "column": "bookingId",
+      "refTable": "mainline_bookings",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_booking_po_legs",
+      "column": "legId",
+      "refTable": "mainline_po_legs",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_commercial_invoices",
+      "column": "bookingId",
+      "refTable": "mainline_bookings",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_item_receipts",
+      "column": "poNumber",
+      "refTable": "po_orders",
+      "refColumn": "poNumber"
+    },
+    {
+      "table": "mainline_item_receipts",
+      "column": "matchedShipmentId",
+      "refTable": "mainline_shipments",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_item_receipt_lines",
+      "column": "receiptId",
+      "refTable": "mainline_item_receipts",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_packing_cartons",
+      "column": "bookingId",
+      "refTable": "mainline_bookings",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_packing_cartons",
+      "column": "legId",
+      "refTable": "mainline_po_legs",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_packing_cartons",
+      "column": "skuCode",
+      "refTable": "product_skus",
+      "refColumn": "skuCode"
+    },
+    {
+      "table": "mainline_po_legs",
+      "column": "poNumber",
+      "refTable": "po_orders",
+      "refColumn": "poNumber"
+    },
+    {
+      "table": "mainline_po_legs",
+      "column": "modeId",
+      "refTable": "modes",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_po_legs",
+      "column": "incotermId",
+      "refTable": "incoterms",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_po_leg_lines",
+      "column": "legId",
+      "refTable": "mainline_po_legs",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_po_leg_lines",
+      "column": "skuCode",
+      "refTable": "product_skus",
+      "refColumn": "skuCode"
+    },
+    {
+      "table": "mainline_receipt_match_rejections",
+      "column": "receiptId",
+      "refTable": "mainline_item_receipts",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_receipt_match_rejections",
+      "column": "shipmentId",
+      "refTable": "mainline_shipments",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_shipments",
+      "column": "bookingId",
+      "refTable": "mainline_bookings",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_shipments",
+      "column": "facilityId",
+      "refTable": "warehouse_facilities",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_shipments",
+      "column": "modeId",
+      "refTable": "modes",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_shipments",
+      "column": "statusId",
+      "refTable": "statuses",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_shipments",
+      "column": "containerTypeId",
+      "refTable": "container_types",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_shipments",
+      "column": "polPortId",
+      "refTable": "ports",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_shipments",
+      "column": "podPortId",
+      "refTable": "ports",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_shipments",
+      "column": "courierId",
+      "refTable": "couriers",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_shipment_legs",
+      "column": "shipmentId",
+      "refTable": "mainline_shipments",
+      "refColumn": "id"
+    },
+    {
+      "table": "mainline_shipment_legs",
+      "column": "legId",
+      "refTable": "mainline_po_legs",
+      "refColumn": "id"
+    },
+    {
+      "table": "po_masters",
+      "column": "supplierId",
+      "refTable": "suppliers",
+      "refColumn": "id"
+    },
+    {
+      "table": "po_masters",
+      "column": "seasonId",
+      "refTable": "seasons",
+      "refColumn": "id"
+    },
+    {
+      "table": "po_orders",
+      "column": "trnNumber",
+      "refTable": "po_masters",
+      "refColumn": "trnNumber"
+    },
+    {
+      "table": "po_orders",
+      "column": "facilityId",
+      "refTable": "warehouse_facilities",
+      "refColumn": "id"
+    },
+    {
+      "table": "po_orders",
+      "column": "allocationChannelId",
+      "refTable": "allocation_channels",
+      "refColumn": "id"
+    },
+    {
+      "table": "po_order_lines",
+      "column": "poNumber",
+      "refTable": "po_orders",
+      "refColumn": "poNumber"
+    },
+    {
+      "table": "production_schedules",
+      "column": "seasonId",
+      "refTable": "seasons",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_bookings",
+      "column": "supplierId",
+      "refTable": "suppliers",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_bookings",
+      "column": "incotermId",
+      "refTable": "incoterms",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_bookings",
+      "column": "courierId",
+      "refTable": "couriers",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_bookings",
+      "column": "modeId",
+      "refTable": "modes",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_bookings",
+      "column": "bookingStatusId",
+      "refTable": "statuses",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_booking_pos",
+      "column": "bookingId",
+      "refTable": "sms_bookings",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_booking_pos",
+      "column": "poNumber",
+      "refTable": "sms_pos",
+      "refColumn": "poNumber"
+    },
+    {
+      "table": "sms_cartons",
+      "column": "shipmentId",
+      "refTable": "sms_shipments",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_documents",
+      "column": "shipmentId",
+      "refTable": "sms_shipments",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_documents",
+      "column": "poNumber",
+      "refTable": "sms_pos",
+      "refColumn": "poNumber"
+    },
+    {
+      "table": "sms_item_receipts",
+      "column": "poNumber",
+      "refTable": "sms_pos",
+      "refColumn": "poNumber"
+    },
+    {
+      "table": "sms_item_receipts",
+      "column": "matchedShipmentId",
+      "refTable": "sms_shipments",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_item_receipt_lines",
+      "column": "receiptId",
+      "refTable": "sms_item_receipts",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_item_receipt_lines",
+      "column": "skuCode",
+      "refTable": "product_skus",
+      "refColumn": "skuCode"
+    },
+    {
+      "table": "sms_packing_cartons",
+      "column": "shipmentId",
+      "refTable": "sms_shipments",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_packing_cartons",
+      "column": "poNumber",
+      "refTable": "sms_pos",
+      "refColumn": "poNumber"
+    },
+    {
+      "table": "sms_packing_cartons",
+      "column": "skuCode",
+      "refTable": "product_skus",
+      "refColumn": "skuCode"
+    },
+    {
+      "table": "sms_pos",
+      "column": "supplierId",
+      "refTable": "suppliers",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_pos",
+      "column": "seasonId",
+      "refTable": "seasons",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_pos",
+      "column": "facilityId",
+      "refTable": "warehouse_facilities",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_pos",
+      "column": "allocationChannelId",
+      "refTable": "allocation_channels",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_po_lines",
+      "column": "poNumber",
+      "refTable": "sms_pos",
+      "refColumn": "poNumber"
+    },
+    {
+      "table": "sms_po_lines",
+      "column": "skuCode",
+      "refTable": "product_skus",
+      "refColumn": "skuCode"
+    },
+    {
+      "table": "sms_receipt_match_rejections",
+      "column": "receiptId",
+      "refTable": "sms_item_receipts",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_receipt_match_rejections",
+      "column": "shipmentId",
+      "refTable": "sms_shipments",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_shipments",
+      "column": "modeId",
+      "refTable": "modes",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_shipments",
+      "column": "facilityId",
+      "refTable": "warehouse_facilities",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_shipments",
+      "column": "manualStatusId",
+      "refTable": "statuses",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_shipments",
+      "column": "bookingId",
+      "refTable": "sms_bookings",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_shipment_pos",
+      "column": "shipmentId",
+      "refTable": "sms_shipments",
+      "refColumn": "id"
+    },
+    {
+      "table": "sms_shipment_pos",
+      "column": "poNumber",
+      "refTable": "sms_pos",
+      "refColumn": "poNumber"
+    },
+    {
+      "table": "sms_tracking_events",
+      "column": "shipmentId",
+      "refTable": "sms_shipments",
+      "refColumn": "id"
+    },
+    {
+      "table": "transit_time_standards",
+      "column": "modeId",
+      "refTable": "modes",
+      "refColumn": "id"
+    }
+  ],
+  "notes": [
+    {
+      "kind": "unique_superseded",
+      "table": "landed_costs",
+      "detail": "module+shipment_id: 8 duplicate row(s), e.g. mainline+3"
+    },
+    {
+      "kind": "pk_violation",
+      "table": "mainline_po_leg_lines",
+      "detail": "id: duplicate mll_15_TCM6948-6346-L"
+    },
+    {
+      "kind": "unique_violation",
+      "table": "mainline_po_leg_lines",
+      "detail": "leg_id+sku_code: 22 duplicate row(s), e.g. 15+TCM6948-6346-L"
+    },
+    {
+      "kind": "pk_violation",
+      "table": "sms_po_lines",
+      "detail": "id: duplicate spol_ns_1"
+    },
+    {
+      "kind": "unique_superseded",
+      "table": "sms_po_lines",
+      "detail": "netsuite_line_id: 4716 duplicate row(s), e.g. 1"
+    },
+    {
+      "kind": "type_fallback",
+      "table": "sms_tracking_events",
+      "column": "event_time",
+      "detail": "dbml says timestamptz, live values need text"
+    },
+    {
+      "kind": "fk_violation",
+      "table": "mainline_item_receipt_lines",
+      "detail": "sku_code → product_skus.sku_code: 3 row(s) reference 2 missing key(s), e.g. TRF3399-0558-ONE, TRF3398-0558-ONE"
+    },
+    {
+      "kind": "fk_violation",
+      "table": "po_order_lines",
+      "detail": "sku_code → product_skus.sku_code: 2233 row(s) reference 2232 missing key(s), e.g. TCM6879-0164-L, TCM6879-0164-M, TCM6879-0164-S"
+    }
+  ]
+}

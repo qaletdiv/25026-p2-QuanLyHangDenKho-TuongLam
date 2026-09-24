@@ -12,7 +12,7 @@
 //
 // Per-carton N/W·G/W·MEASURE are placed on each carton's FIRST row (blank on
 // continuation rows) — the layout parseShipmentData expects (it de-dups weight
-// and measure by ctn_number).
+// and measure by ctnNumber).
 //
 // Usage: node scripts/convertTtSmsToShipmentData.js [--dir <subdir of "converted
 // docs">] [--lot <n>] [--only <file substring>]...
@@ -29,7 +29,7 @@ const argsOf = (flag) => argv.reduce((acc, a, i) => (a === flag && argv[i + 1] ?
 const SUBDIR = argOf('--dir') || '';
 const LOT = Number(argOf('--lot') || 1);
 const ONLY = argsOf('--only');
-const DIR = path.join(__dirname, '..', 'data', 'converted docs', SUBDIR);
+const DIR = path.join(__dirname, '..', 'storage', 'converted-docs', SUBDIR);
 
 const TEMPLATE_HEADER = [
   'CTN#', 'PO#', 'SKU', 'UPC', 'Knit/Woven', 'Style Description', 'Color Description',

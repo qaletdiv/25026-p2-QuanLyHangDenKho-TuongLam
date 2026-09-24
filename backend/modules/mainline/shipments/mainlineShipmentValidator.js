@@ -20,18 +20,18 @@ const update = Joi.object({
   status: Joi.string().valid(...MAINLINE_SHIPMENT_STATUSES).messages({
     'any.only': `'status' must be one of: ${MAINLINE_SHIPMENT_STATUSES.join(', ')}`,
   }),
-  etd_pol: isoDate, eta_pod: isoDate, e_del: isoDate, cargo_received_date: isoDate, ata: isoDate,
-  bl_no: Joi.string().allow(null, ''),
-  courier_id: Joi.string().allow(null, ''),          // actual carrier; drives the landed-cost basis
+  etdPol: isoDate, etaPod: isoDate, eDel: isoDate, cargoReceivedDate: isoDate, ata: isoDate,
+  blNo: Joi.string().allow(null, ''),
+  courierId: Joi.string().allow(null, ''),          // actual carrier; drives the landed-cost basis
   // Was `ceva_shipment_number` — the carrier is data now, so the column no longer
-  // names one. NOT `shipment_number`: that is the portal's own SHP-N sequence.
-  carrier_reference: Joi.string().allow(null, ''),
-  customs_entry_number: Joi.string().allow(null, ''),
-  container_type_id: Joi.string().allow(null, ''),
-  pol_port_id: Joi.string().allow(null, ''),
-  pod_port_id: Joi.string().allow(null, ''),
-  netsuite_id: Joi.string().allow(null, ''),
-  invoice_value: Joi.number().min(0).allow(null),
+  // names one. NOT `shipmentNumber`: that is the portal's own SHP-N sequence.
+  carrierReference: Joi.string().allow(null, ''),
+  customsEntryNumber: Joi.string().allow(null, ''),
+  containerTypeId: Joi.string().allow(null, ''),
+  polPortId: Joi.string().allow(null, ''),
+  podPortId: Joi.string().allow(null, ''),
+  netsuiteId: Joi.string().allow(null, ''),
+  invoiceValue: Joi.number().min(0).allow(null),
   duty: Joi.number().min(0).allow(null),
   freight: Joi.number().min(0).allow(null),
 }).unknown(true);

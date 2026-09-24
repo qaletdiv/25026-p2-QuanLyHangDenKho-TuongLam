@@ -1,12 +1,12 @@
 'use strict';
 
-// Copy address + port_of_discharge from the legacy `warehouses` table onto the
+// Copy address + portOfDischarge from the legacy `warehouses` table onto the
 // `warehouse_facilities` rows the documents actually read.
 //
 // WHY THIS EXISTS. Settings → Warehouses wrote those two fields to `warehouses`,
 // the pre-3NF warehouse × allocation-channel list (NRI US Reserved, NRI CA First,
 // …). Nothing has ever read them from there: ciGenerator/plGenerator take the
-// consignee off `warehouse_facilities`, resolved from the PO's facility_id. So the
+// consignee off `warehouse_facilities`, resolved from the PO's facilityId. So the
 // details were entered, correctly, into a table no document consults — and every
 // downloaded CI showed a blank consignee address and port of discharge.
 //
@@ -25,12 +25,12 @@
 
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 
-const BaseModel = require('../models/BaseModel');
-const { warehouses } = require('../models/MasterDataModel');
-const { atomically } = require('../db/tx');
+const { models } = require('../models');
+const warehouses = models.warehouses;
+const { atomically } = require('../database/tx');
 
-const facilitiesModel = new BaseModel('migrated/warehouse_facilities.json');
-const FIELDS = ['address', 'port_of_discharge'];
+const facilitiesModel = models.warehouse_facilities;
+const FIELDS = ['address', 'portOfDischarge'];
 const DRY = process.argv.includes('--dry-run');
 
 const clean = (v) => String(v ?? '').trim();

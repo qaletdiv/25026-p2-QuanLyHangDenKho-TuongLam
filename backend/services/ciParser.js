@@ -14,27 +14,27 @@ const xlsx = require('xlsx');
 // ─── Header detection patterns ──────────────────────────────────────────────
 // Order matters: more specific patterns are checked first.
 const HEADER_PATTERNS = [
-    { key: 'ctn_number',       patterns: [/\bctn\b/i, /\bcarton\b/i] },
+    { key: 'ctnNumber',       patterns: [/\bctn\b/i, /\bcarton\b/i] },
     { key: 'sku',              patterns: [/\bsku\b/i] },
     { key: 'upc',              patterns: [/\bupc\b/i, /\bbarcode\b/i] },
-    { key: 'knit_woven',       patterns: [/\bknit\b/i, /\bwoven\b/i] },
+    { key: 'knitWoven',       patterns: [/\bknit\b/i, /\bwoven\b/i] },
     { key: 'style_description',patterns: [/\bstyle\b/i] },
     { key: 'color_description',patterns: [/\bcolor\b/i] },
     { key: 'category',         patterns: [/\bcategory\b/i] },
     { key: 'gender',           patterns: [/\bgender\b/i] },
     { key: 'composition',      patterns: [/\bcomposition\b/i, /\bmaterial\b/i] },
-    { key: 'hts_code',         patterns: [/\bhts\b/i, /\btariff\b/i] },
-    { key: 'total_usd',        patterns: [/\btotal\b/i] },
-    { key: 'unit_price',       patterns: [/unit\s*price/i, /price/i] },
-    { key: 'pcs_per_ctn',      patterns: [/\bpcs\b/i] },
-    { key: 'net_weight_kgs',   patterns: [/n\/w/i, /\bnet\b/i] },
-    { key: 'gross_weight_kgs', patterns: [/g\/w/i, /\bgross\b/i] },
-    { key: 'measure_cm',       patterns: [/\bmeasure\b/i, /\bdimension\b/i] },
-    // po_number checked last — "PO" appears in "COMPOSITION" so we exclude that
-    { key: 'po_number',        patterns: [/^po\s*#?$/i, /^po\s*number$/i, /^po$/i, /\bpo\s*#/i] },
+    { key: 'htsCode',         patterns: [/\bhts\b/i, /\btariff\b/i] },
+    { key: 'totalUsd',        patterns: [/\btotal\b/i] },
+    { key: 'unitPrice',       patterns: [/unit\s*price/i, /price/i] },
+    { key: 'pcsPerCtn',      patterns: [/\bpcs\b/i] },
+    { key: 'netWeightKgs',   patterns: [/n\/w/i, /\bnet\b/i] },
+    { key: 'grossWeightKgs', patterns: [/g\/w/i, /\bgross\b/i] },
+    { key: 'measureCm',       patterns: [/\bmeasure\b/i, /\bdimension\b/i] },
+    // poNumber checked last — "PO" appears in "COMPOSITION" so we exclude that
+    { key: 'poNumber',        patterns: [/^po\s*#?$/i, /^po\s*number$/i, /^po$/i, /\bpo\s*#/i] },
 ];
 
-const REQUIRED_COLUMNS = ['ctn_number', 'po_number', 'sku', 'unit_price', 'pcs_per_ctn'];
+const REQUIRED_COLUMNS = ['ctnNumber', 'poNumber', 'sku', 'unitPrice', 'pcsPerCtn'];
 const MAX_CONSECUTIVE_EMPTY = 3;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -155,36 +155,36 @@ function parseShipmentData(fileBuffer) {
         }
         consecutiveEmpty = 0;
 
-        const pcs = toInt(raw[colMap.pcs_per_ctn]);
-        const unitPrice = toNum(raw[colMap.unit_price]);
-        let totalUsd = colMap.total_usd !== undefined ? toNum(raw[colMap.total_usd]) : 0;
+        const pcs = toInt(raw[colMap.pcsPerCtn]);
+        const unitPrice = toNum(raw[colMap.unitPrice]);
+        let totalUsd = colMap.totalUsd !== undefined ? toNum(raw[colMap.totalUsd]) : 0;
         if (!totalUsd && pcs && unitPrice) {
             totalUsd = parseFloat((pcs * unitPrice).toFixed(2));
         }
 
         rows.push({
-            ctn_number:        toInt(raw[colMap.ctn_number]),
-            po_number:         toStr(raw[colMap.po_number]),
+            ctnNumber:        toInt(raw[colMap.ctnNumber]),
+            poNumber:         toStr(raw[colMap.poNumber]),
             sku,
             upc:               colMap.upc !== undefined ? toStr(raw[colMap.upc]) : null,
-            knit_woven:        colMap.knit_woven !== undefined ? toStr(raw[colMap.knit_woven]) : null,
+            knitWoven:        colMap.knitWoven !== undefined ? toStr(raw[colMap.knitWoven]) : null,
             style_description: colMap.style_description !== undefined ? toStr(raw[colMap.style_description]) : '',
             color_description: colMap.color_description !== undefined ? toStr(raw[colMap.color_description]) : '',
             category:          colMap.category !== undefined ? toStr(raw[colMap.category]) : null,
             gender:            colMap.gender !== undefined ? toStr(raw[colMap.gender]) : null,
             composition:       colMap.composition !== undefined ? toStr(raw[colMap.composition]) : null,
-            hts_code:          colMap.hts_code !== undefined ? toStr(raw[colMap.hts_code]) : null,
-            unit_price:        unitPrice,
-            total_usd:         totalUsd,
-            pcs_per_ctn:       pcs,
-            net_weight_kgs:    colMap.net_weight_kgs !== undefined ? toNum(raw[colMap.net_weight_kgs]) : 0,
-            gross_weight_kgs:  colMap.gross_weight_kgs !== undefined ? toNum(raw[colMap.gross_weight_kgs]) : 0,
-            measure_cm:        colMap.measure_cm !== undefined ? toStr(raw[colMap.measure_cm]).replace(/cm$/i, '').trim() : '',
+            htsCode:          colMap.htsCode !== undefined ? toStr(raw[colMap.htsCode]) : null,
+            unitPrice:        unitPrice,
+            totalUsd:         totalUsd,
+            pcsPerCtn:       pcs,
+            netWeightKgs:    colMap.netWeightKgs !== undefined ? toNum(raw[colMap.netWeightKgs]) : 0,
+            grossWeightKgs:  colMap.grossWeightKgs !== undefined ? toNum(raw[colMap.grossWeightKgs]) : 0,
+            measureCm:        colMap.measureCm !== undefined ? toStr(raw[colMap.measureCm]).replace(/cm$/i, '').trim() : '',
         });
     }
 
     // ── Compute summary ─────────────────────────────────────────────────
-    // Weight and measure are per-carton (only count first occurrence of each ctn_number)
+    // Weight and measure are per-carton (only count first occurrence of each ctnNumber)
     const seenCartons = new Set();
     let totalPcs = 0;
     let totalValue = 0;
@@ -193,24 +193,24 @@ function parseShipmentData(fileBuffer) {
     let totalCbm = 0;
 
     for (const row of rows) {
-        totalPcs += row.pcs_per_ctn;
-        totalValue += row.total_usd;
+        totalPcs += row.pcsPerCtn;
+        totalValue += row.totalUsd;
 
-        if (!seenCartons.has(row.ctn_number)) {
-            seenCartons.add(row.ctn_number);
-            totalNetWeight += row.net_weight_kgs;
-            totalGrossWeight += row.gross_weight_kgs;
-            totalCbm += measureToCbm(row.measure_cm);
+        if (!seenCartons.has(row.ctnNumber)) {
+            seenCartons.add(row.ctnNumber);
+            totalNetWeight += row.netWeightKgs;
+            totalGrossWeight += row.grossWeightKgs;
+            totalCbm += measureToCbm(row.measureCm);
         }
     }
 
     const summary = {
-        total_pcs:          totalPcs,
-        total_cartons:      seenCartons.size,
-        total_value:        parseFloat(totalValue.toFixed(2)),
-        total_net_weight:   parseFloat(totalNetWeight.toFixed(2)),
-        total_gross_weight: parseFloat(totalGrossWeight.toFixed(2)),
-        total_cbm:          parseFloat(totalCbm.toFixed(3)),
+        totalPcs:          totalPcs,
+        totalCartons:      seenCartons.size,
+        totalValue:        parseFloat(totalValue.toFixed(2)),
+        totalNetWeight:   parseFloat(totalNetWeight.toFixed(2)),
+        totalGrossWeight: parseFloat(totalGrossWeight.toFixed(2)),
+        totalCbm:          parseFloat(totalCbm.toFixed(3)),
     };
 
     return { rows, summary };
@@ -223,19 +223,19 @@ function parseShipmentData(fileBuffer) {
 
 // Column letters in the CI template (row 21 headers)
 const CI_TEMPLATE_COLS = {
-    po_number:  0, // A
-    sku_code:   1, // B
+    poNumber:  0, // A
+    skuCode:   1, // B
     upc:        2, // C
-    knit_woven: 3, // D
+    knitWoven: 3, // D
     style_desc: 4, // E
     color_desc: 5, // F
     category:   6, // G
     gender:     7, // H
     composition:8, // I
-    hts_code:   9, // J
+    htsCode:   9, // J
     quantity:  10, // K
-    unit_price:11, // L
-    total_usd: 12, // M
+    unitPrice:11, // L
+    totalUsd: 12, // M
 };
 
 /**
@@ -288,7 +288,7 @@ function parseCIExcel(fileBuffer, config = {}) {
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const allRows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 
-    let header = { invoice_number: null, invoice_date: null, total_value: 0 };
+    let header = { invoiceNumber: null, invoiceDate: null, totalValue: 0 };
     let lineItems = [];
 
     if (isCiTemplateLayout(allRows)) {
@@ -298,8 +298,8 @@ function parseCIExcel(fileBuffer, config = {}) {
         const invoiceDate = readMetaField(allRows, /^date$/i, [1, 5]);
         const poNum = readMetaField(allRows, /^po\s*#?$/i, [1, 5]);
 
-        header.invoice_number = invoiceNum ? String(invoiceNum).trim() : null;
-        header.invoice_date = invoiceDate
+        header.invoiceNumber = invoiceNum ? String(invoiceNum).trim() : null;
+        header.invoiceDate = invoiceDate
             ? (invoiceDate instanceof Date
                 ? invoiceDate.toISOString().slice(0, 10)
                 : String(invoiceDate).trim())
@@ -309,7 +309,7 @@ function parseCIExcel(fileBuffer, config = {}) {
         let consecutiveEmpty = 0;
         for (let i = 21; i < allRows.length; i++) {
             const raw = allRows[i];
-            const sku = toStr(raw[CI_TEMPLATE_COLS.sku_code]);
+            const sku = toStr(raw[CI_TEMPLATE_COLS.skuCode]);
             if (!sku) {
                 consecutiveEmpty++;
                 if (consecutiveEmpty >= MAX_CONSECUTIVE_EMPTY) break;
@@ -318,21 +318,21 @@ function parseCIExcel(fileBuffer, config = {}) {
             consecutiveEmpty = 0;
 
             const qty = toInt(raw[CI_TEMPLATE_COLS.quantity]);
-            const unitPrice = toNum(raw[CI_TEMPLATE_COLS.unit_price]);
-            let total = toNum(raw[CI_TEMPLATE_COLS.total_usd]);
+            const unitPrice = toNum(raw[CI_TEMPLATE_COLS.unitPrice]);
+            let total = toNum(raw[CI_TEMPLATE_COLS.totalUsd]);
             if (!total && qty && unitPrice) {
                 total = parseFloat((qty * unitPrice).toFixed(2));
             }
 
             lineItems.push({
-                sku_code:    sku,
+                skuCode:    sku,
                 description: toStr(raw[CI_TEMPLATE_COLS.style_desc]) || toStr(raw[CI_TEMPLATE_COLS.color_desc]) || sku,
                 qty,
-                unit_price: unitPrice,
+                unitPrice: unitPrice,
                 total,
-                weight_kg:  0,
+                weightKg:  0,
                 cbm:        0,
-                po_number:  toStr(raw[CI_TEMPLATE_COLS.po_number]) || (poNum ? String(poNum).trim() : ''),
+                poNumber:  toStr(raw[CI_TEMPLATE_COLS.poNumber]) || (poNum ? String(poNum).trim() : ''),
             });
         }
     } else {
@@ -343,7 +343,7 @@ function parseCIExcel(fileBuffer, config = {}) {
 
         for (let i = 0; i < Math.min(allRows.length, 30); i++) {
             const testMap = detectColumns(allRows[i]);
-            if (testMap.sku && (testMap.pcs_per_ctn !== undefined || testMap.unit_price !== undefined)) {
+            if (testMap.sku && (testMap.pcsPerCtn !== undefined || testMap.unitPrice !== undefined)) {
                 colMap = testMap;
                 headerRowIdx = i;
                 break;
@@ -361,11 +361,11 @@ function parseCIExcel(fileBuffer, config = {}) {
             for (let c = 0; c < row.length; c++) {
                 const cell = String(row[c] ?? '').trim();
                 if (/invoice\s*#?\s*:?\s*$/i.test(cell) && row[c + 1]) {
-                    header.invoice_number = String(row[c + 1]).trim();
+                    header.invoiceNumber = String(row[c + 1]).trim();
                 }
                 if (/^date\s*:?\s*$/i.test(cell) && row[c + 1]) {
                     const d = row[c + 1];
-                    header.invoice_date = d instanceof Date
+                    header.invoiceDate = d instanceof Date
                         ? d.toISOString().slice(0, 10)
                         : String(d).trim();
                 }
@@ -384,43 +384,43 @@ function parseCIExcel(fileBuffer, config = {}) {
             }
             consecutiveEmpty = 0;
 
-            const qty = colMap.pcs_per_ctn !== undefined ? toInt(raw[colMap.pcs_per_ctn]) : 0;
-            const unitPrice = colMap.unit_price !== undefined ? toNum(raw[colMap.unit_price]) : 0;
-            let total = colMap.total_usd !== undefined ? toNum(raw[colMap.total_usd]) : 0;
+            const qty = colMap.pcsPerCtn !== undefined ? toInt(raw[colMap.pcsPerCtn]) : 0;
+            const unitPrice = colMap.unitPrice !== undefined ? toNum(raw[colMap.unitPrice]) : 0;
+            let total = colMap.totalUsd !== undefined ? toNum(raw[colMap.totalUsd]) : 0;
             if (!total && qty && unitPrice) {
                 total = parseFloat((qty * unitPrice).toFixed(2));
             }
 
             lineItems.push({
-                sku_code:    sku,
+                skuCode:    sku,
                 description: colMap.style_description !== undefined ? toStr(raw[colMap.style_description]) : sku,
                 qty,
-                unit_price: unitPrice,
+                unitPrice: unitPrice,
                 total,
-                weight_kg:  colMap.net_weight_kgs !== undefined ? toNum(raw[colMap.net_weight_kgs]) : 0,
-                cbm:        colMap.measure_cm !== undefined ? measureToCbm(raw[colMap.measure_cm]) : 0,
-                po_number:  colMap.po_number !== undefined ? toStr(raw[colMap.po_number]) : '',
+                weightKg:  colMap.netWeightKgs !== undefined ? toNum(raw[colMap.netWeightKgs]) : 0,
+                cbm:        colMap.measureCm !== undefined ? measureToCbm(raw[colMap.measureCm]) : 0,
+                poNumber:  colMap.poNumber !== undefined ? toStr(raw[colMap.poNumber]) : '',
             });
         }
     }
 
     // ── Compute totals and build PO summary ────────────────────────────
-    header.total_value = parseFloat(lineItems.reduce((s, li) => s + (li.total || 0), 0).toFixed(2));
+    header.totalValue = parseFloat(lineItems.reduce((s, li) => s + (li.total || 0), 0).toFixed(2));
 
     // Group by PO number for poSummary
     const poGroups = {};
     for (const li of lineItems) {
-        const po = li.po_number || 'UNKNOWN';
-        if (!poGroups[po]) poGroups[po] = { shipped_qty: 0, cartons: 0, weight_kg: 0, cbm: 0 };
-        poGroups[po].shipped_qty += li.qty;
-        poGroups[po].weight_kg += li.weight_kg;
+        const po = li.poNumber || 'UNKNOWN';
+        if (!poGroups[po]) poGroups[po] = { shippedQty: 0, cartons: 0, weightKg: 0, cbm: 0 };
+        poGroups[po].shippedQty += li.qty;
+        poGroups[po].weightKg += li.weightKg;
         poGroups[po].cbm += li.cbm;
     }
-    const poSummary = Object.entries(poGroups).map(([po_number, g]) => ({
-        po_number,
-        shipped_qty: g.shipped_qty,
+    const poSummary = Object.entries(poGroups).map(([poNumber, g]) => ({
+        poNumber,
+        shippedQty: g.shippedQty,
         cartons: 0,
-        weight_kg: parseFloat(g.weight_kg.toFixed(2)),
+        weightKg: parseFloat(g.weightKg.toFixed(2)),
         cbm: parseFloat(g.cbm.toFixed(3)),
     }));
 

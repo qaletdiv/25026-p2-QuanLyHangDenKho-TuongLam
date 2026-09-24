@@ -30,7 +30,7 @@
 // the first style, then starts over at "1#" for the next — 83 physical cartons carry
 // only 10 distinct labels. Feeding those through verbatim would collapse the carton
 // count and drop most of the per-carton weights (parseShipmentData keeps weights/CBM
-// once per DISTINCT ctn_number). So every labelled row opens a NEW carton and the
+// once per DISTINCT ctnNumber). So every labelled row opens a NEW carton and the
 // output is renumbered 1..N globally; unlabelled rows continue the carton above them.
 // The renumbered counts land exactly on the vendor's own "83 CTNS" / "81 CTNS".
 //
@@ -41,8 +41,8 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const DIR = path.join(__dirname, '..', 'data', 'converted docs', 'Mainline');
-const MIGRATED = path.join(__dirname, '..', 'data', 'migrated');
+const DIR = path.join(__dirname, '..', 'storage', 'converted-docs', 'Mainline');
+const MIGRATED = path.join(__dirname, '..', 'database', 'seed-data', 'snapshot');
 
 const FILES = [
   { file: 'PO04770B-NRI US.xlsx', po: 'PO04770', out: 'PO04770-shipment-data.xlsx' },
@@ -68,7 +68,7 @@ const cbmOf = (m) => { const p = S(m).split('X').map(Number); return p.length ==
 
 const skuMaster = new Map(
   JSON.parse(fs.readFileSync(path.join(MIGRATED, 'product_skus.json'), 'utf8'))
-    .map((s) => [String(s.sku_code).toUpperCase(), s]),
+    .map((s) => [String(s.skuCode).toUpperCase(), s]),
 );
 const orderLines = JSON.parse(fs.readFileSync(path.join(MIGRATED, 'po_order_lines.json'), 'utf8'));
 
@@ -84,7 +84,7 @@ function invoiceAttrs(grid) {
     qty += N(r[C.qty]); value += N(r[C.total]); lines++;
     if (attrs.has(sku)) { dup.push(sku); attrs.get(sku).qty += N(r[C.qty]); continue; }
     attrs.set(sku, {
-      upc: S(r[C.upc]), knit_woven: S(r[C.knit]), style: S(r[C.style]), color: S(r[C.color]),
+      upc: S(r[C.upc]), knitWoven: S(r[C.knit]), style: S(r[C.style]), color: S(r[C.color]),
       category: S(r[C.cat]), gender: S(r[C.gender]), composition: S(r[C.comp]), hts: S(r[C.hts]),
       unit: N(r[C.unit]), qty: N(r[C.qty]),
     });
@@ -120,7 +120,7 @@ function packingRows(grid, attrs, po) {
     if (!a) noAttr.add(sku);
     const master = skuMaster.get(sku) || {};
     if (!skuMaster.has(sku)) notInCatalogue.add(sku);
-    if (!orderLines.some((l) => l.po_number === po && String(l.sku_code).toUpperCase() === sku)) notOnPo.add(sku);
+    if (!orderLines.some((l) => l.poNumber === po && String(l.skuCode).toUpperCase() === sku)) notOnPo.add(sku);
 
     const pcs = N(r[C.pcs]);
     const unit = a ? a.unit : 0;
@@ -129,10 +129,10 @@ function packingRows(grid, attrs, po) {
 
     rows.push([
       seq, po, sku, (a && a.upc) || S(r[C.upc]) || master.upc || '',
-      (a && a.knit_woven) || master.knit_woven || '',
+      (a && a.knitWoven) || master.knitWoven || '',
       (a && a.style) || S(r[C.style]), (a && a.color) || S(r[C.color]),
       (a && a.category) || master.category || '', (a && a.gender) || master.gender || '',
-      (a && a.composition) || master.composition || '', (a && a.hts) || master.hts_code || '',
+      (a && a.composition) || master.composition || '', (a && a.hts) || master.htsCode || '',
       unit, r2(unit * pcs), pcs,
       // per-carton facts on the carton's FIRST row only
       opensCarton ? c.nw || '' : '',
@@ -193,19 +193,19 @@ for (const { file, po, out } of FILES) {
 
   const over = [];
   for (const [sku, q] of shipped) {
-    const ol = orderLines.find((l) => l.po_number === po && String(l.sku_code).toUpperCase() === sku);
-    if (ol && q > N(ol.ordered_qty)) over.push(`${sku} ${q}>${ol.ordered_qty}`);
+    const ol = orderLines.find((l) => l.poNumber === po && String(l.skuCode).toUpperCase() === sku);
+    if (ol && q > N(ol.orderedQty)) over.push(`${sku} ${q}>${ol.orderedQty}`);
   }
   if (over.length) console.log(`     !! qty exceeds ordered on ${over.length} SKU(s): ${over.slice(0, 10).join(', ')}`);
 
   const priced = [];
   for (const [sku] of shipped) {
-    const ol = orderLines.find((l) => l.po_number === po && String(l.sku_code).toUpperCase() === sku);
+    const ol = orderLines.find((l) => l.poNumber === po && String(l.skuCode).toUpperCase() === sku);
     const row = rows.find((r) => r[2] === sku);
-    if (ol && row && N(row[11]) !== N(ol.unit_price)) priced.push(`${sku} ${N(row[11])} vs PO ${N(ol.unit_price)}`);
+    if (ol && row && N(row[11]) !== N(ol.unitPrice)) priced.push(`${sku} ${N(row[11])} vs PO ${N(ol.unitPrice)}`);
   }
   if (priced.length) console.log(`     ~  CI rate ≠ PO line price on ${priced.length}/${shipped.size} SKUs (CI used) e.g. ${priced.slice(0, 3).join(', ')}`);
 
-  const ordered = orderLines.filter((l) => l.po_number === po).reduce((s, l) => s + N(l.ordered_qty), 0);
+  const ordered = orderLines.filter((l) => l.poNumber === po).reduce((s, l) => s + N(l.orderedQty), 0);
   console.log(`     ${po} ordered ${ordered} pcs — this file covers ${pcs} (${(pcs / ordered * 100).toFixed(1)}%)`);
 }

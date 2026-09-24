@@ -14,7 +14,7 @@
 // one component PO — both go through computeForPos.
 
 function computeForPos(poNumbers, { orderLines, legs, legLines, invoices, ciLines, receipts = [], receiptLines = [], shipmentLegs = [] }) {
-  const legIds = new Set(legs.filter((l) => poNumbers.has(l.po_number)).map((l) => l.id));
+  const legIds = new Set(legs.filter((l) => poNumbers.has(l.poNumber)).map((l) => l.id));
 
   // WHAT VARIANCE COMPARES AGAINST depends on whether a consignment exists (Lam,
   // 2026-09-16). A leg WITH a shipment is measured against what that shipment
@@ -24,9 +24,9 @@ function computeForPos(poNumbers, { orderLines, legs, legLines, invoices, ciLine
   //
   // Done per leg rather than for the whole scope: a TRN can hold both kinds at
   // once, and one shipped leg would otherwise put every unshipped leg on the wrong
-  // basis. `shipped_qty` already only accrues from legs with confirmed CI lines, so
+  // basis. `shippedQty` already only accrues from legs with confirmed CI lines, so
   // the expected quantity is that plus the allocation of the shipment-less legs.
-  const legsWithShipment = new Set(shipmentLegs.map((j) => String(j.leg_id)));
+  const legsWithShipment = new Set(shipmentLegs.map((j) => String(j.legId)));
   const unshippedLegIds = new Set([...legIds].filter((id) => !legsWithShipment.has(String(id))));
 
   // shipped — only confirmed CIs, only legs in scope
@@ -34,7 +34,7 @@ function computeForPos(poNumbers, { orderLines, legs, legLines, invoices, ciLine
   const shippedBySku = new Map();
   ciLines.forEach((cl) => {
     if (!legIds.has(cl.matched_leg_id) || !confirmedInv.has(cl.invoice_id)) return;
-    shippedBySku.set(cl.sku_code, (shippedBySku.get(cl.sku_code) || 0) + (cl.qty || 0));
+    shippedBySku.set(cl.skuCode, (shippedBySku.get(cl.skuCode) || 0) + (cl.qty || 0));
   });
   const ciSkus = [...shippedBySku.keys()];
 
@@ -47,64 +47,64 @@ function computeForPos(poNumbers, { orderLines, legs, legLines, invoices, ciLine
 
   const rows = new Map();
   const row = (sku) => {
-    if (!rows.has(sku)) rows.set(sku, { sku_code: sku, ordered_qty: 0, allocated_qty: 0, shipped_qty: 0, received_qty: 0, _allocUnshipped: 0 });
+    if (!rows.has(sku)) rows.set(sku, { skuCode: sku, orderedQty: 0, allocatedQty: 0, shippedQty: 0, receivedQty: 0, _allocUnshipped: 0 });
     return rows.get(sku);
   };
 
-  orderLines.forEach((ol) => { if (poNumbers.has(ol.po_number)) row(resolveKey(ol.sku_code)).ordered_qty += ol.ordered_qty || 0; });
+  orderLines.forEach((ol) => { if (poNumbers.has(ol.poNumber)) row(resolveKey(ol.skuCode)).orderedQty += ol.orderedQty || 0; });
   legLines.forEach((ll) => {
-    if (!legIds.has(ll.leg_id)) return;
-    const r = row(resolveKey(ll.sku_code));
-    r.allocated_qty += ll.allocated_qty || 0;
-    if (unshippedLegIds.has(ll.leg_id)) r._allocUnshipped += ll.allocated_qty || 0;
+    if (!legIds.has(ll.legId)) return;
+    const r = row(resolveKey(ll.skuCode));
+    r.allocatedQty += ll.allocatedQty || 0;
+    if (unshippedLegIds.has(ll.legId)) r._allocUnshipped += ll.allocatedQty || 0;
   });
-  shippedBySku.forEach((qty, sku) => { row(sku).shipped_qty += qty; });
+  shippedBySku.forEach((qty, sku) => { row(sku).shippedQty += qty; });
 
-  // received — NetSuite Item Receipt lines for the in-scope POs (attach to po_number),
+  // received — NetSuite Item Receipt lines for the in-scope POs (attach to poNumber),
   // rolled up to the CI SKU grain like ordered/allocated (receipt SKUs are size-level).
-  const myReceiptIds = new Set(receipts.filter((r) => poNumbers.has(r.po_number)).map((r) => r.id));
-  receiptLines.forEach((l) => { if (myReceiptIds.has(l.receipt_id)) row(resolveKey(l.sku_code)).received_qty += (l.qty || 0); });
+  const myReceiptIds = new Set(receipts.filter((r) => poNumbers.has(r.poNumber)).map((r) => r.id));
+  receiptLines.forEach((l) => { if (myReceiptIds.has(l.receiptId)) row(resolveKey(l.skuCode)).receivedQty += (l.qty || 0); });
 
   const fulfillment = [...rows.values()].map(({ _allocUnshipped, ...r }) => ({
     ...r,
     // RECEIVED IS A FLOOR ON SHIPPED — you cannot receive what was never shipped.
-    // `shipped_qty` counts only confirmed CI packing lines matched to the leg, so a
+    // `shippedQty` counts only confirmed CI packing lines matched to the leg, so a
     // PO that was received without anyone uploading shipping data here reads
     // shipped 0, and "remaining" then claimed the full quantity was still to come
     // while the receipts beside it said it had all arrived (PO04723: allocated
     // 1,300 · shipped 0 · received 1,300 · remaining 1,300). Same rule the SMS
     // report uses. The floor is capped at ordered so an OVER-receipt cannot make
-    // remaining negative; `shipped_qty` itself is never capped, so a genuine
+    // remaining negative; `shippedQty` itself is never capped, so a genuine
     // over-SHIP still shows as a negative remaining.
-    remaining_qty: r.ordered_qty - Math.max(r.shipped_qty, Math.min(r.received_qty, r.ordered_qty)),
+    remainingQty: r.orderedQty - Math.max(r.shippedQty, Math.min(r.receivedQty, r.orderedQty)),
     // ACTUAL minus EXPECTED, so the sign reads the way a warehouse discrepancy is
     // spoken: over-received is POSITIVE, short-received negative. It was
     // `shipped - received`, which inverted both (a leg over-received by 1 showed
     // -1) — fixed 2026-09-16. Nothing branches on the sign, only on `!== 0`.
     // EXPECTED = shipped, plus the allocation of any leg that has no consignment
     // at all (see the note above); on a fully-shipped scope that is just shipped.
-    variance: r.received_qty - (r.shipped_qty + _allocUnshipped),
-  })).sort((a, b) => a.sku_code.localeCompare(b.sku_code));
+    variance: r.receivedQty - (r.shippedQty + _allocUnshipped),
+  })).sort((a, b) => a.skuCode.localeCompare(b.skuCode));
 
   const totals = fulfillment.reduce((t, r) => ({
-    ordered_qty: t.ordered_qty + r.ordered_qty,
-    allocated_qty: t.allocated_qty + r.allocated_qty,
-    shipped_qty: t.shipped_qty + r.shipped_qty,
-    received_qty: t.received_qty + r.received_qty,
-  }), { ordered_qty: 0, allocated_qty: 0, shipped_qty: 0, received_qty: 0 });
+    orderedQty: t.orderedQty + r.orderedQty,
+    allocatedQty: t.allocatedQty + r.allocatedQty,
+    shippedQty: t.shippedQty + r.shippedQty,
+    receivedQty: t.receivedQty + r.receivedQty,
+  }), { orderedQty: 0, allocatedQty: 0, shippedQty: 0, receivedQty: 0 });
 
-  return { sku_count: fulfillment.length, totals, fulfillment };
+  return { skuCount: fulfillment.length, totals, fulfillment };
 }
 
 // TRN grain — every PO under the master.
 function compute(trn, ctx) {
-  const poNumbers = new Set((ctx.orders || []).filter((o) => o.trn_number === trn).map((o) => o.po_number));
-  return { trn_number: trn, ...computeForPos(poNumbers, ctx) };
+  const poNumbers = new Set((ctx.orders || []).filter((o) => o.trnNumber === trn).map((o) => o.poNumber));
+  return { trnNumber: trn, ...computeForPos(poNumbers, ctx) };
 }
 
-// Component-PO grain — one po_number (the SMS-style PO reconciliation).
+// Component-PO grain — one poNumber (the SMS-style PO reconciliation).
 function reconcilePo(poNumber, ctx) {
-  return { po_number: poNumber, ...computeForPos(new Set([poNumber]), ctx) };
+  return { poNumber: poNumber, ...computeForPos(new Set([poNumber]), ctx) };
 }
 
 // SHIPPED + RECEIVED per (leg, SKU) for EVERY leg, in one pass.
@@ -121,13 +121,13 @@ function reconcilePo(poNumber, ctx) {
 // Returns { shippedByLegSku, recvByLegSku }, both Map(`${legId}|${sku}` → qty).
 function legActuals({ legs, legLines, invoices, ciLines, receipts = [], receiptLines = [], modes = [] }) {
   const modeName = new Map(modes.map((m) => [m.id, m.name]));
-  const rank = (l) => { const m = modeName.get(l.mode_id) || ''; return /air/i.test(m) ? 0 : /sea/i.test(m) ? 1 : 2; };
+  const rank = (l) => { const m = modeName.get(l.modeId) || ''; return /air/i.test(m) ? 0 : /sea/i.test(m) ? 1 : 2; };
 
   // allocated per (leg, sku) — the cap each leg can absorb
   const allocByLegSku = new Map();
   legLines.forEach((ll) => {
-    const k = `${ll.leg_id}|${ll.sku_code}`;
-    allocByLegSku.set(k, (allocByLegSku.get(k) || 0) + (ll.allocated_qty || 0));
+    const k = `${ll.legId}|${ll.skuCode}`;
+    allocByLegSku.set(k, (allocByLegSku.get(k) || 0) + (ll.allocatedQty || 0));
   });
 
   // shipped per (leg, sku) — confirmed CIs only
@@ -135,22 +135,22 @@ function legActuals({ legs, legLines, invoices, ciLines, receipts = [], receiptL
   const shippedByLegSku = new Map();
   ciLines.forEach((cl) => {
     if (cl.matched_leg_id == null || !confirmedInv.has(cl.invoice_id)) return;
-    const k = `${cl.matched_leg_id}|${cl.sku_code}`;
+    const k = `${cl.matched_leg_id}|${cl.skuCode}`;
     shippedByLegSku.set(k, (shippedByLegSku.get(k) || 0) + (cl.qty || 0));
   });
 
   // received per (leg, sku), allocated PO by PO
   const legsByPo = new Map();
   legs.forEach((l) => {
-    if (!legsByPo.has(l.po_number)) legsByPo.set(l.po_number, []);
-    legsByPo.get(l.po_number).push(l);
+    if (!legsByPo.has(l.poNumber)) legsByPo.set(l.poNumber, []);
+    legsByPo.get(l.poNumber).push(l);
   });
-  const receiptPo = new Map(receipts.map((r) => [r.id, r.po_number]));
+  const receiptPo = new Map(receipts.map((r) => [r.id, r.poNumber]));
   const recvByPoSku = new Map();                       // `${po}|${sku}` → qty
   receiptLines.forEach((l) => {
-    const po = receiptPo.get(l.receipt_id);
+    const po = receiptPo.get(l.receiptId);
     if (!po) return;
-    const k = `${po}|${l.sku_code}`;
+    const k = `${po}|${l.skuCode}`;
     recvByPoSku.set(k, (recvByPoSku.get(k) || 0) + (l.qty || 0));
   });
 
@@ -187,16 +187,16 @@ function reconcileLeg(legId, { legs, legLines, invoices, ciLines, receipts = [],
   if (!leg) return null;
   // Does a consignment exist for THIS leg? It decides what variance compares
   // received against — see the note in computeForPos.
-  const hasShipment = shipmentLegs.some((j) => String(j.leg_id) === String(legId));
-  const po = leg.po_number;
+  const hasShipment = shipmentLegs.some((j) => String(j.legId) === String(legId));
+  const po = leg.poNumber;
   const modeName = new Map(modes.map((m) => [m.id, m.name]));
   // legs of this PO, ordered by shipping method: Air (faster) receives first, then Sea/other.
-  const rank = (l) => { const m = modeName.get(l.mode_id) || ''; return /air/i.test(m) ? 0 : /sea/i.test(m) ? 1 : 2; };
-  const poLegs = legs.filter((l) => l.po_number === po).sort((a, b) => rank(a) - rank(b) || String(a.id).localeCompare(String(b.id)));
+  const rank = (l) => { const m = modeName.get(l.modeId) || ''; return /air/i.test(m) ? 0 : /sea/i.test(m) ? 1 : 2; };
+  const poLegs = legs.filter((l) => l.poNumber === po).sort((a, b) => rank(a) - rank(b) || String(a.id).localeCompare(String(b.id)));
 
   // allocated per (leg, sku) — the WIP target for each split
   const allocByLegSku = new Map();
-  legLines.forEach((ll) => { const k = `${ll.leg_id}|${ll.sku_code}`; allocByLegSku.set(k, (allocByLegSku.get(k) || 0) + (ll.allocated_qty || 0)); });
+  legLines.forEach((ll) => { const k = `${ll.legId}|${ll.skuCode}`; allocByLegSku.set(k, (allocByLegSku.get(k) || 0) + (ll.allocatedQty || 0)); });
 
   // shipped + received per (leg, sku) — ONE implementation, shared with the report
   // export (`legActuals` above); `poLegs` is kept only for the mode label below.
@@ -215,31 +215,31 @@ function reconcileLeg(legId, { legs, legLines, invoices, ciLines, receipts = [],
   };
   const shippedBySku = forThisLeg(shippedByLegSku);
   const recvBySkuThisLeg = forThisLeg(recvForLegSku);
-  legLines.forEach((ll) => { if (String(ll.leg_id) === String(legId)) skus.add(ll.sku_code); });
+  legLines.forEach((ll) => { if (String(ll.legId) === String(legId)) skus.add(ll.skuCode); });
   shippedBySku.forEach((_, s) => skus.add(s));
   recvBySkuThisLeg.forEach((_, s) => skus.add(s));
 
   const fulfillment = [...skus].map((sku) => {
-    const allocated_qty = allocByLegSku.get(`${legId}|${sku}`) || 0;
-    const shipped_qty = shippedBySku.get(sku) || 0;
-    const received_qty = recvBySkuThisLeg.get(sku) || 0;
+    const allocatedQty = allocByLegSku.get(`${legId}|${sku}`) || 0;
+    const shippedQty = shippedBySku.get(sku) || 0;
+    const receivedQty = recvBySkuThisLeg.get(sku) || 0;
     // variance measures received against SHIPPED when a consignment exists (even a
     // shipment carrying 0 — that is a real discrepancy) and against ALLOCATED when
     // none does; remaining floors shipped at received. See the notes on the
     // TRN-grain computation above — the two grains must agree on both conventions.
     return {
-      sku_code: sku, ordered_qty: allocated_qty, allocated_qty, shipped_qty, received_qty,
-      remaining_qty: allocated_qty - Math.max(shipped_qty, Math.min(received_qty, allocated_qty)),
-      variance: received_qty - (hasShipment ? shipped_qty : allocated_qty),
+      skuCode: sku, orderedQty: allocatedQty, allocatedQty, shippedQty, receivedQty,
+      remainingQty: allocatedQty - Math.max(shippedQty, Math.min(receivedQty, allocatedQty)),
+      variance: receivedQty - (hasShipment ? shippedQty : allocatedQty),
     };
-  }).sort((a, b) => a.sku_code.localeCompare(b.sku_code));
+  }).sort((a, b) => a.skuCode.localeCompare(b.skuCode));
 
   const totals = fulfillment.reduce((t, r) => ({
-    ordered_qty: t.ordered_qty + r.ordered_qty, allocated_qty: t.allocated_qty + r.allocated_qty,
-    shipped_qty: t.shipped_qty + r.shipped_qty, received_qty: t.received_qty + r.received_qty,
-  }), { ordered_qty: 0, allocated_qty: 0, shipped_qty: 0, received_qty: 0 });
+    orderedQty: t.orderedQty + r.orderedQty, allocatedQty: t.allocatedQty + r.allocatedQty,
+    shippedQty: t.shippedQty + r.shippedQty, receivedQty: t.receivedQty + r.receivedQty,
+  }), { orderedQty: 0, allocatedQty: 0, shippedQty: 0, receivedQty: 0 });
 
-  return { po_number: po, leg_id: leg.id, mode: modeName.get(leg.mode_id) || null, sku_count: fulfillment.length, totals, fulfillment };
+  return { poNumber: po, legId: leg.id, mode: modeName.get(leg.modeId) || null, skuCount: fulfillment.length, totals, fulfillment };
 }
 
 module.exports = { compute, reconcilePo, reconcileLeg, legActuals };

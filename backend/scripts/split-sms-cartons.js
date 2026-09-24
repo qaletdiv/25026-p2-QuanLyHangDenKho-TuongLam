@@ -4,7 +4,7 @@
  * split-sms-cartons.js — move the PHYSICAL-carton facts out of sms_packing_cartons
  * into their own table, sms_cartons.
  *
- * WHY. net_weight_kgs / gross_weight_kgs / measure_cm describe the BOX, but they
+ * WHY. netWeightKgs / grossWeightKgs / measureCm describe the BOX, but they
  * were stored on every (carton × SKU) row: 890 rows for 114 real cartons. The
  * uploader wrote the real value on the carton's first line and zeroed the rest, so
  * 103 of 114 cartons held rows that contradict each other. Every total therefore
@@ -13,7 +13,7 @@
  * could return either number after the Postgres migration. That value feeds the
  * packing list, the CI and (through the CI basis) the landed cost.
  *
- * WHAT IT DOES, per (shipment_id, ctn_number):
+ * WHAT IT DOES, per (shipmentId, ctnNumber):
  *   1. collects every DISTINCT non-empty value of each carton field
  *   2. REFUSES TO WRITE if any carton has two different non-empty values for the
  *      same field (that would be a real conflict, not a zeroed repeat) — it prints
@@ -35,12 +35,12 @@
 const fs = require('fs');
 const path = require('path');
 
-const DIR = path.join(__dirname, '..', 'data', 'migrated');
+const DIR = path.join(__dirname, '..', 'database', 'seed-data', 'snapshot');
 const SKU_FILE = path.join(DIR, 'sms_packing_cartons.json');
 const CTN_FILE = path.join(DIR, 'sms_cartons.json');
 const DRY = process.argv.includes('--dry-run');
 
-const FIELDS = ['net_weight_kgs', 'gross_weight_kgs', 'measure_cm'];
+const FIELDS = ['netWeightKgs', 'grossWeightKgs', 'measureCm'];
 const isEmpty = (v) => v == null || v === '' || Number(v) === 0;
 
 function readJson(file, fallback) {
@@ -65,8 +65,8 @@ function main() {
   // ---- group by the real carton key ----
   const byCarton = new Map();
   for (const r of skuRows) {
-    const key = `${r.shipment_id}|${r.ctn_number}`;
-    if (!byCarton.has(key)) byCarton.set(key, { shipment_id: r.shipment_id, ctn_number: r.ctn_number, rows: [] });
+    const key = `${r.shipmentId}|${r.ctnNumber}`;
+    if (!byCarton.has(key)) byCarton.set(key, { shipmentId: r.shipmentId, ctnNumber: r.ctnNumber, rows: [] });
     byCarton.get(key).rows.push(r);
   }
 
@@ -74,11 +74,11 @@ function main() {
   const conflicts = [];
   const cartons = [];
   for (const [key, g] of byCarton) {
-    const out = { id: `sctn_${g.shipment_id}_${g.ctn_number}`, shipment_id: g.shipment_id, ctn_number: g.ctn_number };
+    const out = { id: `sctn_${g.shipmentId}_${g.ctnNumber}`, shipmentId: g.shipmentId, ctnNumber: g.ctnNumber };
     for (const f of FIELDS) {
       const distinct = [...new Set(g.rows.map((r) => r[f]).filter((v) => !isEmpty(v)).map(String))];
       if (distinct.length > 1) conflicts.push({ carton: key, field: f, values: distinct });
-      out[f] = distinct.length ? (f === 'measure_cm' ? distinct[0] : Number(distinct[0])) : null;
+      out[f] = distinct.length ? (f === 'measureCm' ? distinct[0] : Number(distinct[0])) : null;
     }
     cartons.push(out);
   }
@@ -100,8 +100,8 @@ function main() {
   // ---- invariants before writing ----
   const problems = [];
   if (strippedRows.length !== skuRows.length) problems.push('row count changed');
-  const cartonKeys = new Set(cartons.map((k) => `${k.shipment_id}|${k.ctn_number}`));
-  const orphan = strippedRows.filter((r) => !cartonKeys.has(`${r.shipment_id}|${r.ctn_number}`));
+  const cartonKeys = new Set(cartons.map((k) => `${k.shipmentId}|${k.ctnNumber}`));
+  const orphan = strippedRows.filter((r) => !cartonKeys.has(`${r.shipmentId}|${r.ctnNumber}`));
   if (orphan.length) problems.push(`${orphan.length} SKU row(s) have no carton row`);
   if (new Set(cartons.map((k) => k.id)).size !== cartons.length) problems.push('duplicate carton id');
   if (problems.length) { console.error('REFUSING TO WRITE —', problems.join('; ')); process.exit(3); }
@@ -110,14 +110,14 @@ function main() {
   const seen = new Set();
   let beforeNet = 0, beforeGross = 0;
   for (const r of skuRows) {
-    const k = `${r.shipment_id}|${r.ctn_number}`;
+    const k = `${r.shipmentId}|${r.ctnNumber}`;
     if (seen.has(k)) continue;
     seen.add(k);
-    beforeNet += Number(r.net_weight_kgs) || 0;
-    beforeGross += Number(r.gross_weight_kgs) || 0;
+    beforeNet += Number(r.netWeightKgs) || 0;
+    beforeGross += Number(r.grossWeightKgs) || 0;
   }
-  const afterNet = cartons.reduce((a, k) => a + (Number(k.net_weight_kgs) || 0), 0);
-  const afterGross = cartons.reduce((a, k) => a + (Number(k.gross_weight_kgs) || 0), 0);
+  const afterNet = cartons.reduce((a, k) => a + (Number(k.netWeightKgs) || 0), 0);
+  const afterGross = cartons.reduce((a, k) => a + (Number(k.grossWeightKgs) || 0), 0);
   const drift = Math.abs(beforeNet - afterNet) > 0.001 || Math.abs(beforeGross - afterGross) > 0.001;
 
   console.log(`SKU rows          : ${skuRows.length}`);

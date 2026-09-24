@@ -1,0 +1,170 @@
+[
+  {
+    "id": "bk_no_booking",
+    "name": "No Booking",
+    "module": "mainline",
+    "category": "booking",
+    "color": "#9CA3AF",
+    "sortOrder": 1
+  },
+  {
+    "id": "bk_pending",
+    "name": "Booking Pending",
+    "module": "mainline",
+    "category": "booking",
+    "color": "#F59E0B",
+    "sortOrder": 2
+  },
+  {
+    "id": "bk_approved",
+    "name": "Booking Approved",
+    "module": "mainline",
+    "category": "booking",
+    "color": "#3B82F6",
+    "sortOrder": 3
+  },
+  {
+    "id": "bk_rejected",
+    "name": "Rejected",
+    "module": "mainline",
+    "category": "booking",
+    "color": "#DC2626",
+    "sortOrder": 4
+  },
+  {
+    "id": "sh_ready",
+    "name": "Ready to Ship",
+    "module": "mainline",
+    "category": "shipment",
+    "color": "#3B82F6",
+    "sortOrder": 1
+  },
+  {
+    "id": "sh_in_transit",
+    "name": "In Transit",
+    "module": "mainline",
+    "category": "shipment",
+    "color": "#8B5CF6",
+    "sortOrder": 2
+  },
+  {
+    "id": "sh_at_port",
+    "name": "At Port",
+    "module": "mainline",
+    "category": "shipment",
+    "color": "#06B6D4",
+    "sortOrder": 3
+  },
+  {
+    "id": "sh_delivered",
+    "name": "Delivered",
+    "module": "mainline",
+    "category": "shipment",
+    "color": "#10B981",
+    "sortOrder": 4
+  },
+  {
+    "id": "sh_received",
+    "name": "Received",
+    "module": "mainline",
+    "category": "shipment",
+    "color": "#059669",
+    "sortOrder": 5
+  },
+  {
+    "id": "cancelled",
+    "name": "Cancelled",
+    "module": "mainline",
+    "category": "both",
+    "color": "#EF4444",
+    "sortOrder": 9
+  },
+  {
+    "id": "sms_label_created",
+    "name": "Label Created",
+    "module": "sms",
+    "category": "shipment",
+    "color": "#9CA3AF",
+    "sortOrder": 1
+  },
+  {
+    "id": "sms_picked_up",
+    "name": "Picked Up",
+    "module": "sms",
+    "category": "shipment",
+    "color": "#3B82F6",
+    "sortOrder": 2
+  },
+  {
+    "id": "sms_in_transit",
+    "name": "In Transit",
+    "module": "sms",
+    "category": "shipment",
+    "color": "#8B5CF6",
+    "sortOrder": 3
+  },
+  {
+    "id": "sms_out_for_delivery",
+    "name": "Out for Delivery",
+    "module": "sms",
+    "category": "shipment",
+    "color": "#06B6D4",
+    "sortOrder": 4
+  },
+  {
+    "id": "sms_delivered",
+    "name": "Delivered",
+    "module": "sms",
+    "category": "shipment",
+    "color": "#10B981",
+    "sortOrder": 5
+  },
+  {
+    "id": "sms_received",
+    "name": "Received",
+    "module": "sms",
+    "category": "shipment",
+    "color": "#059669",
+    "sortOrder": 6
+  },
+  {
+    "id": "sms_exception",
+    "name": "Exception",
+    "module": "sms",
+    "category": "shipment",
+    "color": "#EF4444",
+    "sortOrder": 7
+  },
+  {
+    "id": "sms_bk_pending",
+    "name": "Booking Pending",
+    "module": "sms",
+    "category": "booking",
+    "color": "#F59E0B",
+    "sortOrder": 1
+  },
+  {
+    "id": "sms_bk_approved",
+    "name": "Booking Approved",
+    "module": "sms",
+    "category": "booking",
+    "color": "#3B82F6",
+    "sortOrder": 2
+  },
+  {
+    "id": "sms_bk_rejected",
+    "name": "Rejected",
+    "module": "sms",
+    "category": "booking",
+    "color": "#DC2626",
+    "sortOrder": 3
+  },
+  {
+    "id": "sms_cancelled",
+    "name": "Cancelled",
+    "module": "sms",
+    "category": "both",
+    "color": "#EF4444",
+    "sortOrder": 4
+  }
+]

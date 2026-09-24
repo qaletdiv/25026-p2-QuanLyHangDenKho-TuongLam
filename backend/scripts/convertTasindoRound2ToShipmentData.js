@@ -38,8 +38,8 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const DIR = path.join(__dirname, '..', 'data', 'converted docs', 'SMS');
-const MIGRATED = path.join(__dirname, '..', 'data', 'migrated');
+const DIR = path.join(__dirname, '..', 'storage', 'converted-docs', 'SMS');
+const MIGRATED = path.join(__dirname, '..', 'database', 'seed-data', 'snapshot');
 const CI_FILE = 'TENTREE INV FW27 SMS.xlsx';
 
 // carton envelopes transcribed from the PL PDFs (one carton each, box 55x40x53)
@@ -60,7 +60,7 @@ const r2 = (n) => +Number(n).toFixed(2);
 const cbmOf = (m) => { const p = S(m).split('X').map(Number); return p.length === 3 && p.every(isFinite) ? p[0] * p[1] * p[2] / 1e6 : 0; };
 const readJson = (f) => JSON.parse(fs.readFileSync(path.join(MIGRATED, f), 'utf8').replace(/^﻿/, ''));
 
-const skuMaster = new Map(readJson('product_skus.json').map((s) => [String(s.sku_code).toUpperCase(), s]));
+const skuMaster = new Map(readJson('product_skus.json').map((s) => [String(s.skuCode).toUpperCase(), s]));
 const poLines = readJson('sms_po_lines.json');
 const shipmentPos = readJson('sms_shipment_pos.json');
 const packingCartons = readJson('sms_packing_cartons.json');
@@ -112,11 +112,11 @@ for (const { sheet, po, lot, pl, carton } of CONSIGNMENTS) {
   lines.forEach((l, i) => {
     const master = skuMaster.get(l.sku) || {};
     if (!skuMaster.has(l.sku)) notInCatalogue.push(l.sku);
-    const ol = poLines.find((p) => p.po_number === po && String(p.sku_code).toUpperCase() === l.sku);
+    const ol = poLines.find((p) => p.poNumber === po && String(p.skuCode).toUpperCase() === l.sku);
     if (!ol) notOnPo.push(l.sku);
     else {
-      if (N(ol.unit_price) !== l.price) priceDrift.push(`${l.sku} CI ${l.price} vs PO ${ol.unit_price}`);
-      if (l.qty > N(ol.ordered_qty)) qtyOver.push(`${l.sku} ${l.qty}>${ol.ordered_qty}`);
+      if (N(ol.unitPrice) !== l.price) priceDrift.push(`${l.sku} CI ${l.price} vs PO ${ol.unitPrice}`);
+      if (l.qty > N(ol.orderedQty)) qtyOver.push(`${l.sku} ${l.qty}>${ol.orderedQty}`);
     }
     if (l.amount && r2(l.price * l.qty) !== r2(l.amount)) amountDrift.push(`${l.sku} ${r2(l.price * l.qty)} vs CI ${r2(l.amount)}`);
 
@@ -124,9 +124,9 @@ for (const { sheet, po, lot, pl, carton } of CONSIGNMENTS) {
     value += l.price * l.qty;
     aoa.push([
       1, po, l.sku, master.upc || '',
-      master.knit_woven || '', l.style, l.color,
+      master.knitWoven || '', l.style, l.color,
       master.category || '', master.gender || '', master.composition || '',
-      sheetHts || master.hts_code || '',
+      sheetHts || master.htsCode || '',
       l.price, r2(l.price * l.qty), l.qty,
       i === 0 ? carton.nw : '', i === 0 ? carton.gw : '', i === 0 ? carton.measure : '',
     ]);
@@ -146,9 +146,9 @@ for (const { sheet, po, lot, pl, carton } of CONSIGNMENTS) {
   if (stated) console.log(`     CI total row: ${stated.qty} pcs | $${stated.value.toLocaleString()}  ->  Δ pcs ${pcs - stated.qty}, Δ value ${r2(value - stated.value)}`);
   console.log(`     PL PDF: ${carton.pcs} pcs / 1 ctn / ${carton.cbm} CBM  ->  Δ pcs ${pcs - carton.pcs}, Δ CBM ${r2(cbmOf(carton.measure) - carton.cbm)}`);
 
-  const junction = shipmentPos.find((j) => j.po_number === po && j.lot_number === lot);
+  const junction = shipmentPos.find((j) => j.poNumber === po && j.lotNumber === lot);
   if (junction) {
-    console.log(`     junction (shipment ${junction.shipment_id}, lot ${junction.lot_number}): ${junction.units} units / ${junction.cartons} ctn`
+    console.log(`     junction (shipment ${junction.shipmentId}, lot ${junction.lotNumber}): ${junction.units} units / ${junction.cartons} ctn`
       + `  ->  Δ units ${pcs - N(junction.units)}, Δ cartons ${1 - N(junction.cartons)}`);
   } else {
     console.log(`     !! no sms_shipment_pos row for ${po} lot ${lot} — create the shipment before uploading`);
@@ -163,10 +163,10 @@ for (const { sheet, po, lot, pl, carton } of CONSIGNMENTS) {
 
   // what's left on the PO once this lot ships
   const shipped = new Set(lines.map((l) => l.sku));
-  packingCartons.filter((c) => c.po_number === po).forEach((c) => shipped.add(String(c.sku_code).toUpperCase()));
-  const outstanding = poLines.filter((l) => l.po_number === po && !shipped.has(String(l.sku_code).toUpperCase()));
+  packingCartons.filter((c) => c.poNumber === po).forEach((c) => shipped.add(String(c.skuCode).toUpperCase()));
+  const outstanding = poLines.filter((l) => l.poNumber === po && !shipped.has(String(l.skuCode).toUpperCase()));
   if (outstanding.length) {
-    const units = outstanding.reduce((s, l) => s + N(l.ordered_qty), 0);
-    console.log(`     ${po} still unshipped after lot ${lot}: ${units} pcs — ${outstanding.map((l) => `${l.sku_code} (${l.ordered_qty})`).join(', ')}`);
+    const units = outstanding.reduce((s, l) => s + N(l.orderedQty), 0);
+    console.log(`     ${po} still unshipped after lot ${lot}: ${units} pcs — ${outstanding.map((l) => `${l.skuCode} (${l.orderedQty})`).join(', ')}`);
   }
 }

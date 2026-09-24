@@ -116,16 +116,16 @@ async function parseInvoicePdf(buffer) {
 
   return {
     entity,
-    invoice_no: (after(lines, 'Invoice:') || '').split(/\s+/)[0] || null,
-    invoice_date: parseUsDate(after(lines, 'Invoice Date:')),
-    ending_date: parseUsDate(after(lines, 'Ending Date:')),
-    payment_terms: norm(after(lines, 'Payment Terms:')) || null,
-    due_date: parseUsDate(after(lines, 'Payment Due By:')),
-    fx_rate: Number(norm(after(lines, 'Exchange Rate:'))) || null,
+    invoiceNo: (after(lines, 'Invoice:') || '').split(/\s+/)[0] || null,
+    invoiceDate: parseUsDate(after(lines, 'Invoice Date:')),
+    endingDate: parseUsDate(after(lines, 'Ending Date:')),
+    paymentTerms: norm(after(lines, 'Payment Terms:')) || null,
+    dueDate: parseUsDate(after(lines, 'Payment Due By:')),
+    fxRate: Number(norm(after(lines, 'Exchange Rate:'))) || null,
     subtotal, taxes, total,
-    tax_lines: taxLines,
+    taxLines: taxLines,
     services,
-    is_credit: (total !== null && total < 0),
+    isCredit: (total !== null && total < 0),
   };
 }
 
@@ -141,13 +141,13 @@ function toLine(get, source) {
 
   const completed = dateOf(get('Completed'));
   return {
-    source_name: source || null,
+    sourceName: source || null,
     order: strOf(get('Order')),
-    client_ref_1: strOf(get('Client Ref 1')),
-    client_ref_2: strOf(get('Client Ref 2')),
+    clientRef1: strOf(get('Client Ref 1')),
+    clientRef2: strOf(get('Client Ref 2')),
     customer: strOf(get('Customer')),
-    po_number: strOf(get('PO Number')),
-    doc_date: dateOf(get('Doc. Date')),
+    poNumber: strOf(get('PO Number')),
+    docDate: dateOf(get('Doc. Date')),
     completed,
     month: completed ? completed.slice(0, 7) : null,
     units: numOf(get('Units')),
@@ -155,7 +155,7 @@ function toLine(get, source) {
     service: strOf(get('Service')),
     charges: round2(numOf(get('Charges')) || 0),
     taxes: round2(numOf(get('Taxes')) || 0),
-    inv_amt: round2(numOf(get('Inv.  Amt')) || 0),
+    invAmt: round2(numOf(get('Inv.  Amt')) || 0),
   };
 }
 

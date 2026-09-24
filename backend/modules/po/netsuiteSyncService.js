@@ -2,20 +2,16 @@
 
 // NetSuite sync (Phase 2a) — owns po_masters / po_orders / po_order_lines.
 // Consumes flat NS PO objects (from integrationService.fetchNetSuitePOs) where each
-// PO carries: po_number, trn_number, supplier, season, receiving_warehouse, line_items[].
+// PO carries: poNumber, trnNumber, supplier, season, receivingWarehouse, line_items[].
 // Maps them into the three NetSuite-owned grains. NEVER writes legs (WIP owns those).
 //
-// R1 (protect-if-booked): a po_number whose legs are referenced by a booking or
+// R1 (protect-if-booked): a poNumber whose legs are referenced by a booking or
 // shipment is LOCKED — sync skips all writes touching it. A TRN with any locked
 // order keeps its existing master untouched (master still created if absent).
 
-const PoMasterModel = require('./PoMasterModel');
-const PoOrderModel  = require('./PoOrderModel');
-const LegReadModel  = require('./LegReadModel');
 const { loadResolvers } = require('./resolvers');
-const BaseModel = require('../../models/BaseModel');
+const { models } = require('../../models');
 const integrationService = require('../../services/integrationService');
-const ItemReceiptModel = require('../mainline/receipts/MainlineItemReceiptModel');
 const { pruneStaleReceipts } = require('../../utils/pruneStaleReceipts');
 
 // ---- pure core: fold NS POs into the three grains, honoring R1 -------------
@@ -23,87 +19,106 @@ const { pruneStaleReceipts } = require('../../utils/pruneStaleReceipts');
 // ctx      = { resolvers, lockedPoNumbers:Set, lockedTrns:Set }
 function buildUpserts(pos, existing, ctx) {
   const { resolvers, lockedPoNumbers, lockedTrns } = ctx;
-  const masters    = new Map(existing.masters.map((m) => [m.trn_number, m]));
-  const orders     = new Map(existing.orders.map((o) => [o.po_number, o]));
-  // order lines indexed by po_number → keep other POs' lines intact
-  const linesByPo  = existing.orderLines.reduce((mp, l) => ((mp[l.po_number] = mp[l.po_number] || []).push(l), mp), {});
+  const masters    = new Map(existing.masters.map((m) => [m.trnNumber, m]));
+  const orders     = new Map(existing.orders.map((o) => [o.poNumber, o]));
+  // order lines indexed by poNumber → keep other POs' lines intact
+  const linesByPo  = existing.orderLines.reduce((mp, l) => ((mp[l.poNumber] = mp[l.poNumber] || []).push(l), mp), {});
 
   const protectedPos = [];
   const rejectedPos = [];
   let mUpsert = 0, oUpsert = 0, lUpsert = 0;
-  let lineSeq = existing.orderLines.reduce((mx, l) => Math.max(mx, +String(l.id).replace(/\D/g, '') || 0), 0);
+  // (the `pol_<n>` running counter is gone — line ids are derived from the PO
+  //  and NetSuite's line number now, so they are stable across syncs)
 
   for (const po of pos) {
-    if (!po.po_number) continue;
+    if (!po.poNumber) continue;
 
     // R4 (refuse-rejected): NetSuite said no, so there are no goods coming and
     // this is not a PO — never fold it in. The SuiteQL scope already excludes it
     // (poStatusClause + NOT_REJECTED_CLAUSE); this is the second lock on the door,
     // because the query is one edit away from letting it back through and THIS is
     // the code that writes. PO03521 / PO03789 arrived exactly that way.
-    if (isRejected(po)) { rejectedPos.push(po.po_number); continue; }
+    if (isRejected(po)) { rejectedPos.push(po.poNumber); continue; }
 
     // R1: locked order → skip everything that touches it.
-    if (lockedPoNumbers.has(po.po_number)) { protectedPos.push(po.po_number); continue; }
+    if (lockedPoNumbers.has(po.poNumber)) { protectedPos.push(po.poNumber); continue; }
 
     // --- po_masters (TRN grain) ---
-    if (po.trn_number) {
-      if (!masters.has(po.trn_number)) {
-        masters.set(po.trn_number, {
-          trn_number:    po.trn_number,
-          supplier_id:   resolvers.supplierId(po.supplier, `TRN ${po.trn_number}`),
-          season_id:     resolvers.seasonId(po.season, `TRN ${po.trn_number}`),
-          main_shoulder: po.main_shoulder || null,
-          netsuite_id:   po.netsuite_id || null,
+    if (po.trnNumber) {
+      if (!masters.has(po.trnNumber)) {
+        masters.set(po.trnNumber, {
+          trnNumber:    po.trnNumber,
+          supplierId:   resolvers.supplierId(po.supplier, `TRN ${po.trnNumber}`),
+          seasonId:     resolvers.seasonId(po.season, `TRN ${po.trnNumber}`),
+          mainShoulder: po.mainShoulder || null,
+          netsuiteId:   po.netsuiteId || null,
         });
         mUpsert++;
-      } else if (!lockedTrns.has(po.trn_number)) {
+      } else if (!lockedTrns.has(po.trnNumber)) {
         // refresh an unlocked existing master
-        const m = masters.get(po.trn_number);
-        m.supplier_id   = resolvers.supplierId(po.supplier, `TRN ${po.trn_number}`) ?? m.supplier_id;
-        m.season_id     = resolvers.seasonId(po.season, `TRN ${po.trn_number}`) ?? m.season_id;
-        m.main_shoulder = po.main_shoulder || m.main_shoulder;
-        m.netsuite_id   = po.netsuite_id || m.netsuite_id;
+        const m = masters.get(po.trnNumber);
+        m.supplierId   = resolvers.supplierId(po.supplier, `TRN ${po.trnNumber}`) ?? m.supplierId;
+        m.seasonId     = resolvers.seasonId(po.season, `TRN ${po.trnNumber}`) ?? m.seasonId;
+        m.mainShoulder = po.mainShoulder || m.mainShoulder;
+        m.netsuiteId   = po.netsuiteId || m.netsuiteId;
         mUpsert++;
       }
     }
 
-    // --- po_orders (po_number grain) ---
-    const fc = resolvers.facilityChannel(po.receiving_warehouse, po.po_number);
-    const prev = orders.get(po.po_number) || {};
-    orders.set(po.po_number, {
+    // --- po_orders (poNumber grain) ---
+    const fc = resolvers.facilityChannel(po.receivingWarehouse, po.poNumber);
+    const prev = orders.get(po.poNumber) || {};
+    orders.set(po.poNumber, {
       ...prev,                             // preserve fields this sync doesn't own
-      po_number:             po.po_number,
-      trn_number:            po.trn_number || prev.trn_number || null,
+      poNumber:             po.poNumber,
+      trnNumber:            po.trnNumber || prev.trnNumber || null,
       // NS PO internal id at the COMPONENT-PO grain — Item Receipts attach here
       // (createdfrom = this id), so received qty is scoped by it. (po_masters also
       // carries one, but that's lossy when a TRN spans several POs — this is the
-      // authoritative per-po_number id.)
-      netsuite_id:           po.netsuite_id ?? prev.netsuite_id ?? null,
+      // authoritative per-poNumber id.)
+      netsuiteId:           po.netsuiteId ?? prev.netsuiteId ?? null,
       // NetSuite's approval state for this PO ('Pending Approval' | 'Approved' |
       // null). Stored, not derived — nothing local can tell you whether a
       // supervisor has signed off. Drives the "Pending approval" badge on the PO
       // list/detail. Refreshed for EVERY held PO after this fold (see sync), not
       // just the ones in the pull, or it would freeze on POs that moved on.
-      approval_status:       po.approval_status || prev.approval_status || null,
+      approvalStatus:       po.approvalStatus || prev.approvalStatus || null,
       // destination/channel/COO: NS fills them when it can resolve, but NEVER nulls
       // out a value already set (e.g. one the WIP import resolved) — so sync order
       // doesn't matter. WIP is the reliable source for these planning attributes.
-      facility_id:           fc.facility_id ?? prev.facility_id ?? null,
-      allocation_channel_id: fc.allocation_channel_id ?? prev.allocation_channel_id ?? null,
-      coo_country:           po.coo || prev.coo_country || null,
+      facilityId:           fc.facilityId ?? prev.facilityId ?? null,
+      allocationChannelId: fc.allocationChannelId ?? prev.allocationChannelId ?? null,
+      cooCountry:           po.coo || prev.cooCountry || null,
     });
     oUpsert++;
 
     // --- po_order_lines (replace this PO's lines) ---
-    linesByPo[po.po_number] = (po.line_items || []).map((li) => ({
-      id:          `pol_${++lineSeq}`,
-      po_number:   po.po_number,
-      sku_code:    li.sku_code,
-      ordered_qty: Number(li.expected_qty) || 0,
-      unit_price:  Number(li.unit_price) || null,
+    //
+    // ⚠️ THE KEY IS (poNumber, netsuiteLineId), NOT (poNumber, skuCode).
+    // NetSuite legitimately repeats one item across several PO lines — split by
+    // receipt date/location, or a price correction. PO04826 does it for 399 SKUs.
+    // The old `(po_number, sku_code)` unique held only because every PO so far
+    // happened to have one line per item; the moment one did not, every sync
+    // aborted. Same class of bug as sms_po_lines, which CLAUDE.md already
+    // documents — and this is the table it warned not to copy the rule to.
+    //
+    // ⚠️ `netsuiteLineId` IS A PER-PO SEQUENCE (1, 2, 3…), NOT a global id.
+    // Measured on live data: 4,096 line rows carry only 804 distinct values, so
+    // an id of `pol_ns_<lineId>` would collapse 4,096 rows onto 804 — exactly
+    // the mistake made on the SMS side. It IS unique WITHIN a PO (0 repeats
+    // across all 22), so the PO number has to be part of both the id and the key.
+    linesByPo[po.poNumber] = (po.line_items || []).map((li, i) => ({
+      // Stable across syncs: the same NetSuite line keeps the same row id, so
+      // this table stops renumbering ~12k rows on every run. Falls back to the
+      // array position only if NetSuite omits the line id.
+      id:             `pol_ns_${po.poNumber}_${li.netsuiteLineId || `i${i}`}`,
+      poNumber:       po.poNumber,
+      netsuiteLineId: li.netsuiteLineId ? String(li.netsuiteLineId) : null,
+      skuCode:        li.skuCode,
+      orderedQty:     Number(li.expectedQty) || 0,
+      unitPrice:      Number(li.unitPrice) || null,
     }));
-    lUpsert += linesByPo[po.po_number].length;
+    lUpsert += linesByPo[po.poNumber].length;
   }
 
   return {
@@ -118,10 +133,10 @@ function buildUpserts(pos, existing, ctx) {
 }
 
 // NetSuite says this PO was rejected. Read from the display value the header query
-// already selects (`BUILTIN.DF(t.approvalstatus) AS approval_status`) — the numeric
+// already selects (`BUILTIN.DF(t.approvalstatus) AS approvalStatus`) — the numeric
 // code never reaches this layer.
 function isRejected(po) {
-  return String(po?.approval_status || '').trim().toLowerCase() === 'rejected';
+  return String(po?.approvalStatus || '').trim().toLowerCase() === 'rejected';
 }
 
 /**
@@ -148,24 +163,24 @@ function pruneRejected({ rejectedPoNumbers, masters, orders, orderLines, referen
   const rejected = rejectedPoNumbers instanceof Set ? rejectedPoNumbers : new Set(rejectedPoNumbers || []);
   const referenced = referencedPoNumbers instanceof Set ? referencedPoNumbers : new Set(referencedPoNumbers || []);
 
-  const removable = orders.filter((o) => rejected.has(o.po_number) && !referenced.has(o.po_number)).map((o) => o.po_number);
-  const keptReferenced = orders.filter((o) => rejected.has(o.po_number) && referenced.has(o.po_number)).map((o) => o.po_number);
+  const removable = orders.filter((o) => rejected.has(o.poNumber) && !referenced.has(o.poNumber)).map((o) => o.poNumber);
+  const keptReferenced = orders.filter((o) => rejected.has(o.poNumber) && referenced.has(o.poNumber)).map((o) => o.poNumber);
   const removeSet = new Set(removable);
 
-  const nextOrders = orders.filter((o) => !removeSet.has(o.po_number));
-  const nextLines = orderLines.filter((l) => !removeSet.has(l.po_number));
-  const survivingTrns = new Set(nextOrders.map((o) => o.trn_number).filter(Boolean));
-  const orphanedTrns = [...new Set(orders.filter((o) => removeSet.has(o.po_number)).map((o) => o.trn_number).filter(Boolean))]
+  const nextOrders = orders.filter((o) => !removeSet.has(o.poNumber));
+  const nextLines = orderLines.filter((l) => !removeSet.has(l.poNumber));
+  const survivingTrns = new Set(nextOrders.map((o) => o.trnNumber).filter(Boolean));
+  const orphanedTrns = [...new Set(orders.filter((o) => removeSet.has(o.poNumber)).map((o) => o.trnNumber).filter(Boolean))]
     .filter((trn) => !survivingTrns.has(trn));
   const orphanSet = new Set(orphanedTrns);
-  const nextMasters = masters.filter((m) => !orphanSet.has(m.trn_number));
+  const nextMasters = masters.filter((m) => !orphanSet.has(m.trnNumber));
 
   return {
     masters: nextMasters,
     orders: nextOrders,
     orderLines: nextLines,
     removed: {
-      po_numbers: removable,
+      poNumbers: removable,
       orders: orders.length - nextOrders.length,
       lines: orderLines.length - nextLines.length,
       masters: masters.length - nextMasters.length,
@@ -177,39 +192,39 @@ function pruneRejected({ rejectedPoNumbers, masters, orders, orderLines, referen
 
 // ---- locked-set helpers (R1) ------------------------------------------------
 /**
- * Every po_number something in the portal points at: a WIP leg, a booking, a
+ * Every poNumber something in the portal points at: a WIP leg, a booking, a
  * shipment or an Item Receipt. Wider than computeLocked() on purpose — that one
  * answers "may sync overwrite this?", this one answers "may sync DELETE this?",
  * and a leg with no booking yet is still a portal row that must not be orphaned.
  */
 async function computeReferenced() {
   const [legs, bookingLegs, shipmentLegs, receipts] = await Promise.all([
-    LegReadModel.readLegs(),
-    new BaseModel('migrated/mainline_booking_po_legs.json').read(),
-    new BaseModel('migrated/mainline_shipment_legs.json').read(),
-    ItemReceiptModel.readReceipts().catch(() => []),
+    models.mainline_po_legs.read(),
+    models.mainline_booking_po_legs.read(),
+    models.mainline_shipment_legs.read(),
+    models.mainline_item_receipts.read().catch(() => []),
   ]);
   const referenced = new Set();
-  const poByLeg = new Map(legs.map((l) => [l.id, l.po_number]));
-  legs.forEach((l) => { if (l.po_number) referenced.add(l.po_number); });
+  const poByLeg = new Map(legs.map((l) => [l.id, l.poNumber]));
+  legs.forEach((l) => { if (l.poNumber) referenced.add(l.poNumber); });
   [...bookingLegs, ...shipmentLegs].forEach((r) => {
-    const po = poByLeg.get(r.leg_id);
+    const po = poByLeg.get(r.legId);
     if (po) referenced.add(po);
   });
-  receipts.forEach((r) => { if (r.po_number) referenced.add(r.po_number); });
+  receipts.forEach((r) => { if (r.poNumber) referenced.add(r.poNumber); });
   return referenced;
 }
 
 async function computeLocked() {
   const [legs, bookingLegs, shipments] = await Promise.all([
-    LegReadModel.readLegs(),
-    new BaseModel('migrated/mainline_booking_po_legs.json').read(),
-    new BaseModel('migrated/mainline_shipments.json').read(),
+    models.mainline_po_legs.read(),
+    models.mainline_booking_po_legs.read(),
+    models.mainline_shipments.read(),
   ]);
-  const poByLeg = new Map(legs.map((l) => [l.id, l.po_number]));
+  const poByLeg = new Map(legs.map((l) => [l.id, l.poNumber]));
   const lockedPoNumbers = new Set();
   [...bookingLegs, ...shipments].forEach((r) => {
-    const po = poByLeg.get(r.leg_id);
+    const po = poByLeg.get(r.legId);
     if (po) lockedPoNumbers.add(po);
   });
   return lockedPoNumbers;
@@ -217,30 +232,30 @@ async function computeLocked() {
 
 // ---- IO entrypoint ----------------------------------------------------------
 // Fold NetSuite Item Receipts into mainline_item_receipts/_lines. Keyed on
-// netsuite_ir_id (idempotent); read-only from NS (no portal-owned fields).
-// A receipt attaches to its source po_number; received qty is derived from the lines.
+// netsuiteIrId (idempotent); read-only from NS (no portal-owned fields).
+// A receipt attaches to its source poNumber; received qty is derived from the lines.
 function foldReceipts(nsReceipts, existingReceipts, existingLines, queriedPoNumbers = null) {
-  const byIr = new Map(existingReceipts.filter((r) => r.netsuite_ir_id).map((r) => [r.netsuite_ir_id, r]));
+  const byIr = new Map(existingReceipts.filter((r) => r.netsuiteIrId).map((r) => [r.netsuiteIrId, r]));
   let irSeq = existingReceipts.reduce((mx, r) => Math.max(mx, +String(r.id).replace(/\D/g, '') || 0), 0);
   const outReceipts = [...existingReceipts];
   let outLines = [...existingLines];
   for (const ir of nsReceipts) {
-    if (!ir.po_number) continue;
+    if (!ir.poNumber) continue;
     let r = byIr.get(ir.ir_id);
     if (!r) {
-      r = { id: `mir_${++irSeq}`, netsuite_ir_id: ir.ir_id, netsuite_ir_tranid: ir.ir_tranid || null,
-        po_number: ir.po_number, receipt_date: ir.receipt_date || null, source: 'netsuite',
+      r = { id: `mir_${++irSeq}`, netsuiteIrId: ir.ir_id, netsuiteIrTranid: ir.ir_tranid || null,
+        poNumber: ir.poNumber, receiptDate: ir.receiptDate || null, source: 'netsuite',
         // portal-owned landed-cost match (confirmed per-PO IR ↔ shipment) — see
         // mainlineReceiptController; preserved across re-sync, never touched here.
-        matched_shipment_id: null, confirmed_by: null, confirmed_at: null };
+        matchedShipmentId: null, confirmedBy: null, confirmedAt: null };
       outReceipts.push(r); byIr.set(ir.ir_id, r);
     } else {
-      r.po_number = ir.po_number;                       // refresh NS facts only;
-      r.netsuite_ir_tranid = ir.ir_tranid || r.netsuite_ir_tranid;   // NEVER touch the
-      r.receipt_date = ir.receipt_date || r.receipt_date;             // matched_* columns
+      r.poNumber = ir.poNumber;                       // refresh NS facts only;
+      r.netsuiteIrTranid = ir.ir_tranid || r.netsuiteIrTranid;   // NEVER touch the
+      r.receiptDate = ir.receiptDate || r.receiptDate;             // matched_* columns
     }
-    outLines = outLines.filter((l) => l.receipt_id !== r.id);
-    (ir.lines || []).forEach((l, i) => outLines.push({ id: `mirl_${r.id.replace(/\D/g, '')}_${i + 1}`, receipt_id: r.id, sku_code: l.sku_code, qty: l.qty }));
+    outLines = outLines.filter((l) => l.receiptId !== r.id);
+    (ir.lines || []).forEach((l, i) => outLines.push({ id: `mirl_${r.id.replace(/\D/g, '')}_${i + 1}`, receiptId: r.id, skuCode: l.skuCode, qty: l.qty }));
   }
 
   // Receipts NetSuite has DELETED. The loop above only adds and refreshes, so an
@@ -268,32 +283,32 @@ async function sync({ fetchPos } = {}) {
   catch (e) { fetchError = e.response?.data?.['o:errorDetails']?.[0]?.detail || e.message; pos = []; }
 
   const [masters, orders, orderLines, resolvers, lockedPoNumbers] = await Promise.all([
-    PoMasterModel.read(), PoOrderModel.readOrders(), PoOrderModel.readOrderLines(),
+    models.po_masters.read(), models.po_orders.read(), models.po_order_lines.read(),
     loadResolvers(), computeLocked(),
   ]);
   if (fetchError) {
     return { masters_upserted: 0, orders_upserted: 0, lines_upserted: 0, protected: [], warnings: [], fetched: 0, fetch_error: fetchError };
   }
-  const lockedTrns = new Set(orders.filter((o) => lockedPoNumbers.has(o.po_number)).map((o) => o.trn_number));
+  const lockedTrns = new Set(orders.filter((o) => lockedPoNumbers.has(o.poNumber)).map((o) => o.trnNumber));
 
   const result = buildUpserts(pos, { masters, orders, orderLines }, { resolvers, lockedPoNumbers, lockedTrns });
 
   // Rejected POs the portal is ALREADY holding. The pull can't surface these —
   // they're out of scope by definition — so ask NetSuite about what we hold and
-  // drop what it has rejected. Runs before the netsuite_id backfill so we don't
+  // drop what it has rejected. Runs before the netsuiteId backfill so we don't
   // resolve ids for rows about to go. Never fails the sync.
-  let rejected_removed = { po_numbers: [], orders: 0, lines: 0, masters: 0, trns: [] };
+  let rejected_removed = { poNumbers: [], orders: 0, lines: 0, masters: 0, trns: [] };
   let rejected_kept_referenced = [];
   let approval_refreshed = 0;
   try {
-    const held = result.orders.map((o) => o.po_number).filter(Boolean);
+    const held = result.orders.map((o) => o.poNumber).filter(Boolean);
     // One query answers both: which held POs are rejected (prune) and what each
     // one's approval status is NOW (the badge). A PO that has left the A/B pull
     // scope — approved and received since — still gets its value corrected here.
     const statuses = await integrationService.fetchPoApprovalStatuses(held);
     result.orders.forEach((o) => {
-      const ns = statuses.get(o.po_number);
-      if (ns && ns.approval !== o.approval_status) { o.approval_status = ns.approval; approval_refreshed++; }
+      const ns = statuses.get(o.poNumber);
+      if (ns && ns.approval !== o.approvalStatus) { o.approvalStatus = ns.approval; approval_refreshed++; }
     });
     const rejectedNow = new Set([...statuses.entries()].filter(([, v]) => v.rejected).map(([k]) => k));
     if (rejectedNow.size) {
@@ -307,7 +322,7 @@ async function sync({ fetchPos } = {}) {
       result.orderLines = p.orderLines;
       rejected_removed = p.removed;
       rejected_kept_referenced = p.kept_referenced;
-      if (p.removed.po_numbers.length) console.log(`[PO sync] removed rejected PO(s): ${p.removed.po_numbers.join(', ')}`);
+      if (p.removed.poNumbers.length) console.log(`[PO sync] removed rejected PO(s): ${p.removed.poNumbers.join(', ')}`);
       if (p.kept_referenced.length) console.warn(`[PO sync] rejected but REFERENCED, left in place for review: ${p.kept_referenced.join(', ')}`);
     }
   } catch (e) {
@@ -318,40 +333,46 @@ async function sync({ fetchPos } = {}) {
   // closed POs, D..H) by resolving their tranid → id. Lets received qty work for
   // those WITHOUT widening the PO pull (no new POs enter the list). Best-effort.
   try {
-    const missing = result.orders.filter((o) => o.po_number && !o.netsuite_id).map((o) => o.po_number);
+    const missing = result.orders.filter((o) => o.poNumber && !o.netsuiteId).map((o) => o.poNumber);
     if (missing.length) {
       const idByTranid = await integrationService.fetchPoIdsByTranid(missing);
-      result.orders.forEach((o) => { if (!o.netsuite_id && idByTranid[o.po_number]) o.netsuite_id = idByTranid[o.po_number]; });
+      result.orders.forEach((o) => { if (!o.netsuiteId && idByTranid[o.poNumber]) o.netsuiteId = idByTranid[o.poNumber]; });
     }
   } catch (e) {
-    console.error('[PO sync] netsuite_id backfill failed:', e.message);
+    console.error('[PO sync] netsuiteId backfill failed:', e.message);
   }
 
   await Promise.all([
-    PoMasterModel.write(result.masters),
-    PoOrderModel.writeOrders(result.orders),
-    PoOrderModel.writeOrderLines(result.orderLines),
+    models.po_masters.write(result.masters),
+    models.po_orders.write(result.orders),
+    models.po_order_lines.write(result.orderLines),
   ]);
 
   // Item Receipts (received qty) — read-only, scoped to the mainline POs we hold
-  // internal ids for. A PO keeps its netsuite_id after it leaves the active window,
+  // internal ids for. A PO keeps its netsuiteId after it leaves the active window,
   // so its later receipts keep syncing. Never fails the PO sync (degrades to skip).
   let receipts_upserted = 0;
   let receipts_removed = [];
   try {
     // Scope = every held PO we have an internal id for; that is exactly what the
     // receipt query asks about, so it is also exactly what the fold may prune.
-    const scoped = result.orders.filter((o) => o.netsuite_id && o.po_number);
-    const poIds = scoped.map((o) => o.netsuite_id);
+    const scoped = result.orders.filter((o) => o.netsuiteId && o.poNumber);
+    const poIds = scoped.map((o) => o.netsuiteId);
     if (poIds.length) {
       const nsReceipts = await integrationService.fetchNetSuiteItemReceipts(poIds);
-      const [exR, exL] = await Promise.all([ItemReceiptModel.readReceipts(), ItemReceiptModel.readReceiptLines()]);
-      const folded = foldReceipts(nsReceipts, exR, exL, new Set(scoped.map((o) => o.po_number)));
-      await Promise.all([ItemReceiptModel.writeReceipts(folded.receipts), ItemReceiptModel.writeReceiptLines(folded.receiptLines)]);
+      const [exR, exL] = await Promise.all([
+        models.mainline_item_receipts.read(),
+        models.mainline_item_receipt_lines.read(),
+      ]);
+      const folded = foldReceipts(nsReceipts, exR, exL, new Set(scoped.map((o) => o.poNumber)));
+      await Promise.all([
+        models.mainline_item_receipts.write(folded.receipts),
+        models.mainline_item_receipt_lines.write(folded.receiptLines),
+      ]);
       receipts_upserted = nsReceipts.length;
       receipts_removed = folded.removed;
       folded.removed.forEach((r) => console.warn(
-        `[PO sync] receipt ${r.ir} (${r.po_number}) no longer exists in NetSuite — removed${r.was_confirmed ? ' (carried a CONFIRMED match)' : ''}`,
+        `[PO sync] receipt ${r.ir} (${r.poNumber}) no longer exists in NetSuite — removed${r.was_confirmed ? ' (carried a CONFIRMED match)' : ''}`,
       ));
     }
   } catch (e) {

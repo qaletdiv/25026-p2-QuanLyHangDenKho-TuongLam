@@ -5,41 +5,41 @@
 // reference/master data only (suppliers, seasons, facilities, statuses, couriers,
 // product_skus).
 
-const BaseModel = require('../../models/BaseModel');
+const { models } = require('../../models');
 
 module.exports = {
-  pos:            new BaseModel('migrated/sms_pos.json'),
-  poLines:        new BaseModel('migrated/sms_po_lines.json'),
-  bookings:       new BaseModel('migrated/sms_bookings.json'),        // OPTIONAL booking step
-  bookingPos:     new BaseModel('migrated/sms_booking_pos.json'),     // junction: booked PO-lots
-  shipments:      new BaseModel('migrated/sms_shipments.json'),
-  shipmentPos:    new BaseModel('migrated/sms_shipment_pos.json'),
-  trackingEvents: new BaseModel('migrated/sms_tracking_events.json'),
-  receipts:       new BaseModel('migrated/sms_item_receipts.json'),
-  receiptLines:   new BaseModel('migrated/sms_item_receipt_lines.json'),
+  pos:            models.sms_pos,
+  poLines:        models.sms_po_lines,
+  bookings:       models.sms_bookings,        // OPTIONAL booking step
+  bookingPos:     models.sms_booking_pos,     // junction: booked PO-lots
+  shipments:      models.sms_shipments,
+  shipmentPos:    models.sms_shipment_pos,
+  trackingEvents: models.sms_tracking_events,
+  receipts:       models.sms_item_receipts,
+  receiptLines:   models.sms_item_receipt_lines,
   // Human REJECTIONS of an auto-suggested (receipt × shipment) pair — the negative
-  // of matched_shipment_id. Own table, not a column: one IR can be rejected against
+  // of matchedShipmentId. Own table, not a column: one IR can be rejected against
   // several of its PO's lots, so on the receipt row it would be a repeating group.
-  receiptRejections: new BaseModel('migrated/sms_receipt_match_rejections.json'),
+  receiptRejections: models.sms_receipt_match_rejections,
   // READ-ONLY here, and owned by the landed-cost module. A posted row records
   // freight & duty already PATCHed onto a live NetSuite Item Receipt, so the
   // shipment lifecycle only asks whether one exists before letting a consignment
   // be cancelled or deleted out from under it.
-  landedCosts:    new BaseModel('migrated/landed_costs.json'),
-  packingCartons: new BaseModel('migrated/sms_packing_cartons.json'),   // shipping data, (carton × SKU) grain
-  cartons:        new BaseModel('migrated/sms_cartons.json'),           // PHYSICAL carton: weights + measure, once per (shipment, ctn)
-  documents:      new BaseModel('migrated/sms_documents.json'),         // generated CI + packing-list files
-  courierStatusMap: new BaseModel('migrated/courier_status_map.json'),
+  landedCosts:    models.landed_costs,
+  packingCartons: models.sms_packing_cartons,   // shipping data, (carton × SKU) grain
+  cartons:        models.sms_cartons,           // PHYSICAL carton: weights + measure, once per (shipment, ctn)
+  documents:      models.sms_documents,         // generated CI + packing-list files
+  courierStatusMap: models.courier_status_map,
   // shared reference/master data (read-only here)
-  statuses:       new BaseModel('migrated/statuses.json'),
-  incoterms:      new BaseModel('incoterms.json'),
-  seasons:        new BaseModel('migrated/seasons.json'),
-  facilities:     new BaseModel('migrated/warehouse_facilities.json'),
-  allocationChannels: new BaseModel('migrated/allocation_channels.json'),   // Reserved / First
-  skus:           new BaseModel('migrated/product_skus.json'),
-  suppliers:      new BaseModel('suppliers.json'),
-  couriers:       new BaseModel('couriers.json'),
-  modes:          new BaseModel('modes.json'),                          // Sea / Air / Courier — booking + shipment mode
-  notifyParty:    new BaseModel('migrated/notify_party.json'),          // singleton — the CI's Notify Party block
-  users:          new BaseModel('users.json'),
+  statuses:       models.statuses,
+  incoterms:      models.incoterms,
+  seasons:        models.seasons,
+  facilities:     models.warehouse_facilities,
+  allocationChannels: models.allocation_channels,   // Reserved / First
+  skus:           models.product_skus,
+  suppliers:      models.suppliers,
+  couriers:       models.couriers,
+  modes:          models.modes,                          // Sea / Air / Courier — booking + shipment mode
+  notifyParty:    models.notify_party,          // singleton — the CI's Notify Party block
+  users:          models.users,
 };

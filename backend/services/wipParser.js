@@ -3,7 +3,7 @@
 const xlsx = require('xlsx');
 
 /**
- * Maps WIP "Ship To Name" values to portal receiving_warehouse values.
+ * Maps WIP "Ship To Name" values to portal receivingWarehouse values.
  * WIP uses long NetSuite location names; portal uses short master-data names.
  */
 const SHIP_TO_WAREHOUSE_MAP = {
@@ -73,8 +73,8 @@ function parseWipBuffer(buffer) {
     const rows = xlsx.utils.sheet_to_json(ws, { defval: '' });
 
     const errors = [];
-    // Group by po_number + mode + CRD so different delivery dates become separate records
-    const poMap = new Map(); // "po_number|mode|crd" → PO object
+    // Group by poNumber + mode + CRD so different delivery dates become separate records
+    const poMap = new Map(); // "poNumber|mode|crd" → PO object
 
     rows.forEach((row, i) => {
         const poNumber = (row['PO Number'] || '').toString().trim();
@@ -102,26 +102,26 @@ function parseWipBuffer(buffer) {
         if (!poMap.has(mapKey)) {
             // Initialise PO from first row of this PO+mode group
             poMap.set(mapKey, {
-                po_number:            poNumber,
-                trn_number:           (row['Tentree Internal PO #'] || '').toString().trim(),
+                poNumber:            poNumber,
+                trnNumber:           (row['Tentree Internal PO #'] || '').toString().trim(),
                 // strip a leading NetSuite vendor-code prefix (e.g. "VEN1421 ") so the
                 // name matches the suppliers master list
                 supplier:             (row['Vendor Name'] || '').toString().trim().replace(/^VEN\d+\s+/i, ''),
                 season:               (row['Season'] || '').toString().trim(),
-                main_shoulder:        (row['Main/Shoulder'] || '').toString().trim(),
-                receiving_warehouse:  receivingWarehouse,
+                mainShoulder:        (row['Main/Shoulder'] || '').toString().trim(),
+                receivingWarehouse:  receivingWarehouse,
                 coo:                  (row['COO'] || '').toString().trim(),
                 incoterm:             ddp.toLowerCase() === 'yes' ? 'DDP' : '',
                 crd:                  crd,
-                etd_pol:              atd,
-                e_del:                eDel,
+                etdPol:              atd,
+                eDel:                eDel,
                 received_in_netsuite: ata || addDays(eDel, 5),
                 mode:                 shippingMethod,
                 type:                 'mainline',
                 // Fields not in WIP — preserve existing or leave blank
                 etd:           '',
-                eta_pod:       '',
-                cargo_received_date: '',
+                etaPod:       '',
+                cargoReceivedDate: '',
                 line_items:    [],
             });
         }
@@ -129,20 +129,20 @@ function parseWipBuffer(buffer) {
         // Append line item (skip rows with no SKU)
         if (skuCode) {
             poMap.get(mapKey).line_items.push({
-                sku_code:    skuCode,
-                style_color: (row['Style Color Number'] || '').toString().trim(),
-                item_name:   (row['Item Name'] || '').toString().trim(),
+                skuCode:    skuCode,
+                styleColor: (row['Style Color Number'] || '').toString().trim(),
+                itemName:   (row['Item Name'] || '').toString().trim(),
                 colorway:    (row['Colorway'] || '').toString().trim(),
                 mode:        shippingMethod,
-                expected_qty: Number(row['Delivery Item Quantity']) || 0,
-                unit_price:  parseFloat(row['Price']) || 0,
+                expectedQty: Number(row['Delivery Item Quantity']) || 0,
+                unitPrice:  parseFloat(row['Price']) || 0,
             });
         }
     });
 
-    // Post-process: compute PO-level expected_qty from line items
+    // Post-process: compute PO-level expectedQty from line items
     for (const po of poMap.values()) {
-        po.expected_qty = po.line_items.reduce((sum, li) => sum + (li.expected_qty || 0), 0);
+        po.expectedQty = po.line_items.reduce((sum, li) => sum + (li.expectedQty || 0), 0);
     }
 
     return { pos: Array.from(poMap.values()), errors };

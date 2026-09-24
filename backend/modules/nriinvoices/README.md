@@ -2,6 +2,33 @@
 
 Replaces the `NRI US_ALL Invoices 2026.xlsx` Power Query workbook.
 
+## ⚠️ Naming: camelCase FIELDS, snake_case stored VALUES (2026-09-22)
+
+Every field in this module is camelCase — `invAmt`, `codingStatus`, `tieOut`,
+`impliedHours`, `byGl` — in the database, the service, the API and the UI.
+497 identifiers were renamed across 21 files.
+
+**Three things were deliberately NOT renamed, and the distinction is the point:**
+
+1. **`nri_rate_card.basis` VALUES** — `per_month`, `per_hour`, `per_unit_month`,
+   `per_receipt`, `per_order`, `per_unit`, `per_pallet`, `per_shipment`,
+   `per_edit`, `composite`, `market`, `none`, `passthrough`. These are **stored
+   data** in 41 rows that `rateCard.checkLine` switches on. Renaming the code
+   without migrating the rows would stop every rate matching **silently** — the
+   same trap that hit `transit_time_standards.segment`.
+2. **Table names** — `nri_rate_card`, `nri_charge_codes`, … are `models.<table>`
+   registry keys.
+3. **Row ids and parser names** — `ncc_administration_fee`, `nlo_48872_1710`,
+   `nri_us`. Values, not fields.
+
+The DERIVED vocabulary DID move, because nothing stores it (the invoice tables
+were empty) and both ends changed together: verdicts are now `qtyUnsupported`,
+`noRateOnFile`, `noContractRate`, `agingPremium`, `needsCoding`, `needsClass`.
+Backend and frontend were verified to use an identical set of 11 strings.
+
+⚠️ `verify-reconcile.js` is BROKEN and was already broken before this change —
+it requires `./returnsClass`, which does not exist in this directory.
+
 ## One tab per invoicing WAREHOUSE (2026-09-10)
 
 The section was called "NRI Invoices" with NRI US hardcoded, which named one
@@ -59,7 +86,7 @@ control totals — none of that is in the workbook, which is why the existing
 pipeline has no invoice number and no way to prove a detail file is complete.
 
 ⚠️ **NRI stopped filing invoice PDFs after 2022** (2026: 16 xlsx, 0 PDFs). Without
-one the tie-out returns `no_summary` — loadable but visibly unproven. Getting the
+one the tie-out returns `noSummary` — loadable but visibly unproven. Getting the
 PDFs filed alongside the workbook is a process change worth more than any code
 here.
 
@@ -86,7 +113,7 @@ invoice runs through the same four steps:
 
 ```
 1. legend      POST /charge-codes/sync   (multipart `legend`=xlsx, or a path, or the shared drive)
-               `dry_run=true` reports the file's defects WITHOUT adopting it
+               `dryRun=true` reports the file's defects WITHOUT adopting it
 2. order data  POST /order-data          (multipart `file`=the `NRI Order data` sheet or a period CSV)
                UPSERTS by order #, so a later period tops the master up
 3. invoice     POST /preview   reconcile, save NOTHING
@@ -128,9 +155,9 @@ Verified against the live legend (61 rows):
 3. **`Warehouse Labor` → GL 5211 but `Warehouse Labour` → GL 5204.** Same service,
    two spellings, two accounts. `ALIASES` collapses them.
 4. **A `LeftOuter` miss yields a NULL GL, which the pivots render as GL 0.** Here an
-   unmapped service is `needs_coding` and blocks submit. Never a silent zero.
+   unmapped service is `needsCoding` and blocks submit. Never a silent zero.
 
-Plus: 7 legend rows have a blank US class. They code to `needs_coding` for that
+Plus: 7 legend rows have a blank US class. They code to `needsCoding` for that
 entity rather than posting unclassed.
 
 ## Rate card: three principles the data forced
@@ -145,10 +172,10 @@ entity rather than posting unclassed.
 3. **Hourly quantity is not verifiable.** The `Units` column on hourly lines is a
    rounded hour count that does not tie to the charge (Cycle Count: Units 332
    against 340.00 actual hours). Hours are derived from the charge and only the
-   RATE is checked — the verdict says `qty_unsupported` rather than pretending.
+   RATE is checked — the verdict says `qtyUnsupported` rather than pretending.
 
 Storage is special: the base rate is a floor and the agreement permits +50/+100/+200%
-aging uplift, so it reports an `aging_multiple` instead of passing/failing, and only
+aging uplift, so it reports an `agingMultiple` instead of passing/failing, and only
 calls `overcharge` above the 3× ceiling.
 
 ## Class derivation — verified against finance's coding of invoice 48872
@@ -205,12 +232,12 @@ entirely.
 
 | # | Basis | Confidence | Key |
 |---|---|---|---|
-| 0 | `customer_declared` | `declared` | `CUSTOMER_CHANNEL[custcode ‖ name]` |
-| 1 | `order_no` | `exact` | `Client Ref 1` → order master `Order #` |
+| 0 | `customerDeclared` | `declared` | `CUSTOMER_CHANNEL[custcode ‖ name]` |
+| 1 | `orderNo` | `exact` | `Client Ref 1` → order master `Order #` |
 | 2 | `ref2` | `exact` | `Client Ref 2` → order master `Ref2` |
-| 3 | `cust_code` | `derived` | CustCode from `Customer` → dominant `OrderType` |
-| 4 | `cust_name` | `derived` | name from `Customer` → dominant `OrderType` |
-| 5 | `ref_format` | `inferred` | `Client Ref 1` format |
+| 3 | `custCode` | `derived` | CustCode from `Customer` → dominant `OrderType` |
+| 4 | `custName` | `derived` | name from `Customer` → dominant `OrderType` |
+| 5 | `refFormat` | `inferred` | `Client Ref 1` format |
 | — | none | `unresolved` | `class: null` — blocks submit, never guessed |
 
 `Client Ref 1` format rule: `^RA[:#]` → wholesale; `^RMA\s*#\s*\d+$` → wholesale;
@@ -271,7 +298,7 @@ lands past it. NRI has already moved the banner once.
   adding its layout to `invoiceParser` and setting `parser` + `upload_enabled` on
   its registry row.
 - **Credit memos.** NRI issues them as numbered invoices with negative amounts
-  (e.g. 39646 −$52.40). The parser sets `is_credit`, but no credit has been loaded
+  (e.g. 39646 −$52.40). The parser sets `isCredit`, but no credit has been loaded
   and 2026 has none on file — so the loaded total is gross.
 - No NetSuite push. `submit` produces the posting lines (GL × class); posting them
   is a separate decision.

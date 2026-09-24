@@ -101,14 +101,14 @@ async function generateCI(shipmentData, meta) {
     // past it without disturbing it. Country of Origin lives here too, which is
     // what frees the banner row below to be centred across the full width.
     const labels = [
-        ['PO #',              meta.po_number],
-        ['Invoice #',         meta.invoice_number],
+        ['PO #',              meta.poNumber],
+        ['Invoice #',         meta.invoiceNumber],
         ['Date',              meta.date || new Date().toISOString().slice(0, 10)],
         ['Shipping Mode',     meta.shipping_mode],
-        ['Shipment #',        meta.shipment_number],
+        ['Shipment #',        meta.shipmentNumber],
         ['ETA Date',          meta.eta_date],
-        ['Port of Loading',   meta.port_of_loading],
-        ['Port of Discharge', meta.port_of_discharge],
+        ['Port of Loading',   meta.portOfLoading],
+        ['Port of Discharge', meta.portOfDischarge],
         ['Country of Origin', meta.country_of_origin],
         ['Remarks',           meta.remarks],
     ];
@@ -131,8 +131,8 @@ async function generateCI(shipmentData, meta) {
     // to the vendor when the supplier has no separate manufacturer recorded, which
     // is what this line always showed before.
     const mfrNameRow = Math.max(6, contactRow + 2);
-    ws.getCell(`A${mfrNameRow}`).value = 'Manufacturer Name: ' + (meta.manufacturer_name || meta.vendor_name || '');
-    const mfrAddr = splitLines(meta.manufacturer_address || meta.vendor_address);
+    ws.getCell(`A${mfrNameRow}`).value = 'Manufacturer Name: ' + (meta.manufacturerName || meta.vendor_name || '');
+    const mfrAddr = splitLines(meta.manufacturerAddress || meta.vendor_address);
     after = writeLines(ws, 'A', mfrNameRow + 1,
         mfrAddr.map((l, i) => (i === 0 ? 'Manufacturer address: ' + l : l)));
     const contact2Row = Math.max(9, after);
@@ -173,22 +173,22 @@ async function generateCI(shipmentData, meta) {
     });
 
     // ── Aggregate rows by PO + SKU ───────────────────────────────────────
-    // Key by po_number too: a consolidated booking can carry the same style-color
+    // Key by poNumber too: a consolidated booking can carry the same style-color
     // SKU under multiple POs, and those must stay as separate CI line items
     // (keying by SKU alone would collapse them and drop a PO from the invoice).
     const skuMap = new Map();
     for (const r of shipmentData.rows) {
-        const key = `${r.po_number || ''}||${r.sku}`;
+        const key = `${r.poNumber || ''}||${r.sku}`;
         if (skuMap.has(key)) {
-            skuMap.get(key).qty += r.pcs_per_ctn;
+            skuMap.get(key).qty += r.pcsPerCtn;
         } else {
-            skuMap.set(key, { ...r, qty: r.pcs_per_ctn });
+            skuMap.set(key, { ...r, qty: r.pcsPerCtn });
         }
     }
 
     // Sort by PO, then SKU
     const skuRows = [...skuMap.values()].sort((a, b) =>
-        (a.po_number || '').localeCompare(b.po_number || '') ||
+        (a.poNumber || '').localeCompare(b.poNumber || '') ||
         a.sku.localeCompare(b.sku)
     );
 
@@ -198,12 +198,12 @@ async function generateCI(shipmentData, meta) {
     let totalValue = 0;
 
     for (const s of skuRows) {
-        const lineTotal = parseFloat((s.qty * s.unit_price).toFixed(2));
+        const lineTotal = parseFloat((s.qty * s.unitPrice).toFixed(2));
         const values = [
-            s.po_number, s.sku, s.upc || '', s.knit_woven || '',
+            s.poNumber, s.sku, s.upc || '', s.knitWoven || '',
             s.style_description || '', s.color_description || '',
             s.category || '', s.gender || '', s.composition || '',
-            s.hts_code || '', s.qty, s.unit_price, lineTotal,
+            s.htsCode || '', s.qty, s.unitPrice, lineTotal,
         ];
         const row = ws.getRow(dataRow);
         values.forEach((v, i) => {

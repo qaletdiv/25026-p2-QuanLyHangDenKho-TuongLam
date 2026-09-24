@@ -157,7 +157,7 @@ function classOf(channel, country) {
  * Resolve the class for one line.
  *
  * line: { service, clientRef1, clientRef2, customer, legendClass }
- * returns { class, channel, order_type, country, basis, confidence, resolved }
+ * returns { class, channel, orderType, country, basis, confidence, resolved }
  *
  * `confidence`:
  *   'exact'      the line's own order was found
@@ -175,7 +175,7 @@ function resolveClass(line, index, options) {
 
   // 0. Amazon is a marketplace, not a channel — it gets its own class.
   if (isAmazon(cust, line.clientRef1)) {
-    return { class: CLASSES.AMAZON_US, channel: 'amazon', order_type: null, country: null,
+    return { class: CLASSES.AMAZON_US, channel: 'amazon', orderType: null, country: null,
       basis: 'amazon', confidence: 'declared', resolved: true };
   }
 
@@ -183,27 +183,27 @@ function resolveClass(line, index, options) {
   const declared = (options && options.customerChannels) || CUSTOMER_CHANNEL;
   const dc = declared[customerCode(cust)] || declared[customerName(cust)];
   if (dc) {
-    return { class: classOf(dc, 'UNITED STATES'), channel: dc, order_type: null, country: null,
-      basis: 'customer_declared', confidence: 'declared', resolved: true };
+    return { class: classOf(dc, 'UNITED STATES'), channel: dc, orderType: null, country: null,
+      basis: 'customerDeclared', confidence: 'declared', resolved: true };
   }
 
   // 2. The line's own order.
   const attempts = [
-    ['order_no', 'exact', () => idx.byOrder.get(upper(line.clientRef1))],
+    ['orderNo', 'exact', () => idx.byOrder.get(upper(line.clientRef1))],
     ['ref2', 'exact', () => idx.byRef2.get(upper(line.clientRef2))],
-    ['cust_code', 'derived', () => idx.byCode.get(customerCode(cust))],
-    ['cust_name', 'derived', () => idx.byName.get(customerName(cust))],
+    ['custCode', 'derived', () => idx.byCode.get(customerCode(cust))],
+    ['custName', 'derived', () => idx.byName.get(customerName(cust))],
   ];
   for (const [basis, confidence, get] of attempts) {
     const o = get();
     if (!o || !o.orderType) continue;
     const channel = CHANNEL[upper(o.orderType)];
     if (!channel) {
-      return { class: null, channel: null, order_type: o.orderType, country: o.country || null,
+      return { class: null, channel: null, orderType: o.orderType, country: o.country || null,
         basis, confidence: 'unresolved', resolved: false,
         reason: `order type "${o.orderType}" has no channel mapping` };
     }
-    return { class: classOf(channel, o.country), channel, order_type: o.orderType,
+    return { class: classOf(channel, o.country), channel, orderType: o.orderType,
       country: o.country || null, basis, confidence, resolved: true };
   }
 
@@ -211,8 +211,8 @@ function resolveClass(line, index, options) {
   if (isReturns && (!options || options.allowRefFormat !== false)) {
     const ch = refFormatChannel(line.clientRef1);
     if (ch) {
-      return { class: classOf(ch, 'UNITED STATES'), channel: ch, order_type: null, country: null,
-        basis: 'ref_format', confidence: 'inferred', resolved: true };
+      return { class: classOf(ch, 'UNITED STATES'), channel: ch, orderType: null, country: null,
+        basis: 'refFormat', confidence: 'inferred', resolved: true };
     }
   }
 
@@ -220,8 +220,8 @@ function resolveClass(line, index, options) {
   //    the line carries no reference. Wholesale by default, which is what finance
   //    does with them.
   if (NON_ORDER_SERVICES.has(upper(service)) || (!norm(line.clientRef1) && !norm(line.clientRef2))) {
-    return { class: CLASSES.US_WHOLESALE, channel: 'wholesale', order_type: null, country: null,
-      basis: 'non_order', confidence: 'default', resolved: true };
+    return { class: CLASSES.US_WHOLESALE, channel: 'wholesale', orderType: null, country: null,
+      basis: 'nonOrder', confidence: 'default', resolved: true };
   }
 
   // 5. An order-level line whose order is not in the master yet.
@@ -232,8 +232,8 @@ function resolveClass(line, index, options) {
   //    it. This is a MISSING INPUT (the period's order CSV), not a judgement call,
   //    so it is surfaced as such.
   return {
-    class: null, channel: null, order_type: null, country: null,
-    basis: 'no_order_data', confidence: 'unresolved', resolved: false,
+    class: null, channel: null, orderType: null, country: null,
+    basis: 'noOrderData', confidence: 'unresolved', resolved: false,
     reason: `order ${norm(line.clientRef1) || '(none)'} is not in the order master — needs the order data covering this period`,
   };
 }

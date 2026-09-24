@@ -26,14 +26,14 @@ const express = require('express');
 const path = require('path');
 const router = express.Router();
 const { asyncWrap } = require('../middleware/errorHandler');
-const BaseModel = require('../models/BaseModel');
+const { models } = require('../models');
 const { resolveVendorSupplierId } = require('../utils/vendorScope');
 const mainlineAccess = require('../modules/mainline/vendorAccess');
 const smsAccess = require('../modules/sms/vendorAccess');
 
-const UPLOAD_DIR = path.join(__dirname, '..', 'data', 'uploads');
+const UPLOAD_DIR = path.join(__dirname, '..', 'storage', 'uploads');
 
-const readM = (f) => new BaseModel(`migrated/${f}.json`).read().catch(() => []);
+const readM = (f) => models[f].read().catch(() => []);
 
 // Same 404 for "no such file", "not yours" and "can't tell whose it is". Distinct
 // codes would let a vendor probe which documents exist for other suppliers.
@@ -55,17 +55,17 @@ router.get('/:filename', asyncWrap(async (req, res) => {
 
     // Which record does this file belong to? First match wins; the three namespaces
     // don't overlap (ci_/asn_/sms_ prefixes).
-    const mlDoc = mlDocs.find((d) => d.file_url === fileUrl);
-    const mlAsn = mlAsns.find((a) => a.file_url === fileUrl);
-    const smsDoc = smsDocs.find((d) => d.file_url === fileUrl);
+    const mlDoc = mlDocs.find((d) => d.fileUrl === fileUrl);
+    const mlAsn = mlAsns.find((a) => a.fileUrl === fileUrl);
+    const smsDoc = smsDocs.find((d) => d.fileUrl === fileUrl);
 
     if (mlDoc) {
         // throws 404 when the caller may not see the parent booking
-        await mainlineAccess.assertBookingVisible(req, mlDoc.booking_id, 'File not found');
+        await mainlineAccess.assertBookingVisible(req, mlDoc.bookingId, 'File not found');
     } else if (mlAsn) {
-        await mainlineAccess.assertShipmentVisible(req, mlAsn.shipment_id, 'File not found');
+        await mainlineAccess.assertShipmentVisible(req, mlAsn.shipmentId, 'File not found');
     } else if (smsDoc) {
-        await smsAccess.assertShipmentVisible(req, smsDoc.shipment_id, 'File not found');
+        await smsAccess.assertShipmentVisible(req, smsDoc.shipmentId, 'File not found');
     } else {
         // ORPHAN — a file on disk with no owning row (a re-upload replaced the record,
         // or it predates the current tables; ~40 of them). Attribution is impossible,

@@ -7,15 +7,17 @@
 // state is a per-user set of "seen" keys (notification_seen.json), used solely to
 // compute the unread badge; it's pruned to currently-active keys on every write.
 
-const BaseModel = require('../../models/BaseModel');
+const { models } = require('../../models');
+const { readDocument, writeDocument } = require('../../database/modelStore');
 const svc = require('./notificationService');
 const { resolveVendorSupplierId } = require('../../utils/vendorScope');
 
-const readM = (f) => new BaseModel(`migrated/${f}.json`).read().catch(() => []);   // normalized tables
-const read  = (f) => new BaseModel(`${f}.json`).read().catch(() => []);            // legacy master data (data/ root)
-const SeenModel = new BaseModel('notification_seen.json');
+const readM = (f) => models[f].read().catch(() => []);   // normalized tables
+const read  = readM;            // legacy master data (data/ root)
+// A whole-file JSON blob with no row grain — it lives in _documents, not a table.
+const SeenModel = { read: () => readDocument('notification_seen'), write: (d) => writeDocument('notification_seen', d) };
 
-// Resolve a Vendor's supplier_id (utils/vendorScope — one copy, was four).
+// Resolve a Vendor's supplierId (utils/vendorScope — one copy, was four).
 // Read path, so onUnlinked:'deny' → the NO_SUPPLIER sentinel matches no row and
 // the bell renders empty, rather than 403-ing the whole top bar.
 const vendorSupplierId = (user) => resolveVendorSupplierId(user, { onUnlinked: 'deny' });
@@ -34,9 +36,9 @@ async function loadData() {
     mainline: { legs, legLines, orders, masters, bookings, bookingLegs, statuses, suppliers },
     sms: {
       pos, poLines, shipments, shipmentPos, packingCartons, receipts, receiptLines,
-      codeMap: new Map(codeRows.map((r) => [`${r.courier_id}|${r.courier_code}`, r.status_id])),
+      codeMap: new Map(codeRows.map((r) => [`${r.courierId}|${r.courierCode}`, r.statusId])),
       statusNameById: new Map(statuses.map((s) => [s.id, s.name])),
-      eventsByShipment: trackingEvents.reduce((m, e) => ((m[e.shipment_id] = m[e.shipment_id] || []).push(e), m), {}),
+      eventsByShipment: trackingEvents.reduce((m, e) => ((m[e.shipmentId] = m[e.shipmentId] || []).push(e), m), {}),
     },
   };
 }
@@ -52,7 +54,7 @@ async function list(req, res) {
   const seenMap = await SeenModel.read().catch(() => ({}));
   const seen = new Set(seenMap[req.user.id] || []);
   const withRead = notifications.map((n) => ({ ...n, unread: !seen.has(n.key) }));
-  res.json({ notifications: withRead, unread_count: withRead.filter((n) => n.unread).length });
+  res.json({ notifications: withRead, unreadCount: withRead.filter((n) => n.unread).length });
 }
 
 async function markSeen(req, res) {
@@ -63,7 +65,7 @@ async function markSeen(req, res) {
   // notification later shows as unread again
   seenMap[req.user.id] = activeKeys;
   await SeenModel.write(seenMap);
-  res.json({ ok: true, unread_count: 0 });
+  res.json({ ok: true, unreadCount: 0 });
 }
 
 module.exports = { list, markSeen };

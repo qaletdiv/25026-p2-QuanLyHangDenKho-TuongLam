@@ -38,9 +38,9 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const SRC = path.join(__dirname, '..', 'data', 'converted docs');
-const OUT = path.join(__dirname, '..', 'data', 'converted');
-const SKU_CODES = new Set(require(path.join(__dirname, '..', 'data', 'migrated', 'product_skus.json')).map((s) => s.sku_code));
+const SRC = path.join(__dirname, '..', 'storage', 'converted-docs');
+const OUT = path.join(__dirname, '..', 'storage', 'converted');
+const SKU_CODES = new Set(require(path.join(__dirname, '..', 'database', 'seed-data', 'snapshot', 'product_skus.json')).map((s) => s.skuCode));
 
 const TEMPLATE_HEADER = [
   'CTN#', 'PO#', 'SKU', 'UPC', 'Knit/Woven', 'Style Description', 'Color Description',

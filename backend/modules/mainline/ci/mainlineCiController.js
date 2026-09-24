@@ -9,9 +9,7 @@
 // The CI is populated by the shipment-data upload (shipmentDataController), which
 // writes the packing cartons the lines derive from.
 
-const MainlineCiModel = require('./MainlineCiModel');
-const MainlineBookingModel = require('../bookings/MainlineBookingModel');
-const MainlinePackingModel = require('../packing/MainlinePackingModel');
+const { models } = require('../../../models');
 const { linesForBooking } = require('./ciLines');
 const { assertBookingVisible } = require('../vendorAccess');
 
@@ -32,7 +30,7 @@ function tallies(myLines) {
 // booking id gets the same 404 as a nonexistent one. Guards the CI read AND confirm.
 async function _bookingOr404(req, id) {
   await assertBookingVisible(req, id);
-  const bookings = await MainlineBookingModel.readBookings();
+  const bookings = await models.mainline_bookings.read();
   const b = bookings.find((x) => x.id === id);
   if (!b) err('Booking not found', 404);
   return b;
@@ -40,8 +38,8 @@ async function _bookingOr404(req, id) {
 
 async function getCi(req, res) {
   await _bookingOr404(req, req.params.id);
-  const [invoices, cartons] = await Promise.all([MainlineCiModel.readInvoices(), MainlinePackingModel.read()]);
-  const ci = invoices.find((i) => i.booking_id === req.params.id);
+  const [invoices, cartons] = await Promise.all([models.mainline_commercial_invoices.read(), models.mainline_packing_cartons.read()]);
+  const ci = invoices.find((i) => i.bookingId === req.params.id);
   if (!ci) err('No commercial invoice for this booking', 404);
   const myLines = linesForBooking(cartons, req.params.id);   // derived from packing cartons
   res.json({ ...ci, ...tallies(myLines), line_items: myLines });
@@ -49,15 +47,15 @@ async function getCi(req, res) {
 
 async function confirmCi(req, res) {
   await _bookingOr404(req, req.params.id);
-  const [invoices, cartons] = await Promise.all([MainlineCiModel.readInvoices(), MainlinePackingModel.read()]);
-  const ci = invoices.find((i) => i.booking_id === req.params.id);
+  const [invoices, cartons] = await Promise.all([models.mainline_commercial_invoices.read(), models.mainline_packing_cartons.read()]);
+  const ci = invoices.find((i) => i.bookingId === req.params.id);
   if (!ci) err('No commercial invoice to confirm', 400);
 
   const myLines = linesForBooking(cartons, req.params.id);   // derived
   ci.status = 'confirmed';
-  ci.confirmed_at = new Date().toISOString();   // event fact — stored; tallies/lines are derived
+  ci.confirmedAt = new Date().toISOString();   // event fact — stored; tallies/lines are derived
 
-  await MainlineCiModel.writeInvoices(invoices);
+  await models.mainline_commercial_invoices.write(invoices);
   res.json({ ...ci, ...tallies(myLines), line_items: myLines });
 }
 

@@ -3,7 +3,7 @@
 // Master-data name → id resolvers, shared by both ingestion paths.
 // Read-only: if a name doesn't resolve, the caller records a warning (mirrors the
 // migration script). New-season creation is a deliberate non-goal for Phase 2.
-const BaseModel = require('../../models/BaseModel');
+const { models } = require('../../models');
 const { splitWarehouseName, channelIdByName } = require('./warehouseFacility');
 
 const { norm, supplierKey } = require('../../utils/nameKey');
@@ -16,12 +16,12 @@ const makeMap = (rows, key, keyFn = norm) => {
 
 async function loadResolvers() {
   const [sup, wh, modes, inco, seasons, facilities] = await Promise.all([
-    new BaseModel('suppliers.json').read(),
-    new BaseModel('warehouses.json').read(),
-    new BaseModel('modes.json').read(),
-    new BaseModel('incoterms.json').read(),
-    new BaseModel('migrated/seasons.json').read(),
-    new BaseModel('migrated/warehouse_facilities.json').read(),
+    models.suppliers.read(),
+    models.warehouses.read(),
+    models.modes.read(),
+    models.incoterms.read(),
+    models.seasons.read(),
+    models.warehouse_facilities.read(),
   ]);
   // Suppliers key on supplierKey so a WIP sheet spelling ("Best Star Fashions Co Ltd")
   // resolves to the master row however NetSuite punctuates it ("…Co., Ltd."). Before
@@ -43,14 +43,14 @@ async function loadResolvers() {
   };
 
   // Decompose a conflated warehouse name ("NRI US Reserved") into a physical
-  // facility_id + an internal allocation_channel_id. Used by both ingestion paths
+  // facilityId + an internal allocationChannelId. Used by both ingestion paths
   // when writing po_orders. See modules/po/warehouseFacility.js.
   const facilityChannel = (name, ctx) => {
-    if (name == null || name === '') return { facility_id: null, allocation_channel_id: null };
+    if (name == null || name === '') return { facilityId: null, allocationChannelId: null };
     const { facilityName, channelName } = splitWarehouseName(name);
-    const facility_id = facilityName ? (facility.get(norm(facilityName)) || null) : null;
-    if (!facility_id) warnings.push(`unresolved facility "${name}"${ctx ? ' @ ' + ctx : ''}`);
-    return { facility_id, allocation_channel_id: channelName ? (channelIdByName.get(norm(channelName)) || null) : null };
+    const facilityId = facilityName ? (facility.get(norm(facilityName)) || null) : null;
+    if (!facilityId) warnings.push(`unresolved facility "${name}"${ctx ? ' @ ' + ctx : ''}`);
+    return { facilityId, allocationChannelId: channelName ? (channelIdByName.get(norm(channelName)) || null) : null };
   };
 
   return {

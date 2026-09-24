@@ -60,16 +60,18 @@ async function track(trackingNumbers) {
 
     for (const ctr of res.data?.output?.completeTrackResults || []) {
       const tr = (ctr.trackResults || [])[0] || {};
+      // Keys are OURS (camelCase, they become sms_tracking_events rows); the
+      // `e.*` / `ctr.*` reads are FedEx's own API field names — leave those.
       const scans = (tr.scanEvents || []).map((e) => ({
-        event_time: e.date || null,
-        courier_code: e.eventType || e.derivedStatusCode || '',
+        eventTime: e.date || null,
+        courierCode: e.eventType || e.derivedStatusCode || '',
         description: e.eventDescription || e.derivedStatus || null,
         location: [e.scanLocation?.city, e.scanLocation?.stateOrProvinceCode, e.scanLocation?.countryCode]
           .filter(Boolean).join(', ') || null,
-      })).filter((e) => e.event_time && e.courier_code);
+      })).filter((e) => e.eventTime && e.courierCode);
       const win = tr.estimatedDeliveryTimeWindow?.window;
       out.push({
-        tracking_number: ctr.trackingNumber,
+        trackingNumber: ctr.trackingNumber,
         events: scans,
         eta: win?.begins || win?.ends ? { begins: win.begins || null, ends: win.ends || null } : null,
         latest_code: tr.latestStatusDetail?.derivedCode || tr.latestStatusDetail?.code || null,

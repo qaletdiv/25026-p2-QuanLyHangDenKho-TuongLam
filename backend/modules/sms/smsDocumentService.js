@@ -2,7 +2,7 @@
 
 // Generates CI + Packing-List artifacts for an SMS consignment from its parsed
 // carton rows, at two grains (mirrors mainline documentService):
-//   • COMBINED — all the shipment's rows (po_number = null on the doc record)
+//   • COMBINED — all the shipment's rows (poNumber = null on the doc record)
 //   • PER-PO   — one set per PO (only when the consignment carries >1 PO)
 // Reuses the shared ciGenerator/plGenerator. Returns sms_documents records; the
 // caller persists them.
@@ -10,14 +10,14 @@
 const { Readable } = require('stream');
 const { generateCI } = require('../../services/ciGenerator');
 const { generatePL } = require('../../services/plGenerator');
-const driveStorage = require('../../driveStorage');
+const fileStorage = require('../../storage/fileStorage');
 const { packingSummary } = require('./smsService');
 
 const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 async function _save(name, buffer) {
   const s = new Readable(); s.push(Buffer.from(buffer)); s.push(null);
-  return driveStorage.uploadFile(name, s, XLSX_MIME);
+  return fileStorage.uploadFile(name, s, XLSX_MIME);
 }
 
 function _meta(shipment, poNumbers, invoiceNumber, { supplier, facility, notify, shippingMode }) {
@@ -25,13 +25,13 @@ function _meta(shipment, poNumbers, invoiceNumber, { supplier, facility, notify,
     vendor_name: supplier.name || '', vendor_address: supplier.address || '',
     // The factory, which may not be the company being invoiced — same source and
     // same fallback as mainline's documentService.
-    manufacturer_name: supplier.manufacturer_name || '',
-    manufacturer_address: supplier.manufacturer_address || '',
-    po_number: poNumbers.join(', '), invoice_number: invoiceNumber,
+    manufacturerName: supplier.manufacturerName || '',
+    manufacturerAddress: supplier.manufacturerAddress || '',
+    poNumber: poNumbers.join(', '), invoiceNumber: invoiceNumber,
     date: new Date().toISOString().slice(0, 10),
-    shipment_number: shipment.tracking_number || shipment.id,   // the courier tracking # identifies an SMS consignment
-    country_of_origin: supplier.country || '', port_of_loading: supplier.port_of_loading || '',
-    port_of_discharge: facility.port_of_discharge || '', consignee_name: facility.name || '',
+    shipmentNumber: shipment.trackingNumber || shipment.id,   // the courier tracking # identifies an SMS consignment
+    country_of_origin: supplier.country || '', portOfLoading: supplier.portOfLoading || '',
+    portOfDischarge: facility.portOfDischarge || '', consignee_name: facility.name || '',
     consignee_address: facility.address || '',
     // Notify party is the SINGLETON `notify_party` row — always tentree, whatever
     // the destination or module. Same source as mainline's documentService.
@@ -41,12 +41,12 @@ function _meta(shipment, poNumbers, invoiceNumber, { supplier, facility, notify,
   };
 }
 
-// `mode_id` is set at booking-approve and is NULL on every vendor-entered parcel,
+// `modeId` is set at booking-approve and is NULL on every vendor-entered parcel,
 // which is the normal SMS path — those went by courier. Same fallback the landed
 // -cost push applies to custbody16 (netsuiteLandedCost), so the document and the
 // NetSuite record state the same mode.
 function _shippingMode(shipment, modes) {
-  const m = modes.find((x) => x.id === shipment.mode_id);
+  const m = modes.find((x) => x.id === shipment.modeId);
   return (m && m.name) || 'Courier';
 }
 
@@ -58,17 +58,17 @@ function _shippingMode(shipment, modes) {
 // held a DIFFERENT value; the master keeps its own there.
 function rowsFromCartons(cartons, skuByCode) {
   return cartons.map((c) => {
-    const sku = skuByCode.get(c.sku_code) || {};
+    const sku = skuByCode.get(c.skuCode) || {};
     return {
-      po_number: c.po_number, sku: c.sku_code, ctn_number: c.ctn_number,
-      pcs_per_ctn: c.pcs_per_ctn || 0, unit_price: c.unit_price || 0,
-      total_usd: +(((c.pcs_per_ctn || 0) * (c.unit_price || 0)).toFixed(2)),
-      net_weight_kgs: c.net_weight_kgs ?? null, gross_weight_kgs: c.gross_weight_kgs ?? null,
-      measure_cm: c.measure_cm || null,
-      upc: sku.upc || '', knit_woven: sku.knit_woven || '',
-      style_description: sku.description || sku.item_name || '', color_description: sku.colorway || '',
+      poNumber: c.poNumber, sku: c.skuCode, ctnNumber: c.ctnNumber,
+      pcsPerCtn: c.pcsPerCtn || 0, unitPrice: c.unitPrice || 0,
+      totalUsd: +(((c.pcsPerCtn || 0) * (c.unitPrice || 0)).toFixed(2)),
+      netWeightKgs: c.netWeightKgs ?? null, grossWeightKgs: c.grossWeightKgs ?? null,
+      measureCm: c.measureCm || null,
+      upc: sku.upc || '', knitWoven: sku.knitWoven || '',
+      style_description: sku.description || sku.itemName || '', color_description: sku.colorway || '',
       category: sku.category || '', gender: sku.gender || '', composition: sku.composition || '',
-      hts_code: sku.hts_code || '', style_color: sku.style_color || '',
+      htsCode: sku.htsCode || '', styleColor: sku.styleColor || '',
     };
   });
 }
@@ -76,10 +76,10 @@ function rowsFromCartons(cartons, skuByCode) {
 // The two document grains, in one place so generateAll and rebuild() can never
 // disagree about which rows belong to which document.
 function _groups(rows) {
-  const distinctPOs = [...new Set(rows.map((r) => r.po_number).filter(Boolean))];
+  const distinctPOs = [...new Set(rows.map((r) => r.poNumber).filter(Boolean))];
   const groups = [{ poNumber: null, scope: 'ALL', pos: distinctPOs, rows }];
   if (distinctPOs.length > 1) {
-    distinctPOs.forEach((po) => groups.push({ poNumber: po, scope: po, pos: [po], rows: rows.filter((r) => r.po_number === po) }));
+    distinctPOs.forEach((po) => groups.push({ poNumber: po, scope: po, pos: [po], rows: rows.filter((r) => r.poNumber === po) }));
   }
   return groups;
 }
@@ -87,12 +87,12 @@ function _groups(rows) {
 // ctx: { pos:sms_pos[], suppliers, facilities, modes, notifyParty }
 function _resolvers(shipment, rows, ctx) {
   const { pos, suppliers, facilities, modes = [], notifyParty = [] } = ctx;
-  const poByNumber = new Map(pos.map((p) => [p.po_number, p]));
+  const poByNumber = new Map(pos.map((p) => [p.poNumber, p]));
   // vendor scope guarantees one supplier per consignment; take it from the first PO
-  const firstPo = poByNumber.get(rows.find((r) => r.po_number)?.po_number) || {};
+  const firstPo = poByNumber.get(rows.find((r) => r.poNumber)?.poNumber) || {};
   return {
-    supplier: suppliers.find((s) => s.id === firstPo.supplier_id) || {},
-    facility: facilities.find((f) => f.id === shipment.facility_id) || {},
+    supplier: suppliers.find((s) => s.id === firstPo.supplierId) || {},
+    facility: facilities.find((f) => f.id === shipment.facilityId) || {},
     notify: notifyParty[0] || {},
     shippingMode: _shippingMode(shipment, modes),
   };
@@ -100,7 +100,7 @@ function _resolvers(shipment, rows, ctx) {
 
 async function generateAll(shipment, rows, ctx) {
   const r = _resolvers(shipment, rows, ctx);
-  const sid = String(shipment.tracking_number || shipment.id).replace(/[^a-zA-Z0-9]/g, '') || shipment.id;
+  const sid = String(shipment.trackingNumber || shipment.id).replace(/[^a-zA-Z0-9]/g, '') || shipment.id;
   const ds = new Date().toISOString().slice(2, 10).replace(/-/g, '');
   const ts = Date.now();
 
@@ -117,8 +117,8 @@ async function generateAll(shipment, rows, ctx) {
     ]);
     const now = new Date().toISOString();
     docs.push(
-      { id: `sdoc_${shipment.id}_${slug}_ci`, shipment_id: shipment.id, po_number: g.poNumber, doc_type: 'commercial_invoice', file_url: ciDoc.url, invoice_number: invoiceNumber, generated_at: now },
-      { id: `sdoc_${shipment.id}_${slug}_pl`, shipment_id: shipment.id, po_number: g.poNumber, doc_type: 'packing_list', file_url: plDoc.url, invoice_number: invoiceNumber, generated_at: now },
+      { id: `sdoc_${shipment.id}_${slug}_ci`, shipmentId: shipment.id, poNumber: g.poNumber, docType: 'commercial_invoice', fileUrl: ciDoc.url, invoiceNumber: invoiceNumber, generatedAt: now },
+      { id: `sdoc_${shipment.id}_${slug}_pl`, shipmentId: shipment.id, poNumber: g.poNumber, docType: 'packing_list', fileUrl: plDoc.url, invoiceNumber: invoiceNumber, generatedAt: now },
     );
   }
   return docs;
@@ -127,14 +127,14 @@ async function generateAll(shipment, rows, ctx) {
 // Rebuild ONE stored document's workbook from CURRENT data, without saving —
 // mirrors mainline's documentService.rebuild, and exists for the same reason: the
 // letterhead comes from master data edited after the upload, so a stored xlsx
-// freezes whatever was blank at generation time. Keeps the stored invoice_number.
+// freezes whatever was blank at generation time. Keeps the stored invoiceNumber.
 async function rebuild(doc, shipment, rows, ctx) {
   const r = _resolvers(shipment, rows, ctx);
-  const group = _groups(rows).find((g) => (g.poNumber || null) === (doc.po_number || null));
+  const group = _groups(rows).find((g) => (g.poNumber || null) === (doc.poNumber || null));
   if (!group) return null;
-  const meta = _meta(shipment, group.pos, doc.invoice_number, r);
+  const meta = _meta(shipment, group.pos, doc.invoiceNumber, r);
   const shipmentData = { rows: group.rows, summary: packingSummary(group.rows) };
-  return doc.doc_type === 'packing_list'
+  return doc.docType === 'packing_list'
     ? generatePL(shipmentData, meta)
     : generateCI(shipmentData, meta);
 }

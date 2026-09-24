@@ -274,15 +274,30 @@ Table po_orders {                       // STEP 2 — warehouse split. One per (
   // the two datasets share NO transactional tables (decision 2026-07-02).
 }
 
-Table po_order_lines {                  // NetSuite-owned per-SKU ordered qty (warehouse grain)
-  id            varchar [pk]
-  po_number     varchar [ref: > po_orders.po_number]
-  sku_code      varchar [ref: > product_skus.sku_code]
-  ordered_qty   integer
-  unit_price    decimal
+// NetSuite-owned PO lines. GRAIN IS THE NETSUITE LINE, NOT THE SKU.
+//
+// ⚠️ (po_number, sku_code) IS NOT UNIQUE and must never be declared so.
+// NetSuite legitimately repeats an item across several PO lines — split by
+// receipt date/location, or a price correction. PO04826 does it for 399 SKUs
+// (804 lines, 405 distinct items). The old unique here held only because every
+// PO so far happened to carry one line per item; the first one that did not
+// aborted every sync with a duplicate-key error. Same lesson as sms_po_lines.
+//
+// ⚠️ netsuite_line_id is the line number WITHIN the PO (1, 2, 3…), NOT a global
+// id: 4,096 live rows carry only 804 distinct values. It is unique only when
+// scoped by po_number, which is why the key and the row id both include it.
+// Row ids are `pol_ns_<po_number>_<line_id>` — stable across syncs.
+Table po_order_lines {
+  id                varchar [pk]        // pol_ns_<po_number>_<line_id>
+  po_number         varchar [ref: > po_orders.po_number]
+  netsuite_line_id  varchar             // line number within the PO
+  sku_code          varchar [ref: > product_skus.sku_code]
+  ordered_qty       integer
+  unit_price        decimal
 
   indexes {
-    (po_number, sku_code) [unique]
+    (po_number, netsuite_line_id) [unique]
+    (po_number, sku_code)                   // lookup only — NOT unique
   }
 }
 

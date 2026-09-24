@@ -1,11 +1,11 @@
 'use strict';
 
 // Mainline status vocabulary, categorized (booking vs shipment) per the redesigned
-// `statuses` table (module + category + sort_order). Names map to ids in the
+// `statuses` table (module + category + sortOrder). Names map to ids in the
 // categorized migrated/statuses.json at runtime. Two orthogonal axes: the stored
 // PROGRESS status (below) and a derived TIMELINESS status (On Time/At Risk/Late,
 // computed from E-DEL vs the production schedule) — see the reports module.
-const BaseModel = require('../../models/BaseModel');
+const { models } = require('../../models');
 
 const MAINLINE_BOOKING_STATUSES = ['No Booking', 'Booking Pending', 'Booking Approved', 'Cancelled', 'Rejected'];
 // PROGRESS pipeline for a physical shipment. "In Transit" is one stored state;
@@ -34,7 +34,7 @@ const MODULE = 'mainline';
 let _cache = null;
 async function _maps() {
   if (_cache) return _cache;
-  const all = await new BaseModel('migrated/statuses.json').read();
+  const all = await models.statuses.read();
   const rows = (Array.isArray(all) ? all : []).filter((r) => r.module === MODULE);
   const nameToId = new Map(rows.map((r) => [r.name, r.id]));
   const idToName = new Map(rows.map((r) => [r.id, r.name]));

@@ -3,25 +3,25 @@
 // Mainline booking service — enrichment + pure business helpers (G1 vendor match,
 // G2 leg-capacity overbooking). Pure functions are exported for unit testing.
 
-// leg_id → supplier_id, resolved leg → po_order → po_master.
+// legId → supplierId, resolved leg → po_order → po_master.
 function legSupplierMap(legs, orders, masters) {
-  const orderByPo = new Map(orders.map((o) => [o.po_number, o]));
-  const masterByTrn = new Map(masters.map((m) => [m.trn_number, m]));
+  const orderByPo = new Map(orders.map((o) => [o.poNumber, o]));
+  const masterByTrn = new Map(masters.map((m) => [m.trnNumber, m]));
   const m = new Map();
   legs.forEach((leg) => {
-    const order = orderByPo.get(leg.po_number);
-    const master = order && masterByTrn.get(order.trn_number);
-    m.set(leg.id, master ? master.supplier_id : null);
+    const order = orderByPo.get(leg.poNumber);
+    const master = order && masterByTrn.get(order.trnNumber);
+    m.set(leg.id, master ? master.supplierId : null);
   });
   return m;
 }
 
 // G1: every requested leg must belong to the booking's supplier.
-// Returns { ok, offending:[{leg_id, supplier_id}] }.
+// Returns { ok, offending:[{legId, supplierId}] }.
 function checkVendorMatch(legIds, supplierId, legSupplierById) {
   const offending = legIds
-    .map((id) => ({ leg_id: id, supplier_id: legSupplierById.get(id) ?? null }))
-    .filter((x) => x.supplier_id !== supplierId);
+    .map((id) => ({ legId: id, supplierId: legSupplierById.get(id) ?? null }))
+    .filter((x) => x.supplierId !== supplierId);
   return { ok: offending.length === 0, offending };
 }
 
@@ -29,14 +29,14 @@ function checkVendorMatch(legIds, supplierId, legSupplierById) {
 // destination facility by the SAME mode (supplier already enforced by G1). Returns
 // { ok, facilities:[], modes:[] } so the caller can report what conflicts.
 function checkSameConsignment(legIds, { legs, orders }) {
-  const orderByPo = new Map(orders.map((o) => [o.po_number, o]));
+  const orderByPo = new Map(orders.map((o) => [o.poNumber, o]));
   const legById = new Map(legs.map((l) => [l.id, l]));
   const facilities = new Set(), modes = new Set();
   legIds.forEach((id) => {
     const leg = legById.get(id) || {};
-    const order = orderByPo.get(leg.po_number) || {};
-    facilities.add(order.facility_id ?? null);
-    modes.add(leg.mode_id ?? null);
+    const order = orderByPo.get(leg.poNumber) || {};
+    facilities.add(order.facilityId ?? null);
+    modes.add(leg.modeId ?? null);
   });
   return { ok: facilities.size <= 1 && modes.size <= 1, facilities: [...facilities], modes: [...modes] };
 }
@@ -56,27 +56,27 @@ function checkSameConsignment(legIds, { legs, orders }) {
  * no value for that PO (older closed POs carry none) and must NOT block — treating
  * absence as disapproval would refuse legitimate bookings on historical POs.
  *
- * @returns {{ok: boolean, offending: Array<{leg_id, po_number, approval_status}>}}
+ * @returns {{ok: boolean, offending: Array<{legId, poNumber, approvalStatus}>}}
  */
 const BOOKING_BLOCKING_APPROVAL = new Set(['Pending Approval', 'Rejected']);
 
 function checkApproved(legIds, { legs, orders }) {
-  const orderByPo = new Map(orders.map((o) => [o.po_number, o]));
+  const orderByPo = new Map(orders.map((o) => [o.poNumber, o]));
   const legById = new Map(legs.map((l) => [l.id, l]));
   const offending = legIds
     .map((id) => {
       const leg = legById.get(id) || {};
-      const order = orderByPo.get(leg.po_number) || {};
-      return { leg_id: id, po_number: leg.po_number ?? null, approval_status: order.approval_status ?? null };
+      const order = orderByPo.get(leg.poNumber) || {};
+      return { legId: id, poNumber: leg.poNumber ?? null, approvalStatus: order.approvalStatus ?? null };
     })
-    .filter((x) => BOOKING_BLOCKING_APPROVAL.has(String(x.approval_status)));
+    .filter((x) => BOOKING_BLOCKING_APPROVAL.has(String(x.approvalStatus)));
   return { ok: offending.length === 0, offending };
 }
 
-// leg capacity = Σ allocated_qty of that leg's lines (the air/sea allocation).
+// leg capacity = Σ allocatedQty of that leg's lines (the air/sea allocation).
 function legCapacities(legLines) {
   const cap = new Map();
-  legLines.forEach((l) => cap.set(l.leg_id, (cap.get(l.leg_id) || 0) + (l.allocated_qty || 0)));
+  legLines.forEach((l) => cap.set(l.legId, (cap.get(l.legId) || 0) + (l.allocatedQty || 0)));
   return cap;
 }
 
@@ -87,8 +87,8 @@ function bookedUnitsByLeg(bookings, bookingLegs, { excludeBookingId } = {}) {
   );
   const booked = new Map();
   bookingLegs.forEach((bl) => {
-    if (!liveBookingIds.has(bl.booking_id)) return;
-    booked.set(bl.leg_id, (booked.get(bl.leg_id) || 0) + (Number(bl.units) || 0));
+    if (!liveBookingIds.has(bl.bookingId)) return;
+    booked.set(bl.legId, (booked.get(bl.legId) || 0) + (Number(bl.units) || 0));
   });
   return booked;
 }
@@ -97,13 +97,13 @@ function bookedUnitsByLeg(bookings, bookingLegs, { excludeBookingId } = {}) {
 function overbookWarnings(requestedLegs, { capacities, bookedByLeg, legPo }) {
   const warnings = [];
   requestedLegs.forEach((rl) => {
-    const cap = capacities.get(rl.leg_id) || 0;
-    const already = bookedByLeg.get(rl.leg_id) || 0;
+    const cap = capacities.get(rl.legId) || 0;
+    const already = bookedByLeg.get(rl.legId) || 0;
     const requested = Number(rl.units) || 0;
     if (already + requested > cap) {
       warnings.push({
-        leg_id: rl.leg_id,
-        po_number: legPo.get(rl.leg_id) || null,
+        legId: rl.legId,
+        poNumber: legPo.get(rl.legId) || null,
         already_booked: already,
         capacity: cap,
         requested,
@@ -124,20 +124,20 @@ function enrichBookings(bookings, { bookingLegs, legs, suppliers, modes = [], or
   const legById = new Map(legs.map((l) => [l.id, l]));
   const modeName = new Map(modes.map((m) => [m.id, m.name]));
   const courierName = new Map(couriers.map((cr) => [cr.id, cr.name]));
-  const orderByPo = new Map(orders.map((o) => [o.po_number, o]));
-  const masterByTrn = new Map(masters.map((m) => [m.trn_number, m]));
+  const orderByPo = new Map(orders.map((o) => [o.poNumber, o]));
+  const masterByTrn = new Map(masters.map((m) => [m.trnNumber, m]));
   const seasonCode = new Map(seasons.map((s) => [s.id, s.code]));
-  const byBooking = bookingLegs.reduce((m, bl) => ((m[bl.booking_id] = m[bl.booking_id] || []).push(bl), m), {});
+  const byBooking = bookingLegs.reduce((m, bl) => ((m[bl.bookingId] = m[bl.bookingId] || []).push(bl), m), {});
   const seasonOfLeg = (leg) => {
-    const order = orderByPo.get(leg.po_number) || {};
-    const master = masterByTrn.get(order.trn_number) || {};
-    return seasonCode.get(master.season_id) || null;
+    const order = orderByPo.get(leg.poNumber) || {};
+    const master = masterByTrn.get(order.trnNumber) || {};
+    return seasonCode.get(master.seasonId) || null;
   };
   return bookings.map((b) => {
-    const myLegs = (byBooking[b.id] || []).map((bl) => legById.get(bl.leg_id) || {});
-    const po_legs = (byBooking[b.id] || []).map((bl) => {
-      const leg = legById.get(bl.leg_id) || {};
-      return { ...bl, po_number: leg.po_number || null, mode: modeName.get(leg.mode_id) || null };
+    const myLegs = (byBooking[b.id] || []).map((bl) => legById.get(bl.legId) || {});
+    const poLegs = (byBooking[b.id] || []).map((bl) => {
+      const leg = legById.get(bl.legId) || {};
+      return { ...bl, poNumber: leg.poNumber || null, mode: modeName.get(leg.modeId) || null };
     });
     const seasonSet = [...new Set(myLegs.map(seasonOfLeg).filter(Boolean))];
     // Cargo Ready falls back to the WIP leg CRD (latest across the booked legs) when
@@ -146,15 +146,15 @@ function enrichBookings(bookings, { bookingLegs, legs, suppliers, modes = [], or
     const legCrd = crds.length ? crds.reduce((a, c) => (c > a ? c : a)) : null;
     return {
       ...b,
-      supplier_name: supName.get(b.supplier_id) || null,
+      supplierName: supName.get(b.supplierId) || null,
       // PLANNED carrier (name JOINED, never stored). Null on bookings made before
       // 2026-08-24 and on any booking that did not name one.
-      courier: courierName.get(b.courier_id) || null,
-      booking_status: idToStatusName.get(b.booking_status_id) || null,
-      mode: [...new Set(po_legs.map((l) => l.mode).filter(Boolean))].join(', ') || null,
+      courier: courierName.get(b.courierId) || null,
+      bookingStatus: idToStatusName.get(b.bookingStatusId) || null,
+      mode: [...new Set(poLegs.map((l) => l.mode).filter(Boolean))].join(', ') || null,
       season: seasonSet.join(', ') || null,
-      cargo_ready_date: b.cargo_ready_date ?? legCrd,
-      po_legs,
+      cargoReadyDate: b.cargoReadyDate ?? legCrd,
+      poLegs,
     };
   });
 }

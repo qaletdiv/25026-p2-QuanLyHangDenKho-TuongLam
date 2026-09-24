@@ -32,19 +32,19 @@ const sum = (rows, pick) => Number(rows.reduce((a, r) => a + (Number(pick(r)) ||
 // screen greys out.
 function smsStatus(r) {
   if (r.posted) return 'Posted';
-  if (!r.has_shipping_data) return 'No shipping data';
-  if (r.awaiting_actual) return 'Awaiting actual';
-  if (!r.ir_resolved) return 'No IR match';
+  if (!r.hasShippingData) return 'No shipping data';
+  if (r.awaitingActual) return 'Awaiting actual';
+  if (!r.irResolved) return 'No IR match';
   if (!r.matched) return 'IR match unconfirmed';
   return 'Ready to post';
 }
 
 function mlStatus(r) {
-  if (r.split.length && r.posted_count === r.split.length) return 'Posted';
-  if (r.posted_count) return `Partially posted (${r.posted_count}/${r.split.length})`;
-  if (!r.has_shipping_data) return 'No shipping data';
-  if (r.awaiting_actual) return 'Awaiting actual';
-  if (!r.ir_resolved) return 'No IR match';
+  if (r.split.length && r.postedCount === r.split.length) return 'Posted';
+  if (r.postedCount) return `Partially posted (${r.postedCount}/${r.split.length})`;
+  if (!r.hasShippingData) return 'No shipping data';
+  if (r.awaitingActual) return 'Awaiting actual';
+  if (!r.irResolved) return 'No IR match';
   if (!r.matched) return 'IR match unconfirmed';
   return 'Ready to post';
 }
@@ -92,19 +92,19 @@ function smsWorkbook(rows) {
 
   addSheet(wb, 'Landed Costs', [
     { header: 'Module', key: 'module', width: 10 },
-    { header: 'Ship date', key: 'ship_date', width: 12 },
-    { header: 'Month', key: 'ship_month', width: 10 },
-    { header: 'Shipment #', key: 'shipment_number', width: 18 },
-    { header: 'Carrier Ref #', key: 'carrier_reference', width: 18 },
-    { header: 'Customs entry #', key: 'customs_entry_number', width: 18 },
+    { header: 'Ship date', key: 'shipDate', width: 12 },
+    { header: 'Month', key: 'shipMonth', width: 10 },
+    { header: 'Shipment #', key: 'shipmentNumber', width: 18 },
+    { header: 'Carrier Ref #', key: 'carrierReference', width: 18 },
+    { header: 'Customs entry #', key: 'customsEntryNumber', width: 18 },
     { header: 'Destination', key: 'facility', width: 16 },
     { header: 'Carrier', key: 'courier', width: 14 },
     { header: 'Mode', key: 'mode', width: 10 },
     { header: 'Basis', key: 'basis', width: 10 },
-    { header: 'Freight %', key: 'freight_pct', width: 10 },
-    { header: 'Duty %', key: 'duty_pct', width: 10 },
-    { header: 'PO #', key: 'po_number', width: 14 },
-    { header: 'CI value', key: 'ci_value', width: 14 },
+    { header: 'Freight %', key: 'freightPct', width: 10 },
+    { header: 'Duty %', key: 'dutyPct', width: 10 },
+    { header: 'PO #', key: 'poNumber', width: 14 },
+    { header: 'CI value', key: 'ciValue', width: 14 },
     { header: 'Freight', key: 'freight', width: 12 },
     { header: 'Duty', key: 'duty', width: 12 },
     { header: 'Commission', key: 'commission', width: 12 },
@@ -112,50 +112,50 @@ function smsWorkbook(rows) {
     { header: 'Item Receipt', key: 'ir', width: 14 },
     { header: 'IR confirmed', key: 'ir_confirmed', width: 13 },
     { header: 'Posted', key: 'posted', width: 10 },
-    { header: 'Posted at', key: 'posted_at', width: 22 },
+    { header: 'Posted at', key: 'postedAt', width: 22 },
     { header: 'Status', key: 'status', width: 20 },
     { header: 'Supplier', key: 'supplier', width: 30 },
     { header: 'Season', key: 'season', width: 10 },
   ], rows.flatMap((r) => {
-    const byPo = new Map((r.match || []).map((m) => [m.po_number, m]));
+    const byPo = new Map((r.match || []).map((m) => [m.poNumber, m]));
     const status = smsStatus(r);
     // SMS posts per SHIPMENT (one customs entry), so every PO line of a posted
     // consignment is posted — unlike mainline, where it is per PO.
     const posted = r.posted ? 'Yes' : 'No';
-    // A posted row records its OWN rates; `freight_pct` NULL on the snapshot IS the
+    // A posted row records its OWN rates; `freightPct` NULL on the snapshot IS the
     // record of "these were actuals off the bill" (see CLAUDE.md).
-    const freight_pct = r.posted ? r.posted.freight_pct : (r.is_booked ? null : r.estimate.freight_pct);
-    const duty_pct = r.posted ? r.posted.duty_pct : (r.is_booked ? null : r.estimate.duty_pct);
+    const freightPct = r.posted ? r.posted.freightPct : (r.isBooked ? null : r.estimate.freightPct);
+    const dutyPct = r.posted ? r.posted.dutyPct : (r.isBooked ? null : r.estimate.dutyPct);
     // A consignment with no shipping data has an EMPTY split (it is apportioned by
     // CI value), which would drop it from the export entirely — including a booked
     // one whose broker bill is already entered. Fall back to zero-amount lines from
     // its POs, exactly as the page does; the Status column says why they are zero.
     const split = (r.split && r.split.length)
       ? r.split
-      : (r.pos || []).map((po) => ({ po_number: po, ci_value: 0, freight: 0, duty: 0, commission: 0 }));
+      : (r.pos || []).map((po) => ({ poNumber: po, ciValue: 0, freight: 0, duty: 0, commission: 0 }));
     return split.map((sp) => {
-      const m = byPo.get(sp.po_number);
+      const m = byPo.get(sp.poNumber);
       return {
         module: 'SMS',
-        ship_date: r.ship_date, ship_month: r.ship_month,
-        shipment_number: r.tracking_number,
-        carrier_reference: null,            // no SMS equivalent — mainline-only field
-        customs_entry_number: r.customs_entry_number,
+        shipDate: r.shipDate, shipMonth: r.shipMonth,
+        shipmentNumber: r.trackingNumber,
+        carrierReference: null,            // no SMS equivalent — mainline-only field
+        customsEntryNumber: r.customsEntryNumber,
         facility: r.facility, courier: r.courier, mode: r.mode,
-        basis: r.basis, freight_pct, duty_pct,
-        po_number: sp.po_number,
-        ci_value: money(sp.ci_value), freight: money(sp.freight), duty: money(sp.duty),
+        basis: r.basis, freightPct, dutyPct,
+        poNumber: sp.poNumber,
+        ciValue: money(sp.ciValue), freight: money(sp.freight), duty: money(sp.duty),
         commission: money(sp.commission),
         total: money(Number(((sp.freight || 0) + (sp.duty || 0) + (sp.commission || 0)).toFixed(2))),
-        ir: m ? m.netsuite_ir_tranid : null,
+        ir: m ? m.netsuiteIrTranid : null,
         ir_confirmed: m ? (m.confirmed ? 'Yes' : 'No') : 'No',
         posted,
-        posted_at: r.posted ? r.posted.posted_at : null,
+        postedAt: r.posted ? r.posted.postedAt : null,
         status,
         supplier: r.supplier, season: r.season,
       };
     });
-  }), ['ci_value', 'freight', 'duty', 'commission', 'total'], { totals: false });
+  }), ['ciValue', 'freight', 'duty', 'commission', 'total'], { totals: false });
 
   return wb;
 }
@@ -177,19 +177,19 @@ function mainlineWorkbook(rows) {
 
   addSheet(wb, 'Landed Costs', [
     { header: 'Module', key: 'module', width: 10 },
-    { header: 'Ship date', key: 'ship_date', width: 12 },
-    { header: 'Month', key: 'ship_month', width: 10 },
-    { header: 'Shipment #', key: 'shipment_number', width: 14 },
-    { header: 'Carrier Ref #', key: 'carrier_reference', width: 18 },
-    { header: 'Customs entry #', key: 'customs_entry_number', width: 18 },
+    { header: 'Ship date', key: 'shipDate', width: 12 },
+    { header: 'Month', key: 'shipMonth', width: 10 },
+    { header: 'Shipment #', key: 'shipmentNumber', width: 14 },
+    { header: 'Carrier Ref #', key: 'carrierReference', width: 18 },
+    { header: 'Customs entry #', key: 'customsEntryNumber', width: 18 },
     { header: 'Destination', key: 'facility', width: 16 },
     { header: 'Carrier', key: 'courier', width: 14 },
     { header: 'Mode', key: 'mode', width: 10 },
     { header: 'Basis', key: 'basis', width: 10 },
-    { header: 'Freight %', key: 'freight_pct', width: 10 },
-    { header: 'Duty %', key: 'duty_pct', width: 10 },
-    { header: 'PO #', key: 'po_number', width: 14 },
-    { header: 'CI value', key: 'ci_value', width: 14 },
+    { header: 'Freight %', key: 'freightPct', width: 10 },
+    { header: 'Duty %', key: 'dutyPct', width: 10 },
+    { header: 'PO #', key: 'poNumber', width: 14 },
+    { header: 'CI value', key: 'ciValue', width: 14 },
     { header: 'Freight', key: 'freight', width: 12 },
     { header: 'Duty', key: 'duty', width: 12 },
     { header: 'Commission', key: 'commission', width: 12 },
@@ -197,36 +197,36 @@ function mainlineWorkbook(rows) {
     { header: 'Item Receipt', key: 'ir', width: 14 },
     { header: 'IR confirmed', key: 'ir_confirmed', width: 13 },
     { header: 'Posted', key: 'posted', width: 10 },
-    { header: 'Posted at', key: 'posted_at', width: 22 },
+    { header: 'Posted at', key: 'postedAt', width: 22 },
     { header: 'Status', key: 'status', width: 24 },
   ], rows.flatMap((r) => {
-    const byPo = new Map((r.match || []).map((m) => [m.po_number, m]));
+    const byPo = new Map((r.match || []).map((m) => [m.poNumber, m]));
     const status = mlStatus(r);
     // Mainline posts PER PO, so the posted flag belongs on the line, not the header.
     return (r.split || []).map((sp) => {
-      const m = byPo.get(sp.po_number);
+      const m = byPo.get(sp.poNumber);
       return {
         module: 'Mainline',
-        ship_date: r.ship_date, ship_month: r.ship_month,
-        shipment_number: r.shipment_number, carrier_reference: r.carrier_reference,
-        customs_entry_number: r.customs_entry_number,
+        shipDate: r.shipDate, shipMonth: r.shipMonth,
+        shipmentNumber: r.shipmentNumber, carrierReference: r.carrierReference,
+        customsEntryNumber: r.customsEntryNumber,
         facility: r.facility, courier: r.courier, mode: r.mode,
         basis: r.basis,
         // Only an ESTIMATE-basis shipment has rates; a forwarder one carries actuals.
-        freight_pct: r.is_estimate ? r.estimate.freight_pct : null,
-        duty_pct: r.is_estimate ? r.estimate.duty_pct : null,
-        po_number: sp.po_number,
-        ci_value: money(sp.ci_value), freight: money(sp.freight), duty: money(sp.duty),
+        freightPct: r.isEstimate ? r.estimate.freightPct : null,
+        dutyPct: r.isEstimate ? r.estimate.dutyPct : null,
+        poNumber: sp.poNumber,
+        ciValue: money(sp.ciValue), freight: money(sp.freight), duty: money(sp.duty),
         commission: money(sp.commission),
         total: money(Number(((sp.freight || 0) + (sp.duty || 0) + (sp.commission || 0)).toFixed(2))),
-        ir: m ? m.netsuite_ir_tranid : null,
+        ir: m ? m.netsuiteIrTranid : null,
         ir_confirmed: m ? (m.confirmed ? 'Yes' : 'No') : 'No',
         posted: sp.posted ? 'Yes' : 'No',
-        posted_at: sp.posted ? sp.posted.posted_at : null,
+        postedAt: sp.posted ? sp.posted.postedAt : null,
         status,
       };
     });
-  }), ['ci_value', 'freight', 'duty', 'commission', 'total'], { totals: false });
+  }), ['ciValue', 'freight', 'duty', 'commission', 'total'], { totals: false });
 
   return wb;
 }

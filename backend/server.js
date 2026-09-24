@@ -2,7 +2,6 @@ require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const driveStorage = require('./driveStorage');
 const { errorHandler } = require('./middleware/errorHandler');
 const { initCronJobs } = require('./services/cronJobs');
 
@@ -35,20 +34,18 @@ app.use(require('./middleware/securityHeaders'));
 app.use(express.json());
 
 // ---------------------------------------------------------------------------
-// ONE TRANSACTION PER WRITE REQUEST (Postgres backend only).
+// ONE TRANSACTION PER WRITE REQUEST.
 //
 // Mounted here, above every router, because the multi-table writes it protects
 // are spread across them: booking-approve writes shipments then shipment legs,
 // the shipping-data upload writes five tables, an SMS shipment writes a header
 // then its junction. Under the JSON stack a crash between two of those left
 // partial state with no way back; now the request either lands whole or not at
-// all. It is also what lets foreign keys exist at all — see db/txContext.js.
+// all. It is also what lets foreign keys exist at all — see database/txContext.js.
 //
 // GET/HEAD skip it, so read paths and streamed downloads are untouched.
 // ---------------------------------------------------------------------------
-if ((process.env.DATA_BACKEND || 'postgres').toLowerCase() === 'postgres') {
-    app.use(require('./db/txContext').transactionMiddleware);
-}
+app.use(require('./database/txContext').transactionMiddleware);
 
 // Health check
 app.get('/health', (req, res) => res.status(200).json({ message: 'initial running' }));
@@ -65,7 +62,7 @@ app.use('/login', rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
     message: 'Too many login attempts — please wait a few minutes and try again.',
-}), require('./routes/auth'));
+}), require('./modules/auth/authRoutes'));
 
 // ---------------------------------------------------------------------------
 // AUTH GATE — everything mounted BELOW this line requires a valid JWT.
@@ -108,36 +105,49 @@ app.use('/templates', (req, res, next) => {
         return res.status(404).json({ success: false, error: 'File not found' });
     }
     return next();
-}, express.static(path.join(__dirname, 'data', 'templates')));
+}, express.static(path.join(__dirname, 'storage', 'templates')));
 
 // Who am I, with permissions resolved NOW (not the login-time snapshot). The
-// frontend page gate calls this on navigation — see controllers/meController.
-app.use('/me',                 require('./routes/me'));
+// frontend page gate calls this on navigation — see modules/auth/meController.
+app.use('/me',                 require('./modules/auth/meRoutes'));
 app.use('/po',                 require('./modules/po/poRoutes'));        // normalized PO hierarchy (mainline)
 app.use('/mainline',           require('./modules/mainline/mainlineRoutes')); // mainline module
 app.use('/sms',                require('./modules/sms/smsRoutes'));      // SMS module — separate dataset (sms_* tables); see SMS_MODULE_PLAN.md
 app.use('/landed-costs',       require('./modules/landedcosts/landedCostRoutes')); // freight & duty (Phase 1: SMS estimates) — additive, own tables
 app.use('/nri-invoices',       require('./modules/nriinvoices/nriInvoiceRoutes')); // NRI 3PL invoice verification (invoice ↔ detail ↔ rate agreement) — additive, own tables under data/nri/
-app.use('/master-data',        require('./routes/masterData'));
-app.use('/contacts',           require('./routes/contacts'));
-app.use('/eom-tasks',          require('./routes/eomTasks'));
+app.use('/master-data',        require('./modules/masterdata/masterDataRoutes'));
+app.use('/contacts',           require('./modules/contacts/contactRoutes'));
 app.use('/reports',            require('./routes/reports'));
 app.use('/forecast',           require('./routes/forecast'));
-app.use('/users',              require('./routes/users'));
-app.use('/roles',              require('./routes/roles'));
-app.use('/freights',           require('./routes/freights'));
+app.use('/users',              require('./modules/users/userRoutes'));
+app.use('/roles',              require('./modules/roles/roleRoutes'));
+app.use('/freights',           require('./modules/freights/freightRoutes'));
 app.use('/notifications',      require('./routes/notifications')); // derived, role-scoped alerts
 
 // Global Error Handler must be last!
 app.use(errorHandler);
 
 if (require.main === module) {
-    // `.catch` matters: an unhandled rejection here is FATAL in Node 24, so
-    // anything init() throws would take the process down before app.listen ever
-    // ran. Storage problems are reported by init() itself; the server still
-    // comes up so /health answers and the app recovers on its own.
-    driveStorage.init().catch((e) => {
-        console.error('Storage init failed — starting anyway:', e.message);
+    // A failed ping must NOT stop the server coming up. Postgres here runs in a
+    // container that can be down for reasons that have nothing to do with the
+    // app (the WSL distro idling out takes dockerd with it), and refusing to
+    // boot would turn a database blip into "the portal is gone until someone
+    // restarts node". Sequelize reconnects by itself, so the next request after
+    // Postgres returns simply works.
+    //
+    // `.catch` also matters on its own terms: an unhandled rejection here is
+    // FATAL in Node 24 and would take the process down before app.listen ran.
+    require('./database/sequelize').ping().then((info) => {
+        console.log(`Data backend: PostgreSQL (${info.db}) via Sequelize.`);
+    }).catch((e) => {
+        const { connectionString } = require('./database/sequelize');
+        console.error('='.repeat(72));
+        console.error(`Data backend: PostgreSQL — CANNOT CONNECT (${e.code || e.message}).`);
+        console.error('The server is starting anyway and will reconnect on its own, but every');
+        console.error('request that touches data will fail until the database is reachable.');
+        console.error(`  connection: ${connectionString().replace(/:[^:@/]*@/, ':****@')}`);
+        console.error('  if it runs in WSL:  wsl -e docker start some-postgres');
+        console.error('='.repeat(72));
     }).then(() => {
         initCronJobs();
         app.listen(PORT, () => {

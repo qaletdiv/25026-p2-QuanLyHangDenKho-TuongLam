@@ -17,17 +17,17 @@
 //
 //   mainline_item_receipts are NETSUITE's record that goods physically arrived.
 //       They outlive any portal row and are never deleted here. Only the
-//       portal-owned match is cleared (matched_shipment_id + who confirmed it),
+//       portal-owned match is cleared (matchedShipmentId + who confirmed it),
 //       because a confirmation pointing at a deleted shipment asserts a link to
 //       something that is not there — the same reasoning utils/pruneStaleReceipts
 //       applies in the other direction. The receipt goes back to "unmatched" and
 //       its consignment stops deriving `Received` until someone re-confirms.
-const BaseModel = require('../../../models/BaseModel');
+const { models } = require('../../../models');
 
-const ShipmentLegModel           = new BaseModel('migrated/mainline_shipment_legs.json');
-const AsnModel                   = new BaseModel('migrated/mainline_asns.json');
-const ItemReceiptModel           = new BaseModel('migrated/mainline_item_receipts.json');
-const ReceiptMatchRejectionModel = new BaseModel('migrated/mainline_receipt_match_rejections.json');
+const ShipmentLegModel           = models.mainline_shipment_legs;
+const AsnModel                   = models.mainline_asns;
+const ItemReceiptModel           = models.mainline_item_receipts;
+const ReceiptMatchRejectionModel = models.mainline_receipt_match_rejections;
 
 /**
  * Detach every row that keys on `shipmentIds`. Does NOT delete the shipments
@@ -52,22 +52,22 @@ async function cascadeShipmentDelete(shipmentIds) {
     ReceiptMatchRejectionModel.read(), ItemReceiptModel.read(),
   ]);
 
-  const keptLegs = legs.filter((j) => !hit(j.shipment_id));
+  const keptLegs = legs.filter((j) => !hit(j.shipmentId));
   removed.shipment_legs = legs.length - keptLegs.length;
   if (removed.shipment_legs) await ShipmentLegModel.write(keptLegs);
 
-  const keptAsns = asns.filter((a) => !hit(a.shipment_id));
+  const keptAsns = asns.filter((a) => !hit(a.shipmentId));
   removed.asns = asns.length - keptAsns.length;
   if (removed.asns) await AsnModel.write(keptAsns);
 
-  const keptRejections = rejections.filter((r) => !hit(r.shipment_id));
+  const keptRejections = rejections.filter((r) => !hit(r.shipmentId));
   removed.rejections = rejections.length - keptRejections.length;
   if (removed.rejections) await ReceiptMatchRejectionModel.write(keptRejections);
 
-  removed.receipts_unlinked = receipts.filter((r) => hit(r.matched_shipment_id)).length;
+  removed.receipts_unlinked = receipts.filter((r) => hit(r.matchedShipmentId)).length;
   if (removed.receipts_unlinked) {
-    await ItemReceiptModel.write(receipts.map((r) => (hit(r.matched_shipment_id)
-      ? { ...r, matched_shipment_id: null, confirmed_by: null, confirmed_at: null }
+    await ItemReceiptModel.write(receipts.map((r) => (hit(r.matchedShipmentId)
+      ? { ...r, matchedShipmentId: null, confirmedBy: null, confirmedAt: null }
       : r)));
   }
 

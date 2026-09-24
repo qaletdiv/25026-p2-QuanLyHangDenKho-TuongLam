@@ -1,0 +1,82 @@
+[
+  {
+    "id": "ci_2",
+    "bookingId": "2",
+    "invoiceNumber": "INV-2",
+    "invoiceDate": "2026-07-23",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmedAt": "2026-07-23T20:34:30.109Z",
+    "fileUrl": null
+  },
+  {
+    "id": "ci_3",
+    "bookingId": "3",
+    "invoiceNumber": "INV-3",
+    "invoiceDate": "2026-07-29",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmedAt": "2026-07-29T16:26:33.725Z",
+    "fileUrl": null
+  },
+  {
+    "id": "ci_4",
+    "bookingId": "4",
+    "invoiceNumber": "INV-4",
+    "invoiceDate": "2026-07-30",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmedAt": "2026-07-30T17:41:14.037Z",
+    "fileUrl": null
+  },
+  {
+    "id": "ci_5",
+    "bookingId": "5",
+    "invoiceNumber": "INV-5",
+    "invoiceDate": "2026-07-30",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmedAt": "2026-07-30T18:25:19.842Z",
+    "fileUrl": null
+  },
+  {
+    "id": "ci_6",
+    "bookingId": "6",
+    "invoiceNumber": "INV-6",
+    "invoiceDate": "2026-08-10",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmedAt": "2026-08-10T17:57:19.534Z",
+    "fileUrl": null
+  },
+  {
+    "id": "ci_7",
+    "bookingId": "7",
+    "invoiceNumber": "INV-7",
+    "invoiceDate": "2026-08-10",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmedAt": "2026-08-10T18:28:45.849Z",
+    "fileUrl": null
+  },
+  {
+    "id": "ci_8",
+    "bookingId": "8",
+    "invoiceNumber": "INV-8",
+    "invoiceDate": "2026-08-25",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmedAt": "2026-08-26T19:56:01.477Z",
+    "fileUrl": null
+  },
+  {
+    "id": "ci_9",
+    "bookingId": "9",
+    "invoiceNumber": "INV-9",
+    "invoiceDate": "2026-08-31",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmedAt": "2026-08-31T18:59:10.157Z",
+    "fileUrl": null
+  }
+]

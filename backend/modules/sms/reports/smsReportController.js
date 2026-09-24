@@ -6,13 +6,13 @@
 //
 // SMS has no production schedule to grade against (that's a mainline concept);
 // its time anchor is HOD (custbody8) — the handover-by date, the SMS "CRD".
-// Timeliness compares the EARLIEST handover-to-courier (shipment.ship_date)
+// Timeliness compares the EARLIEST handover-to-courier (shipment.shipDate)
 // against HOD; unshipped POs grade On Track / Overdue vs today.
 //
 // Shipped units are FLOORED AT RECEIVED (see shippedFor) — most of the live order
 // book was received in NetSuite without a portal consignment ever being entered,
 // and reading the portal record alone reported those seasons as 0% shipped with
-// 99% received. `shipped_recorded_qty` keeps the unfloored figure.
+// 99% received. `shippedRecordedQty` keeps the unfloored figure.
 //
 // Like the mainline report this controller only EMITS rows — the client does the
 // season filter, funnel, pivots and donuts. Everything here is derived at
@@ -48,7 +48,7 @@ function hodTimeliness(shipped, hod, earliestShip, today) {
 // You cannot receive what was never shipped, so received is a FLOOR. The inferred
 // floor is capped at `ordered`: an over-receipt (PO04800 — 352 received against 200
 // ordered, receipt noise) must not push shipped above the order and drive
-// `remaining_qty` negative. A genuine over-SHIP stays visible, because `recorded`
+// `remainingQty` negative. A genuine over-SHIP stays visible, because `recorded`
 // itself is never capped (PO04823 ships 125 against 121 ordered and still reads 125).
 function shippedFor(ordered, recorded, received) {
   return Math.max(recorded, Math.min(received, ordered));
@@ -58,8 +58,8 @@ function shippedFor(ordered, recorded, received) {
 // Always sums to exactly `ordered`, so a pivot over these still reconciles to the
 // season's ordered total.
 //
-// This exists because `kpi_status` answers a different question. It is a PO-level
-// state, so a pivot that sums `ordered_qty` by status files a PO's ENTIRE quantity
+// This exists because `kpiStatus` answers a different question. It is a PO-level
+// state, so a pivot that sums `orderedQty` by status files a PO's ENTIRE quantity
 // under one label: Shanghai Pucci FW27 reported "Partially Shipped 230" when 929 of
 // 937 units had arrived and only 8 were outstanding (PO04818 short-shipped 2 SKUs);
 // FW26 reported 412 against a real gap of 5. Same shape as the mainline report,
@@ -68,14 +68,14 @@ function shippedFor(ordered, recorded, received) {
 // Both ends are capped at `ordered` so an over-receipt (PO04800: 352 received
 // against 200 ordered) or an over-ship (PO04823: 125 against 121) can never make a
 // supplier's row exceed its own total. The uncapped figures stay on the row as
-// shipped_qty / received_qty.
+// shippedQty / receivedQty.
 function unitSplit(ordered, shipped, received, hod, today) {
-  const units_received   = Math.min(received, ordered);
-  const units_in_transit = Math.max(0, Math.min(shipped, ordered) - units_received);
-  const rest             = Math.max(0, ordered - units_received - units_in_transit);
-  // the not-shipped remainder is graded on HOD, the same anchor hod_timeliness uses
-  const units_overdue    = hod && hod < today ? rest : 0;
-  return { units_received, units_in_transit, units_overdue, units_to_ship: rest - units_overdue };
+  const unitsReceived   = Math.min(received, ordered);
+  const unitsInTransit = Math.max(0, Math.min(shipped, ordered) - unitsReceived);
+  const rest             = Math.max(0, ordered - unitsReceived - unitsInTransit);
+  // the not-shipped remainder is graded on HOD, the same anchor hodTimeliness uses
+  const unitsOverdue    = hod && hod < today ? rest : 0;
+  return { unitsReceived, unitsInTransit, unitsOverdue, unitsToShip: rest - unitsOverdue };
 }
 
 // The flattened, mutually-exclusive KPI bucket (each PO counted once, so the
@@ -106,59 +106,59 @@ async function getSmsReport(req, res) {
   const facName    = new Map(facilities.map((f) => [f.id, f.name]));
   const chanName   = new Map(channels.map((c) => [c.id, c.name]));
 
-  // earliest handover-to-courier per PO (shipment.ship_date across its consignments)
+  // earliest handover-to-courier per PO (shipment.shipDate across its consignments)
   const shipById = new Map(shipments.map((s) => [s.id, s]));
   const earliestShipByPo = new Map();
   shipmentPos.forEach((j) => {
-    const sd = (shipById.get(j.shipment_id) || {}).ship_date;
+    const sd = (shipById.get(j.shipmentId) || {}).shipDate;
     if (!sd) return;
-    const cur = earliestShipByPo.get(j.po_number);
-    if (!cur || sd < cur) earliestShipByPo.set(j.po_number, sd);
+    const cur = earliestShipByPo.get(j.poNumber);
+    if (!cur || sd < cur) earliestShipByPo.set(j.poNumber, sd);
   });
 
   // does a portal shipment record exist at all for this PO? (the junction, not the
   // units — a PO can be on a consignment with 0 units declared)
-  const hasShipRecord = new Set(shipmentPos.map((j) => j.po_number));
+  const hasShipRecord = new Set(shipmentPos.map((j) => j.poNumber));
 
   const today = todayIso();
   const rows = pos.map((po) => {
-    const ordered  = rollups.ordered.get(po.po_number) || 0;
-    const recorded = rollups.shipped.get(po.po_number) || 0;
-    const received = rollups.received.get(po.po_number) || 0;
+    const ordered  = rollups.ordered.get(po.poNumber) || 0;
+    const recorded = rollups.shipped.get(po.poNumber) || 0;
+    const received = rollups.received.get(po.poNumber) || 0;
     const shipped  = shippedFor(ordered, recorded, received);
-    const earliestShip = earliestShipByPo.get(po.po_number) || null;
+    const earliestShip = earliestShipByPo.get(po.poNumber) || null;
     const fulfillment = received >= ordered && ordered > 0 ? 'received'
       : shipped >= ordered && ordered > 0 ? 'fully_shipped'
       : shipped > 0 ? 'partially_shipped' : 'not_shipped';
     return {
-      po_number:  po.po_number,
-      trn_number: po.trn_number || null,
-      supplier:   supName.get(po.supplier_id) || null,
-      season:     seasonCode.get(po.season_id) || null,
-      facility:   facName.get(po.facility_id) || null,
-      channel:    chanName.get(po.allocation_channel_id) || null,
+      poNumber:  po.poNumber,
+      trnNumber: po.trnNumber || null,
+      supplier:   supName.get(po.supplierId) || null,
+      season:     seasonCode.get(po.seasonId) || null,
+      facility:   facName.get(po.facilityId) || null,
+      channel:    chanName.get(po.allocationChannelId) || null,
       hod:        po.hod || null,
-      ship_method: po.ship_method || null,
-      ordered_qty:  ordered,
-      shipped_qty:  shipped,
+      shipMethod: po.shipMethod || null,
+      orderedQty:  ordered,
+      shippedQty:  shipped,
       // the portal's own shipping record, unfloored — the two differ exactly on the
       // POs that need a consignment entered, so this is the cleanup worklist
-      shipped_recorded_qty: recorded,
-      has_shipment_record: hasShipRecord.has(po.po_number),
-      received_qty: received,
-      remaining_qty: ordered - shipped,
+      shippedRecordedQty: recorded,
+      hasShipmentRecord: hasShipRecord.has(po.poNumber),
+      receivedQty: received,
+      remainingQty: ordered - shipped,
       ...unitSplit(ordered, shipped, received, po.hod, today),
-      lot_count:  rollups.lots.get(po.po_number) || 0,
-      earliest_ship_date: earliestShip,
+      lotCount:  rollups.lots.get(po.poNumber) || 0,
+      earliestShipDate: earliestShip,
       fulfillment,
-      // HOD grades the HANDOVER event, which needs a ship_date — so it keys on the
+      // HOD grades the HANDOVER event, which needs a shipDate — so it keys on the
       // RECORDED units, not the floored ones. A PO inferred-shipped from receipts has
       // no handover date to grade, and inventing one from a receipt date would grade
-      // the wrong event. Consequence to know: those POs read kpi_status Received with
-      // hod_timeliness Overdue — "arrived, but no handover was ever logged" — which
+      // the wrong event. Consequence to know: those POs read kpiStatus Received with
+      // hodTimeliness Overdue — "arrived, but no handover was ever logged" — which
       // is what the data says and is unchanged from before this floor existed.
-      hod_timeliness: hodTimeliness(recorded, po.hod, earliestShip, today),
-      kpi_status:     kpiStatusFor(ordered, shipped, received, po.hod, today),
+      hodTimeliness: hodTimeliness(recorded, po.hod, earliestShip, today),
+      kpiStatus:     kpiStatusFor(ordered, shipped, received, po.hod, today),
     };
   });
 

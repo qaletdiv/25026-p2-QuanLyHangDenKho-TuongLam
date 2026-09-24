@@ -2,25 +2,25 @@
 
 // Landed Cost derivations — all PURE (unit-testable), no IO. Everything the UI
 // shows is DERIVED here at read time; the only thing persisted is the posted
-// snapshot (invoice_value / freight / duty) written by the controller.
+// snapshot (invoiceValue / freight / duty) written by the controller.
 //
-//   SMS basis      = commercial-invoice value = Σ (pcs_per_ctn × unit_price)
+//   SMS basis      = commercial-invoice value = Σ (pcsPerCtn × unitPrice)
 //                    over the shipment's packing cartons (the shipped-truth source).
-//   freight        = ci_value × freight_pct / 100
-//   duty           = ci_value × duty_pct / 100
-//   per-PO split   = each amount apportioned by the PO's share of ci_value,
+//   freight        = ciValue × freightPct / 100
+//   duty           = ciValue × dutyPct / 100
+//   per-PO split   = each amount apportioned by the PO's share of ciValue,
 //                    largest-remainder rounded to cents so the parts sum EXACTLY
 //                    to the whole (no penny drift across POs).
 
 const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 
-// Σ (pcs × unit_price) per PO for a shipment's cartons → Map<po_number, value>.
-// (total_usd is derived, never stored on cartons, so we recompute from the parts.)
+// Σ (pcs × unitPrice) per PO for a shipment's cartons → Map<poNumber, value>.
+// (totalUsd is derived, never stored on cartons, so we recompute from the parts.)
 function ciValueByPo(cartons) {
   const m = new Map();
   for (const c of cartons) {
-    const v = (Number(c.pcs_per_ctn) || 0) * (Number(c.unit_price) || 0);
-    m.set(c.po_number, round2((m.get(c.po_number) || 0) + v));
+    const v = (Number(c.pcsPerCtn) || 0) * (Number(c.unitPrice) || 0);
+    m.set(c.poNumber, round2((m.get(c.poNumber) || 0) + v));
   }
   return m;
 }
@@ -46,26 +46,26 @@ function splitByValue(total, weights) {
 
 // Given a shipment's CI value + a rate row, return the estimate totals.
 function estimate(ciValue, rate) {
-  const fPct = Number(rate?.freight_pct) || 0;
-  const dPct = Number(rate?.duty_pct) || 0;
+  const fPct = Number(rate?.freightPct) || 0;
+  const dPct = Number(rate?.dutyPct) || 0;
   return {
-    freight_pct: fPct,
-    duty_pct: dPct,
+    freightPct: fPct,
+    dutyPct: dPct,
     freight: round2((Number(ciValue) || 0) * fPct / 100),
     duty: round2((Number(ciValue) || 0) * dPct / 100),
   };
 }
 
 // Build the per-PO split rows for a set of POs given their CI values and the
-// freight/duty totals. Returns [{ po_number, ci_value, freight, duty }] summing
+// freight/duty totals. Returns [{ poNumber, ciValue, freight, duty }] summing
 // to the totals exactly.
 function splitByPo(poValues, freightTotal, dutyTotal) {
   const entries = [...poValues.entries()];              // [ [po, value], ... ]
   const weights = entries.map(([, v]) => v);
   const fParts = splitByValue(freightTotal, weights);
   const dParts = splitByValue(dutyTotal, weights);
-  return entries.map(([po_number, ci_value], i) => ({
-    po_number, ci_value, freight: fParts[i], duty: dParts[i],
+  return entries.map(([poNumber, ciValue], i) => ({
+    poNumber, ciValue, freight: fParts[i], duty: dParts[i],
   }));
 }
 

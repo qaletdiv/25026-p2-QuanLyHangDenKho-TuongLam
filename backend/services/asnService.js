@@ -8,10 +8,10 @@ const fs = require('fs');
  * Generate a packing list Excel file from a confirmed booking's CI line items.
  *
  * Only matched line items (match_status === 'matched') are included.
- * No financial data (unit_price, total, total_value, invoice_number, invoice_date).
+ * No financial data (unitPrice, total, totalValue, invoiceNumber, invoiceDate).
  *
  * @param {object} booking  — full booking record with commercial_invoice
- * @returns {Promise<string>}  file_url like "/uploads/asn_<timestamp>_<bookingNumber>.xlsx"
+ * @returns {Promise<string>}  fileUrl like "/uploads/asn_<timestamp>_<bookingNumber>.xlsx"
  */
 async function generatePackingList(booking) {
     const ci = booking.commercial_invoice || {};
@@ -23,8 +23,8 @@ async function generatePackingList(booking) {
     const poNumbers = [];
     if (Array.isArray(booking.po_details)) {
         booking.po_details.forEach(pd => {
-            if (pd.po_number && !poNumbers.includes(pd.po_number)) {
-                poNumbers.push(pd.po_number);
+            if (pd.poNumber && !poNumbers.includes(pd.poNumber)) {
+                poNumbers.push(pd.poNumber);
             }
         });
     } else {
@@ -42,7 +42,7 @@ async function generatePackingList(booking) {
     wsData.push(['TENTREE PACKING LIST', '', '', '', '', '', '']);
 
     // Row 2-5: Metadata block
-    wsData.push(['Booking #', booking.booking_number || '', '', '', '', '', '']);
+    wsData.push(['Booking #', booking.bookingNumber || '', '', '', '', '', '']);
     wsData.push(['Supplier', booking.vendor_name || '', '', '', '', '', '']);
     wsData.push(['Generated Date', new Date().toISOString().split('T')[0], '', '', '', '', '']);
     wsData.push(['PO Numbers', poNumbers.join(', '), '', '', '', '', '']);
@@ -64,10 +64,10 @@ async function generatePackingList(booking) {
     // Rows 8+: Line item data (matched only, no financial fields)
     for (const item of lineItems) {
         wsData.push([
-            item.sku_code    || '',
+            item.skuCode    || '',
             item.description || '',
             item.qty         ?? 0,
-            item.weight_kg   ?? 0,
+            item.weightKg   ?? 0,
             item.cbm         ?? 0,
             item.matched_po  || '',
             item.match_status || '',
@@ -76,7 +76,7 @@ async function generatePackingList(booking) {
 
     // Totals row
     const totalQty    = lineItems.reduce((s, i) => s + (Number(i.qty)       || 0), 0);
-    const totalWeight = lineItems.reduce((s, i) => s + (Number(i.weight_kg) || 0), 0);
+    const totalWeight = lineItems.reduce((s, i) => s + (Number(i.weightKg) || 0), 0);
     const totalCbm    = lineItems.reduce((s, i) => s + (Number(i.cbm)       || 0), 0);
 
     wsData.push([
@@ -110,12 +110,12 @@ async function generatePackingList(booking) {
     xlsx.utils.book_append_sheet(wb, ws, 'Packing List');
 
     // ── Write to disk ──────────────────────────────────────────────────────────
-    const uploadDir = path.join(__dirname, '..', 'data', 'uploads');
+    const uploadDir = path.join(__dirname, '..', 'storage', 'uploads');
     if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    const safeBkgNum = (booking.booking_number || 'UNKNOWN').replace(/[^a-zA-Z0-9._-]/g, '_');
+    const safeBkgNum = (booking.bookingNumber || 'UNKNOWN').replace(/[^a-zA-Z0-9._-]/g, '_');
     const filename   = `asn_${Date.now()}_${safeBkgNum}.xlsx`;
     const filepath   = path.join(uploadDir, filename);
 

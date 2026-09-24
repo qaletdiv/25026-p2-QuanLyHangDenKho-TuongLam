@@ -1,0 +1,72 @@
+[
+  {
+    "id": "port_cnsha",
+    "code": "CNSHA",
+    "name": "Shanghai",
+    "country": "China",
+    "role": null
+  },
+  {
+    "id": "port_inccu",
+    "code": "INCCU",
+    "name": "Kolkata",
+    "country": "India",
+    "role": null
+  },
+  {
+    "id": "port_innsa",
+    "code": "INNSA",
+    "name": "Nhava Sheva",
+    "country": "India",
+    "role": null
+  },
+  {
+    "id": "port_cntao",
+    "code": "CNTAO",
+    "name": "Qingdao",
+    "country": "China",
+    "role": null
+  },
+  {
+    "id": "port_vnsgn",
+    "code": "VNSGN",
+    "name": "Ho Chi Minh",
+    "country": "Vietnam",
+    "role": null
+  },
+  {
+    "id": "port_cnszx",
+    "code": "CNSZX",
+    "name": "Shenzhen",
+    "country": "China",
+    "role": null
+  },
+  {
+    "id": "port_idjkt",
+    "code": "IDJKT",
+    "name": "Jakarta",
+    "country": "Indonesia",
+    "role": null
+  },
+  {
+    "id": "port_vndad",
+    "code": "VNDAD",
+    "name": "Da Nang",
+    "country": "Vietnam",
+    "role": null
+  },
+  {
+    "id": "port_cavan",
+    "code": "CAVAN",
+    "name": "Vancouver",
+    "country": "Canada",
+    "role": "discharge"
+  },
+  {
+    "id": "port_uslax",
+    "code": "USLAX",
+    "name": "Los Angeles",
+    "country": "United States",
+    "role": "discharge"
+  }
+]

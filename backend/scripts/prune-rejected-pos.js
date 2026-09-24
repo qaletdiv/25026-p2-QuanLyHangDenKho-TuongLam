@@ -11,7 +11,7 @@
  * legend that was already known to be wrong. Verified against production
  * 2026-09-08, 'C' is **Rejected by Supervisor**, so the "active only" filter was
  * pulling rejected POs in as live ones (PO03521, PO03789), and buildUpserts never
- * looked at approval_status either. Both holes are closed
+ * looked at approvalStatus either. Both holes are closed
  * (integrationService.poStatusClause + NOT_REJECTED_CLAUSE, and R4 in
  * netsuiteSyncService.buildUpserts), and the sync now prunes on every run — this
  * script exists to do the cleanup on demand, without a full sync.
@@ -35,8 +35,8 @@
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const integrationService = require('../services/integrationService');
 const { pruneRejected, computeReferenced } = require('../modules/po/netsuiteSyncService');
-const BaseModel = require('../models/BaseModel');
-const { atomically, shutdown } = require('../db/tx');
+const { models } = require('../models');
+const { atomically, shutdown } = require('../database/tx');
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
@@ -44,7 +44,7 @@ const DRY_RUN = process.argv.includes('--dry-run');
 // DATA_BACKEND the portal is running on. Reading data/ with fs after the
 // Postgres migration would prune the frozen pre-migration snapshot and report a
 // cleanup the live portal never received.
-const model = (f) => new BaseModel(`migrated/${f}`);
+const model = (f) => models[f.replace(/.json$/, '')];
 const readJson = (f) => model(f).read();
 const write = (f, data) => model(f).write(data);
 
@@ -53,7 +53,7 @@ async function main() {
   const orders = await readJson('po_orders.json');
   const orderLines = await readJson('po_order_lines.json');
 
-  const held = orders.map((o) => o.po_number).filter(Boolean);
+  const held = orders.map((o) => o.poNumber).filter(Boolean);
   console.log(`Portal holds ${held.length} mainline POs — asking NetSuite which are rejected…`);
   const rejected = await integrationService.fetchRejectedPoTranids(held);
   if (!rejected.size) {
@@ -67,10 +67,10 @@ async function main() {
     rejectedPoNumbers: rejected, masters, orders, orderLines, referencedPoNumbers: referenced,
   });
 
-  for (const po of result.removed.po_numbers) {
-    const o = orders.find((r) => r.po_number === po);
-    const lines = orderLines.filter((l) => l.po_number === po).length;
-    console.log(`  remove ${po}  (TRN ${o?.trn_number ?? '—'}, ${lines} line${lines === 1 ? '' : 's'})`);
+  for (const po of result.removed.poNumbers) {
+    const o = orders.find((r) => r.poNumber === po);
+    const lines = orderLines.filter((l) => l.poNumber === po).length;
+    console.log(`  remove ${po}  (TRN ${o?.trnNumber ?? '—'}, ${lines} line${lines === 1 ? '' : 's'})`);
   }
   for (const po of result.kept_referenced) {
     console.log(`  KEEP   ${po}  — rejected in NetSuite but referenced here (leg / booking / shipment / receipt). Resolve by hand.`);
@@ -80,7 +80,7 @@ async function main() {
     + `masters ${masters.length} → ${result.masters.length}`
     + (result.removed.trns.length ? ` (TRNs dropped: ${result.removed.trns.join(', ')})` : ''));
 
-  if (!result.removed.po_numbers.length) {
+  if (!result.removed.poNumbers.length) {
     console.log('\nNothing removable (all rejected POs are referenced). No files written.');
     return;
   }

@@ -6,8 +6,8 @@ const Joi = require('joi');
 const rateRow = Joi.object({
   id: Joi.string().min(1).required(),
   module: Joi.string().valid('sms', 'mainline').required(),
-  freight_pct: Joi.number().min(0).max(1000).required(),
-  duty_pct: Joi.number().min(0).max(1000).required(),
+  freightPct: Joi.number().min(0).max(1000).required(),
+  dutyPct: Joi.number().min(0).max(1000).required(),
 });
 
 const ratesUpdate = Joi.array().items(rateRow);
@@ -17,8 +17,8 @@ const ratesUpdate = Joi.array().items(rateRow);
 // is supplier-scoped, not module-scoped (e.g. Pratibha 1.5%).
 const commissionRow = Joi.object({
   id: Joi.string().min(1).required(),
-  supplier_id: Joi.string().min(1).required(),
-  commission_pct: Joi.number().min(0).max(100).required(),
+  supplierId: Joi.string().min(1).required(),
+  commissionPct: Joi.number().min(0).max(100).required(),
 });
 
 const commissionsUpdate = Joi.array().items(commissionRow);

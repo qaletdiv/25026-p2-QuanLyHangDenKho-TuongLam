@@ -3,7 +3,7 @@
 // GET /reports/sms/forecast — incoming-quantity forecast for SMS POs.
 //
 // Each PO is expected to arrive on its Expected Receive Date (NS duedate, stored
-// on sms_pos.expected_received_date). Incoming quantity = ordered − received, i.e.
+// on sms_pos.expectedReceivedDate). Incoming quantity = ordered − received, i.e.
 // the units still to land at the destination facility. The client buckets these
 // by ISO week and breaks them down by facility (mirroring the mainline forecast's
 // week × warehouse matrix). PO-grained rows are emitted; all aggregation and the
@@ -12,7 +12,7 @@
 // Forecast date (like mainline projecting unbooked legs onto a projected E-DEL):
 // use the Expected Receive Date when it has synced, else fall back to HOD (every
 // SMS PO has one) so the projected ordered quantity still lands on the timeline.
-// `date_basis` = 'expected' (real NS date) | 'projected' (HOD fallback) so the UI
+// `dateBasis` = 'expected' (real NS date) | 'projected' (HOD fallback) so the UI
 // can flag projected weeks; incoming qty is projected in BOTH cases.
 
 const M = require('../SmsModels');
@@ -33,23 +33,23 @@ async function getSmsForecast(req, res) {
   const chanName   = new Map(channels.map((c) => [c.id, c.name]));
 
   const rows = pos.map((po) => {
-    const ordered  = rollups.ordered.get(po.po_number) || 0;
-    const received = rollups.received.get(po.po_number) || 0;
-    const expected = po.expected_received_date || null;
+    const ordered  = rollups.ordered.get(po.poNumber) || 0;
+    const received = rollups.received.get(po.poNumber) || 0;
+    const expected = po.expectedReceivedDate || null;
     const forecastDate = expected || po.hod || null;
     return {
-      po_number:  po.po_number,
-      supplier:   supName.get(po.supplier_id) || null,
-      season:     seasonCode.get(po.season_id) || null,
-      facility:   facName.get(po.facility_id) || null,
-      channel:    chanName.get(po.allocation_channel_id) || null,
-      expected_received_date: expected,
+      poNumber:  po.poNumber,
+      supplier:   supName.get(po.supplierId) || null,
+      season:     seasonCode.get(po.seasonId) || null,
+      facility:   facName.get(po.facilityId) || null,
+      channel:    chanName.get(po.allocationChannelId) || null,
+      expectedReceivedDate: expected,
       hod:          po.hod || null,
-      forecast_date: forecastDate,                       // expected date, else HOD
-      date_basis:   expected ? 'expected' : (po.hod ? 'projected' : null),
-      ordered_qty:  ordered,
-      received_qty: received,
-      incoming_qty: Math.max(0, ordered - received),   // projected units still to arrive
+      forecastDate: forecastDate,                       // expected date, else HOD
+      dateBasis:   expected ? 'expected' : (po.hod ? 'projected' : null),
+      orderedQty:  ordered,
+      receivedQty: received,
+      incomingQty: Math.max(0, ordered - received),   // projected units still to arrive
     };
   });
 

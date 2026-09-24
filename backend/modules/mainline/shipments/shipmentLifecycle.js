@@ -3,9 +3,9 @@
 // When a mainline consignment stops being a PLAN, and what that closes.
 //
 // THE GATE IS "HANDED OVER", NOT "DEPARTED".
-// `cargo_received_date` is Received at Port — the forwarder has the cargo. On the
+// `cargoReceivedDate` is Received at Port — the forwarder has the cargo. On the
 // live rows it lands 0–32 days after the supplier's Cargo Ready date and 8–46 days
-// BEFORE the vessel sails (46 on SHP-4), so gating on `etd_pol` alone would leave a
+// BEFORE the vessel sails (46 on SHP-4), so gating on `etdPol` alone would leave a
 // month-and-a-half window where the goods sit at the port in the carrier's hands
 // and the portal still offers Cancel. Received at Port is also the exact analogue
 // of SMS's tracking number: the carrier has the box.
@@ -16,11 +16,11 @@
 // "any of them present" needs no ordering logic.
 //
 // DELIBERATELY NOT IN THE PREDICATE:
-//   • `po_legs.crd` / `bookings.cargo_ready_date` — CRD is the CARGO READY date,
+//   • `poLegs.crd` / `bookings.cargoReadyDate` — CRD is the CARGO READY date,
 //     a supplier plan that moves earlier and later (Lam, 2026-09-18). It is also
 //     VENDOR-EDITABLE while the booking is pending, so gating on it would hand the
 //     vendor a switch for opening and closing the guard.
-//   • `carrier_reference` — SHP-1 carries one and has no other evidence at all;
+//   • `carrierReference` — SHP-1 carries one and has no other evidence at all;
 //     including it would lock the exact shell row this is meant to let staff clear.
 //   • the typed `status` word — it is hand-set (8 of 10 read "Delivered" because a
 //     person typed it) and nothing stops setting it back, so a status-only rule is
@@ -36,9 +36,9 @@ const DASH = (d) => String(d).slice(0, 10);
  */
 function handoverEvidence(shipment = {}) {
   const ev = [];
-  if (shipment.cargo_received_date) ev.push(`received at port ${DASH(shipment.cargo_received_date)}`);
-  if (shipment.etd_pol)             ev.push(`ETD ${DASH(shipment.etd_pol)}`);
-  if (shipment.bl_no)               ev.push(`BL ${shipment.bl_no}`);
+  if (shipment.cargoReceivedDate) ev.push(`received at port ${DASH(shipment.cargoReceivedDate)}`);
+  if (shipment.etdPol)             ev.push(`ETD ${DASH(shipment.etdPol)}`);
+  if (shipment.blNo)               ev.push(`BL ${shipment.blNo}`);
   return ev;
 }
 
@@ -51,11 +51,11 @@ const statusDisagrees = (shipment, statusName) =>
 
 /** Posted landed-cost rows for this shipment (mainline posts one PER PO). */
 const postedCostsFor = (shipmentId, landedCosts = []) =>
-  landedCosts.filter((r) => r.module === 'mainline' && String(r.shipment_id) === String(shipmentId));
+  landedCosts.filter((r) => r.module === 'mainline' && String(r.shipmentId) === String(shipmentId));
 
 /** Item Receipts a human CONFIRMED against this shipment. */
 const confirmedReceiptsFor = (shipmentId, receipts = []) =>
-  receipts.filter((r) => String(r.matched_shipment_id) === String(shipmentId) && r.confirmed_at);
+  receipts.filter((r) => String(r.matchedShipmentId) === String(shipmentId) && r.confirmedAt);
 
 /**
  * Why this consignment may not be CANCELLED. [] = go ahead.

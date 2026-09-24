@@ -20,7 +20,7 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 
-const DIR = path.join(__dirname, '..', 'data', 'converted docs');
+const DIR = path.join(__dirname, '..', 'storage', 'converted-docs');
 const VARIANTS = ['HQ', 'NRI CA', 'NRI US'];
 
 const TEMPLATE_HEADER = [

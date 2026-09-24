@@ -1,0 +1,68 @@
+[
+  {
+    "id": "1",
+    "email": "admin@tentree.com",
+    "password": "$2b$12$6PQ3wbeAICsuq8XLy9QzPO1a1ajYsj2rueBF5JD8oPke8Mquuania",
+    "name": "Admin User",
+    "role": "Admin",
+    "supplier": null,
+    "mustChangePassword": true,
+    "roleId": null,
+    "supplierId": null
+  },
+  {
+    "id": "2",
+    "email": "logistics@tentree.com",
+    "password": "scrypt:85b9e5abdc025553e37a5763f240758d:77ff0ece04d3e6a3120edd57eea038d01141e7fcb605bb607e8d3fddfb2b40de63e85226c54a6c2b6ee324ed16a9f3203a19faa0c0a0f438dd095bf54841b2e7",
+    "name": "Logistics Coord",
+    "role": "Logistics Coordinator",
+    "supplier": null,
+    "mustChangePassword": null,
+    "roleId": null,
+    "supplierId": null
+  },
+  {
+    "id": "3",
+    "email": "production@tentree.com",
+    "password": "scrypt:d89693bec32d1b8daa99578db2d1b6be:6d0ca7aa8e3c14c25bc06085d319d416b285ccbf7469f20eb76780ac81bda970df1c2b5e4ec49cfb0d89b3e542640afe79fa0786f3734cc93950c7c401476783",
+    "name": "Production Team",
+    "role": "Production",
+    "supplier": null,
+    "mustChangePassword": null,
+    "roleId": null,
+    "supplierId": null
+  },
+  {
+    "id": "1786561729792",
+    "email": "vendor@vendor.com",
+    "password": "scrypt:7729fe349b87d6d9a2ad7646bdd454ca:bbcd8cf2f73c1d55dd15caca24022b766b7a3ea9e4afc8a074e22c7c1f1febcd9530b4b83957940f8b42280f02d590138b7685406ce02a1940e8c6eb527dfeec",
+    "name": "vendor1",
+    "role": "Vendor",
+    "supplier": "Best Star Fashions Co Ltd",
+    "mustChangePassword": true,
+    "roleId": null,
+    "supplierId": null
+  },
+  {
+    "id": "1786561787434",
+    "email": "ff1@ceva.com",
+    "password": "scrypt:e6f6a1d75b51bc80b793b92e19f105a3:43871001e1fcf4523ccce3dd54ecf56259d4b49a83fc7b0aac00fe141990093f3853bdcd5216c35c3bdebc042df9f150fb3e3feb63344642181ec08f19f4f422",
+    "name": "ff1",
+    "role": "Freight Forwarder",
+    "supplier": null,
+    "mustChangePassword": true,
+    "roleId": null,
+    "supplierId": null
+  },
+  {
+    "id": "1789677646268",
+    "email": "baruffa@baruffa.com",
+    "password": "scrypt:644e3f6c418df66b563e464365497ef7:e809392dccc13eb57bd5027bb0fc8a7818bd040553dfbe94db944f3c624f7b769974f8b137cbe7e1406331c6a3050f8cb184c7f02f19a912ad8c010dcc2cff2b",
+    "name": "Baraffa International Limited",
+    "role": "Vendor",
+    "supplier": "Baruffa International Limited",
+    "mustChangePassword": true,
+    "roleId": null,
+    "supplierId": null
+  }
+]

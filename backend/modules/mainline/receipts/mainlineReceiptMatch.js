@@ -15,16 +15,16 @@
 //
 // Model (confirmed with Lam 2026-07-22, same as SMS): ONE shipment ↔ ONE IR per PO.
 // Signal hierarchy, via the shared pure `matchPo`:
-//   1. human confirmation (mainline_item_receipts.matched_shipment_id) — locks first
+//   1. human confirmation (mainline_item_receipts.matchedShipmentId) — locks first
 //   2. quantity — an IR whose received qty equals the qty this shipment carries
 //   3. sequence — leftovers paired positionally (order carries the signal, not dates)
 // A human REJECTION (mainline_receipt_match_rejections) excludes the pair from both
 // auto passes so the next-best candidate surfaces.
 //
-// ⚠️ `ship_date` below reads the shipment's RAW STORED `ata` column, never the
+// ⚠️ `shipDate` below reads the shipment's RAW STORED `ata` column, never the
 // derived one. enrichShipments now sets its ATA *from this resolver*, so feeding it
 // a derived ATA back would close a loop: matcher → ATA → matcher. Keep this reading
-// raw rows. It is only a sort key for the sequence pass, so the fallback to eta_pod
+// raw rows. It is only a sort key for the sequence pass, so the fallback to etaPod
 // is sufficient (the stored ata is null on all but hand-entered shipments).
 
 const { matchPo } = require('../../sms/receiptMatch');   // pure helper, no SMS writes
@@ -32,51 +32,51 @@ const { matchPo } = require('../../sms/receiptMatch');   // pure helper, no SMS 
 // Resolve the target IR per PO for ONE mainline shipment.
 //
 // ctx: { mlReceipts, mlReceiptLines, mlShipmentLegs, mlShipments, poByLeg, mlRejections }
-// returns: [{ po_number, receipt_id, netsuite_ir_id, netsuite_ir_tranid, receipt_date,
-//             receipt_qty, method, confidence, confirmed, ambiguous }]
+// returns: [{ poNumber, receiptId, netsuiteIrId, netsuiteIrTranid, receiptDate,
+//             receiptQty, method, confidence, confirmed, ambiguous }]
 function resolveMainlineReceipts(shipmentId, poNumbers, c) {
   const { mlReceipts: receipts, mlReceiptLines: receiptLines, mlShipmentLegs: shipmentLegs, mlShipments: shipments, poByLeg } = c;
-  const qtyByReceipt = receiptLines.reduce((m, l) => ((m[l.receipt_id] = (m[l.receipt_id] || 0) + (Number(l.qty) || 0)), m), {});
+  const qtyByReceipt = receiptLines.reduce((m, l) => ((m[l.receiptId] = (m[l.receiptId] || 0) + (Number(l.qty) || 0)), m), {});
   const shipById = new Map(shipments.map((s) => [s.id, s]));
   // pairs a human explicitly rejected — excluded from the auto-match so the next
   // candidate surfaces instead (a confirmation on the pair clears the rejection)
-  const rejectedSet = new Set((c.mlRejections || []).map((r) => `${r.receipt_id}|${r.shipment_id}`));
+  const rejectedSet = new Set((c.mlRejections || []).map((r) => `${r.receiptId}|${r.shipmentId}`));
   const isRejected = (shipmentId, receiptId) => rejectedSet.has(`${receiptId}|${shipmentId}`);
 
   return poNumbers.map((po) => {
     // every mainline shipment carrying this PO, with the qty that shipment carries
-    const shipsForPo = shipmentLegs.filter((j) => poByLeg.get(j.leg_id) === po).map((j) => {
-      const s = shipById.get(j.shipment_id) || {};
-      return { shipment_id: j.shipment_id, lot_number: j.lot_number, ship_date: s.ata || s.eta_pod || null, shipped_pcs: Number(j.expected_quantity) || 0 };
+    const shipsForPo = shipmentLegs.filter((j) => poByLeg.get(j.legId) === po).map((j) => {
+      const s = shipById.get(j.shipmentId) || {};
+      return { shipmentId: j.shipmentId, lotNumber: j.lotNumber, shipDate: s.ata || s.etaPod || null, shippedPcs: Number(j.expectedQuantity) || 0 };
     });
-    const irsForPo = receipts.filter((r) => r.po_number === po).map((r) => ({
-      receipt_id: r.id, netsuite_ir_id: r.netsuite_ir_id, netsuite_ir_tranid: r.netsuite_ir_tranid || null,
-      receipt_date: r.receipt_date, qty: qtyByReceipt[r.id] || 0, matched_shipment_id: r.matched_shipment_id || null,
+    const irsForPo = receipts.filter((r) => r.poNumber === po).map((r) => ({
+      receiptId: r.id, netsuiteIrId: r.netsuiteIrId, netsuiteIrTranid: r.netsuiteIrTranid || null,
+      receiptDate: r.receiptDate, qty: qtyByReceipt[r.id] || 0, matchedShipmentId: r.matchedShipmentId || null,
     }));
 
     // confirmed matches lock first, then quantity/sequence auto-match the rest
     const assignments = [];
     const lockedIr = new Set(), lockedShip = new Set();
     for (const r of irsForPo) {
-      const ship = r.matched_shipment_id && shipsForPo.find((s) => s.shipment_id === r.matched_shipment_id);
+      const ship = r.matchedShipmentId && shipsForPo.find((s) => s.shipmentId === r.matchedShipmentId);
       if (!ship) continue;
-      assignments.push({ shipment_id: ship.shipment_id, receipt_id: r.receipt_id, netsuite_ir_id: r.netsuite_ir_id,
-        netsuite_ir_tranid: r.netsuite_ir_tranid, receipt_date: r.receipt_date, shipped_pcs: ship.shipped_pcs,
-        receipt_qty: r.qty, method: 'confirmed', confidence: 'high', confirmed: true });
-      lockedIr.add(r.receipt_id); lockedShip.add(ship.shipment_id);
+      assignments.push({ shipmentId: ship.shipmentId, receiptId: r.receiptId, netsuiteIrId: r.netsuiteIrId,
+        netsuiteIrTranid: r.netsuiteIrTranid, receiptDate: r.receiptDate, shippedPcs: ship.shippedPcs,
+        receiptQty: r.qty, method: 'confirmed', confidence: 'high', confirmed: true });
+      lockedIr.add(r.receiptId); lockedShip.add(ship.shipmentId);
     }
-    const freeShips = shipsForPo.filter((s) => !lockedShip.has(s.shipment_id));
-    const freeIrs = irsForPo.filter((r) => !lockedIr.has(r.receipt_id));
+    const freeShips = shipsForPo.filter((s) => !lockedShip.has(s.shipmentId));
+    const freeIrs = irsForPo.filter((r) => !lockedIr.has(r.receiptId));
     for (const a of matchPo(freeShips, freeIrs, isRejected)) assignments.push({ ...a, confirmed: false });
 
-    const t = assignments.find((a) => a.shipment_id === shipmentId) || null;
+    const t = assignments.find((a) => a.shipmentId === shipmentId) || null;
     return {
-      po_number: po,
-      receipt_id: t ? t.receipt_id : null,
-      netsuite_ir_id: t ? t.netsuite_ir_id : null,
-      netsuite_ir_tranid: t ? t.netsuite_ir_tranid : null,
-      receipt_date: t ? t.receipt_date : null,
-      receipt_qty: t ? t.receipt_qty : null,
+      poNumber: po,
+      receiptId: t ? t.receiptId : null,
+      netsuiteIrId: t ? t.netsuiteIrId : null,
+      netsuiteIrTranid: t ? t.netsuiteIrTranid : null,
+      receiptDate: t ? t.receiptDate : null,
+      receiptQty: t ? t.receiptQty : null,
       method: t ? t.method : 'unmatched',
       confidence: t ? t.confidence : 'low',
       confirmed: !!(t && t.confirmed),
@@ -95,19 +95,19 @@ function resolveMainlineReceipts(shipmentId, poNumbers, c) {
 // physical unit and is not fully received until all of its POs are. (Same rule as
 // SMS `receivedByShipment`. The old FIFO took the EARLIEST across legs, which let a
 // single mis-resolved leg drag the whole shipment's ATA backwards.)
-//   Map(shipment_id → { date, method, confirmed })
+//   Map(shipmentId → { date, method, confirmed })
 function ataByShipment(c) {
   const { mlShipments: shipments, mlShipmentLegs: shipmentLegs, poByLeg } = c;
   const out = new Map();
   for (const s of shipments) {
-    const pos = [...new Set(shipmentLegs.filter((j) => j.shipment_id === s.id)
-      .map((j) => poByLeg.get(j.leg_id)).filter(Boolean))];
+    const pos = [...new Set(shipmentLegs.filter((j) => j.shipmentId === s.id)
+      .map((j) => poByLeg.get(j.legId)).filter(Boolean))];
     if (!pos.length) continue;
     const targets = resolveMainlineReceipts(s.id, pos, c);
     // Every PO must have a receipt — a part-received consignment has no arrival date
     // yet, and inventing one from the POs that did land would overstate arrival.
-    if (!targets.every((t) => t && t.receipt_id && t.receipt_date)) continue;
-    const dates = targets.map((t) => t.receipt_date).sort();
+    if (!targets.every((t) => t && t.receiptId && t.receiptDate)) continue;
+    const dates = targets.map((t) => t.receiptDate).sort();
     out.set(s.id, {
       date: dates[dates.length - 1],
       method: targets.some((t) => t.method === 'sequence') ? 'sequence' : targets[0].method,

@@ -30,26 +30,26 @@ const TERMINAL_STATUS_IDS = new Set(['sms_delivered', 'sms_received', 'sms_cance
 // ---- pure core (unit-testable) ----------------------------------------------
 // trackResults: fedexService.track() output. Returns { newEvents, perShipment }.
 function foldEvents(shipments, trackResults, existingEvents) {
-  const byTracking = new Map(trackResults.map((r) => [r.tracking_number, r]));
-  const seen = new Set(existingEvents.map((e) => `${e.shipment_id}|${e.event_time}|${e.courier_code}`));
+  const byTracking = new Map(trackResults.map((r) => [r.trackingNumber, r]));
+  const seen = new Set(existingEvents.map((e) => `${e.shipmentId}|${e.eventTime}|${e.courierCode}`));
   let seq = existingEvents.reduce((mx, e) => Math.max(mx, +String(e.id).replace(/\D/g, '') || 0), 0);
 
   const newEvents = [];
   const perShipment = [];
   for (const s of shipments) {
-    const r = byTracking.get(s.tracking_number);
+    const r = byTracking.get(s.trackingNumber);
     if (!r) continue;
     let added = 0;
     for (const e of r.events) {
-      const key = `${s.id}|${e.event_time}|${e.courier_code}`;
+      const key = `${s.id}|${e.eventTime}|${e.courierCode}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      newEvents.push({ id: `ste_${++seq}`, shipment_id: s.id, event_time: e.event_time, courier_code: e.courier_code, description: e.description, location: e.location });
+      newEvents.push({ id: `ste_${++seq}`, shipmentId: s.id, eventTime: e.eventTime, courierCode: e.courierCode, description: e.description, location: e.location });
       added++;
     }
     perShipment.push({
-      shipment_id: s.id,
-      tracking_number: s.tracking_number,
+      shipmentId: s.id,
+      trackingNumber: s.trackingNumber,
       events_added: added,
       latest_code: r.latest_code,
       eta: r.eta,                    // surfaced to the caller; never stored
@@ -69,20 +69,20 @@ async function poll({ trackFn } = {}) {
 
   // Derive each shipment's current status (same rule as the read path) so we can
   // skip terminal ones — a Delivered consignment will never produce new scans.
-  const codeMap = new Map(codeRows.map((r) => [`${r.courier_id}|${r.courier_code}`, r.status_id]));
+  const codeMap = new Map(codeRows.map((r) => [`${r.courierId}|${r.courierCode}`, r.statusId]));
   const statusNameById = new Map(statuses.map((s) => [s.id, s.name]));
-  const eventsByShipment = events.reduce((m, e) => ((m[e.shipment_id] = m[e.shipment_id] || []).push(e), m), {});
-  const isTerminal = (s) => TERMINAL_STATUS_IDS.has(deriveStatus(s, eventsByShipment, codeMap, statusNameById).status_id);
+  const eventsByShipment = events.reduce((m, e) => ((m[e.shipmentId] = m[e.shipmentId] || []).push(e), m), {});
+  const isTerminal = (s) => TERMINAL_STATUS_IDS.has(deriveStatus(s, eventsByShipment, codeMap, statusNameById).statusId);
 
-  const fedexWithTracking = shipments.filter((s) => s.courier_id === fedexId && s.tracking_number);
+  const fedexWithTracking = shipments.filter((s) => s.courierId === fedexId && s.trackingNumber);
   const targets = fedexWithTracking.filter((s) => !isTerminal(s));
   const skipped_delivered = fedexWithTracking.length - targets.length;
-  const skipped_dhl = shipments.filter((s) => s.courier_id !== fedexId && s.tracking_number).length;
+  const skipped_dhl = shipments.filter((s) => s.courierId !== fedexId && s.trackingNumber).length;
   if (!targets.length) return { polled: 0, events_added: 0, skipped_delivered, skipped_non_fedex: skipped_dhl, note: 'no active FedEx consignments to poll' };
 
   const doTrack = trackFn || fedex.track;
   let results;
-  try { results = await doTrack(targets.map((s) => s.tracking_number)); }
+  try { results = await doTrack(targets.map((s) => s.trackingNumber)); }
   catch (e) {
     const msg = e.response?.data?.errors?.[0]?.message || e.message;
     return { polled: targets.length, events_added: 0, fetch_error: msg };
