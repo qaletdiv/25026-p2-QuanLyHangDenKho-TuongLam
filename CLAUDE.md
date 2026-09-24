@@ -17,13 +17,13 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   phases 1–7 all ✅, open items).
 - **Data: PostgreSQL since 2026-09-14, via SEQUELIZE since 2026-09-21** (database
   `tentree_portal`; see the SEQUELIZE section below and `backend/database/README.md`).
-  **`backend/models/` is the schema authority.** Table KEYS are still the old
-  filenames — `migrated/po_orders.json` resolves to the `po_orders` model — and
-  modules still read/write whole arrays via `BaseModel`, so everything else in
-  this file still describes the code accurately.
+  **`backend/models/` is the schema authority.** Modules still read/write WHOLE
+  ARRAYS — `await models.po_orders.read()` / `.write(next)` — so the derive-per-
+  request discipline below still describes the code accurately. The old
+  filename-as-table-key shim (`'migrated/po_orders.json'`) and `BaseModel` are
+  **gone**; tables are reached as `models.<table>`.
   **⚠️ `backend/database/seed-data/` is SEED INPUT ONLY.** Nothing reads it at runtime.
-  Editing it changes nothing; reading it to answer a question about live data
-  gives migration-day values. Query the DB, or read through `BaseModel`.
+  Editing it changes nothing. Query the DB, or read through `models.<table>`.
   `scripts/migrate-to-normalized.js` and `scripts/migrate-sms.js` were DELETED
   2026-09-21 — both were one-time migrations reading legacy files that no longer
   exist, and the first was documented as wiping live data if ever re-run.
@@ -432,7 +432,7 @@ downloaded document, for two different reasons, and the distinction is the point
 - `PUT /master-data/warehouse-facilities` is **EDIT-ONLY** — the id set must match
   what is stored, or 400. Facilities are FK targets for `po_orders`, `sms_pos`,
   `sms_shipments` and `mainline_shipments` and are created by the PO ingestion, and
-  `BaseModel.write` replaces the whole table, so a missing id would DELETE a
+  `models.<table>.write()` replaces the whole table, so a missing id would DELETE a
   destination live records point at. Fields outside `FACILITY_EDITABLE` are carried
   over from the stored row.
 - **⚠️ The download REBUILDS the workbook; the stored xlsx is not served.**
@@ -1098,9 +1098,11 @@ could never have been created, so this was a hard **Postgres load blocker**.
 SuiteQL has no fan-out join (`transaction → transactionline → item`); NetSuite
 genuinely repeats one item across several PO lines (split by receipt date/location,
 or a price-correction line). PO04792 is 54 SKUs × exactly 3 lines each; PO04697
-carries one SKU at both 26.25 and 49. Mainline's `po_order_lines` holds the same
-declared unique and is clean (0 / 11,871) only because its POs happen to have one
-line per item — so **don't copy that declaration to a NetSuite-sourced table.**
+carries one SKU at both 26.25 and 49. Mainline's `po_order_lines` held the same
+declared unique and was clean (0 / 11,871) only because its POs happened to have
+one line per item — so **don't copy that declaration to a NetSuite-sourced table.**
+⚠️ **That prediction came true on 2026-09-23** — see "the mainline sync broke on
+the same grain bug" below. The warning was right; the table was fixed the same way.
 The portal was discarding the one field that distinguishes the rows: the query
 already selected `tl.id AS line_id` and `integrationService` already mapped it to
 `netsuite_line_id`, but the SMS sync dropped it and minted `spol_${++lineSeq}`.
@@ -1171,11 +1173,11 @@ date. Use `pg_dump` for a restore. `node database/init.js` loads reference data;
 `--force`.
 
 - **The swap is at ONE chokepoint.** Every module goes through
-  `BaseModel.read()/.write()` → `db/modelStore`, which keeps the same signatures
-  and hands back the same plain objects. **No controller, service or report
+  `models.<table>.read()/.write()` → `database/modelStore`, which hands back the
+  same plain objects the JSON stack did. **No controller, service or report
   changed** — reads still pull whole tables and derive everything per request,
   exactly as the 3NF discipline above describes. Verified on live data: all
-  tables, 84,014 rows, **value-for-value identical** to the raw-SQL path
+  tables, **value-for-value identical** to the raw-SQL path
   (`node db/verify.js` — run it after ANY change in `db/`).
 - **Tables are reached as `models.<table>`** (`db/models` → `backend/models`).
   `models/BaseModel.js`, the five `*Model.js` facades and the
@@ -1215,8 +1217,9 @@ date. Use `pg_dump` for a restore. `node database/init.js` loads reference data;
   `productionHandover` / `originDwell` / `portToPort` / `destinationLeg` /
   `receiving` in both places.
 - **`models/index.js` SKIPS `*Model.js` by name.** That directory also holds the
-  legacy facades (`BaseModel.js`, `UserModel.js`, `MasterDataModel.js`…), which
-  export a class or a BaseModel instance rather than a
+  legacy facades — all now DELETED, but the rule stays because the three
+  surviving `*Models.js` MANIFESTS in `modules/` follow the same name — which
+  export an object or a class rather than a
   `(sequelize, DataTypes)` factory. A duck-typed check would not save you —
   `BaseModel` is a class, and a class IS `typeof "function"`, so it would be
   called without `new` and throw.
@@ -1231,6 +1234,12 @@ date. Use `pg_dump` for a restore. `node database/init.js` loads reference data;
   accepts it silently and ignores it — measured: all 79 FKs came out
   `condeferrable=false`, and seeding then failed on the first child whose parent
   had not loaded yet. See the deferred-FK note below for why that is fatal.
+- **⚠️ QUOTE camelCase identifiers in hand-written SQL.** Postgres folds unquoted
+  names to lowercase, so `updatedAt` becomes `updatedat`. This silently broke
+  every `_documents` write (`INSERT INTO _documents (… updatedAt)`) and was only
+  caught because a fresh-database build exercised it — the live path is rare
+  enough that nothing noticed. `database/QUERIES.md` carries a banner: its
+  example queries predate the rename and must be quoted before reuse.
 - **An unknown key is REFUSED, not dropped.** Sequelize writes only declared
   attributes, so a field with no column would vanish silently. `writeData`
   throws instead, naming the model file to edit.
@@ -1262,6 +1271,52 @@ date. Use `pg_dump` for a restore. `node database/init.js` loads reference data;
   on `${shipment_id}|${event_time}|${courier_code}` — so every poll would
   re-insert every event. Same reasoning put the JSON-valued columns on `json`
   rather than `jsonb`: jsonb reorders object keys.
+
+### ⚠️ The mainline sync broke on the same grain bug (2026-09-23)
+
+`POST /po/sync/netsuite` aborted on every run with
+`duplicate key ... po_order_lines_po_number_sku_code_uniq`. **PO04826 repeats 399
+SKUs** (804 lines, 405 distinct items) — NetSuite splits one item across PO lines
+exactly as the `sms_po_lines` note above describes. The unique had held only
+because no mainline PO had done it before; the first one that did stopped the
+sync dead, and nothing else fires it, so it simply went stale.
+
+Fixed the way that note prescribes:
+- `(poNumber, skuCode)` demoted to a **plain lookup index** — never unique on a
+  NetSuite-sourced table.
+- `po_order_lines.netsuiteLineId` added, and `(poNumber, netsuiteLineId)` is the
+  unique key (verified 0 duplicates over 4,076 synced rows).
+- Row ids are now `pol_ns_<poNumber>_<lineId>` — **stable across syncs**, ending
+  the ~12k-row renumber every run.
+
+⚠️ **`netsuiteLineId` IS A PER-PO SEQUENCE (1, 2, 3…), NOT a global id** — the
+same trap the SMS fix fell into. Measured: 4,096 live line rows carry only **804
+distinct values**, so keying or id-ing on it alone collapses 4,096 rows onto 804.
+The PO number MUST be part of both. (`tl.id` in SuiteQL is the line number within
+the transaction, not a global key.) Rows synced before this keep a null
+`netsuiteLineId`; Postgres allows many NULLs in a unique index, so mixed data
+loads and each PO fills in on its next sync.
+
+Measured after the fix: +5 POs / +1,628 lines, re-run idempotent (13,574 →
+13,574), R1 protect-if-booked still holds `PO04840`.
+
+⚠️ Sync also warns `unresolved facility "NRI CA First Inventory"` on 13 POs — a
+NetSuite warehouse with no `warehouse_facilities` row. Non-blocking, but those
+POs carry no destination until it is mapped.
+
+### ⚠️ Deleting a module wrapper needs `no-undef`, not grep (2026-09-23)
+
+Removing the vestigial `*Model.js` wrappers broke three files that imported them
+under a **different local alias** (`ItemReceiptModel`, `M`) — grepping for
+`MainlineItemReceiptModel.method` reported 0 call sites and missed every one. The
+codemod deleted the `require` and left the alias dangling, which took out the
+NetSuite sync, `/mainline/fulfillment/:trn` (→ every TRN page 404'd) and receipt
+matching. **`node --check` cannot catch a `ReferenceError`.** Use:
+
+```bash
+npx eslint@8 --no-eslintrc -c /tmp/eslintrc.json --ext .js \
+  modules routes services utils models database scripts server.js   # rule: no-undef
+```
 
 ### ✅ RESOLVED at the migration
 
@@ -1296,7 +1351,7 @@ date. Use `pg_dump` for a restore. `node database/init.js` loads reference data;
   goods that physically arrived — they are only UNLINKED
   (`matched_shipment_id`/`confirmed_*` cleared). `smsShipmentController.remove`
   gained the same cleanup for `sms_receipt_match_rejections`.
-- **Maintenance scripts go through `BaseModel` now** (`prune-stale-receipts`,
+- **Maintenance scripts go through the models** (`prune-stale-receipts`,
   `prune-rejected-pos`, `backfill-po-approval-status`). They read `data/` with
   `fs` before, which after the cutover would have pruned the frozen snapshot and
   reported a cleanup the live portal never received. Their multi-table writes are
@@ -1383,13 +1438,31 @@ backend/                     Express API on PostgreSQL + Sequelize (MVC)
   models/                    THE SCHEMA AUTHORITY — one Sequelize model per table.
                              camelCase attrs == camelCase columns (no `field:`).
                              .read()/.write(rows) attached by models/index.js
-  db/                        the data layer — modelStore (readAll/replaceAll),
-                             per-request transactions, seed.js. See db/README.md.
-  data/                      SEED INPUT ONLY (nothing reads it at runtime).
-                             Reference data is real seed; the transactional
-                             files are a stale migration-day snapshot.
-  storage/fileStorage.js     generated xlsx blobs (CI / packing list / ASN)
-  modules/po/                mainline PO hierarchy (WIP-sourced; NS sync dormant)
+  database/                  the data layer — modelStore (readAll/replaceAll),
+                             per-request transactions, verify.js, generateModels.js.
+                             See database/README.md.
+    init.js                  build the schema FROM THE MODELS + seed. `--all` also
+                             loads the snapshot; `--export` REGENERATES seed-data
+                             from the live DB — re-run after ANY column rename or
+                             the JSON silently stops being loadable.
+    seed-data/reference/     20 tables, ~5.1k rows — REAL seed, an empty DB needs it
+    seed-data/snapshot/      41 tables, ~79k rows — transactional copy, NOT seed
+    seed-data/documents/     whole-file blobs (notification_seen) -> `_documents`
+  storage/                   FILES, not records. See storage/README.md.
+    uploads/  templates/     ⚠ BOTH SERVED over HTTP (below the auth gate;
+                             /templates also refuses Vendors). Do NOT put anything
+                             commercially sensitive in templates/.
+    reference/               NOT served — signed agreements, NRI source workbooks
+    converted-docs/ archive/ source spreadsheets; superseded backups
+  modules/                   ONE FOLDER PER FEATURE — see modules/README.md.
+                             12 features incl. auth, users, roles, contacts,
+                             freights, masterdata (moved out of controllers/
+                             2026-09-22, so there is now ONE scheme, not two).
+                             Layer is the FILENAME SUFFIX (*Controller/*Service/
+                             *Routes/*Validator), not the folder.
+  controllers/               EMPTY — holds only a README pointing at modules/,
+                             because that is where people look first.
+  modules/po/                mainline PO hierarchy (WIP-sourced; NS sync ACTIVE)
   modules/mainline/          bookings, shipments, ci/packing/asn, fulfillment, reports, wip import
   modules/sms/               SMS module (own dataset) + NetSuite sync + FedEx poll
   modules/nriinvoices/       3PL invoice verification — "All Invoices" (own tables
@@ -1398,10 +1471,12 @@ backend/                     Express API on PostgreSQL + Sequelize (MVC)
                              refused with a reason (a 3PL's workbook layout must be
                              mapped in code). API stays /nri-invoices, UI is /invoices
                              — see that module's README, which is the source of truth.
-  services/                  integrationService (SuiteQL), fedexService, ciParser,
-                             wipParser, asnService, ci/plGenerator, cronJobs (SMS poll)
-  controllers/               auth, users, roles, masterData, contacts, freights,
-                             (eomTasks + reportController deleted 2026-09-21)
+  services/                  CROSS-CUTTING only — integrationService (SuiteQL),
+                             fedexService, ciParser, wipParser, asnService,
+                             ci/plGenerator, cronJobs. A service with exactly ONE
+                             consumer belongs in that module instead.
+  routes/                    only the 4 that span several modules: reports,
+                             forecast, notifications, documents
 frontend/tentree-scportal/   Next.js RSC app (shadcn/ui, Tailwind)
   src/modules/mainline/      mainline types/actions/components (DataTable, ColumnPicker,
                              ConfirmDialog, RouteFallbacks are generic — SMS reuses them)
@@ -1674,5 +1749,5 @@ Get-CimInstance Win32_Process -Filter "Name='node.exe'" |
 | Agent    | Owns                                          | Never touches |
 |----------|-----------------------------------------------|---------------|
 | frontend | `frontend/tentree-scportal/src/`              | `backend/`    |
-| backend  | `backend/server.js`, `backend/modules/`, `backend/services/`, `backend/database/seed-data/` | `frontend/` |
+| backend  | `backend/server.js`, `backend/modules/`, `backend/models/`, `backend/database/`, `backend/services/` | `frontend/` |
 | qa       | Read-only — no writes                         | —             |
