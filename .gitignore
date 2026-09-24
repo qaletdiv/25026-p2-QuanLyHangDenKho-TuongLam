@@ -47,3 +47,7 @@ next-env.d.ts
 # backend run logs (node server.js started detached — see CLAUDE.md "Running it")
 backend/server.out.log
 backend/server.err.log
+
+# Next.js dev server logs (local only)
+frontend/tentree-scportal/dev.out.log
+frontend/tentree-scportal/dev.err.log
