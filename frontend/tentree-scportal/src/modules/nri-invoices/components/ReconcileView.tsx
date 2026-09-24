@@ -19,12 +19,12 @@ type Props = { data: Reconcile | InvoiceDetail; sourceFile?: string | null };
 function headerOf(data: Reconcile | InvoiceDetail): InvoiceHeader | null {
   if ('invoice' in data) return data.invoice;
   const d = data as InvoiceDetail;
-  if (!d.invoice_no) return null;
+  if (!d.invoiceNo) return null;
   return {
-    invoice_no: d.invoice_no, invoice_date: d.invoice_date, ending_date: d.ending_date,
-    payment_terms: d.payment_terms, due_date: d.due_date, fx_rate: d.fx_rate,
+    invoiceNo: d.invoiceNo, invoiceDate: d.invoiceDate, endingDate: d.endingDate,
+    paymentTerms: d.paymentTerms, dueDate: d.dueDate, fxRate: d.fxRate,
     subtotal: d.subtotal, taxes: d.taxes, total: d.total,
-    tax_lines: d.tax_lines ?? [], is_credit: !!d.is_credit,
+    taxLines: d.taxLines ?? [], isCredit: !!d.isCredit,
   };
 }
 
@@ -34,7 +34,7 @@ function headerOf(data: Reconcile | InvoiceDetail): InvoiceHeader | null {
  * The tie-out banner underneath is the gate — everything else is diagnosis.
  */
 export default function ReconcileView({ data, sourceFile }: Props) {
-  const tie = data.tie_out;
+  const tie = data.tieOut;
   const t = data.totals;
   const inv = headerOf(data);
   const meta = TIE_OUT_META[tie.status];
@@ -44,16 +44,16 @@ export default function ReconcileView({ data, sourceFile }: Props) {
       {/* ── the three sides ─────────────────────────────────────────────── */}
       <div className="grid gap-3 md:grid-cols-3">
         <Panel icon={FileText} label="Invoice" sub="summary — what NRI is billing">
-          {inv?.invoice_no ? (
+          {inv?.invoiceNo ? (
             <>
-              <Line k="Invoice #" v={<span className="font-medium">{inv.invoice_no}</span>} />
-              <Line k="Date" v={inv.invoice_date ?? DASH} />
-              <Line k="Terms" v={`${inv.payment_terms ?? DASH}${inv.due_date ? ` · due ${inv.due_date}` : ''}`} />
-              <Line k="FX rate" v={inv.fx_rate === null ? DASH : inv.fx_rate.toFixed(4)} />
+              <Line k="Invoice #" v={<span className="font-medium">{inv.invoiceNo}</span>} />
+              <Line k="Date" v={inv.invoiceDate ?? DASH} />
+              <Line k="Terms" v={`${inv.paymentTerms ?? DASH}${inv.dueDate ? ` · due ${inv.dueDate}` : ''}`} />
+              <Line k="FX rate" v={inv.fxRate === null ? DASH : inv.fxRate.toFixed(4)} />
               <Line k="Subtotal" v={usd(inv.subtotal)} />
               <Line k="Taxes" v={usd(inv.taxes)} />
               <Line k="Total" v={<span className="font-semibold tabular-nums">{usd(inv.total)}</span>} strong />
-              {inv.is_credit && <Badge variant="outline" className="mt-1 border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300">Credit memo</Badge>}
+              {inv.isCredit && <Badge variant="outline" className="mt-1 border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300">Credit memo</Badge>}
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
@@ -71,13 +71,13 @@ export default function ReconcileView({ data, sourceFile }: Props) {
           <Line k="Coded" v={`${num(t.coded)} of ${num(t.lines)}`} />
           <Line
             k="Need attention"
-            v={<span className={t.needs_attention > 0 ? 'font-medium text-amber-700 dark:text-amber-300' : ''}>{num(t.needs_attention)}</span>}
+            v={<span className={t.needsAttention > 0 ? 'font-medium text-amber-700 dark:text-amber-300' : ''}>{num(t.needsAttention)}</span>}
           />
           {sourceFile && <p className="pt-1 text-xs text-muted-foreground truncate" title={sourceFile}>{sourceFile}</p>}
         </Panel>
 
         <Panel icon={Scale} label="Agreement" sub="validator — contracted rates">
-          <Line k="Validated" v={<span className="text-emerald-700 dark:text-emerald-300">{num(t.validated_ok)} lines</span>} />
+          <Line k="Validated" v={<span className="text-emerald-700 dark:text-emerald-300">{num(t.validatedOk)} lines</span>} />
           <Line k="No contract rate" v={num(t.unvalidatable)} />
           <Line
             k="Net variance"
@@ -100,11 +100,11 @@ export default function ReconcileView({ data, sourceFile }: Props) {
           <p className={cn('text-sm font-medium', meta.tone)}>{meta.label}</p>
           <p className="text-sm text-muted-foreground">{tie.message}</p>
         </div>
-        {tie.total_variance !== null && tie.total_variance !== undefined && (
+        {tie.totalVariance !== null && tie.totalVariance !== undefined && (
           <div className="text-right">
             <p className="text-xs text-muted-foreground">detail − invoice</p>
-            <p className={cn('text-sm font-semibold tabular-nums', varianceTone(tie.total_variance))}>
-              {usdSigned(tie.total_variance)}
+            <p className={cn('text-sm font-semibold tabular-nums', varianceTone(tie.totalVariance))}>
+              {usdSigned(tie.totalVariance)}
             </p>
           </div>
         )}
@@ -172,8 +172,8 @@ function Findings({ findings }: { findings: Finding[] }) {
                   <span className="mt-0.5 block text-xs text-muted-foreground">
                     {num(f.lines)} line{f.lines === 1 ? '' : 's'} · {usd(f.amount)}
                     {Math.abs(f.variance) > 0.005 && <> · variance <span className={varianceTone(f.variance)}>{usdSigned(f.variance)}</span></>}
-                    {f.max_aging_multiple ? ` · up to ${f.max_aging_multiple}× base` : ''}
-                    {f.implied_hours ? ` · ${f.implied_hours} hrs` : ''}
+                    {f.maxAgingMultiple ? ` · up to ${f.maxAgingMultiple}× base` : ''}
+                    {f.impliedHours ? ` · ${f.impliedHours} hrs` : ''}
                   </span>
                 </span>
               </button>
@@ -205,7 +205,7 @@ function Findings({ findings }: { findings: Finding[] }) {
 }
 
 function GlSummary({ data }: { data: Reconcile | InvoiceDetail }) {
-  const rows = data.by_gl.filter(g => Math.abs(g.amount) > 0.005);
+  const rows = data.byGl.filter(g => Math.abs(g.amount) > 0.005);
   const total = rows.reduce((s, g) => s + g.amount, 0);
   return (
     <section className="rounded-lg border border-border bg-card">
@@ -225,7 +225,7 @@ function GlSummary({ data }: { data: Reconcile | InvoiceDetail }) {
             {rows.map(g => (
               <tr key={String(g.gl)} className="border-b border-border last:border-0 hover:bg-muted/30">
                 <td className="px-4 py-2 font-mono text-xs">{g.gl ?? <span className="text-red-600 dark:text-red-400">unmapped</span>}</td>
-                <td className="px-4 py-2 text-muted-foreground">{g.gl_desc ?? DASH}</td>
+                <td className="px-4 py-2 text-muted-foreground">{g.glDesc ?? DASH}</td>
                 <td className="px-4 py-2">
                   <span className="flex flex-wrap gap-1">
                     {g.classes.filter(c => Math.abs(c.amount) > 0.005).map(c => (
@@ -252,7 +252,7 @@ function GlSummary({ data }: { data: Reconcile | InvoiceDetail }) {
 
 function ServiceTable({ data }: { data: Reconcile | InvoiceDetail }) {
   const [showAll, setShowAll] = useState(false);
-  const all = data.by_service;
+  const all = data.byService;
   const interesting = all.filter(s => s.verdict !== 'ok');
   const rows = showAll ? all : (interesting.length ? interesting : all);
 
@@ -302,7 +302,7 @@ function ServiceTable({ data }: { data: Reconcile | InvoiceDetail }) {
 }
 
 function TieOutDetail({ tie }: { tie: TieOut }) {
-  const [open, setOpen] = useState(tie.status === 'out_of_balance');
+  const [open, setOpen] = useState(tie.status === 'outOfBalance');
   const broken = tie.services.filter(s => s.status !== 'ok');
   return (
     <section className="rounded-lg border border-border bg-card">
@@ -335,7 +335,7 @@ function TieOutDetail({ tie }: { tie: TieOut }) {
                 <tr key={s.service} className={cn('border-b border-border last:border-0 hover:bg-muted/30', s.status !== 'ok' && 'bg-red-500/5')}>
                   <td className="px-4 py-2">{s.service}</td>
                   <td className="px-4 py-2 text-right tabular-nums">{usd(s.charges)}</td>
-                  <td className="px-4 py-2 text-right tabular-nums text-muted-foreground">{usd(s.invoice_amount)}</td>
+                  <td className="px-4 py-2 text-right tabular-nums text-muted-foreground">{usd(s.invoiceAmount)}</td>
                   <td className={cn('px-4 py-2 text-right tabular-nums', varianceTone(s.variance))}>{usdSigned(s.variance)}</td>
                   <td className="px-4 py-2 text-xs">
                     {s.status === 'ok'
@@ -346,7 +346,7 @@ function TieOutDetail({ tie }: { tie: TieOut }) {
               ))}
             </tbody>
           </table>
-          {tie.status === 'no_summary' && (
+          {tie.status === 'noSummary' && (
             <p className="flex items-start gap-2 border-t border-border px-4 py-2.5 text-xs text-muted-foreground">
               <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               Without the invoice PDF there is nothing to tie against. File the PDF alongside the

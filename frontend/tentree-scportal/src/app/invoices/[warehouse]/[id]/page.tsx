@@ -26,13 +26,13 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
       </Link>
 
       <SubmitBar invoice={invoice} />
-      <ReconcileView data={invoice} sourceFile={invoice.source_file} />
+      <ReconcileView data={invoice} sourceFile={invoice.sourceFile} />
       {/* The answer, in the workbook's Pivot shape. Above the line detail because
           it IS the deliverable — the lines below are how you fix what it flags. */}
       <GlClassPivot lines={invoice.lines} />
       <div id="coded-lines">
         <LinesTable
-          invoiceNo={invoice.invoice_no}
+          invoiceNo={invoice.invoiceNo}
           lines={invoice.lines}
           chargeCodes={chargeCodes}
           readOnly={submitted}

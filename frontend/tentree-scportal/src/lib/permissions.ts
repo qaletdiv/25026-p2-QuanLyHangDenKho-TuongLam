@@ -2,7 +2,7 @@
 export const ALL_PERMISSIONS = [
   // Pages
   'purchase_orders', 'bookings', 'shipments',
-  'reports', 'forecast', 'eom', 'contacts', 'settings', 'freight', 'landed_costs',
+  'reports', 'forecast', 'contacts', 'settings', 'freight', 'landed_costs',
   // Booking actions
   'booking_create_mainline', 'booking_create_sms', 'booking_approve', 'booking_delete',
   // Shipment actions
@@ -49,7 +49,6 @@ export const PERMISSION_MANIFEST: { category: string; items: { key: Permission; 
       { key: 'shipments',       label: 'Shipments' },
       { key: 'reports',         label: 'Reports' },
       { key: 'forecast',        label: 'Forecast' },
-      { key: 'eom',             label: 'EoM Progress' },
       { key: 'contacts',        label: 'Contacts' },
       { key: 'settings',        label: 'Settings' },
       { key: 'freight',         label: 'Freight Rates' },

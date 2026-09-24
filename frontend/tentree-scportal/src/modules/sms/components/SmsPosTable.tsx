@@ -47,14 +47,14 @@ export default function SmsPosTable({ pos }: { pos: SmsPo[] }) {
     // (PO04801 read 658 received against NetSuite's 329). Deleting rows is never
     // silent: they are named, and a removed CONFIRMED match gets its own warning
     // because it withdraws something a human asserted.
-    const removed: { ir: string; po_number: string; was_confirmed?: boolean }[] = r?.receipts_removed ?? [];
+    const removed: { ir: string; poNumber: string; was_confirmed?: boolean }[] = r?.receipts_removed ?? [];
     toast.success(`NetSuite sync: ${r.pos_upserted ?? 0} POs, ${r.po_lines_upserted ?? 0} lines, ${r.receipts_upserted ?? 0} receipts`
       + (removed.length ? ` · ${removed.length} deleted receipt(s) removed` : '')
       + (r.warnings?.length ? ` · ⚠ ${r.warnings.length} warning(s)` : ''));
     if (removed.length) {
       const confirmed = removed.filter((x) => x.was_confirmed);
       toast.warning(
-        `No longer in NetSuite, removed: ${removed.map((x) => `${x.ir} (${x.po_number})`).join(', ')}`
+        `No longer in NetSuite, removed: ${removed.map((x) => `${x.ir} (${x.poNumber})`).join(', ')}`
         + (confirmed.length ? ` — ${confirmed.length} of them carried a CONFIRMED match, so those lots need re-matching.` : ''),
         { duration: 12000 },
       );
@@ -63,23 +63,23 @@ export default function SmsPosTable({ pos }: { pos: SmsPo[] }) {
   }
 
   const columns: DataColumn<SmsPo>[] = [
-    { key: 'po_number', label: 'PO Number', accessor: (p) => p.po_number, render: (p) => <span className="font-medium">{p.po_number}</span> },
-    { key: 'trn_number', label: 'tentree PO', defaultVisible: false, accessor: (p) => p.trn_number, render: (p) => dim(p.trn_number) },
+    { key: 'poNumber', label: 'PO Number', accessor: (p) => p.poNumber, render: (p) => <span className="font-medium">{p.poNumber}</span> },
+    { key: 'trnNumber', label: 'tentree PO', defaultVisible: false, accessor: (p) => p.trnNumber, render: (p) => dim(p.trnNumber) },
     { key: 'supplier', label: 'Supplier', accessor: (p) => p.supplier, render: (p) => dim(p.supplier) },
     { key: 'season', label: 'Season', accessor: (p) => p.season, render: (p) => dim(p.season) },
     { key: 'hod', label: 'HOD', accessor: (p) => p.hod, render: (p) => dim(p.hod) },
-    { key: 'expected_received_date', label: 'Expected Receive', accessor: (p) => p.expected_received_date, render: (p) => dim(p.expected_received_date) },
+    { key: 'expectedReceivedDate', label: 'Expected Receive', accessor: (p) => p.expectedReceivedDate, render: (p) => dim(p.expectedReceivedDate) },
     { key: 'facility', label: 'Destination', accessor: (p) => facilityLabel(p.facility), render: (p) => dim(facilityLabel(p.facility)) },
-    { key: 'allocation_channel', label: 'Channel', accessor: (p) => p.allocation_channel, render: (p) => dim(p.allocation_channel) },
-    { key: 'ship_method', label: 'Ship Method', defaultVisible: false, accessor: (p) => p.ship_method, render: (p) => dim(p.ship_method) },
-    { key: 'approval_status', label: 'Approval', defaultVisible: false, accessor: (p) => p.approval_status, render: (p) => dim(p.approval_status) },
-    { key: 'ordered_qty', label: 'Ordered', align: 'right', accessor: (p) => p.ordered_qty, render: (p) => p.ordered_qty.toLocaleString() },
-    { key: 'shipped_qty', label: 'Shipped', align: 'right', accessor: (p) => p.shipped_qty, render: (p) => p.shipped_qty.toLocaleString() },
-    { key: 'received_qty', label: 'Received', align: 'right', defaultVisible: false, accessor: (p) => p.received_qty, render: (p) => p.received_qty.toLocaleString() },
-    { key: 'remaining_qty', label: 'Remaining', align: 'right', accessor: (p) => p.remaining_qty, render: (p) => (
-      <span className={cn('tabular-nums', p.remaining_qty < 0 && 'text-red-600 font-semibold')}>{p.remaining_qty.toLocaleString()}</span>
+    { key: 'allocationChannel', label: 'Channel', accessor: (p) => p.allocationChannel, render: (p) => dim(p.allocationChannel) },
+    { key: 'shipMethod', label: 'Ship Method', defaultVisible: false, accessor: (p) => p.shipMethod, render: (p) => dim(p.shipMethod) },
+    { key: 'approvalStatus', label: 'Approval', defaultVisible: false, accessor: (p) => p.approvalStatus, render: (p) => dim(p.approvalStatus) },
+    { key: 'orderedQty', label: 'Ordered', align: 'right', accessor: (p) => p.orderedQty, render: (p) => p.orderedQty.toLocaleString() },
+    { key: 'shippedQty', label: 'Shipped', align: 'right', accessor: (p) => p.shippedQty, render: (p) => p.shippedQty.toLocaleString() },
+    { key: 'receivedQty', label: 'Received', align: 'right', defaultVisible: false, accessor: (p) => p.receivedQty, render: (p) => p.receivedQty.toLocaleString() },
+    { key: 'remainingQty', label: 'Remaining', align: 'right', accessor: (p) => p.remainingQty, render: (p) => (
+      <span className={cn('tabular-nums', p.remainingQty < 0 && 'text-red-600 font-semibold')}>{p.remainingQty.toLocaleString()}</span>
     ) },
-    { key: 'lot_count', label: 'Lots', align: 'right', defaultVisible: false, accessor: (p) => p.lot_count, render: (p) => p.lot_count.toLocaleString() },
+    { key: 'lotCount', label: 'Lots', align: 'right', defaultVisible: false, accessor: (p) => p.lotCount, render: (p) => p.lotCount.toLocaleString() },
     { key: 'fulfillment', label: 'Status', accessor: (p) => FULFILLMENT_LABELS[p.fulfillment], render: (p) => (
       <Badge variant="outline" className={cn(FULFILLMENT_STYLES[p.fulfillment])}>{FULFILLMENT_LABELS[p.fulfillment]}</Badge>
     ) },
@@ -105,11 +105,11 @@ export default function SmsPosTable({ pos }: { pos: SmsPo[] }) {
 
   return (
     <DataTable
-      rows={filtered} columns={columns} rowKey={(p) => p.po_number}
+      rows={filtered} columns={columns} rowKey={(p) => p.poNumber}
       noun="PO" searchPlaceholder="Search PO, supplier…"
       toolbar={toolbar} emptyText="No SMS purchase orders — run the NetSuite sync"
       storageKey="sms_po_columns"
-      onRowClick={(p) => router.push(`/sms/purchase-orders/${encodeURIComponent(p.po_number)}`)}
+      onRowClick={(p) => router.push(`/sms/purchase-orders/${encodeURIComponent(p.poNumber)}`)}
     />
   );
 }

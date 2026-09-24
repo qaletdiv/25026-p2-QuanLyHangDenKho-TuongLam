@@ -6,123 +6,123 @@ export type MainlineLifecycle = 'forecast' | 'split' | 'partial';
 
 // GET /po  (list rows)
 export interface PoMasterSummary {
-  trn_number: string;
-  supplier_id: string | null;
+  trnNumber: string;
+  supplierId: string | null;
   supplier?: string | null;   // resolved supplier name (detail/getOne)
   season?: string | null;     // resolved season code (detail/getOne)
-  season_id: string | null;
-  main_shoulder: string | null;
-  netsuite_id: string | null;
-  order_count: number;
-  leg_count: number;
-  total_ordered_qty: number;
-  lifecycle_state: MainlineLifecycle;
+  seasonId: string | null;
+  mainShoulder: string | null;
+  netsuiteId: string | null;
+  orderCount: number;
+  legCount: number;
+  totalOrderedQty: number;
+  lifecycleState: MainlineLifecycle;
   bookable: boolean;
 }
 
 export interface PoOrderLine {
   id: string;
-  po_number: string;
-  sku_code: string;
-  ordered_qty: number;
-  unit_price: number | null;
+  poNumber: string;
+  skuCode: string;
+  orderedQty: number;
+  unitPrice: number | null;
 }
 
 export interface PoLegLine {
   id: string;
-  leg_id: string;
-  sku_code: string;
-  allocated_qty: number;
+  legId: string;
+  skuCode: string;
+  allocatedQty: number;
 }
 
 export interface MainlineLeg {
   id: string;
-  po_number: string;
-  mode_id: string | null;
+  poNumber: string;
+  modeId: string | null;
   mode?: string | null;
-  incoterm_id: string | null;
+  incotermId: string | null;
   crd: string | null;
-  etd_pol: string | null;
-  e_del: string | null;
+  etdPol: string | null;
+  eDel: string | null;
   leg_lines?: PoLegLine[];
-  expected_qty?: number;
+  expectedQty?: number;
 }
 
 export interface PoOrderDetail {
-  po_number: string;
-  trn_number: string | null;
-  netsuite_id: string | null;             // NetSuite PO internal id (component grain)
-  facility_id: string | null;
-  allocation_channel_id: string | null;
-  destination_facility: string | null;   // physical facility name (NRI US, …)
-  allocation_channel: string | null;      // Reserved / First
+  poNumber: string;
+  trnNumber: string | null;
+  netsuiteId: string | null;             // NetSuite PO internal id (component grain)
+  facilityId: string | null;
+  allocationChannelId: string | null;
+  destinationFacility: string | null;   // physical facility name (NRI US, …)
+  allocationChannel: string | null;      // Reserved / First
   order_lines: PoOrderLine[];
   legs: MainlineLeg[];
-  lifecycle_state: 'forecast' | 'split';
-  approval_status?: PoApprovalStatus;   // NetSuite sign-off (badge on the TRN detail)
+  lifecycleState: 'forecast' | 'split';
+  approvalStatus?: PoApprovalStatus;   // NetSuite sign-off (badge on the TRN detail)
 }
 
 // GET /po/legs/:id — one PO leg + the SKU line items the vendor must produce.
 export interface PoLegLineItem {
-  sku_code: string;
-  allocated_qty: number;
-  item_name: string | null;
-  style_color: string | null;
+  skuCode: string;
+  allocatedQty: number;
+  itemName: string | null;
+  styleColor: string | null;
   colorway: string | null;
   size: string | null;
   description: string | null;
-  unit_price: number | null;
+  unitPrice: number | null;
 }
 export interface PoReconcile {
-  po_number: string;
-  sku_count: number;
-  totals: { ordered_qty: number; allocated_qty: number; shipped_qty: number; received_qty: number };
+  poNumber: string;
+  skuCount: number;
+  totals: { orderedQty: number; allocatedQty: number; shippedQty: number; receivedQty: number };
   fulfillment: FulfillmentRow[];
 }
 
 // GET /mainline/legs/:legId/shipments — the consignments carrying one PO leg.
 // Quantities are the SHIPPED actuals from the shipping-data upload (null until it
-// is uploaded), not the booked expected_quantity.
+// is uploaded), not the booked expectedQuantity.
 export interface LegShipment {
-  shipment_id: string;
-  shipment_number: string | null;
-  lot_number: number | null;
+  shipmentId: string;
+  shipmentNumber: string | null;
+  lotNumber: number | null;
   carrier_shipment_number: string | null;   // the forwarder's own ref; blank if unset
   crd_actual: string | null;                // per-shipment cargo-ready; ≠ the leg's CRD target
-  shipped_qty: number | null;
-  shipped_cartons: number | null;
+  shippedQty: number | null;
+  shippedCartons: number | null;
   // Received against THIS lot, from the shared IR attribution (same resolver as the
   // ATA and the landed-cost push). NULL — not 0 — when no receipt is attributed:
   // "not received yet" and "received nothing" are different answers.
-  received_qty: number | null;
+  receivedQty: number | null;
   received_ir: string | null;               // IR document number, e.g. IR65720
-  received_date: string | null;
-  received_confirmed: boolean;              // false = the match is only a suggestion
+  receivedDate: string | null;
+  receivedConfirmed: boolean;              // false = the match is only a suggestion
   status: string | null;
 }
 
 export interface PoLegDetail {
   id: string;
-  po_number: string;
-  netsuite_id: string | null;            // component-PO NetSuite internal id
-  trn_number: string | null;
-  supplier_id: string | null;
+  poNumber: string;
+  netsuiteId: string | null;            // component-PO NetSuite internal id
+  trnNumber: string | null;
+  supplierId: string | null;
   supplier: string | null;
   season: string | null;
-  main_shoulder: string | null;
-  mode_id: string | null;
+  mainShoulder: string | null;
+  modeId: string | null;
   mode: string | null;
   incoterm: string | null;
-  destination_facility: string | null;
-  facility_id: string | null;
-  allocation_channel: string | null;
+  destinationFacility: string | null;
+  facilityId: string | null;
+  allocationChannel: string | null;
   coo: string | null;
-  approval_status?: PoApprovalStatus;   // NetSuite sign-off (badge on the leg detail)
+  approvalStatus?: PoApprovalStatus;   // NetSuite sign-off (badge on the leg detail)
   crd: string | null;
-  etd_pol: string | null;
-  e_del: string | null;
-  expected_qty: number;
-  sku_count: number;
+  etdPol: string | null;
+  eDel: string | null;
+  expectedQty: number;
+  skuCount: number;
   line_items: PoLegLineItem[];
 }
 
@@ -134,23 +134,23 @@ export interface PoMasterDetail extends PoMasterSummary {
 // GET /po/legs — flat per-leg (PO-split) row, enriched with names
 export interface PoLegRow {
   id: string;
-  po_number: string;
-  trn_number: string | null;
+  poNumber: string;
+  trnNumber: string | null;
   supplier: string | null;
   season: string | null;
-  main_shoulder: string | null;
+  mainShoulder: string | null;
   mode: string | null;
   incoterm: string | null;
-  receiving_warehouse: string | null;   // physical facility (NRI US, …)
-  allocation_channel: string | null;    // Reserved / First
+  receivingWarehouse: string | null;   // physical facility (NRI US, …)
+  allocationChannel: string | null;    // Reserved / First
   coo: string | null;                    // country of origin
   crd: string | null;
-  etd_pol: string | null;
-  e_del: string | null;
-  expected_qty: number;
-  sku_count: number;
+  etdPol: string | null;
+  eDel: string | null;
+  expectedQty: number;
+  skuCount: number;
   lifecycle: 'split' | 'forecast';       // 'forecast' = synced PO, not yet air/sea split
-  approval_status: PoApprovalStatus;
+  approvalStatus: PoApprovalStatus;
   bookable: boolean;
 }
 
@@ -165,22 +165,22 @@ export type PoApprovalStatus = 'Pending Approval' | 'Approved' | 'Rejected' | nu
 
 // GET /po/:trn/order-intent
 export interface OrderIntent {
-  trn_number: string;
-  sku_count: number;
+  trnNumber: string;
+  skuCount: number;
   total_qty: number;
-  totals: Array<{ sku_code: string; ordered_qty: number }>;
+  totals: Array<{ skuCode: string; orderedQty: number }>;
 }
 
-// Junction row on a booking (enriched with po_number + leg mode)
+// Junction row on a booking (enriched with poNumber + leg mode)
 export interface BookingLeg {
   id: string;
-  booking_id: string;
-  leg_id: string;
-  po_number: string | null;
+  bookingId: string;
+  legId: string;
+  poNumber: string | null;
   mode: string | null;          // Air / Sea (from the leg)
   units: number | null;
   cartons: number | null;
-  weight_kg: number | null;
+  weightKg: number | null;
   cbm: number | null;
 }
 
@@ -190,23 +190,23 @@ export type MainlineBookingStatus =
 // GET /mainline/bookings (enriched)
 export interface MainlineBooking {
   id: string;
-  booking_number: string;
-  supplier_id: string | null;
-  supplier_name: string | null;
-  incoterm_id: string | null;
-  cargo_ready_date: string | null;
+  bookingNumber: string;
+  supplierId: string | null;
+  supplierName: string | null;
+  incotermId: string | null;
+  cargoReadyDate: string | null;
   // PLANNED carrier — "book with FedEx/DHL, or book with a freight forwarder".
   // Copied onto the shipment at approve; the SHIPMENT's carrier is the one that
   // drives the landed-cost basis, so this is the plan, not the outcome.
-  courier_id: string | null;
+  courierId: string | null;
   courier: string | null;       // joined
   mode: string | null;          // Air / Sea — one per booking (G3); for the forwarder
   season: string | null;        // derived (leg → PO → master); for the season filter
-  booking_status: MainlineBookingStatus | null;
-  booking_status_id: string | null;
-  submitted_at: string | null;
-  approved_at: string | null;
-  po_legs: BookingLeg[];
+  bookingStatus: MainlineBookingStatus | null;
+  bookingStatusId: string | null;
+  submittedAt: string | null;
+  approvedAt: string | null;
+  poLegs: BookingLeg[];
   overbooked?: boolean;
 }
 
@@ -216,20 +216,20 @@ export type MainlineShipmentStatus = 'Ready to Ship' | 'In Transit' | 'At Port' 
 
 // One PO leg carried by a physical shipment (mainline_shipment_legs junction, enriched).
 export interface MainlineShipmentLeg {
-  leg_id: string;
-  po_number: string | null;
-  netsuite_id: string | null;           // component-PO NetSuite internal id
-  trn_number: string | null;
-  mode_id: string | null;
+  legId: string;
+  poNumber: string | null;
+  netsuiteId: string | null;           // component-PO NetSuite internal id
+  trnNumber: string | null;
+  modeId: string | null;
   mode: string | null;
-  allocation_channel: string | null;   // Reserved / First (internal bucket)
+  allocationChannel: string | null;   // Reserved / First (internal bucket)
   coo: string | null;                   // country of origin (from the leg's order)
   crd: string | null;                   // cargo ready date (from the leg)
-  lot_number: number | null;
+  lotNumber: number | null;
   cartons: number | null;               // booking's per-leg actual carton count
-  invoice_value: number | null;         // Σ total_usd from the packing list (CI upload)
-  expected_quantity: number;
-  supplier_name: string | null;
+  invoiceValue: number | null;         // Σ totalUsd from the packing list (CI upload)
+  expectedQuantity: number;
+  supplierName: string | null;
 }
 
 // GET /mainline/shipments (enriched). A shipment is ONE physical movement, grained
@@ -238,44 +238,44 @@ export interface MainlineShipmentLeg {
 // in `legs`.
 export interface MainlineShipment {
   id: string;
-  shipment_number: string;
-  booking_id: string;
-  booking_number: string | null;
-  facility_id: string | null;
-  destination_facility: string | null;   // physical destination (NRI US, NRI CA, …)
-  mode_id: string | null;
+  shipmentNumber: string;
+  bookingId: string;
+  bookingNumber: string | null;
+  facilityId: string | null;
+  destinationFacility: string | null;   // physical destination (NRI US, NRI CA, …)
+  modeId: string | null;
   mode: string | null;                    // grain includes mode (one conveyance)
   season: string | null;                  // derived (leg → PO → master); for the season filter
-  supplier_name: string | null;
-  trn_number: string | null;
+  supplierName: string | null;
+  trnNumber: string | null;
   status: MainlineShipmentStatus | null;
   // shared logistics facts (header-level — edited once for all legs):
-  bl_no: string | null;                   // ocean bill of lading number
-  // ACTUAL carrier for this conveyance. Drives landed_cost_basis: a carrier that
+  blNo: string | null;                   // ocean bill of lading number
+  // ACTUAL carrier for this conveyance. Drives landedCostBasis: a carrier that
   // does not invoice freight & duty separately (FedEx/DHL) makes the landed cost an
   // estimate off the CI value. Null (pre-2026-08-24 rows) reads as 'actual'.
-  courier_id: string | null;
+  courierId: string | null;
   courier: string | null;                 // joined
-  landed_cost_basis: 'actual' | 'estimate';   // DERIVED from the carrier, never stored
+  landedCostBasis: 'actual' | 'estimate';   // DERIVED from the carrier, never stored
   // The carrier's OWN reference for this shipment (was `ceva_shipment_number`, which
-  // hardcoded one carrier's name). NOT `shipment_number` — that is the portal's SHP-N.
-  carrier_reference: string | null;       // manually entered
-  customs_entry_number: string | null;    // customs entry # — landed-cost push (custbody_tt_customs_entry_number)
-  container_type_id: string | null;
-  container_type: string | null;          // FCL / LCL
-  pol_port_id: string | null;
-  pol_port: string | null;                // departure port (POL)
-  pod_port_id: string | null;
-  pod_port: string | null;                // arrival port (POD)
-  etd_pol: string | null;
-  eta_pod: string | null;
-  e_del: string | null;
-  cargo_received_date: string | null;     // received at port
+  // hardcoded one carrier's name). NOT `shipmentNumber` — that is the portal's SHP-N.
+  carrierReference: string | null;       // manually entered
+  customsEntryNumber: string | null;    // customs entry # — landed-cost push (custbody_tt_customs_entry_number)
+  containerTypeId: string | null;
+  containerType: string | null;          // FCL / LCL
+  polPortId: string | null;
+  polPort: string | null;                // departure port (POL)
+  podPortId: string | null;
+  podPort: string | null;                // arrival port (POD)
+  etdPol: string | null;
+  etaPod: string | null;
+  eDel: string | null;
+  cargoReceivedDate: string | null;     // received at port
   ata: string | null;                     // ACTUAL receipt date; derived from NetSuite Item Receipts, manual fallback
-  ata_source: 'netsuite' | 'manual' | null; // where `ata` came from
-  expected_ata: string | null;            // derived = e_del + 5 (never stored)
-  netsuite_id: string | null;
-  invoice_value: number | null;
+  ataSource: 'netsuite' | 'manual' | null; // where `ata` came from
+  expectedAta: string | null;            // derived = eDel + 5 (never stored)
+  netsuiteId: string | null;
+  invoiceValue: number | null;
   duty: number | null;
   freight: number | null;
   // joined / derived:
@@ -283,50 +283,50 @@ export interface MainlineShipment {
   crd: string | null;                     // earliest cargo-ready across legs
   // contents:
   legs: MainlineShipmentLeg[];
-  po_numbers: string[];
-  total_expected_quantity: number;
+  poNumbers: string[];
+  totalExpectedQuantity: number;
 }
 
 export interface PortOption { id: string; code?: string; name: string; country?: string; role?: string }
 export interface ContainerTypeOption { id: string; name: string }
 // Carriers: parcel couriers (FedEx, DHL) AND freight forwarders (Ceva).
-// `provides_cost_invoices: false` ⇒ no traceable freight & duty invoice, so the
+// `providesCostInvoices: false` ⇒ no traceable freight & duty invoice, so the
 // mainline landed cost is estimated from the commercial-invoice value.
-export interface CourierOption { id: string; name: string; provides_cost_invoices?: boolean }
+export interface CourierOption { id: string; name: string; providesCostInvoices?: boolean }
 
 // One row of the season KPI report (GET /reports/mainline) — PO-LEG grained, full
 // order book. A leg's qty is split across mutually-exclusive rows (shipment rows,
 // pending-booking rows, an Awaiting Booking remainder) so totals reconcile.
 // Three orthogonal axes: stage (WHERE the qty is — the "why"), timeliness (graded
-// on actual or projected E-DEL), and the flattened kpi_status cascade the tables
+// on actual or projected E-DEL), and the flattened kpiStatus cascade the tables
 // pivot on. WS = Reserved (wholesale), EC = First (ecomm).
 export interface MainlineReportRow {
-  row_id: string;                         // unique per row (leg × stage × shipment/booking)
-  leg_id: string;
-  po_number: string | null;
-  trn_number: string | null;
+  rowId: string;                         // unique per row (leg × stage × shipment/booking)
+  legId: string;
+  poNumber: string | null;
+  trnNumber: string | null;
   supplier: string | null;
   season: string | null;
   facility: string | null;
   channel: string | null;                 // Reserved / First
   segment: 'WS' | 'EC' | null;
-  mode_id: string | null;
+  modeId: string | null;
   mode: string | null;
   crd: string | null;
   qty: number;
-  shipment_id: string | null;
-  shipment_number: string | null;
-  booking_id: string | null;
-  booking_number: string | null;
+  shipmentId: string | null;
+  shipmentNumber: string | null;
+  bookingId: string | null;
+  bookingNumber: string | null;
   stage: string | null;                   // Awaiting Booking / Booking Pending / Ready to Ship … Received
-  progress_status: string | null;         // shipment pipeline state (null pre-shipment)
-  date_basis: 'actual' | 'projected';     // whose E-DEL was graded (shipment vs WIP/transit projection)
-  e_del: string | null;                   // best-known E-DEL (graded)
-  expected_ata: string | null;            // derived = E-DEL + 5
+  progressStatus: string | null;         // shipment pipeline state (null pre-shipment)
+  dateBasis: 'actual' | 'projected';     // whose E-DEL was graded (shipment vs WIP/transit projection)
+  eDel: string | null;                   // best-known E-DEL (graded)
+  expectedAta: string | null;            // derived = E-DEL + 5
   ata: string | null;                     // actual receipt date (derived from Item Receipts, else typed)
-  ata_source?: 'netsuite' | 'manual' | null;
+  ataSource?: 'netsuite' | 'manual' | null;
   timeliness: string;                     // On Time / At Risk / Late / Unknown
-  kpi_status: string;                     // Received / Delivered / On Time / At Risk / Late / Unknown
+  kpiStatus: string;                     // Received / Delivered / On Time / At Risk / Late / Unknown
   reason: string;                         // human-readable grade explanation
 }
 
@@ -334,46 +334,46 @@ export interface MainlineReportRow {
 export interface TransitSegmentMeta { key: string; label: string }
 export interface TransitActualStat { avg: number; min: number; max: number; n: number }
 export interface TransitModeRow {
-  mode_id: string;
+  modeId: string;
   mode: string;
-  sample_count: number;
+  sampleCount: number;
   standard: Record<string, number>;                     // segment key → standard days
-  standard_pre_delivery_days: number | null;            // Σ CRD → E-DEL
+  standardPreDeliveryDays: number | null;            // Σ CRD → E-DEL
   actual: Record<string, TransitActualStat | null>;     // segment key → observed stats
-  actual_pre_delivery_avg: number | null;
+  actualPreDeliveryAvg: number | null;
 }
 export interface TransitSlippedSegment { segment: string; label: string; actual: number; standard: number; over: number }
 export interface TransitShipmentRow {
-  shipment_id: string;
-  shipment_number: string | null;
-  booking_number: string | null;
-  supplier_name: string | null;
+  shipmentId: string;
+  shipmentNumber: string | null;
+  bookingNumber: string | null;
+  supplierName: string | null;
   coo: string | null;                                   // distinct origin countries, joined
-  pol_port: string | null;                              // departure port
-  mode_id: string | null;
+  polPort: string | null;                              // departure port
+  modeId: string | null;
   mode: string | null;
   crd: string | null;
-  cargo_received_date: string | null;
-  etd_pol: string | null;
-  eta_pod: string | null;
-  e_del: string | null;
+  cargoReceivedDate: string | null;
+  etdPol: string | null;
+  etaPod: string | null;
+  eDel: string | null;
   ata: string | null;
-  ata_source: 'netsuite' | 'manual' | null;             // attributed Item Receipt vs typed on the header
+  ataSource: 'netsuite' | 'manual' | null;             // attributed Item Receipt vs typed on the header
   durations: Record<string, number | null>;
-  total_days: number | null;                            // end-to-end CRD → ATA
+  totalDays: number | null;                            // end-to-end CRD → ATA
   slipped: TransitSlippedSegment[];
 }
 // One lane = supplier × country of origin × departure port × mode.
 export interface TransitLaneRow {
-  supplier_name: string | null;
+  supplierName: string | null;
   coo: string | null;
-  pol_port: string | null;
-  mode_id: string | null;
+  polPort: string | null;
+  modeId: string | null;
   mode: string | null;
-  sample_count: number;
+  sampleCount: number;
   segments: Record<string, TransitActualStat | null>;   // segment key → observed stats (negatives excluded)
   total: TransitActualStat | null;                      // end-to-end CRD → ATA
-  invalid_segments: string[];                           // segments (or 'total') with out-of-order dates
+  invalidSegments: string[];                           // segments (or 'total') with out-of-order dates
   standard: Record<string, number>;                     // segment key → standard days (by mode)
 }
 export interface TransitTimesReport {
@@ -386,34 +386,34 @@ export interface TransitTimesReport {
 // GET /master-data/production-schedules — per-season KPI gates (one row per
 // season; editable in /settings/production-schedules).
 export interface ProductionScheduleRow {
-  season_id: string;
+  seasonId: string;
   season: string;              // code (FW26) — display enrichment
-  ontime_by: string | null;
-  atrisk_by: string | null;
+  ontimeBy: string | null;
+  atriskBy: string | null;
 }
 
 export interface CiLineItem {
   id: string;
   invoice_id: string;
-  sku_code: string;
+  skuCode: string;
   matched_leg_id: string | null;
   qty: number;
-  weight_kg: number | null;
+  weightKg: number | null;
   cbm: number | null;
   match_status: 'matched' | 'unmatched';
 }
 
 export interface CommercialInvoice {
   id: string;
-  booking_id: string;
-  invoice_number: string | null;
-  invoice_date: string | null;
+  bookingId: string;
+  invoiceNumber: string | null;
+  invoiceDate: string | null;
   source: string | null;
   status: 'draft' | 'confirmed';
-  file_url: string | null;     // uploaded source shipment-data Excel
+  fileUrl: string | null;     // uploaded source shipment-data Excel
   ci_url?: string | null;      // generated commercial invoice
   pl_url?: string | null;      // generated packing slip
-  confirmed_at?: string;
+  confirmedAt?: string;
   unmatched_sku_count?: number;
   total_matched_qty?: number;
   total_unmatched_qty?: number;
@@ -422,51 +422,51 @@ export interface CommercialInvoice {
 
 // GET /mainline/fulfillment/:trn
 export interface FulfillmentRow {
-  sku_code: string;
-  ordered_qty: number;
-  allocated_qty: number;
-  shipped_qty: number;
-  received_qty: number;
-  remaining_qty: number;
+  skuCode: string;
+  orderedQty: number;
+  allocatedQty: number;
+  shippedQty: number;
+  receivedQty: number;
+  remainingQty: number;
   variance: number;
 }
 export interface Fulfillment {
-  trn_number: string;
-  sku_count: number;
-  totals: { ordered_qty: number; allocated_qty: number; shipped_qty: number; received_qty: number };
+  trnNumber: string;
+  skuCount: number;
+  totals: { orderedQty: number; allocatedQty: number; shippedQty: number; receivedQty: number };
   fulfillment: FulfillmentRow[];
 }
 
 // GET /mainline/bookings/:id/documents
 export interface MainlineDocument {
   id: string;
-  booking_id: string;
-  leg_id: string | null;        // null = combined (all POs)
-  doc_type: 'commercial_invoice' | 'packing_list';
-  file_url: string;
-  invoice_number: string;
-  generated_at: string;
-  po_number: string | null;
-  scope: string;                // 'Combined (all POs)' | po_number
+  bookingId: string;
+  legId: string | null;        // null = combined (all POs)
+  docType: 'commercial_invoice' | 'packing_list';
+  fileUrl: string;
+  invoiceNumber: string;
+  generatedAt: string;
+  poNumber: string | null;
+  scope: string;                // 'Combined (all POs)' | poNumber
 }
 
 export interface PackingSummary {
-  total_pcs: number;
-  total_cartons: number;
-  total_value: number;
-  total_net_weight: number;
-  total_gross_weight: number;
-  total_cbm: number;
+  totalPcs: number;
+  totalCartons: number;
+  totalValue: number;
+  totalNetWeight: number;
+  totalGrossWeight: number;
+  totalCbm: number;
 }
 
 // per-PO actual rollup from the uploaded shipment data
 export interface PackingByPo {
-  leg_id: string | null;
-  po_number: string | null;
-  total_pcs: number;
-  total_cartons: number;
-  total_value: number;
-  total_net_weight: number;
-  total_gross_weight: number;
-  total_cbm: number;
+  legId: string | null;
+  poNumber: string | null;
+  totalPcs: number;
+  totalCartons: number;
+  totalValue: number;
+  totalNetWeight: number;
+  totalGrossWeight: number;
+  totalCbm: number;
 }

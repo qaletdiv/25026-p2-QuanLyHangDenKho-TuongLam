@@ -26,8 +26,8 @@ export default function SubmitBar({ invoice }: { invoice: InvoiceDetail }) {
   const submitted = invoice.status === 'submitted';
   const t = invoice.totals;
   const blockers = invoice.findings.filter(f => f.severity === 'blocker');
-  const uncoded = invoice.lines.filter(l => l.coding_status !== 'coded' && Math.abs(l.inv_amt) > 0.005).length;
-  const tieBroken = invoice.tie_out.status === 'out_of_balance';
+  const uncoded = invoice.lines.filter(l => l.codingStatus !== 'coded' && Math.abs(l.invAmt) > 0.005).length;
+  const tieBroken = invoice.tieOut.status === 'outOfBalance';
 
   const blockReason = tieBroken
     ? 'The detail does not tie to the invoice.'
@@ -37,19 +37,19 @@ export default function SubmitBar({ invoice }: { invoice: InvoiceDetail }) {
 
   const onSubmit = async () => {
     setBusy(true);
-    const res = await submitInvoice(invoice.invoice_no);
+    const res = await submitInvoice(invoice.invoiceNo);
     setBusy(false);
     if (res?.error) {
       toast.error(res.message || res.error);
       return;
     }
-    toast.success(`Invoice ${invoice.invoice_no} submitted.`);
+    toast.success(`Invoice ${invoice.invoiceNo} submitted.`);
     router.refresh();
   };
 
   const onDelete = async () => {
     setBusy(true);
-    const res = await deleteInvoice(invoice.invoice_no);
+    const res = await deleteInvoice(invoice.invoiceNo);
     setBusy(false);
     setConfirmDelete(false);
     if (res?.error) return toast.error(res.error);
@@ -60,11 +60,11 @@ export default function SubmitBar({ invoice }: { invoice: InvoiceDetail }) {
   const copyPosting = async () => {
     const rows = invoice.posting?.length
       ? invoice.posting
-      : invoice.by_gl.flatMap(g => g.classes.map(c => ({ gl: g.gl, gl_desc: g.gl_desc, class: c.class, amount: c.amount })));
+      : invoice.byGl.flatMap(g => g.classes.map(c => ({ gl: g.gl, glDesc: g.glDesc, class: c.class, amount: c.amount })));
     const tsv = ['GL\tAccount\tClass\tAmount']
       .concat(rows
         .filter(r => Math.abs(r.amount) > 0.005)
-        .map(r => `${r.gl ?? ''}\t${r.gl_desc ?? ''}\t${r.class}\t${r.amount.toFixed(2)}`))
+        .map(r => `${r.gl ?? ''}\t${r.glDesc ?? ''}\t${r.class}\t${r.amount.toFixed(2)}`))
       .join('\n');
     try {
       await navigator.clipboard.writeText(tsv);
@@ -81,7 +81,7 @@ export default function SubmitBar({ invoice }: { invoice: InvoiceDetail }) {
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
           <div>
             <p className="flex items-center gap-2 text-lg font-semibold">
-              Invoice {invoice.invoice_no}
+              Invoice {invoice.invoiceNo}
               {submitted && (
                 <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 font-normal text-emerald-700 dark:text-emerald-300">
                   <Lock className="mr-1 h-3 w-3" /> submitted
@@ -89,10 +89,10 @@ export default function SubmitBar({ invoice }: { invoice: InvoiceDetail }) {
               )}
             </p>
             <p className="text-xs text-muted-foreground">
-              {invoice.invoice_date ?? DASH}
-              {invoice.due_date ? ` · due ${invoice.due_date}` : ''}
-              {invoice.payment_terms ? ` · ${invoice.payment_terms}` : ''}
-              {invoice.override_count > 0 ? ` · ${invoice.override_count} manual decision${invoice.override_count === 1 ? '' : 's'}` : ''}
+              {invoice.invoiceDate ?? DASH}
+              {invoice.dueDate ? ` · due ${invoice.dueDate}` : ''}
+              {invoice.paymentTerms ? ` · ${invoice.paymentTerms}` : ''}
+              {invoice.overrideCount > 0 ? ` · ${invoice.overrideCount} manual decision${invoice.overrideCount === 1 ? '' : 's'}` : ''}
             </p>
           </div>
 
@@ -100,7 +100,7 @@ export default function SubmitBar({ invoice }: { invoice: InvoiceDetail }) {
             <Stat label="Total" value={usd(t.amount)} strong />
             <Stat label="Lines" value={num(t.lines)} />
             <Stat label="Coded" value={`${num(t.coded)}/${num(t.lines)}`} />
-            <Stat label="Verified vs agreement" value={num(t.validated_ok)} />
+            <Stat label="Verified vs agreement" value={num(t.validatedOk)} />
             {blockers.length > 0 && (
               <Stat label="Blockers" value={num(blockers.length)} tone="text-red-600 dark:text-red-400" />
             )}
@@ -128,20 +128,20 @@ export default function SubmitBar({ invoice }: { invoice: InvoiceDetail }) {
         {blockReason && !submitted && (
           <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">{blockReason}</p>
         )}
-        {submitted && invoice.submitted_by && (
+        {submitted && invoice.submittedBy && (
           <p className="mt-2 text-xs text-muted-foreground">
-            Submitted by {invoice.submitted_by}
-            {invoice.submitted_at ? ` on ${invoice.submitted_at.slice(0, 10)}` : ''}. Un-load and reload to change it.
+            Submitted by {invoice.submittedBy}
+            {invoice.submittedAt ? ` on ${invoice.submittedAt.slice(0, 10)}` : ''}. Un-load and reload to change it.
           </p>
         )}
       </section>
 
       <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Un-load invoice {invoice.invoice_no}?</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Un-load invoice {invoice.invoiceNo}?</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Removes the header and all {num(t.lines)} lines. Your {invoice.override_count} line
-            decision{invoice.override_count === 1 ? '' : 's'} are kept, so re-uploading the same
+            Removes the header and all {num(t.lines)} lines. Your {invoice.overrideCount} line
+            decision{invoice.overrideCount === 1 ? '' : 's'} are kept, so re-uploading the same
             invoice number restores them.
           </p>
           <div className="flex justify-end gap-2 pt-2">

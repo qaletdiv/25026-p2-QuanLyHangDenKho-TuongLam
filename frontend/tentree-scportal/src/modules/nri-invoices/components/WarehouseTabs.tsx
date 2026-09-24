@@ -36,7 +36,7 @@ export default function WarehouseTabs({
 
   // A facility already registered to another warehouse would make the link
   // ambiguous, so it is offered only once.
-  const taken = new Set(sources.map((s) => s.facility_id).filter(Boolean) as string[]);
+  const taken = new Set(sources.map((s) => s.facilityId).filter(Boolean) as string[]);
   const free = facilities.filter((f) => !taken.has(f.id));
 
   const submit = () => {
@@ -45,7 +45,7 @@ export default function WarehouseTabs({
       const res = await addInvoiceSource({
         label: label.trim(),
         entity: entity.trim() || undefined,
-        facility_id: facilityId === NONE ? null : facilityId,
+        facilityId: facilityId === NONE ? null : facilityId,
       });
       if ('error' in res) return void toast.error(res.error);
       toast.success(`${res.label} added — uploads stay off until its invoice format is mapped.`);
@@ -73,11 +73,11 @@ export default function WarehouseTabs({
               {s.label}
               {/* a shell tab says so on the tab itself — otherwise you find out by
                   looking for an upload box that isn't there */}
-              {!s.upload_enabled && (
+              {!s.uploadEnabled && (
                 <Lock className="h-3 w-3 text-muted-foreground" aria-label="uploads not enabled yet" />
               )}
-              {typeof s.invoice_count === 'number' && s.invoice_count > 0 && (
-                <span className="text-xs font-normal text-muted-foreground">({s.invoice_count})</span>
+              {typeof s.invoiceCount === 'number' && s.invoiceCount > 0 && (
+                <span className="text-xs font-normal text-muted-foreground">({s.invoiceCount})</span>
               )}
             </Link>
           );

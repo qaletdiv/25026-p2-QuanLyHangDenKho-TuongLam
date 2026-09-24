@@ -145,7 +145,7 @@ export function UserSettings() {
     }
     setIsResetting(true);
     try {
-      const result = await updateUser(resetTarget.id, { password: newPassword, must_change_password: true });
+      const result = await updateUser(resetTarget.id, { password: newPassword, mustChangePassword: true });
       if (result?.error) throw new Error(result.error);
       setResetTarget(null);
       setNewPassword('');

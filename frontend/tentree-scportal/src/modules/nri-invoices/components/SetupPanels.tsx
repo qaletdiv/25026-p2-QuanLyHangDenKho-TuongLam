@@ -29,15 +29,15 @@ import { syncChargeCodes, uploadOrderData } from '../actions';
 import type { ChargeCode } from '../types';
 
 type LegendResult = {
-  source?: string; read?: number; written?: number; dry_run?: boolean;
+  source?: string; read?: number; written?: number; dryRun?: boolean;
   defects?: {
-    duplicate_keys?: string[][]; whitespace_keys?: string[];
-    blank_us_class?: string[]; blank_ca_class?: string[]; no_gl?: string[];
+    duplicateKeys?: string[][]; whitespaceKeys?: string[];
+    blankUsClass?: string[]; blankCaClass?: string[]; noGl?: string[];
   };
 };
 
 type OrderStatus = {
-  entity: string; orders: number; stored_rows: number;
+  entity: string; orders: number; storedRows: number;
   covers: { from: string; to: string } | null;
   sources: { label: string; rows?: number; added?: number; error?: string }[];
 } | null;
@@ -60,7 +60,7 @@ export function LegendPanel({
     const fd = new FormData();
     if (file) fd.append('legend', file);
     fd.append('warehouse', warehouse);
-    if (dryRun) fd.append('dry_run', 'true');
+    if (dryRun) fd.append('dryRun', 'true');
     return fd;
   };
 
@@ -115,25 +115,25 @@ export function LegendPanel({
             {preview.source} — read {count(preview.read)} rows, would write {count(preview.written)}
             {preview.read !== preview.written && <span className="text-muted-foreground"> (duplicates collapsed)</span>}
           </p>
-          {d && (d.duplicate_keys?.length || d.whitespace_keys?.length || d.blank_us_class?.length || d.no_gl?.length) ? (
+          {d && (d.duplicateKeys?.length || d.whitespaceKeys?.length || d.blankUsClass?.length || d.noGl?.length) ? (
             <ul className="space-y-1 text-amber-700 dark:text-amber-300">
-              {!!d.duplicate_keys?.length && (
+              {!!d.duplicateKeys?.length && (
                 <li className="flex gap-1.5"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
-                  Duplicate service{d.duplicate_keys.length === 1 ? '' : 's'}: {d.duplicate_keys.map((g) => g.map((s) => `"${s}"`).join(' / ')).join('; ')} — the first wins here; in the workbook a duplicate key MULTIPLIES the charge.</li>
+                  Duplicate service{d.duplicateKeys.length === 1 ? '' : 's'}: {d.duplicateKeys.map((g) => g.map((s) => `"${s}"`).join(' / ')).join('; ')} — the first wins here; in the workbook a duplicate key MULTIPLIES the charge.</li>
               )}
-              {!!d.whitespace_keys?.length && (
+              {!!d.whitespaceKeys?.length && (
                 <li className="flex gap-1.5"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
-                  Trailing/leading spaces in: {d.whitespace_keys.map((s) => `"${s}"`).join(', ')} — matched anyway here (trim + case-fold).</li>
+                  Trailing/leading spaces in: {d.whitespaceKeys.map((s) => `"${s}"`).join(', ')} — matched anyway here (trim + case-fold).</li>
               )}
-              {!!d.no_gl?.length && (
-                <li className="flex gap-1.5"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />No GL on: {d.no_gl.join(', ')}</li>
+              {!!d.noGl?.length && (
+                <li className="flex gap-1.5"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />No GL on: {d.noGl.join(', ')}</li>
               )}
-              {!!d.blank_us_class?.length && (
+              {!!d.blankUsClass?.length && (
                 <li className="flex gap-1.5"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
-                  No US class on {d.blank_us_class.length}: {d.blank_us_class.slice(0, 4).join(', ')}{d.blank_us_class.length > 4 ? '…' : ''} — those lines flag rather than post unclassed.</li>
+                  No US class on {d.blankUsClass.length}: {d.blankUsClass.slice(0, 4).join(', ')}{d.blankUsClass.length > 4 ? '…' : ''} — those lines flag rather than post unclassed.</li>
               )}
-              {!!d.blank_ca_class?.length && (
-                <li className="flex gap-1.5"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />No CA class on {d.blank_ca_class.length}.</li>
+              {!!d.blankCaClass?.length && (
+                <li className="flex gap-1.5"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />No CA class on {d.blankCaClass.length}.</li>
               )}
             </ul>
           ) : (
@@ -155,12 +155,12 @@ export function LegendPanel({
           </thead>
           <tbody>
             {shown.map((c) => {
-              const cls = entity === 'CA' ? c.class_ca : c.class_us;
+              const cls = entity === 'CA' ? c.classCa : c.classUs;
               return (
                 <tr key={c.id ?? c.service} className="border-b border-border last:border-0 hover:bg-muted/30">
                   <td className="px-4 py-1.5 font-medium">{c.service}</td>
                   <td className="px-4 py-1.5 font-mono text-xs">{c.gl ?? <span className="text-amber-600 dark:text-amber-400">none</span>}</td>
-                  <td className="px-4 py-1.5 text-xs text-muted-foreground">{c.gl_desc?.split(':').pop()?.trim() ?? '—'}</td>
+                  <td className="px-4 py-1.5 text-xs text-muted-foreground">{c.glDesc?.split(':').pop()?.trim() ?? '—'}</td>
                   <td className="px-4 py-1.5 text-xs">
                     {cls ?? <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-[10px] font-normal text-amber-700 dark:text-amber-300">flags</Badge>}
                   </td>
@@ -192,7 +192,7 @@ export function OrderDataPanel({ status, warehouse }: { status: OrderStatus; war
   const fileRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
-  const [last, setLast] = useState<{ read: number; added: number; updated: number; with_order_type: number; with_country: number } | null>(null);
+  const [last, setLast] = useState<{ read: number; added: number; updated: number; withOrderType: number; withCountry: number } | null>(null);
 
   const send = async () => {
     if (!file) return void toast.error('Choose the order-data file first.');
@@ -240,13 +240,13 @@ export function OrderDataPanel({ status, warehouse }: { status: OrderStatus; war
         </p>
         <div className="flex flex-wrap gap-x-6 gap-y-1">
           <span>Orders known: <strong>{count(status?.orders)}</strong></span>
-          <span>Held in the portal: <strong>{count(status?.stored_rows)}</strong></span>
+          <span>Held in the portal: <strong>{count(status?.storedRows)}</strong></span>
           <span>Covers: <strong>{status?.covers ? `${status.covers.from} → ${status.covers.to}` : '—'}</strong></span>
         </div>
         {last && (
           <p className="text-emerald-700 dark:text-emerald-300">
             Last upload: {count(last.read)} rows · {count(last.added)} new · {count(last.updated)} updated ·
-            {' '}{count(last.with_order_type)} with a channel · {count(last.with_country)} with a country.
+            {' '}{count(last.withOrderType)} with a channel · {count(last.withCountry)} with a country.
           </p>
         )}
         {!!status?.sources?.length && (

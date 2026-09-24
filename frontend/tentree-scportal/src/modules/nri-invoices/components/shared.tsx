@@ -34,10 +34,10 @@ const VERDICT_META: Record<Verdict, { label: string; className: string }> = {
   overcharge:       { label: 'Above agreement', className: 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30' },
   duplicate:        { label: 'Duplicate',       className: 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30' },
   undercharge:      { label: 'Below agreement', className: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30' },
-  no_rate_on_file:  { label: 'No rate on file', className: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30' },
-  aging_premium:    { label: 'Aging premium',   className: 'bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/30' },
-  qty_unsupported:  { label: 'Qty unevidenced', className: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30' },
-  no_contract_rate: { label: 'Not in agreement',className: 'bg-muted text-muted-foreground border-border' },
+  noRateOnFile:  { label: 'No rate on file', className: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30' },
+  agingPremium:    { label: 'Aging premium',   className: 'bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/30' },
+  qtyUnsupported:  { label: 'Qty unevidenced', className: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30' },
+  noContractRate: { label: 'Not in agreement',className: 'bg-muted text-muted-foreground border-border' },
   ok:               { label: 'Verified',        className: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' },
 };
 
@@ -62,8 +62,8 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
 
 export const TIE_OUT_META: Record<TieOutStatus, { label: string; tone: string; ring: string }> = {
   balanced:       { label: 'Ties to invoice', tone: 'text-emerald-700 dark:text-emerald-300', ring: 'border-emerald-500/40 bg-emerald-500/5' },
-  out_of_balance: { label: 'Does not tie',    tone: 'text-red-700 dark:text-red-300',         ring: 'border-red-500/40 bg-red-500/5' },
-  no_summary:     { label: 'Unproven',        tone: 'text-amber-700 dark:text-amber-300',     ring: 'border-amber-500/40 bg-amber-500/5' },
+  outOfBalance: { label: 'Does not tie',    tone: 'text-red-700 dark:text-red-300',         ring: 'border-red-500/40 bg-red-500/5' },
+  noSummary:     { label: 'Unproven',        tone: 'text-amber-700 dark:text-amber-300',     ring: 'border-amber-500/40 bg-amber-500/5' },
 };
 
 /**

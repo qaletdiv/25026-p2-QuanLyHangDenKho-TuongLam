@@ -22,12 +22,12 @@ import ReportsTabs from '../ReportsTabs';
 
 // Item-lines export columns (all SKU order lines across every SMS PO).
 const ITEM_COLS = [
-  { key: 'po_number', label: 'PO Number' }, { key: 'trn_number', label: 'TRN' },
+  { key: 'poNumber', label: 'PO Number' }, { key: 'trnNumber', label: 'TRN' },
   { key: 'supplier', label: 'Supplier' }, { key: 'season', label: 'Season' },
-  { key: 'facility', label: 'Destination' }, { key: 'allocation_channel', label: 'Channel' },
-  { key: 'hod', label: 'HOD' }, { key: 'expected_received_date', label: 'Expected Receive' },
-  { key: 'sku_code', label: 'SKU' }, { key: 'item_name', label: 'Item' }, { key: 'size', label: 'Size' },
-  { key: 'ordered_qty', label: 'Ordered Qty' }, { key: 'unit_price', label: 'Unit Price' },
+  { key: 'facility', label: 'Destination' }, { key: 'allocationChannel', label: 'Channel' },
+  { key: 'hod', label: 'HOD' }, { key: 'expectedReceivedDate', label: 'Expected Receive' },
+  { key: 'skuCode', label: 'SKU' }, { key: 'itemName', label: 'Item' }, { key: 'size', label: 'Size' },
+  { key: 'orderedQty', label: 'Ordered Qty' }, { key: 'unitPrice', label: 'Unit Price' },
 ];
 
 // deterministic thousands (avoids SSR/CSR locale mismatch — see hydration notes)
@@ -37,21 +37,21 @@ const csv = (v: unknown) => { const s = String(v ?? ''); return /[",\n]/.test(s)
 
 /* ── fulfillment at UNIT grain (mutually exclusive; reconciles to ordered) ────
  * Where the units ARE, not which stage their PO is in. The backend's `unitSplit`
- * guarantees the four fields sum to ordered_qty per PO, so every cell, row total
+ * guarantees the four fields sum to orderedQty per PO, so every cell, row total
  * and grand total reconciles.
  *
- * This replaced pivoting on `kpi_status`, which is a PO-level state: summing
- * ordered_qty by status filed a PO's WHOLE quantity under one label, so Shanghai
+ * This replaced pivoting on `kpiStatus`, which is a PO-level state: summing
+ * orderedQty by status filed a PO's WHOLE quantity under one label, so Shanghai
  * Pucci FW27 read "Partially Shipped 230" when 929 of its 937 units had arrived and
- * only 8 were outstanding. `kpi_status` is still on every row and in the CSV — it
+ * only 8 were outstanding. `kpiStatus` is still on every row and in the CSV — it
  * answers "which POs need attention", which is a different question from "where are
  * the units". */
 const UNIT_ORDER = ['Overdue', 'To Ship', 'In Transit', 'Received'];
-const UNIT_FIELD: Record<string, 'units_overdue' | 'units_to_ship' | 'units_in_transit' | 'units_received'> = {
-  'Overdue':    'units_overdue',      // not shipped and HOD has passed
-  'To Ship':    'units_to_ship',      // not shipped, still inside HOD
-  'In Transit': 'units_in_transit',   // shipped, no Item Receipt yet
-  'Received':   'units_received',     // booked in by NetSuite
+const UNIT_FIELD: Record<string, 'unitsOverdue' | 'unitsToShip' | 'unitsInTransit' | 'unitsReceived'> = {
+  'Overdue':    'unitsOverdue',      // not shipped and HOD has passed
+  'To Ship':    'unitsToShip',      // not shipped, still inside HOD
+  'In Transit': 'unitsInTransit',   // shipped, no Item Receipt yet
+  'Received':   'unitsReceived',     // booked in by NetSuite
 };
 const UNIT_TEXT: Record<string, string> = {
   'Received':   'text-blue-600',
@@ -269,10 +269,10 @@ export default function SmsReportsClient({ rows }: { rows: SmsReportRow[] }) {
   const filtered = useMemo(() => rows.filter((r) => !activeSeason || r.season === activeSeason), [rows, activeSeason]);
 
   const sum = (f: (r: SmsReportRow) => number) => filtered.reduce((a, r) => a + f(r), 0);
-  const ordered = sum((r) => r.ordered_qty);
-  const shipped = sum((r) => r.shipped_qty);
-  const received = sum((r) => r.received_qty);
-  const remaining = sum((r) => r.remaining_qty);
+  const ordered = sum((r) => r.orderedQty);
+  const shipped = sum((r) => r.shippedQty);
+  const received = sum((r) => r.receivedQty);
+  const remaining = sum((r) => r.remainingQty);
 
   // a unit bucket shows only if some PO has units in it (Σ > 0, not "any row
   // mentions it") — otherwise an all-zero column would sit there permanently
@@ -282,11 +282,11 @@ export default function SmsReportsClient({ rows }: { rows: SmsReportRow[] }) {
     return UNIT_ORDER.filter((b) => total[b]);
   }, [filtered]);
   const tlBuckets = useMemo(() => {
-    const present = new Set<string>(filtered.map((r) => r.hod_timeliness));
+    const present = new Set<string>(filtered.map((r) => r.hodTimeliness));
     return TL_ORDER.filter((b) => present.has(b));
   }, [filtered]);
   // HOD is a PO-level axis: one bucket per row, carrying its whole ordered qty
-  const hodSplit = useMemo(() => (r: SmsReportRow) => ({ [r.hod_timeliness]: r.ordered_qty }), []);
+  const hodSplit = useMemo(() => (r: SmsReportRow) => ({ [r.hodTimeliness]: r.orderedQty }), []);
 
   function exportCsv() {
     // New columns go at the END so existing column positions in anyone's sheet
@@ -298,10 +298,10 @@ export default function SmsReportsClient({ rows }: { rows: SmsReportRow[] }) {
       'Shipped (recorded)', 'Shipment Record'];
     const lines = [headers.join(',')];
     filtered.forEach((r) => lines.push([
-      r.po_number, r.trn_number, r.supplier, r.season, facilityLabel(r.facility), r.channel, r.hod, r.ship_method,
-      r.ordered_qty, r.shipped_qty, r.received_qty, r.remaining_qty, r.lot_count, r.earliest_ship_date,
-      r.fulfillment, r.hod_timeliness, r.kpi_status,
-      r.shipped_recorded_qty ?? '', r.has_shipment_record === false ? 'missing' : 'yes',
+      r.poNumber, r.trnNumber, r.supplier, r.season, facilityLabel(r.facility), r.channel, r.hod, r.shipMethod,
+      r.orderedQty, r.shippedQty, r.receivedQty, r.remainingQty, r.lotCount, r.earliestShipDate,
+      r.fulfillment, r.hodTimeliness, r.kpiStatus,
+      r.shippedRecordedQty ?? '', r.hasShipmentRecord === false ? 'missing' : 'yes',
     ].map(csv).join(',')));
     const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

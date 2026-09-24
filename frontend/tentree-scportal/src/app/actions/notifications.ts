@@ -18,9 +18,9 @@ export interface Notification {
   unread: boolean;
 }
 
-export async function getNotifications(): Promise<{ notifications: Notification[]; unread_count: number }> {
+export async function getNotifications(): Promise<{ notifications: Notification[]; unreadCount: number }> {
   const data = await fetchApi('/notifications');
-  return data && Array.isArray(data.notifications) ? data : { notifications: [], unread_count: 0 };
+  return data && Array.isArray(data.notifications) ? data : { notifications: [], unreadCount: 0 };
 }
 
 export async function markNotificationsSeen() {

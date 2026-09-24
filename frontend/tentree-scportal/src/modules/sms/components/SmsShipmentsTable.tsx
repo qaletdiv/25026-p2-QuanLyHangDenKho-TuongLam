@@ -55,33 +55,33 @@ export default function SmsShipmentsTable({ shipments, pos, couriers }: {
   }
 
   const columns: DataColumn<SmsShipment>[] = [
-    { key: 'tracking_number', label: 'Tracking #', accessor: (s) => s.tracking_number, render: (s) => (
-      <span className="font-medium font-mono text-xs">{s.tracking_number || `Shipment ${s.id}`}</span>
+    { key: 'trackingNumber', label: 'Tracking #', accessor: (s) => s.trackingNumber, render: (s) => (
+      <span className="font-medium font-mono text-xs">{s.trackingNumber || `Shipment ${s.id}`}</span>
     ) },
     { key: 'courier', label: 'Courier', accessor: (s) => s.courier, render: (s) => dim(s.courier) },
     // Mode is set on booked consignments (copied from the booking); a vendor-entered
     // parcel leaves it null and posts to NetSuite as Courier.
     { key: 'mode', label: 'Mode', defaultVisible: false, accessor: (s) => s.mode, render: (s) => dim(s.mode) },
     { key: 'supplier', label: 'Supplier', accessor: (s) => s.supplier, render: (s) => dim(s.supplier) },
-    { key: 'ship_date', label: 'Ship Date', accessor: (s) => s.ship_date, render: (s) => dim(s.ship_date) },
+    { key: 'shipDate', label: 'Ship Date', accessor: (s) => s.shipDate, render: (s) => dim(s.shipDate) },
     { key: 'facility', label: 'Destination', accessor: (s) => facilityLabel(s.facility), render: (s) => dim(facilityLabel(s.facility)) },
     { key: 'season', label: 'Season', defaultVisible: false, accessor: (s) => s.season, render: (s) => dim(s.season) },
     { key: 'pos', label: 'POs (lots)', sortable: false,
-      accessor: (s) => s.pos.map((p) => p.po_number).join(', '),
-      render: (s) => <span className="text-xs">{s.pos.map((p) => `${p.po_number} (lot ${p.lot_number})`).join(', ') || '—'}</span> },
-    { key: 'total_units', label: 'Units', align: 'right', accessor: (s) => s.total_units, render: (s) => s.total_units.toLocaleString() },
-    { key: 'total_cartons', label: 'Cartons', align: 'right', defaultVisible: false, accessor: (s) => s.total_cartons, render: (s) => s.total_cartons ? s.total_cartons.toLocaleString() : '—' },
+      accessor: (s) => s.pos.map((p) => p.poNumber).join(', '),
+      render: (s) => <span className="text-xs">{s.pos.map((p) => `${p.poNumber} (lot ${p.lotNumber})`).join(', ') || '—'}</span> },
+    { key: 'totalUnits', label: 'Units', align: 'right', accessor: (s) => s.totalUnits, render: (s) => s.totalUnits.toLocaleString() },
+    { key: 'totalCartons', label: 'Cartons', align: 'right', defaultVisible: false, accessor: (s) => s.totalCartons, render: (s) => s.totalCartons ? s.totalCartons.toLocaleString() : '—' },
     { key: 'status', label: 'Status', accessor: (s) => s.status, render: (s) => (
       <>
         <Badge variant="outline" className={cn(SMS_STATUS_STYLES[s.status || ''])}>{s.status ?? '—'}</Badge>
-        {s.status_source === 'manual' && <span className="ml-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/70">manual</span>}
+        {s.statusSource === 'manual' && <span className="ml-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/70">manual</span>}
       </>
     ) },
     // Received-in-NetSuite date (the IR date) — off by default; the Received badge
     // above already says it happened, this says when the warehouse booked it in.
-    { key: 'received_date', label: 'Received (NS)', defaultVisible: false,
-      accessor: (s) => s.received_date, render: (s) => dim(s.received_date) },
-    { key: 'events', label: 'Scans', align: 'right', defaultVisible: false, accessor: (s) => s.tracking_events.length, render: (s) => s.tracking_events.length.toLocaleString() },
+    { key: 'receivedDate', label: 'Received (NS)', defaultVisible: false,
+      accessor: (s) => s.receivedDate, render: (s) => dim(s.receivedDate) },
+    { key: 'events', label: 'Scans', align: 'right', defaultVisible: false, accessor: (s) => s.trackingEvents.length, render: (s) => s.trackingEvents.length.toLocaleString() },
   ];
 
   const toolbar = (

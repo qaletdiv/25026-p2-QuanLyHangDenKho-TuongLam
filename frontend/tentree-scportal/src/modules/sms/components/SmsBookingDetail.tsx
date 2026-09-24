@@ -53,7 +53,7 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState<null | 'approve' | 'reject' | 'cancel' | 'delete'>(null);
 
-  const status = booking.booking_status || '';
+  const status = booking.bookingStatus || '';
   const isPending = status === 'Booking Pending';
   const isApproved = status === 'Booking Approved';
 
@@ -64,31 +64,31 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
   // edit their OWN pending booking, so this is not staff-only.
   const [edit, setEdit] = useState(false);
   const [form, setForm] = useState({
-    cargo_ready_date: booking.cargo_ready_date ?? '',
-    incoterm_id: booking.incoterm_id ?? '',
-    courier_id: booking.courier_id ?? '',
-    mode_id: booking.mode_id ?? '',
+    cargoReadyDate: booking.cargoReadyDate ?? '',
+    incotermId: booking.incotermId ?? '',
+    courierId: booking.courierId ?? '',
+    modeId: booking.modeId ?? '',
     pos: booking.pos.map((p) => ({
-      po_number: p.po_number,
-      lot_number: p.lot_number,
+      poNumber: p.poNumber,
+      lotNumber: p.lotNumber,
       units: String(p.units ?? ''),
       cartons: p.cartons != null ? String(p.cartons) : '',
-      weight: p.weight_kg != null ? String(p.weight_kg) : '',
+      weight: p.weightKg != null ? String(p.weightKg) : '',
     })),
   });
 
   function resetForm() {
     setForm({
-      cargo_ready_date: booking.cargo_ready_date ?? '',
-      incoterm_id: booking.incoterm_id ?? '',
-      courier_id: booking.courier_id ?? '',
-      mode_id: booking.mode_id ?? '',
+      cargoReadyDate: booking.cargoReadyDate ?? '',
+      incotermId: booking.incotermId ?? '',
+      courierId: booking.courierId ?? '',
+      modeId: booking.modeId ?? '',
       pos: booking.pos.map((p) => ({
-        po_number: p.po_number,
-        lot_number: p.lot_number,
+        poNumber: p.poNumber,
+        lotNumber: p.lotNumber,
         units: String(p.units ?? ''),
         cartons: p.cartons != null ? String(p.cartons) : '',
-        weight: p.weight_kg != null ? String(p.weight_kg) : '',
+        weight: p.weightKg != null ? String(p.weightKg) : '',
       })),
     });
   }
@@ -97,21 +97,21 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
   // (the server returns 409 + overbook_warning when a lot exceeds what's left).
   async function save(force = false) {
     const payload: Record<string, unknown> = {
-      cargo_ready_date: form.cargo_ready_date || null,
-      incoterm_id: form.incoterm_id || null,
+      cargoReadyDate: form.cargoReadyDate || null,
+      incotermId: form.incotermId || null,
       // omitted when blank — the server rejects an empty carrier/mode, and a
       // legacy booking (created before these existed) can only gain them here
-      ...(form.courier_id ? { courier_id: form.courier_id } : {}),
-      ...(form.mode_id ? { mode_id: form.mode_id } : {}),
+      ...(form.courierId ? { courierId: form.courierId } : {}),
+      ...(form.modeId ? { modeId: form.modeId } : {}),
       // The server replaces this booking's junction WHOLESALE, so every editable
-      // column has to be re-sent — an omitted weight_kg comes back as null, i.e.
+      // column has to be re-sent — an omitted weightKg comes back as null, i.e.
       // saving an unrelated date change would silently wipe the entered weight.
       pos: form.pos.map((p) => ({
-        po_number: p.po_number,
-        lot_number: p.lot_number,
+        poNumber: p.poNumber,
+        lotNumber: p.lotNumber,
         units: Number(p.units),
         cartons: p.cartons === '' ? null : Number(p.cartons),
-        weight_kg: p.weight === '' ? null : Number(p.weight),
+        weightKg: p.weight === '' ? null : Number(p.weight),
       })),
     };
     if (force) payload.force_overbook = true;
@@ -119,8 +119,8 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
     const res = await updateSmsBooking(booking.id, payload);
     setBusy(false);
     if (res?.overbook_warning) {
-      const lines = (res.warnings ?? []).map((w: { po_number: string; ordered: number; already_booked: number; requested: number }) =>
-        `${w.po_number}: ${w.requested} requested, ${w.already_booked} already booked of ${w.ordered} ordered`).join('\n');
+      const lines = (res.warnings ?? []).map((w: { poNumber: string; ordered: number; already_booked: number; requested: number }) =>
+        `${w.poNumber}: ${w.requested} requested, ${w.already_booked} already booked of ${w.ordered} ordered`).join('\n');
       if (window.confirm(`This exceeds what is left to book:\n\n${lines}\n\nSave anyway?`)) return save(true);
       return;
     }
@@ -155,13 +155,13 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
     router.refresh();
   }
 
-  const totalShipped = booking.pos.reduce((a, p) => a + (p.shipped_units ?? 0), 0);
+  const totalShipped = booking.pos.reduce((a, p) => a + (p.shippedUnits ?? 0), 0);
 
   return (
     <div className="p-4 md:p-6 space-y-6">
       <ConfirmDialog
         open={confirm === 'approve'}
-        title={`Approve ${booking.booking_number}?`}
+        title={`Approve ${booking.bookingNumber}?`}
         description="This creates the consignment as a draft (no tracking number yet) and authorizes the booked lots. The tracking number is added when the box actually ships."
         confirmLabel="Approve"
         onCancel={() => setConfirm(null)}
@@ -169,7 +169,7 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
       />
       <ConfirmDialog
         open={confirm === 'reject'}
-        title={`Reject ${booking.booking_number}?`}
+        title={`Reject ${booking.bookingNumber}?`}
         description="The booked lots become free to re-book. Nothing is deleted."
         confirmLabel="Reject"
         onCancel={() => setConfirm(null)}
@@ -177,7 +177,7 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
       />
       <ConfirmDialog
         open={confirm === 'cancel'}
-        title={`Cancel ${booking.booking_number}?`}
+        title={`Cancel ${booking.bookingNumber}?`}
         description="Any draft consignment created by approval is deleted. If a box has already shipped under this booking, the cancel is refused."
         confirmLabel="Cancel booking"
         onCancel={() => setConfirm(null)}
@@ -185,7 +185,7 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
       />
       <ConfirmDialog
         open={confirm === 'delete'}
-        title={`Delete ${booking.booking_number}?`}
+        title={`Delete ${booking.bookingNumber}?`}
         description="This removes the booking record entirely. Only possible while it is Pending, Rejected or Cancelled."
         confirmLabel="Delete"
         onCancel={() => setConfirm(null)}
@@ -197,7 +197,7 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
           <ArrowLeft className="w-4 h-4" /> SMS Bookings
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">{booking.booking_number}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{booking.bookingNumber}</h1>
           <Badge variant="outline" className={cn(SMS_BOOKING_STATUS_STYLES[status])}>{status || DASH}</Badge>
           <div className="ml-auto flex flex-wrap gap-2">
             {/* Edit is available to the VENDOR too (it is their booking) — the server
@@ -252,7 +252,7 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
           </div>
         </div>
         <p className="text-sm text-muted-foreground mt-1">
-          {booking.supplier_name ?? DASH} · {booking.total_units.toLocaleString()} units authorized
+          {booking.supplierName ?? DASH} · {booking.totalUnits.toLocaleString()} units authorized
           {totalShipped ? ` · ${totalShipped.toLocaleString()} shipped` : ''}
         </p>
         {/* Why there is no Edit button once approved — approval already created the
@@ -268,23 +268,23 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
 
       {/* Bookings made before carrier/mode existed were approved into a FedEx/COURIER
           draft. Approve now refuses rather than guessing, so say so up front. */}
-      {isPending && (!booking.courier_id || !booking.mode_id) && (
+      {isPending && (!booking.courierId || !booking.modeId) && (
         <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700">
-          This booking has no {[!booking.courier_id && 'carrier', !booking.mode_id && 'mode'].filter(Boolean).join(' or ')} set,
-          so it cannot be approved. <strong>Edit</strong> it and pick {!booking.mode_id ? 'them — the mode becomes the shipping method on the NetSuite item receipt.' : 'one.'}
+          This booking has no {[!booking.courierId && 'carrier', !booking.modeId && 'mode'].filter(Boolean).join(' or ')} set,
+          so it cannot be approved. <strong>Edit</strong> it and pick {!booking.modeId ? 'them — the mode becomes the shipping method on the NetSuite item receipt.' : 'one.'}
         </div>
       )}
 
       <Card className="p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <Meta label="Supplier" value={booking.supplier_name} />
+          <Meta label="Supplier" value={booking.supplierName} />
           {edit ? (
             <div className="space-y-0.5">
               <div className="text-xs text-muted-foreground">Cargo Ready Date</div>
-              <Input type="date" className="h-8 text-sm" value={form.cargo_ready_date}
-                onChange={(e) => setForm((f) => ({ ...f, cargo_ready_date: e.target.value }))} />
+              <Input type="date" className="h-8 text-sm" value={form.cargoReadyDate}
+                onChange={(e) => setForm((f) => ({ ...f, cargoReadyDate: e.target.value }))} />
             </div>
-          ) : <Meta label="Cargo Ready Date" value={booking.cargo_ready_date} />}
+          ) : <Meta label="Cargo Ready Date" value={booking.cargoReadyDate} />}
           <Meta label="Destination" value={facilityLabel(booking.destination)} />
           {/* Carrier + Mode. Approval copies both onto the draft consignment; the
               MODE is what the landed-cost push sends to NetSuite as the shipping
@@ -292,10 +292,10 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
           {edit ? (
             <div className="space-y-0.5">
               <div className="text-xs text-muted-foreground">Carrier</div>
-              <Select value={form.courier_id} onValueChange={(v) => v && setForm((f) => ({ ...f, courier_id: v }))}>
+              <Select value={form.courierId} onValueChange={(v) => v && setForm((f) => ({ ...f, courierId: v }))}>
                 <SelectTrigger className="h-8 w-full text-sm">
-                  <span className={cn(!form.courier_id && 'text-muted-foreground')}>
-                    {couriers.find((c) => c.id === form.courier_id)?.name || 'Select carrier'}
+                  <span className={cn(!form.courierId && 'text-muted-foreground')}>
+                    {couriers.find((c) => c.id === form.courierId)?.name || 'Select carrier'}
                   </span>
                 </SelectTrigger>
                 <SelectContent>{couriers.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
@@ -305,10 +305,10 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
           {edit ? (
             <div className="space-y-0.5">
               <div className="text-xs text-muted-foreground">Mode</div>
-              <Select value={form.mode_id} onValueChange={(v) => v && setForm((f) => ({ ...f, mode_id: v }))}>
+              <Select value={form.modeId} onValueChange={(v) => v && setForm((f) => ({ ...f, modeId: v }))}>
                 <SelectTrigger className="h-8 w-full text-sm">
-                  <span className={cn(!form.mode_id && 'text-muted-foreground')}>
-                    {modes.find((m) => m.id === form.mode_id)?.name || 'Select mode'}
+                  <span className={cn(!form.modeId && 'text-muted-foreground')}>
+                    {modes.find((m) => m.id === form.modeId)?.name || 'Select mode'}
                   </span>
                 </SelectTrigger>
                 <SelectContent>{modes.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}</SelectContent>
@@ -320,10 +320,10 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
               <div className="text-xs text-muted-foreground">Incoterm</div>
               {/* label rendered in the trigger — SelectValue can't derive it for a
                   programmatic/async value (see CLAUDE.md) */}
-              <Select value={form.incoterm_id} onValueChange={(v) => setForm((f) => ({ ...f, incoterm_id: v ?? '' }))}>
+              <Select value={form.incotermId} onValueChange={(v) => setForm((f) => ({ ...f, incotermId: v ?? '' }))}>
                 <SelectTrigger className="h-8 w-full text-sm">
-                  <span className={cn(!form.incoterm_id && 'text-muted-foreground')}>
-                    {incoterms.find((i) => i.id === form.incoterm_id)?.name || 'None'}
+                  <span className={cn(!form.incotermId && 'text-muted-foreground')}>
+                    {incoterms.find((i) => i.id === form.incotermId)?.name || 'None'}
                   </span>
                 </SelectTrigger>
                 <SelectContent>
@@ -333,11 +333,11 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
             </div>
           ) : <Meta label="Incoterm" value={booking.incoterm} />}
           <Meta label="Season" value={booking.season} />
-          <Meta label="Submitted" value={booking.submitted_at?.slice(0, 10)} />
-          <Meta label="Approved" value={booking.approved_at?.slice(0, 10)} />
-          <Meta label="Cartons" value={booking.total_cartons ? String(booking.total_cartons) : null} />
+          <Meta label="Submitted" value={booking.submittedAt?.slice(0, 10)} />
+          <Meta label="Approved" value={booking.approvedAt?.slice(0, 10)} />
+          <Meta label="Cartons" value={booking.totalCartons ? String(booking.totalCartons) : null} />
           {/* Σ over the lots, derived server-side — never stored on the header */}
-          <Meta label="Weight (kg)" value={booking.total_weight_kg ? booking.total_weight_kg.toLocaleString() : null} />
+          <Meta label="Weight (kg)" value={booking.totalWeightKg ? booking.totalWeightKg.toLocaleString() : null} />
         </div>
       </Card>
 
@@ -361,22 +361,22 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
             </TableHeader>
             <TableBody>
               {booking.pos.map((p) => {
-                const shipped = p.shipped_units;
+                const shipped = p.shippedUnits;
                 const variance = shipped == null ? null : shipped - p.units;
                 return (
                   <TableRow key={p.id} className="border-border hover:bg-muted/30">
                     <TableCell>
-                      <Link href={`/sms/purchase-orders/${encodeURIComponent(p.po_number)}`} className="text-primary hover:underline font-medium">{p.po_number}</Link>
+                      <Link href={`/sms/purchase-orders/${encodeURIComponent(p.poNumber)}`} className="text-primary hover:underline font-medium">{p.poNumber}</Link>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{p.supplier ?? DASH}</TableCell>
-                    <TableCell className="text-muted-foreground">Lot {p.lot_number}</TableCell>
+                    <TableCell className="text-muted-foreground">Lot {p.lotNumber}</TableCell>
                     <TableCell className="text-right tabular-nums">
                       {edit ? (
                         <Input type="number" min="1" className="h-8 w-24 ml-auto text-right"
-                          value={form.pos.find((x) => x.po_number === p.po_number && x.lot_number === p.lot_number)?.units ?? ''}
+                          value={form.pos.find((x) => x.poNumber === p.poNumber && x.lotNumber === p.lotNumber)?.units ?? ''}
                           onChange={(e) => setForm((f) => ({
                             ...f,
-                            pos: f.pos.map((x) => (x.po_number === p.po_number && x.lot_number === p.lot_number
+                            pos: f.pos.map((x) => (x.poNumber === p.poNumber && x.lotNumber === p.lotNumber
                               ? { ...x, units: e.target.value } : x)),
                           }))} />
                       ) : p.units.toLocaleString()}
@@ -396,10 +396,10 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
                     <TableCell className="text-right tabular-nums">
                       {edit ? (
                         <Input type="number" min="0" className="h-8 w-20 ml-auto text-right" placeholder="—"
-                          value={form.pos.find((x) => x.po_number === p.po_number && x.lot_number === p.lot_number)?.cartons ?? ''}
+                          value={form.pos.find((x) => x.poNumber === p.poNumber && x.lotNumber === p.lotNumber)?.cartons ?? ''}
                           onChange={(e) => setForm((f) => ({
                             ...f,
-                            pos: f.pos.map((x) => (x.po_number === p.po_number && x.lot_number === p.lot_number
+                            pos: f.pos.map((x) => (x.poNumber === p.poNumber && x.lotNumber === p.lotNumber
                               ? { ...x, cartons: e.target.value } : x)),
                           }))} />
                       ) : (p.cartons ?? DASH)}
@@ -407,13 +407,13 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
                     <TableCell className="text-right tabular-nums">
                       {edit ? (
                         <Input type="number" min="0" step="0.01" className="h-8 w-24 ml-auto text-right" placeholder="—"
-                          value={form.pos.find((x) => x.po_number === p.po_number && x.lot_number === p.lot_number)?.weight ?? ''}
+                          value={form.pos.find((x) => x.poNumber === p.poNumber && x.lotNumber === p.lotNumber)?.weight ?? ''}
                           onChange={(e) => setForm((f) => ({
                             ...f,
-                            pos: f.pos.map((x) => (x.po_number === p.po_number && x.lot_number === p.lot_number
+                            pos: f.pos.map((x) => (x.poNumber === p.poNumber && x.lotNumber === p.lotNumber
                               ? { ...x, weight: e.target.value } : x)),
                           }))} />
-                      ) : (p.weight_kg ?? DASH)}
+                      ) : (p.weightKg ?? DASH)}
                     </TableCell>
                   </TableRow>
                 );
@@ -445,12 +445,12 @@ export default function SmsBookingDetail({ booking, incoterms = [], couriers = [
                   <TableRow key={s.id} className="border-border hover:bg-muted/30">
                     <TableCell>
                       <Link href={`/sms/shipments/${s.id}`} className="text-primary hover:underline font-mono text-xs">
-                        {s.tracking_number || `Shipment ${s.id}`}
+                        {s.trackingNumber || `Shipment ${s.id}`}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{s.ship_date ?? DASH}</TableCell>
+                    <TableCell className="text-muted-foreground">{s.shipDate ?? DASH}</TableCell>
                     <TableCell>
-                      {s.is_draft
+                      {s.isDraft
                         ? <Badge variant="outline" className="bg-amber-500/10 border-amber-500/30 text-amber-700">Draft — awaiting tracking #</Badge>
                         : <Badge variant="outline" className="bg-blue-500/10 border-blue-500/30 text-blue-600">Shipped</Badge>}
                     </TableCell>

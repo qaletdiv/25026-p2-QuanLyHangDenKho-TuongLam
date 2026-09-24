@@ -35,16 +35,16 @@ function CommissionModuleEditor({ module, suppliers }: { module: 'sms' | 'mainli
   const supName = useMemo(() => new Map(suppliers.map((s) => [String(s.id), s.name])), [suppliers]);
   // suppliers not already in the table (candidates for the Add dropdown)
   const available = useMemo(
-    () => suppliers.filter((s) => !rows.some((r) => String(r.supplier_id) === String(s.id))),
+    () => suppliers.filter((s) => !rows.some((r) => String(r.supplierId) === String(s.id))),
     [suppliers, rows],
   );
 
   const updatePct = (id: string, value: string) =>
-    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, commission_pct: value === '' ? 0 : Number(value) } : r)));
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, commissionPct: value === '' ? 0 : Number(value) } : r)));
   const removeRow = (id: string) => setRows((rs) => rs.filter((r) => r.id !== id));
   const addRow = () => {
     if (!addSupplier) return;
-    setRows((rs) => [...rs, { id: `lcc_${module}_${addSupplier}`, supplier_id: addSupplier, commission_pct: 0 }]);
+    setRows((rs) => [...rs, { id: `lcc_${module}_${addSupplier}`, supplierId: addSupplier, commissionPct: 0 }]);
     setAddSupplier('');
   };
 
@@ -58,15 +58,15 @@ function CommissionModuleEditor({ module, suppliers }: { module: 'sms' | 'mainli
 
   if (loading) return <div className="p-4 text-sm text-muted-foreground italic">Loading {MODULE_LABEL[module]} commissions…</div>;
 
-  const supLabel = (r: LandedCostCommission) => supName.get(String(r.supplier_id)) ?? `Supplier ${r.supplier_id}`;
+  const supLabel = (r: LandedCostCommission) => supName.get(String(r.supplierId)) ?? `Supplier ${r.supplierId}`;
 
   const columns: SettingsColumn<LandedCostCommission>[] = [
     { key: 'supplier', label: 'Supplier', cellClassName: 'font-medium', accessor: supLabel, cell: supLabel },
     {
-      key: 'commission_pct', label: 'Commission %', headClassName: 'w-40',
-      accessor: (r) => r.commission_pct,
+      key: 'commissionPct', label: 'Commission %', headClassName: 'w-40',
+      accessor: (r) => r.commissionPct,
       cell: (r) => (
-        <Input type="number" min={0} step="0.1" value={r.commission_pct}
+        <Input type="number" min={0} step="0.1" value={r.commissionPct}
           onChange={(e) => updatePct(r.id, e.target.value)} className="h-8 text-sm" />
       ),
     },
@@ -90,7 +90,7 @@ function CommissionModuleEditor({ module, suppliers }: { module: 'sms' | 'mainli
         </SelectContent>
       </Select>
     ),
-    commission_pct: <span className="text-muted-foreground text-xs">defaults to 0%</span>,
+    commissionPct: <span className="text-muted-foreground text-xs">defaults to 0%</span>,
     actions: (
       <Button size="sm" variant="outline" className="h-7" disabled={!addSupplier} onClick={addRow}><Plus className="h-3.5 w-3.5 mr-1" />Add</Button>
     ),

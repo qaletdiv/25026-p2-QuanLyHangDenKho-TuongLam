@@ -46,10 +46,10 @@ export async function parseFreightTemplate(formData: FormData) {
 // docHref('/freights/template') → the /api/documents proxy, which authenticates from
 // the cookie server-side. Do not reintroduce a server action that returns the token.
 
-/** GET /freights/:id/export — generate export xlsx, return file_url */
+/** GET /freights/:id/export — generate export xlsx, return fileUrl */
 export async function exportFreightRecord(id: string) {
   const data = await fetchApi(`/freights/${id}/export`);
-  return data as { file_url: string };
+  return data as { fileUrl: string };
 }
 
 /** DELETE /freights/:id */

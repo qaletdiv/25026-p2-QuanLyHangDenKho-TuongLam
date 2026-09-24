@@ -35,7 +35,7 @@ export function SupplierSettings() {
 
   const addItem = () => {
     const id = Math.random().toString(36).substr(2, 9);
-    setSuppliers([...suppliers, { id, name: '', country: '', address: '', manufacturer_name: '', manufacturer_address: '', port_of_loading: '' }]);
+    setSuppliers([...suppliers, { id, name: '', country: '', address: '', manufacturerName: '', manufacturerAddress: '', portOfLoading: '' }]);
   };
 
   const removeItem = (id: string) => {
@@ -64,9 +64,9 @@ export function SupplierSettings() {
     // Seller (invoiced party) vs manufacturer (the factory) — the CI prints both,
     // and the manufacturer pair falls back to these two when left blank.
     addressCol('address', 'Address', 'One line per line of the address'),
-    textCol('manufacturer_name', 'Manufacturer Name'),
-    addressCol('manufacturer_address', 'Manufacturer Address', 'Leave blank if same as Address'),
-    textCol('port_of_loading', 'Port of Loading'),
+    textCol('manufacturerName', 'Manufacturer Name'),
+    addressCol('manufacturerAddress', 'Manufacturer Address', 'Leave blank if same as Address'),
+    textCol('portOfLoading', 'Port of Loading'),
     {
       key: 'actions', label: '', sortable: false, movable: false, headClassName: 'w-[50px]',
       cell: (s) => (

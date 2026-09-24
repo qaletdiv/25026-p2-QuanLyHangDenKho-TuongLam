@@ -67,14 +67,14 @@ export async function getSmsBooking(id: string): Promise<SmsBooking | null> {
   return data;
 }
 export async function createSmsBooking(data: {
-  supplier_id: string;
-  incoterm_id?: string | null;
+  supplierId: string;
+  incotermId?: string | null;
   // Both REQUIRED by the server: approve copies them onto the draft consignment,
   // and the mode is what reaches NetSuite as the shipping method.
-  courier_id: string;
-  mode_id: string;
-  cargo_ready_date?: string | null;
-  pos: Array<{ po_number: string; lot_number?: number | null; units: number; cartons?: number | null; weight_kg?: number | null; cbm?: number | null }>;
+  courierId: string;
+  modeId: string;
+  cargoReadyDate?: string | null;
+  pos: Array<{ poNumber: string; lotNumber?: number | null; units: number; cartons?: number | null; weightKg?: number | null; cbm?: number | null }>;
   force_overbook?: boolean;
 }) {
   const result = await fetchApi('/sms/bookings', { method: 'POST', body: JSON.stringify(data) });
@@ -125,11 +125,11 @@ export async function getSmsShipment(id: string): Promise<SmsShipment | null> {
   return data;
 }
 export async function createSmsShipment(data: {
-  courier_id: string;
-  tracking_number?: string | null;
-  ship_date?: string | null;
-  facility_id?: string | null;
-  pos: Array<{ po_number: string; units: number; cartons?: number | null }>;
+  courierId: string;
+  trackingNumber?: string | null;
+  shipDate?: string | null;
+  facilityId?: string | null;
+  pos: Array<{ poNumber: string; units: number; cartons?: number | null }>;
   force_overship?: boolean;
 }) {
   const result = await fetchApi('/sms/shipments', { method: 'POST', body: JSON.stringify(data) });

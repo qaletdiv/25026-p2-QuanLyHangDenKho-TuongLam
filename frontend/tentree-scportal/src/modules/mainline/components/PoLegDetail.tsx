@@ -60,7 +60,7 @@ const VARIANCE_LABEL: Record<VarianceFilter, string> = {
 export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: PoLegDetailT; reconcile: PoReconcile | null; shipments?: LegShipment[] }) {
   const router = useRouter();
   const [showAll, setShowAll] = useState(false);
-  const itemBySku = new Map(leg.line_items.map((li) => [li.sku_code, li]));
+  const itemBySku = new Map(leg.line_items.map((li) => [li.skuCode, li]));
   const recRows = reconcile?.fulfillment ?? [];
 
   // Reconcile-table filters, in the header itself. This table runs to hundreds of
@@ -74,7 +74,7 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
     const q = skuQuery.trim().toLowerCase();
     return recRows.filter((r) => {
       // match the item name too — staff search by style as often as by SKU
-      if (q && !`${r.sku_code} ${itemBySku.get(r.sku_code)?.item_name ?? ''}`.toLowerCase().includes(q)) return false;
+      if (q && !`${r.skuCode} ${itemBySku.get(r.skuCode)?.itemName ?? ''}`.toLowerCase().includes(q)) return false;
       if (varianceFilter === 'any' && r.variance === 0) return false;
       if (varianceFilter === 'over' && r.variance <= 0) return false;
       if (varianceFilter === 'short' && r.variance >= 0) return false;
@@ -93,33 +93,33 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
   // as much as for a filter. The whole-leg figures are still one glance away in
   // the Stat cards above, which are deliberately NOT filtered.
   const recTotals = useMemo(() => shownRec.reduce((t, r) => ({
-    allocated_qty: t.allocated_qty + r.allocated_qty,
-    shipped_qty: t.shipped_qty + r.shipped_qty,
-    received_qty: t.received_qty + r.received_qty,
-  }), { allocated_qty: 0, shipped_qty: 0, received_qty: 0 }), [shownRec]);
+    allocatedQty: t.allocatedQty + r.allocatedQty,
+    shippedQty: t.shippedQty + r.shippedQty,
+    receivedQty: t.receivedQty + r.receivedQty,
+  }), { allocatedQty: 0, shippedQty: 0, receivedQty: 0 }), [shownRec]);
 
   const shown = showAll ? leg.line_items : leg.line_items.slice(0, 15);
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
       <div>
         <Link
-          href={leg.trn_number ? `/mainline/purchase-orders/${encodeURIComponent(leg.trn_number)}` : '/mainline/purchase-orders'}
+          href={leg.trnNumber ? `/mainline/purchase-orders/${encodeURIComponent(leg.trnNumber)}` : '/mainline/purchase-orders'}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-3"
         >
-          <ArrowLeft className="w-4 h-4" /> {leg.trn_number ?? 'Purchase Orders'}
+          <ArrowLeft className="w-4 h-4" /> {leg.trnNumber ?? 'Purchase Orders'}
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">{leg.po_number}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{leg.poNumber}</h1>
           {/* Next to the title, where "Book Now" is: this is the page you book
               from, so the fact that NetSuite hasn't approved the PO belongs in the
               same glance as the button. */}
-          <ApprovalBadge status={leg.approval_status} />
-          {leg.supplier_id && (
+          <ApprovalBadge status={leg.approvalStatus} />
+          {leg.supplierId && (
             <Button
               size="sm"
               className="ml-auto"
               title="Open a new booking for this supplier"
-              onClick={() => router.push(`/mainline/bookings?new=${encodeURIComponent(leg.supplier_id!)}`)}
+              onClick={() => router.push(`/mainline/bookings?new=${encodeURIComponent(leg.supplierId!)}`)}
             >
               <CalendarPlus className="h-4 w-4 mr-1.5" /> Book Now
             </Button>
@@ -132,11 +132,11 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
 
       <Card className="p-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Meta label="NetSuite ID" value={leg.netsuite_id} />
+          <Meta label="NetSuite ID" value={leg.netsuiteId} />
           <Meta label="Season" value={leg.season} />
           <Meta label="Mode" value={leg.mode} />
-          <Meta label="Destination" value={leg.destination_facility} />
-          <Meta label="Allocation Channel" value={leg.allocation_channel} />
+          <Meta label="Destination" value={leg.destinationFacility} />
+          <Meta label="Allocation Channel" value={leg.allocationChannel} />
           <Meta label="COO" value={leg.coo} />
           <Meta label="Incoterm" value={leg.incoterm} />
           {/* CARGO READY — the supplier's date, from WIP, and a PLAN: it moves
@@ -145,7 +145,7 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
               later on live rows. These were once labelled "CRD (target)" and
               "CRD (actual)", which read as two measurements of one date. */}
           <Meta label="Cargo Ready" value={leg.crd} />
-          <Meta label="E-DEL" value={leg.e_del} />
+          <Meta label="E-DEL" value={leg.eDel} />
         </div>
       </Card>
 
@@ -174,35 +174,35 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
               {shipments.length === 0 ? (
                 <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Not shipped yet — a shipment appears here once the booking for this leg is approved.</TableCell></TableRow>
               ) : shipments.map((s) => (
-                <TableRow key={`${s.shipment_id}-${s.lot_number}`} className="border-border hover:bg-muted/30">
+                <TableRow key={`${s.shipmentId}-${s.lotNumber}`} className="border-border hover:bg-muted/30">
                   {/* The lot carries the link, not the carrier ref — the ref is blank on
                       more than half the live rows and the row must stay navigable. */}
                   <TableCell className="font-medium">
-                    <Link href={`/mainline/shipments/${s.shipment_id}`} className="text-primary hover:underline">
-                      Lot {s.lot_number ?? DASH}
+                    <Link href={`/mainline/shipments/${s.shipmentId}`} className="text-primary hover:underline">
+                      Lot {s.lotNumber ?? DASH}
                     </Link>
-                    {s.shipment_number && <span className="ml-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/70">{s.shipment_number}</span>}
+                    {s.shipmentNumber && <span className="ml-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/70">{s.shipmentNumber}</span>}
                   </TableCell>
                   {/* Blank when the forwarder hasn't given a reference. No fallback to
                       BL or SHP-N: a substitute here would read as a carrier ref. */}
                   <TableCell className="font-mono text-xs">{s.carrier_shipment_number ?? DASH}</TableCell>
                   <TableCell className="text-muted-foreground">{s.crd_actual ?? DASH}</TableCell>
-                  <TableCell className="text-right tabular-nums">{s.shipped_qty != null ? s.shipped_qty.toLocaleString() : DASH}</TableCell>
+                  <TableCell className="text-right tabular-nums">{s.shippedQty != null ? s.shippedQty.toLocaleString() : DASH}</TableCell>
                   {/* Amber only when BOTH figures exist and disagree — this is the
                       cell that says which lot the leg-level discrepancy came from.
                       A missing receipt is not a discrepancy, it is "not yet". */}
                   <TableCell
                     className={cn('text-right tabular-nums',
-                      s.received_qty != null && s.shipped_qty != null && s.received_qty !== s.shipped_qty && 'text-amber-600 font-medium')}
-                    title={s.received_qty == null ? 'No Item Receipt attributed to this lot yet'
-                      : `${s.received_ir ?? 'Item Receipt'}${s.received_date ? ` · ${s.received_date}` : ''}${s.received_confirmed ? '' : ' · match not confirmed'}`}
+                      s.receivedQty != null && s.shippedQty != null && s.receivedQty !== s.shippedQty && 'text-amber-600 font-medium')}
+                    title={s.receivedQty == null ? 'No Item Receipt attributed to this lot yet'
+                      : `${s.received_ir ?? 'Item Receipt'}${s.receivedDate ? ` · ${s.receivedDate}` : ''}${s.receivedConfirmed ? '' : ' · match not confirmed'}`}
                   >
-                    {s.received_qty != null ? s.received_qty.toLocaleString() : DASH}
+                    {s.receivedQty != null ? s.receivedQty.toLocaleString() : DASH}
                     {/* An unconfirmed attribution is a suggestion, so the number is
                         marked rather than presented as settled. */}
-                    {s.received_qty != null && !s.received_confirmed && <span className="ml-0.5 text-muted-foreground">*</span>}
+                    {s.receivedQty != null && !s.receivedConfirmed && <span className="ml-0.5 text-muted-foreground">*</span>}
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">{s.shipped_cartons != null ? s.shipped_cartons.toLocaleString() : DASH}</TableCell>
+                  <TableCell className="text-right tabular-nums">{s.shippedCartons != null ? s.shippedCartons.toLocaleString() : DASH}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className={cn(STATUS_STYLES[s.status || ''])}>{s.status ?? DASH}</Badge>
                   </TableCell>
@@ -215,16 +215,16 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
 
       {recRows.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-sm font-medium text-muted-foreground">{leg.po_number}{leg.mode ? ` · ${leg.mode}` : ''} — allocated vs shipped vs received <span className="font-normal">(this leg)</span></h2>
+          <h2 className="text-sm font-medium text-muted-foreground">{leg.poNumber}{leg.mode ? ` · ${leg.mode}` : ''} — allocated vs shipped vs received <span className="font-normal">(this leg)</span></h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Stat label="Allocated" value={reconcile!.totals.allocated_qty} />
-            <Stat label="Shipped" value={reconcile!.totals.shipped_qty} />
-            <Stat label="Received" value={reconcile!.totals.received_qty} />
-            {/* Σ of the rows' own `remaining_qty`, NOT allocated − shipped: the
+            <Stat label="Allocated" value={reconcile!.totals.allocatedQty} />
+            <Stat label="Shipped" value={reconcile!.totals.shippedQty} />
+            <Stat label="Received" value={reconcile!.totals.receivedQty} />
+            {/* Σ of the rows' own `remainingQty`, NOT allocated − shipped: the
                 backend floors shipped at received per SKU, and recomputing it here
                 from the totals would put a different number on the card than the
                 table under it. */}
-            <Stat label="Remaining" value={recRows.reduce((t, r) => t + r.remaining_qty, 0)} />
+            <Stat label="Remaining" value={recRows.reduce((t, r) => t + r.remainingQty, 0)} />
           </div>
           <Card className="overflow-x-auto">
             <Table className="bg-card">
@@ -270,13 +270,13 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
               </TableHeader>
               <TableBody>
                 {shownRec.map((r) => (
-                  <TableRow key={r.sku_code} className="border-border hover:bg-muted/30">
-                    <TableCell className="font-mono text-xs">{r.sku_code}</TableCell>
-                    <TableCell>{itemBySku.get(r.sku_code)?.item_name ?? '—'}</TableCell>
-                    <TableCell className="text-right tabular-nums">{r.allocated_qty.toLocaleString()}</TableCell>
-                    <TableCell className="text-right tabular-nums">{r.shipped_qty ? r.shipped_qty.toLocaleString() : '—'}</TableCell>
-                    <TableCell className="text-right tabular-nums">{r.received_qty.toLocaleString()}</TableCell>
-                    <TableCell className={cn('text-right tabular-nums', r.variance !== 0 && r.received_qty > 0 && 'text-amber-600 font-medium')}>
+                  <TableRow key={r.skuCode} className="border-border hover:bg-muted/30">
+                    <TableCell className="font-mono text-xs">{r.skuCode}</TableCell>
+                    <TableCell>{itemBySku.get(r.skuCode)?.itemName ?? '—'}</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.allocatedQty.toLocaleString()}</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.shippedQty ? r.shippedQty.toLocaleString() : '—'}</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.receivedQty.toLocaleString()}</TableCell>
+                    <TableCell className={cn('text-right tabular-nums', r.variance !== 0 && r.receivedQty > 0 && 'text-amber-600 font-medium')}>
                       {r.variance === 0 ? '—' : r.variance.toLocaleString()}
                     </TableCell>
                   </TableRow>
@@ -295,13 +295,13 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
                         the leg total. */}
                     Total ({shownRec.length === recRows.length ? recRows.length : `${shownRec.length} of ${recRows.length}`} SKUs)
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">{recTotals.allocated_qty.toLocaleString()}</TableCell>
-                  <TableCell className="text-right tabular-nums">{recTotals.shipped_qty.toLocaleString()}</TableCell>
-                  <TableCell className="text-right tabular-nums">{recTotals.received_qty.toLocaleString()}</TableCell>
+                  <TableCell className="text-right tabular-nums">{recTotals.allocatedQty.toLocaleString()}</TableCell>
+                  <TableCell className="text-right tabular-nums">{recTotals.shippedQty.toLocaleString()}</TableCell>
+                  <TableCell className="text-right tabular-nums">{recTotals.receivedQty.toLocaleString()}</TableCell>
                   <TableCell className="text-right tabular-nums">
-                    {recTotals.received_qty - recTotals.shipped_qty === 0
+                    {recTotals.receivedQty - recTotals.shippedQty === 0
                       ? DASH
-                      : (recTotals.received_qty - recTotals.shipped_qty).toLocaleString()}
+                      : (recTotals.receivedQty - recTotals.shippedQty).toLocaleString()}
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -337,17 +337,17 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
               ) : (
                 <>
                   {shown.map((li) => (
-                    <TableRow key={li.sku_code} className="border-border hover:bg-muted/30">
-                      <TableCell className="font-mono text-xs">{li.sku_code}</TableCell>
-                      <TableCell>{li.item_name ?? li.description ?? '—'}</TableCell>
+                    <TableRow key={li.skuCode} className="border-border hover:bg-muted/30">
+                      <TableCell className="font-mono text-xs">{li.skuCode}</TableCell>
+                      <TableCell>{li.itemName ?? li.description ?? '—'}</TableCell>
                       <TableCell className="text-muted-foreground">{li.colorway ?? '—'}</TableCell>
                       <TableCell className="text-muted-foreground">{li.size ?? '—'}</TableCell>
-                      <TableCell className="text-right tabular-nums">{li.allocated_qty.toLocaleString()}</TableCell>
+                      <TableCell className="text-right tabular-nums">{li.allocatedQty.toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="bg-card/80 font-medium">
-                    <TableCell colSpan={4}>Total ({leg.sku_count} SKUs)</TableCell>
-                    <TableCell className="text-right tabular-nums">{leg.expected_qty.toLocaleString()}</TableCell>
+                    <TableCell colSpan={4}>Total ({leg.skuCount} SKUs)</TableCell>
+                    <TableCell className="text-right tabular-nums">{leg.expectedQty.toLocaleString()}</TableCell>
                   </TableRow>
                 </>
               )}

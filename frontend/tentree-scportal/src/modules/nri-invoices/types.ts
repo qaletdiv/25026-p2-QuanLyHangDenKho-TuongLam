@@ -7,10 +7,10 @@
 
 export type Verdict =
   | 'ok' | 'overcharge' | 'undercharge' | 'duplicate'
-  | 'no_rate_on_file' | 'no_contract_rate' | 'qty_unsupported' | 'aging_premium';
+  | 'noRateOnFile' | 'noContractRate' | 'qtyUnsupported' | 'agingPremium';
 
-export type CodingStatus = 'coded' | 'needs_coding' | 'needs_class';
-export type TieOutStatus = 'balanced' | 'out_of_balance' | 'no_summary';
+export type CodingStatus = 'coded' | 'needsCoding' | 'needsClass';
+export type TieOutStatus = 'balanced' | 'outOfBalance' | 'noSummary';
 export type Severity = 'blocker' | 'warning' | 'info';
 
 export type TieOutService = {
@@ -18,52 +18,52 @@ export type TieOutService = {
   lines: number;
   charges: number;
   taxes: number;
-  invoice_amount: number | null;
+  invoiceAmount: number | null;
   variance: number | null;
-  status: 'ok' | 'variance' | 'not_on_invoice' | 'missing_from_detail' | 'unproven';
+  status: 'ok' | 'variance' | 'notOnInvoice' | 'missingFromDetail' | 'unproven';
 };
 
 export type TieOut = {
   status: TieOutStatus;
   message: string;
-  detail_charges: number;
-  detail_taxes: number;
-  detail_total: number;
-  invoice_subtotal?: number | null;
-  invoice_taxes?: number | null;
-  invoice_total?: number | null;
-  subtotal_variance?: number | null;
-  tax_variance?: number | null;
-  total_variance?: number | null;
+  detailCharges: number;
+  detailTaxes: number;
+  detailTotal: number;
+  invoiceSubtotal?: number | null;
+  invoiceTaxes?: number | null;
+  invoiceTotal?: number | null;
+  subtotalVariance?: number | null;
+  taxVariance?: number | null;
+  totalVariance?: number | null;
   services: TieOutService[];
   mismatched: number;
-  unmatched_on_invoice: string[];
+  unmatchedOnInvoice: string[];
 };
 
 export type InvoiceHeader = {
-  invoice_no: string | null;
-  invoice_date: string | null;
-  ending_date: string | null;
-  payment_terms: string | null;
-  due_date: string | null;
-  fx_rate: number | null;
+  invoiceNo: string | null;
+  invoiceDate: string | null;
+  endingDate: string | null;
+  paymentTerms: string | null;
+  dueDate: string | null;
+  fxRate: number | null;
   subtotal: number | null;
   taxes: number | null;
   total: number | null;
-  tax_lines: { label: string; amount: number }[];
-  is_credit: boolean;
+  taxLines: { label: string; amount: number }[];
+  isCredit: boolean;
 };
 
 export type InvoiceLine = {
   seq: number;
-  invoice_no?: string;
-  source_name: string | null;
+  invoiceNo?: string;
+  sourceName: string | null;
   order: string | null;
-  client_ref_1: string | null;
-  client_ref_2: string | null;
+  clientRef1: string | null;
+  clientRef2: string | null;
   customer: string | null;
-  po_number: string | null;
-  doc_date: string | null;
+  poNumber: string | null;
+  docDate: string | null;
   completed: string | null;
   month: string | null;
   units: number | null;
@@ -71,21 +71,21 @@ export type InvoiceLine = {
   service: string | null;
   charges: number;
   taxes: number;
-  inv_amt: number;
+  invAmt: number;
 
   // coding
   gl: number | null;
-  gl_desc: string | null;
+  glDesc: string | null;
   class: string | null;
-  class_basis: string | null;
-  class_confidence: string | null;
-  order_type: string | null;
-  legend_class: string | null;
-  legend_note: string | null;
-  coding_status: CodingStatus;
-  coding_reason: string | null;
-  override_note?: string | null;
-  overridden_by?: string | null;
+  classBasis: string | null;
+  classConfidence: string | null;
+  orderType: string | null;
+  legendClass: string | null;
+  legendNote: string | null;
+  codingStatus: CodingStatus;
+  codingReason: string | null;
+  overrideNote?: string | null;
+  overriddenBy?: string | null;
 
   // validation against the agreement
   verdict: Verdict;
@@ -93,10 +93,10 @@ export type InvoiceLine = {
   variance: number | null;
   rate: number | null;
   basis: string | null;
-  check_detail: string | null;
-  implied_hours: number | null;
-  effective_rate: number | null;
-  aging_multiple: number | null;
+  checkDetail: string | null;
+  impliedHours: number | null;
+  effectiveRate: number | null;
+  agingMultiple: number | null;
 };
 
 export type Finding = {
@@ -111,14 +111,14 @@ export type Finding = {
     seq?: number; service: string; month?: string | null; units?: number | null;
     charges?: number; expected?: number | null; detail: string | null;
   }[];
-  max_aging_multiple?: number;
+  maxAgingMultiple?: number;
   premium?: number;
-  implied_hours?: number;
+  impliedHours?: number;
 };
 
 export type GlBucket = {
   gl: number | null;
-  gl_desc: string | null;
+  glDesc: string | null;
   lines: number;
   charges: number;
   taxes: number;
@@ -145,8 +145,8 @@ export type Totals = {
   taxes: number;
   amount: number;
   coded: number;
-  needs_attention: number;
-  validated_ok: number;
+  needsAttention: number;
+  validatedOk: number;
   unvalidatable: number;
   variance: number;
 };
@@ -154,53 +154,53 @@ export type Totals = {
 export type Reconcile = {
   entity: string;
   invoice: InvoiceHeader | null;
-  tie_out: TieOut;
+  tieOut: TieOut;
   totals: Totals;
-  by_gl: GlBucket[];
-  by_service: ServiceBucket[];
+  byGl: GlBucket[];
+  byService: ServiceBucket[];
   findings: Finding[];
   lines: InvoiceLine[];
-  source_file?: string;
-  has_summary?: boolean;
+  sourceFile?: string;
+  hasSummary?: boolean;
 };
 
 export type LoadedInvoice = InvoiceHeader & {
   id: string;
-  invoice_no: string;
+  invoiceNo: string;
   entity: string;
-  source_file: string;
-  has_summary: boolean;
-  invoice_no_source: 'pdf' | 'manual';
+  sourceFile: string;
+  hasSummary: boolean;
+  invoiceNoSource: 'pdf' | 'manual';
   totals: Totals;
   status: 'loaded' | 'submitted';
-  tie_out_status: TieOutStatus | null;
-  tie_out_variance: number | null;
-  finding_count: number;
-  blocker_count: number;
-  loaded_by: string | null;
-  loaded_at: string | null;
-  submitted_by: string | null;
-  submitted_at: string | null;
+  tieOutStatus: TieOutStatus | null;
+  tieOutVariance: number | null;
+  findingCount: number;
+  blockerCount: number;
+  loadedBy: string | null;
+  loadedAt: string | null;
+  submittedBy: string | null;
+  submittedAt: string | null;
 };
 
-export type InvoiceDetail = Omit<LoadedInvoice, 'tie_out_status' | 'tie_out_variance' | 'finding_count' | 'blocker_count'> & {
-  tie_out: TieOut;
-  by_gl: GlBucket[];
-  by_service: ServiceBucket[];
+export type InvoiceDetail = Omit<LoadedInvoice, 'tieOutStatus' | 'tieOutVariance' | 'findingCount' | 'blockerCount'> & {
+  tieOut: TieOut;
+  byGl: GlBucket[];
+  byService: ServiceBucket[];
   findings: Finding[];
   lines: InvoiceLine[];
-  override_count: number;
-  posting?: { gl: number | null; gl_desc: string | null; class: string; amount: number }[];
+  overrideCount: number;
+  posting?: { gl: number | null; glDesc: string | null; class: string; amount: number }[];
 };
 
 export type ChargeCode = {
   id: string;
   service: string;
-  service_raw?: string;
+  serviceRaw?: string;
   gl: number | null;
-  gl_desc: string | null;
-  class_us: string | null;
-  class_ca: string | null;
+  glDesc: string | null;
+  classUs: string | null;
+  classCa: string | null;
   note: string | null;
 };
 
@@ -213,9 +213,9 @@ export type RateCardRow = {
   fixed?: number;
   uom: string | null;
   tiers?: { label: string; rate: number; multiple: number }[];
-  monthly_minimum?: number;
-  effective_from: string;
-  effective_to: string | null;
+  monthlyMinimum?: number;
+  effectiveFrom: string;
+  effectiveTo: string | null;
   source: string;
 };
 
@@ -224,21 +224,21 @@ export type CostSummary = {
   invoices: number;
   lines: number;
   total: number;
-  by_gl: { gl: number | null; gl_desc: string | null; class: string; month: string | null; lines: number; amount: number }[];
-  by_month: { month: string; lines: number; amount: number }[];
-  duplicate_monthly_fees: { service: string; month: string; count: number; amount: number; invoices: string[] }[];
-  storage_aging: {
-    invoice_no: string; month: string | null; units: number | null;
-    charges: number; effective_rate: number | null; aging_multiple: number | null; premium: number | null;
+  byGl: { gl: number | null; glDesc: string | null; class: string; month: string | null; lines: number; amount: number }[];
+  byMonth: { month: string; lines: number; amount: number }[];
+  duplicateMonthlyFees: { service: string; month: string; count: number; amount: number; invoices: string[] }[];
+  storageAging: {
+    invoiceNo: string; month: string | null; units: number | null;
+    charges: number; effectiveRate: number | null; agingMultiple: number | null; premium: number | null;
   }[];
-  storage_premium: number;
+  storagePremium: number;
 };
 
 /**
  * One invoicing WAREHOUSE = one tab under All Invoices.
  *
  * `parser` names the detail-file layout used to read that warehouse's workbook;
- * null means none is mapped, so `upload_enabled` is false and the tab is a shell
+ * null means none is mapped, so `uploadEnabled` is false and the tab is a shell
  * (its invoice list, legend slice and rate card exist, but nothing can be
  * uploaded). Every 3PL builds its workbook differently — registering a warehouse
  * cannot invent a reader for a format nobody has seen.
@@ -247,9 +247,9 @@ export type InvoiceSource = {
   code: string;            // URL segment: 'nri-us'
   label: string;           // 'NRI US'
   entity: string;          // the key the legend, rate card and invoice ids turn on: 'US'
-  facility_id: string | null;
+  facilityId: string | null;
   parser: string | null;
-  upload_enabled: boolean;
+  uploadEnabled: boolean;
   note: string | null;     // why uploads are off, shown on the tab's page
-  invoice_count?: number;
+  invoiceCount?: number;
 };

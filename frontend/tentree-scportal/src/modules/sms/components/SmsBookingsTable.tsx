@@ -45,35 +45,35 @@ export default function SmsBookingsTable({ bookings, pos, incoterms, couriers = 
   const [scope, setScope] = useState<Scope>('active');
   useEffect(() => { setSeason((cur) => (cur === 'all' && seasonOptions.length ? seasonOptions[0] : cur)); }, [seasonOptions]);
   const visible = useMemo(
-    () => applySeasonScope(bookings, { season, scope, isCompleted: (b) => SMS_BOOKING_DONE.has(b.booking_status || '') }),
+    () => applySeasonScope(bookings, { season, scope, isCompleted: (b) => SMS_BOOKING_DONE.has(b.bookingStatus || '') }),
     [bookings, season, scope],
   );
 
   const columns: DataColumn<SmsBooking>[] = [
-    { key: 'booking_number', label: 'Booking #', accessor: (b) => b.booking_number, render: (b) => (
-      <span className="font-medium">{b.booking_number}</span>
+    { key: 'bookingNumber', label: 'Booking #', accessor: (b) => b.bookingNumber, render: (b) => (
+      <span className="font-medium">{b.bookingNumber}</span>
     ) },
-    { key: 'supplier_name', label: 'Supplier', accessor: (b) => b.supplier_name, render: (b) => dim(b.supplier_name) },
-    { key: 'cargo_ready_date', label: 'Cargo Ready', accessor: (b) => b.cargo_ready_date, render: (b) => dim(b.cargo_ready_date) },
+    { key: 'supplierName', label: 'Supplier', accessor: (b) => b.supplierName, render: (b) => dim(b.supplierName) },
+    { key: 'cargoReadyDate', label: 'Cargo Ready', accessor: (b) => b.cargoReadyDate, render: (b) => dim(b.cargoReadyDate) },
     { key: 'destination', label: 'Destination', accessor: (b) => facilityLabel(b.destination), render: (b) => dim(facilityLabel(b.destination)) },
     { key: 'season', label: 'Season', defaultVisible: false, accessor: (b) => b.season, render: (b) => dim(b.season) },
     { key: 'pos', label: 'POs (lots)', sortable: false,
-      accessor: (b) => b.pos.map((p) => p.po_number).join(', '),
-      render: (b) => <span className="text-xs">{b.pos.map((p) => `${p.po_number} (lot ${p.lot_number})`).join(', ') || '—'}</span> },
-    { key: 'total_units', label: 'Units', align: 'right', accessor: (b) => b.total_units, render: (b) => b.total_units.toLocaleString() },
-    { key: 'total_cartons', label: 'Cartons', align: 'right', defaultVisible: false, accessor: (b) => b.total_cartons, render: (b) => (b.total_cartons ? b.total_cartons.toLocaleString() : '—') },
-    { key: 'total_weight_kg', label: 'Weight (kg)', align: 'right', defaultVisible: false, accessor: (b) => b.total_weight_kg, render: (b) => (b.total_weight_kg ? b.total_weight_kg.toLocaleString() : '—') },
+      accessor: (b) => b.pos.map((p) => p.poNumber).join(', '),
+      render: (b) => <span className="text-xs">{b.pos.map((p) => `${p.poNumber} (lot ${p.lotNumber})`).join(', ') || '—'}</span> },
+    { key: 'totalUnits', label: 'Units', align: 'right', accessor: (b) => b.totalUnits, render: (b) => b.totalUnits.toLocaleString() },
+    { key: 'totalCartons', label: 'Cartons', align: 'right', defaultVisible: false, accessor: (b) => b.totalCartons, render: (b) => (b.totalCartons ? b.totalCartons.toLocaleString() : '—') },
+    { key: 'totalWeightKg', label: 'Weight (kg)', align: 'right', defaultVisible: false, accessor: (b) => b.totalWeightKg, render: (b) => (b.totalWeightKg ? b.totalWeightKg.toLocaleString() : '—') },
     { key: 'courier', label: 'Carrier', accessor: (b) => b.courier, render: (b) => dim(b.courier) },
     { key: 'mode', label: 'Mode', accessor: (b) => b.mode, render: (b) => dim(b.mode) },
     { key: 'incoterm', label: 'Incoterm', defaultVisible: false, accessor: (b) => b.incoterm, render: (b) => dim(b.incoterm) },
-    { key: 'booking_status', label: 'Status', accessor: (b) => b.booking_status, render: (b) => (
-      <Badge variant="outline" className={cn(SMS_BOOKING_STATUS_STYLES[b.booking_status || ''])}>{b.booking_status ?? '—'}</Badge>
+    { key: 'bookingStatus', label: 'Status', accessor: (b) => b.bookingStatus, render: (b) => (
+      <Badge variant="outline" className={cn(SMS_BOOKING_STATUS_STYLES[b.bookingStatus || ''])}>{b.bookingStatus ?? '—'}</Badge>
     ) },
     // Consignments produced by approval — draft until a tracking number exists.
     { key: 'shipments', label: 'Consignments', sortable: false,
       accessor: (b) => b.shipments.length,
       render: (b) => (b.shipments.length
-        ? <span className="text-xs">{b.shipments.map((s) => s.tracking_number || 'draft').join(', ')}</span>
+        ? <span className="text-xs">{b.shipments.map((s) => s.trackingNumber || 'draft').join(', ')}</span>
         : dim(null)) },
   ];
 

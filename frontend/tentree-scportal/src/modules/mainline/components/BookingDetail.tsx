@@ -57,12 +57,12 @@ export default function BookingDetail({
   // booking is still pending (locked once approved — the shipment owns dates then).
   // Admin / Logistics may override it even after approval.
   const { user } = useSession();
-  const isPending = booking.booking_status === 'Booking Pending';
+  const isPending = booking.bookingStatus === 'Booking Pending';
   // Approval is a permission, not a role — Vendor and Freight Forwarder don't hold
   // `booking_approve`, so they watch the status here rather than act on it.
   const canApprove = hasPermission(user, 'booking_approve');
   const canDelete = hasPermission(user, 'booking_delete');
-  const isApproved = booking.booking_status === 'Booking Approved';
+  const isApproved = booking.bookingStatus === 'Booking Approved';
   // Cancel is the exit at BOTH ends of a booking's life; reject is the negative
   // answer to one still awaiting approval. Terminal bookings (Cancelled/Rejected)
   // offer neither — only delete, once nothing hangs off them.
@@ -70,11 +70,11 @@ export default function BookingDetail({
   const isPrivileged = ['Admin', 'Logistics Coordinator'].includes(user?.role ?? '');
   const canEditCrd = isPending || isPrivileged;
   const [editingCrd, setEditingCrd] = useState(false);
-  const [crd, setCrd] = useState(booking.cargo_ready_date ?? '');
+  const [crd, setCrd] = useState(booking.cargoReadyDate ?? '');
 
   async function saveCrd() {
     setBusy(true);
-    const res = await updateMainlineBooking(booking.id, { cargo_ready_date: crd || null });
+    const res = await updateMainlineBooking(booking.id, { cargoReadyDate: crd || null });
     setBusy(false);
     if (res?.error) { toast.error(res.error); return; }
     setEditingCrd(false);
@@ -95,7 +95,7 @@ export default function BookingDetail({
   // preserves the booking's other POs. Multiple files (one per PO) can be picked at once.
   async function onUpload(files: File[]) {
     setBusy(true);
-    const results: Array<{ error?: string; cartons?: number; unmatched_qty?: number; po_numbers?: string[] }> = [];
+    const results: Array<{ error?: string; cartons?: number; unmatched_qty?: number; poNumbers?: string[] }> = [];
     for (const f of files) {
       const res = await uploadShipmentData(booking.id, f);
       if (res?.error) { setBusy(false); toast.error(`${f.name}: ${res.error}`); router.refresh(); return; }
@@ -104,7 +104,7 @@ export default function BookingDetail({
     setBusy(false);
     const cartons = results.reduce((s, r) => s + (r.cartons || 0), 0);
     const unmatched = results.reduce((s, r) => s + (r.unmatched_qty || 0), 0);
-    const pos = [...new Set(results.flatMap((r) => r.po_numbers || []))];
+    const pos = [...new Set(results.flatMap((r) => r.poNumbers || []))];
     toast.success(`Imported ${cartons} cartons for ${pos.join(', ') || 'PO'} → CI + packing slip generated${unmatched ? ` · ⚠ ${unmatched} unmatched` : ''}`);
     router.refresh();
   }
@@ -114,8 +114,8 @@ export default function BookingDetail({
   // actual per-PO cargo, parsed from the uploaded shipment data (packing rollup)
   const hasActual = packingByPo.length > 0;
   // booking POs that don't yet have uploaded shipment data (upload is additive per PO)
-  const uploadedPos = new Set(packingByPo.map((r) => r.po_number).filter(Boolean));
-  const pendingPos = booking.po_legs.map((l) => l.po_number).filter((po): po is string => !!po && !uploadedPos.has(po));
+  const uploadedPos = new Set(packingByPo.map((r) => r.poNumber).filter(Boolean));
+  const pendingPos = booking.poLegs.map((l) => l.poNumber).filter((po): po is string => !!po && !uploadedPos.has(po));
   const num = (n: number | null | undefined, dp = 0) => (n == null ? DASH : n.toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp }));
   const money = (n: number | null | undefined) => (n ? `$${num(n, 2)}` : DASH);
 
@@ -123,7 +123,7 @@ export default function BookingDetail({
     <div className="p-4 md:p-6 space-y-6 max-w-4xl mx-auto">
       <ConfirmDialog
         open={confirm === 'approve'}
-        title={`Approve booking ${booking.booking_number}?`}
+        title={`Approve booking ${booking.bookingNumber}?`}
         description="Approving creates the shipment records for this booking (one per destination + mode) and hands them to logistics."
         confirmLabel="Approve"
         busy={busy}
@@ -132,7 +132,7 @@ export default function BookingDetail({
       />
       <ConfirmDialog
         open={confirm === 'reject'}
-        title={`Reject booking ${booking.booking_number}?`}
+        title={`Reject booking ${booking.bookingNumber}?`}
         description="The booking is turned down and no shipment is created. The PO legs stay unbooked and can be booked again."
         confirmLabel="Reject"
         busy={busy}
@@ -141,7 +141,7 @@ export default function BookingDetail({
       />
       <ConfirmDialog
         open={confirm === 'cancel'}
-        title={`Cancel booking ${booking.booking_number}?`}
+        title={`Cancel booking ${booking.bookingNumber}?`}
         description="The authorization is withdrawn and its units go back to unbooked. Any consignment it created is cancelled with it — but only if none of them has been handed to the carrier, received or costed; otherwise this is refused and the consignment has to be dealt with first."
         confirmLabel="Cancel booking"
         busy={busy}
@@ -159,7 +159,7 @@ export default function BookingDetail({
       />
       <ConfirmDialog
         open={confirm === 'delete'}
-        title={`Delete booking ${booking.booking_number}?`}
+        title={`Delete booking ${booking.bookingNumber}?`}
         description="Removes the booking, its PO-leg rows, its commercial invoice, packing data and generated documents. Refused while any consignment still hangs off it. This cannot be undone."
         confirmLabel="Delete"
         destructive
@@ -182,13 +182,13 @@ export default function BookingDetail({
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{booking.booking_number}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">{booking.bookingNumber}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {/* Shown to everyone, pressable only by a role holding booking_approve —
                 the vendor's own booking should still read as "waiting on approval".
                 Tooltip on the span: a disabled Button has pointer-events-none. */}
-            {booking.booking_status === 'Booking Pending' && (
+            {booking.bookingStatus === 'Booking Pending' && (
               <span title={canApprove ? undefined : APPROVE_DENIED_HINT} className="inline-block">
                 <Button size="sm" disabled={busy || !canApprove} onClick={() => setConfirm('approve')}><Check className="h-4 w-4 mr-1" /> Approve</Button>
               </span>
@@ -207,7 +207,7 @@ export default function BookingDetail({
               </Button>
             )}
             <Button size="sm" variant="outline" disabled={busy} onClick={() => fileRef.current?.click()}
-              title={booking.po_legs.length > 1 ? 'Upload one file per PO — you can select several at once; each adds/replaces only its own PO.' : 'Upload the shipment-data Excel'}>
+              title={booking.poLegs.length > 1 ? 'Upload one file per PO — you can select several at once; each adds/replaces only its own PO.' : 'Upload the shipment-data Excel'}>
               <Upload className="h-4 w-4 mr-1" /> {ci ? 'Add / Re-upload Shipment Data' : 'Upload Shipment Data'}
             </Button>
             <input ref={fileRef} type="file" accept=".xlsx,.xls" multiple className="hidden"
@@ -233,7 +233,7 @@ export default function BookingDetail({
           {/* line 1 — state */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Cell label="Status">
-              <Badge variant="outline" className={cn(STATUS_STYLES[booking.booking_status || ''])}>{booking.booking_status ?? DASH}</Badge>
+              <Badge variant="outline" className={cn(STATUS_STYLES[booking.bookingStatus || ''])}>{booking.bookingStatus ?? DASH}</Badge>
             </Cell>
             <Cell label="Commercial Invoice">
               {ci
@@ -243,25 +243,25 @@ export default function BookingDetail({
           </div>
           {/* line 2 — booking facts */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Cell label="Supplier">{booking.supplier_name ?? booking.supplier_id ?? DASH}</Cell>
+            <Cell label="Supplier">{booking.supplierName ?? booking.supplierId ?? DASH}</Cell>
             <Cell label="Mode">{booking.mode ?? DASH}</Cell>
             <Cell label="Cargo Ready" hint={isPending ? 'From WIP CRD — editable until approved' : undefined}>
               {editingCrd ? (
                 <div className="flex items-center gap-1.5">
                   <Input type="date" value={crd} onChange={(e) => setCrd(e.target.value)} className="h-8 w-[9.5rem]" disabled={busy} />
                   <Button size="sm" variant="ghost" className="h-8 px-2" disabled={busy} onClick={saveCrd}><Save className="h-4 w-4" /></Button>
-                  <Button size="sm" variant="ghost" className="h-8 px-2" disabled={busy} onClick={() => { setEditingCrd(false); setCrd(booking.cargo_ready_date ?? ''); }}><X className="h-4 w-4" /></Button>
+                  <Button size="sm" variant="ghost" className="h-8 px-2" disabled={busy} onClick={() => { setEditingCrd(false); setCrd(booking.cargoReadyDate ?? ''); }}><X className="h-4 w-4" /></Button>
                 </div>
               ) : (
                 <span className="inline-flex items-center gap-1.5">
-                  {booking.cargo_ready_date ?? DASH}
+                  {booking.cargoReadyDate ?? DASH}
                   {canEditCrd && (
                     <Button size="sm" variant="ghost" className="h-6 px-1.5 text-muted-foreground" title="Edit Cargo Ready" onClick={() => setEditingCrd(true)}><Pencil className="h-3.5 w-3.5" /></Button>
                   )}
                 </span>
               )}
             </Cell>
-            <Cell label="Booked">{booking.submitted_at ? booking.submitted_at.slice(0, 10) : DASH}</Cell>
+            <Cell label="Booked">{booking.submittedAt ? booking.submittedAt.slice(0, 10) : DASH}</Cell>
           </div>
         </Card>
       </section>
@@ -277,13 +277,13 @@ export default function BookingDetail({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {booking.po_legs.map((l) => (
+              {booking.poLegs.map((l) => (
                 <TableRow key={l.id} className="border-border hover:bg-muted/30">
-                  <TableCell className="font-medium">{l.po_number ?? l.leg_id}</TableCell>
+                  <TableCell className="font-medium">{l.poNumber ?? l.legId}</TableCell>
                   <TableCell>{l.mode ?? DASH}</TableCell>
                   <TableCell className="text-right tabular-nums">{(l.units ?? 0).toLocaleString()}</TableCell>
                   <TableCell className="text-right tabular-nums">{l.cartons ?? DASH}</TableCell>
-                  <TableCell className="text-right tabular-nums">{l.weight_kg ?? DASH}</TableCell>
+                  <TableCell className="text-right tabular-nums">{l.weightKg ?? DASH}</TableCell>
                   <TableCell className="text-right tabular-nums">{l.cbm ?? DASH}</TableCell>
                 </TableRow>
               ))}
@@ -313,22 +313,22 @@ export default function BookingDetail({
               ) : (
                 <>
                   {packingByPo.map((r) => (
-                    <TableRow key={r.leg_id ?? r.po_number} className="border-border hover:bg-muted/30">
-                      <TableCell className="font-medium">{r.po_number ?? 'Unmatched'}</TableCell>
-                      <TableCell className="text-right tabular-nums">{num(r.total_pcs)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{num(r.total_cartons)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{num(r.total_gross_weight, 2)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{num(r.total_cbm, 3)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{money(r.total_value)}</TableCell>
+                    <TableRow key={r.legId ?? r.poNumber} className="border-border hover:bg-muted/30">
+                      <TableCell className="font-medium">{r.poNumber ?? 'Unmatched'}</TableCell>
+                      <TableCell className="text-right tabular-nums">{num(r.totalPcs)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{num(r.totalCartons)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{num(r.totalGrossWeight, 2)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{num(r.totalCbm, 3)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{money(r.totalValue)}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="bg-card/80 font-medium border-border">
                     <TableCell>Total ({packingByPo.length} PO{packingByPo.length === 1 ? '' : 's'})</TableCell>
-                    <TableCell className="text-right tabular-nums">{num(packing?.total_pcs)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{num(packing?.total_cartons)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{num(packing?.total_gross_weight, 2)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{num(packing?.total_cbm, 3)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{money(packing?.total_value)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{num(packing?.totalPcs)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{num(packing?.totalCartons)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{num(packing?.totalGrossWeight, 2)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{num(packing?.totalCbm, 3)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{money(packing?.totalValue)}</TableCell>
                   </TableRow>
                 </>
               )}
@@ -351,9 +351,9 @@ export default function BookingDetail({
               {scopeOrder(documents).map((scope) => (
                 <div key={scope} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                   <span className="w-full sm:w-44 shrink-0 text-muted-foreground">{scope}</span>
-                  {documents.filter((d) => d.scope === scope).sort((a) => (a.doc_type === 'commercial_invoice' ? -1 : 1)).map((d) => (
+                  {documents.filter((d) => d.scope === scope).sort((a) => (a.docType === 'commercial_invoice' ? -1 : 1)).map((d) => (
                     <a key={d.id} href={generatedDocHref('mainline', d.id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
-                      <Download className="h-3.5 w-3.5" /> {d.doc_type === 'commercial_invoice' ? 'Commercial Invoice' : 'Packing Slip'}
+                      <Download className="h-3.5 w-3.5" /> {d.docType === 'commercial_invoice' ? 'Commercial Invoice' : 'Packing Slip'}
                     </a>
                   ))}
                 </div>

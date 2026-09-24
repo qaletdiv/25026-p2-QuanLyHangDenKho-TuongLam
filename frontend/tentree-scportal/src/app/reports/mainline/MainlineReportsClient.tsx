@@ -16,33 +16,33 @@ import ReportsTabs from '../ReportsTabs';
 
 // Item-lines export columns (all SKU allocations across every leg — full PO detail).
 const ITEM_COLS = [
-  { key: 'po_number', label: 'PO Number' }, { key: 'trn_number', label: 'TRN' },
+  { key: 'poNumber', label: 'PO Number' }, { key: 'trnNumber', label: 'TRN' },
   { key: 'supplier', label: 'Supplier' }, { key: 'season', label: 'Season' }, { key: 'mode', label: 'Mode' },
-  { key: 'receiving_warehouse', label: 'Destination' }, { key: 'allocation_channel', label: 'Channel' },
+  { key: 'receivingWarehouse', label: 'Destination' }, { key: 'allocationChannel', label: 'Channel' },
   // planned (leg / WIP) and actual (shipment) dates sit side by side — see
   // poController.getAllLegLines; merging them would hide the slip.
-  { key: 'crd', label: 'CRD' }, { key: 'e_del', label: 'E-DEL (planned)' },
-  // NOTE: the leg's planned etd_pol IS on the API payload as `etd_pol_planned`, but
+  { key: 'crd', label: 'CRD' }, { key: 'eDel', label: 'E-DEL (planned)' },
+  // NOTE: the leg's planned etdPol IS on the API payload as `etdPolPlanned`, but
   // it is null on all 86 legs — the WIP sheets in use never supply it — so it is
   // left out here rather than shipping a column that is blank in every row.
-  { key: 'shipment_numbers', label: 'Shipment(s)' }, { key: 'shipment_count', label: 'Shipment Count' },
-  { key: 'etd_pol', label: 'ETD POL (actual)' }, { key: 'eta_pod', label: 'ETA POD' },
-  { key: 'e_del_actual', label: 'E-DEL (actual)' },
-  { key: 'cargo_received_date', label: 'Received at Port' },
+  { key: 'shipmentNumbers', label: 'Shipment(s)' }, { key: 'shipmentCount', label: 'Shipment Count' },
+  { key: 'etdPol', label: 'ETD POL (actual)' }, { key: 'etaPod', label: 'ETA POD' },
+  { key: 'eDelActual', label: 'E-DEL (actual)' },
+  { key: 'cargoReceivedDate', label: 'Received at Port' },
   // ATA is DERIVED from the attributed NetSuite Item Receipt; the typed column is
   // only a fallback (set on 1 of 9 live shipments), so `ATA Source` says which rule
   // produced the date rather than leaving a reconciler to guess.
-  { key: 'expected_ata', label: 'Expected ATA' }, { key: 'ata', label: 'ATA' },
-  { key: 'ata_source', label: 'ATA Source' },
-  { key: 'leg_id', label: 'Leg ID' },
-  { key: 'sku_code', label: 'SKU' }, { key: 'item_name', label: 'Item' }, { key: 'style_color', label: 'Style/Color' },
-  { key: 'size', label: 'Size' }, { key: 'allocated_qty', label: 'Allocated Qty' },
+  { key: 'expectedAta', label: 'Expected ATA' }, { key: 'ata', label: 'ATA' },
+  { key: 'ataSource', label: 'ATA Source' },
+  { key: 'legId', label: 'Leg ID' },
+  { key: 'skuCode', label: 'SKU' }, { key: 'itemName', label: 'Item' }, { key: 'styleColor', label: 'Style/Color' },
+  { key: 'size', label: 'Size' }, { key: 'allocatedQty', label: 'Allocated Qty' },
   // The three quantities sit together so the sheet can be pivoted or differenced
   // without reordering. Shipped = confirmed CI lines on the leg; Received = the
   // PO's NetSuite receipts split across its legs (air first, capped at each leg's
   // allocation) — the same derivation the PO leg page reconciles with.
-  { key: 'shipped_qty', label: 'Shipped Qty' }, { key: 'received_qty', label: 'Received Qty' },
-  { key: 'unit_price', label: 'Unit Price' },
+  { key: 'shippedQty', label: 'Shipped Qty' }, { key: 'receivedQty', label: 'Received Qty' },
+  { key: 'unitPrice', label: 'Unit Price' },
 ];
 
 /* ── KPI buckets (manager's column order) ─────────────────────────── */
@@ -93,7 +93,7 @@ function buildPivot(rows: MainlineReportRow[], buckets: string[]) {
   const byFac: Record<string, Record<string, number>> = {};
   rows.forEach((r) => {
     const f = r.facility || 'Unknown';
-    (byFac[f] = byFac[f] || {})[r.kpi_status] = (byFac[f]?.[r.kpi_status] || 0) + r.qty;
+    (byFac[f] = byFac[f] || {})[r.kpiStatus] = (byFac[f]?.[r.kpiStatus] || 0) + r.qty;
   });
   const facilities = Object.keys(byFac).sort();
   const body = facilities.map((f) => {
@@ -176,7 +176,7 @@ function ChannelPie({ title, subtitle, rows }: { title: string; subtitle: string
   const cardRef = useRef<HTMLDivElement>(null);
   const data = useMemo(() => {
     const agg: Record<string, number> = {};
-    rows.forEach((r) => { agg[r.kpi_status] = (agg[r.kpi_status] || 0) + r.qty; });
+    rows.forEach((r) => { agg[r.kpiStatus] = (agg[r.kpiStatus] || 0) + r.qty; });
     const order = [...BUCKET_ORDER, 'Unknown', ...Object.keys(agg).filter((b) => !BUCKET_ORDER.includes(b) && b !== 'Unknown').sort()];
     return order.filter((b) => agg[b]).map((b) => ({ name: b, value: agg[b] }));
   }, [rows]);
@@ -250,7 +250,7 @@ export default function MainlineReportsClient({ rows, transit, schedules = [] }:
 
   // shared column set across both tables, ordered per the manager's spec (+ extras like Unknown)
   const buckets = useMemo(() => {
-    const present = new Set(filtered.map((r) => r.kpi_status));
+    const present = new Set(filtered.map((r) => r.kpiStatus));
     const cols = BUCKET_ORDER.filter((b) => present.has(b));
     [...present].filter((b) => !BUCKET_ORDER.includes(b)).sort().forEach((b) => cols.push(b));
     return cols.length ? cols : BUCKET_ORDER;
@@ -271,9 +271,9 @@ export default function MainlineReportsClient({ rows, transit, schedules = [] }:
       'Stage', 'Booking', 'Shipment', 'CRD', 'E-DEL', 'Expected ATA', 'ATA', 'Timeliness', 'KPI Status'];
     const lines = [headers.join(',')];
     filtered.forEach((r) => lines.push([
-      r.po_number, r.trn_number, r.supplier, r.season, r.facility, r.channel, r.segment, r.mode, r.qty,
-      r.stage, r.booking_number, r.shipment_number, r.crd, r.e_del, r.expected_ata, r.ata,
-      r.timeliness, r.kpi_status,
+      r.poNumber, r.trnNumber, r.supplier, r.season, r.facility, r.channel, r.segment, r.mode, r.qty,
+      r.stage, r.bookingNumber, r.shipmentNumber, r.crd, r.eDel, r.expectedAta, r.ata,
+      r.timeliness, r.kpiStatus,
     ].map(csv).join(',')));
     const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -308,12 +308,12 @@ export default function MainlineReportsClient({ rows, transit, schedules = [] }:
             <div className="text-sm mt-0.5 text-primary-foreground/70">
               {(() => {
                 const sched = schedules.find((s) => s.season === activeSeason);
-                return sched?.ontime_by && sched?.atrisk_by
+                return sched?.ontimeBy && sched?.atriskBy
                   ? <>
                       <p className="font-semibold text-primary-foreground">{activeSeason}:</p>
-                      <p>On Time ≤ {sched.ontime_by}</p>
-                      <p>At Risk ≤ {sched.atrisk_by}</p>
-                      <p>Late = {sched.atrisk_by}</p>
+                      <p>On Time ≤ {sched.ontimeBy}</p>
+                      <p>At Risk ≤ {sched.atriskBy}</p>
+                      <p>Late = {sched.atriskBy}</p>
                     </>
                   : <p>No production schedule set for {activeSeason || 'this season'} — grades show as Unknown. Set the cutoffs in Settings → Production Schedule.</p>;
               })()}

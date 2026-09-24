@@ -35,19 +35,19 @@ const POST_SLOT = 'inline-flex h-7 w-16 items-center justify-end';
 const usd = (n: number | null | undefined) =>
   `$${(Number(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const dim = (v: string | null | undefined) => <span className="text-muted-foreground">{v ?? DASH}</span>;
-const irLabel = (m: LandedCostMatch) => m.netsuite_ir_tranid || (m.netsuite_ir_id ? `#${m.netsuite_ir_id}` : null);
+const irLabel = (m: LandedCostMatch) => m.netsuiteIrTranid || (m.netsuiteIrId ? `#${m.netsuiteIrId}` : null);
 
 // One PO's landed-cost line (the table is flattened per PO so IR / date / match
 // each get their own sortable column; single-PO shipments = one line).
 type LcLine = {
   key: string;
-  shipment_id: string;
-  tracking_number: string | null;
+  shipmentId: string;
+  trackingNumber: string | null;
   supplier: string | null;
-  ship_date: string | null;
-  ship_month: string | null;
-  po_number: string;
-  ci_value: number;
+  shipDate: string | null;
+  shipMonth: string | null;
+  poNumber: string;
+  ciValue: number;
   freight: number;
   duty: number;
   commission: number;
@@ -57,14 +57,14 @@ type LcLine = {
 
 // Why Post is disabled (Post commits the whole shipment to NetSuite).
 function postBlockReason(r: SmsLandedCostRow): string | null {
-  if (!r.has_shipping_data) return 'Upload shipping data first (needs the CI value)';
+  if (!r.hasShippingData) return 'Upload shipping data first (needs the CI value)';
   // A BOOKED consignment posts the ACTUAL bill, not a rate estimate — posting
-  // before the bill arrives would post $0. Same gate as mainline's has_amounts.
-  if (r.awaiting_actual) return 'Enter the actual freight & duty on the shipment first';
-  if (!r.ir_resolved) return 'No Item Receipt matched — add the IR # first';
+  // before the bill arrives would post $0. Same gate as mainline's hasAmounts.
+  if (r.awaitingActual) return 'Enter the actual freight & duty on the shipment first';
+  if (!r.irResolved) return 'No Item Receipt matched — add the IR # first';
   if (!r.matched) return 'Confirm the IR match first';
-  if (!r.push_enabled) return 'NetSuite push is not enabled on the server';
-  if (!r.push_allowed) return 'This shipment is not enabled for push yet';
+  if (!r.pushEnabled) return 'NetSuite push is not enabled on the server';
+  if (!r.pushAllowed) return 'This shipment is not enabled for push yet';
   return null;
 }
 
@@ -79,13 +79,13 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
   const [manualIr, setManualIr] = useState<Record<string, string>>({});
 
   const months = useMemo(
-    () => [...new Set(rows.map((r) => r.ship_month).filter(Boolean) as string[])].sort().reverse(),
+    () => [...new Set(rows.map((r) => r.shipMonth).filter(Boolean) as string[])].sort().reverse(),
     [rows],
   );
   // Consignments with no ship date yet (a booking-approved DRAFT hasn't shipped)
   // have no ship month, so they belong to no month-end batch — they get their own
   // "Unscheduled" bucket instead of being unreachable.
-  const hasUnscheduled = useMemo(() => rows.some((r) => !r.ship_month), [rows]);
+  const hasUnscheduled = useMemo(() => rows.some((r) => !r.shipMonth), [rows]);
 
   // Month filter lives in the URL (?month=YYYY-MM) so it survives a reload / is
   // shareable. Default = the newest month with data; 'all' genuinely means all
@@ -103,8 +103,8 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
 
   const visibleRows = useMemo(() => {
     if (effMonth === 'all') return rows;
-    if (effMonth === 'unscheduled') return rows.filter((r) => !r.ship_month);
-    return rows.filter((r) => r.ship_month === effMonth);
+    if (effMonth === 'unscheduled') return rows.filter((r) => !r.shipMonth);
+    return rows.filter((r) => r.shipMonth === effMonth);
   }, [rows, effMonth]);
 
   // Flatten shipment rows → per-PO lines (split carries the effective per-PO amounts).
@@ -115,23 +115,23 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
   // Status column then explains why ("No shipping data"). NetSuite payloads still
   // come from the real split server-side, so nothing zero-valued can be pushed.
   const lines = useMemo<LcLine[]>(() => visibleRows.flatMap((r) => {
-    const matchByPo = new Map((r.match ?? []).map((m) => [m.po_number, m]));
+    const matchByPo = new Map((r.match ?? []).map((m) => [m.poNumber, m]));
     const split = r.split.length
       ? r.split
-      : (r.pos ?? []).map((po) => ({ po_number: po, ci_value: 0, freight: 0, duty: 0, commission: 0 }));
+      : (r.pos ?? []).map((po) => ({ poNumber: po, ciValue: 0, freight: 0, duty: 0, commission: 0 }));
     return split.map((s) => ({
-      key: `${r.shipment_id}|${s.po_number}`,
-      shipment_id: r.shipment_id,
-      tracking_number: r.tracking_number,
+      key: `${r.shipmentId}|${s.poNumber}`,
+      shipmentId: r.shipmentId,
+      trackingNumber: r.trackingNumber,
       supplier: r.supplier,
-      ship_date: r.ship_date,
-      ship_month: r.ship_month,
-      po_number: s.po_number,
-      ci_value: s.ci_value,
+      shipDate: r.shipDate,
+      shipMonth: r.shipMonth,
+      poNumber: s.poNumber,
+      ciValue: s.ciValue,
       freight: s.freight,
       duty: s.duty,
       commission: s.commission,
-      m: matchByPo.get(s.po_number),
+      m: matchByPo.get(s.poNumber),
       row: r,
     }));
   }), [visibleRows]);
@@ -139,21 +139,21 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
   // "Awaiting actual" is counted apart from Pending: those rows are booked
   // consignments whose broker bill hasn't arrived, so they are NOT postable yet.
   const counts = useMemo(() => visibleRows.reduce(
-    (a, r) => { a[r.posted ? 'posted' : r.awaiting_actual ? 'awaiting' : 'pending']++; return a; },
+    (a, r) => { a[r.posted ? 'posted' : r.awaitingActual ? 'awaiting' : 'pending']++; return a; },
     { posted: 0, pending: 0, awaiting: 0 },
   ), [visibleRows]);
 
   async function post(r: SmsLandedCostRow) {
-    setBusy(r.shipment_id);
-    const res = await postSmsLandedCost(r.shipment_id);
+    setBusy(r.shipmentId);
+    const res = await postSmsLandedCost(r.shipmentId);
     setBusy(null);
     if (res?.error) return void toast.error(res.error);
-    toast.success(`Posted & sent to NetSuite — ${r.tracking_number || `shipment ${r.shipment_id}`}`);
+    toast.success(`Posted & sent to NetSuite — ${r.trackingNumber || `shipment ${r.shipmentId}`}`);
     router.refresh();
   }
   async function unpost(r: SmsLandedCostRow) {
     if (!r.posted) return;
-    setBusy(r.shipment_id);
+    setBusy(r.shipmentId);
     const res = await unpostLandedCost(r.posted.id);
     setBusy(null);
     if (res?.error) return void toast.error(res.error);
@@ -161,18 +161,18 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
     router.refresh();
   }
   async function confirmMatch(m: LandedCostMatch, shipmentId: string) {
-    if (!m.receipt_id) return;
+    if (!m.receiptId) return;
     setBusy(shipmentId);
-    const res = await confirmReceiptMatch(m.receipt_id, shipmentId);
+    const res = await confirmReceiptMatch(m.receiptId, shipmentId);
     setBusy(null);
     if (res?.error) return void toast.error(res.error);
-    toast.success(`Matched ${m.po_number} → ${irLabel(m)}`);
+    toast.success(`Matched ${m.poNumber} → ${irLabel(m)}`);
     router.refresh();
   }
   async function clearMatch(m: LandedCostMatch, shipmentId: string) {
-    if (!m.receipt_id) return;
+    if (!m.receiptId) return;
     setBusy(shipmentId);
-    const res = await clearReceiptMatch(m.receipt_id);
+    const res = await clearReceiptMatch(m.receiptId);
     setBusy(null);
     if (res?.error) return void toast.error(res.error);
     toast.success('Match cleared');
@@ -181,12 +181,12 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
   // ✗ — "this is not the IR for this lot". Recorded, so the suggestion does not
   // come back on the next read; the matcher moves on to the next candidate.
   async function rejectMatch(m: LandedCostMatch, shipmentId: string) {
-    if (!m.receipt_id) return;
+    if (!m.receiptId) return;
     setBusy(shipmentId);
-    const res = await rejectReceiptMatch(m.receipt_id, shipmentId);
+    const res = await rejectReceiptMatch(m.receiptId, shipmentId);
     setBusy(null);
     if (res?.error) return void toast.error(res.error);
-    toast.success(`Rejected ${irLabel(m)} for ${m.po_number}`);
+    toast.success(`Rejected ${irLabel(m)} for ${m.poNumber}`);
     router.refresh();
   }
   async function manualAdd(shipmentId: string, poNumber: string) {
@@ -202,11 +202,11 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
     router.refresh();
   }
   async function showNetsuitePreview(r: SmsLandedCostRow) {
-    setBusy(r.shipment_id);
-    const data = await previewNetsuiteLandedCost(r.shipment_id);
+    setBusy(r.shipmentId);
+    const data = await previewNetsuiteLandedCost(r.shipmentId);
     setBusy(null);
     if (data?.error) return void toast.error(data.error);
-    setPreview({ shipment: r.tracking_number || `Shipment ${r.shipment_id}`, data });
+    setPreview({ shipment: r.trackingNumber || `Shipment ${r.shipmentId}`, data });
   }
 
   // Item Receipt cell — number when matched, or an inline input to type the IR # when not.
@@ -229,14 +229,14 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
           <span className="min-w-0 truncate font-medium text-emerald-600 dark:text-emerald-400">{irLabel(m)}</span>
           <Check className="h-3 w-3 shrink-0 text-emerald-600 dark:text-emerald-400" />
           {canEdit && !l.row.posted && (
-            <Button size="sm" variant="ghost" className="h-6 w-6 shrink-0 p-0" disabled={busy !== null} title="Clear match" onClick={() => clearMatch(m, l.shipment_id)}><X className="h-3 w-3" /></Button>
+            <Button size="sm" variant="ghost" className="h-6 w-6 shrink-0 p-0" disabled={busy !== null} title="Clear match" onClick={() => clearMatch(m, l.shipmentId)}><X className="h-3 w-3" /></Button>
           )}
         </span>
       );
     }
     // Suggested, not yet confirmed — the human answers it either way: ✓ accept,
     // ✗ reject (recorded, so the matcher offers the next candidate instead).
-    if (m.netsuite_ir_id) {
+    if (m.netsuiteIrId) {
       return (
         <span className={IR_CELL}>
           <span className="min-w-0 truncate text-muted-foreground">{irLabel(m)}</span>
@@ -244,11 +244,11 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
           {canEdit && (
             <>
               <Button size="sm" variant="outline" className="h-6 w-6 shrink-0 p-0 text-emerald-600 dark:text-emerald-400"
-                disabled={busy !== null} title={`Confirm ${irLabel(m)} for ${m.po_number}`}
-                onClick={() => confirmMatch(m, l.shipment_id)}><Check className="h-3.5 w-3.5" /></Button>
+                disabled={busy !== null} title={`Confirm ${irLabel(m)} for ${m.poNumber}`}
+                onClick={() => confirmMatch(m, l.shipmentId)}><Check className="h-3.5 w-3.5" /></Button>
               <Button size="sm" variant="outline" className="h-6 w-6 shrink-0 p-0 text-red-600 dark:text-red-400"
                 disabled={busy !== null} title={`Reject — ${irLabel(m)} is not the receipt for this lot`}
-                onClick={() => rejectMatch(m, l.shipment_id)}><X className="h-3.5 w-3.5" /></Button>
+                onClick={() => rejectMatch(m, l.shipmentId)}><X className="h-3.5 w-3.5" /></Button>
             </>
           )}
         </span>
@@ -258,17 +258,17 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
     return (
       <span className={IR_CELL} title="No Item Receipt matched — type the IR number (e.g. IR65377)">
         <Input value={manualIr[key] || ''} onChange={(e) => setManualIr((s) => ({ ...s, [key]: e.target.value }))} placeholder="IR #" className="h-6 w-24 shrink-0 text-xs" disabled={busy !== null} />
-        <Button size="sm" variant="outline" className="h-6 shrink-0" disabled={busy !== null || !(manualIr[key] || '').trim()} onClick={() => manualAdd(l.shipment_id, l.po_number)}>Add</Button>
+        <Button size="sm" variant="outline" className="h-6 shrink-0" disabled={busy !== null || !(manualIr[key] || '').trim()} onClick={() => manualAdd(l.shipmentId, l.poNumber)}>Add</Button>
       </span>
     );
   }
 
   const columns: DataColumn<LcLine>[] = [
-    { key: 'tracking_number', label: 'Tracking #', accessor: (l) => l.tracking_number, render: (l) => (
-      <Link href={`/sms/shipments/${l.shipment_id}`} className="text-primary hover:underline font-mono text-xs font-medium">{l.tracking_number || `Shipment ${l.shipment_id}`}</Link>
+    { key: 'trackingNumber', label: 'Tracking #', accessor: (l) => l.trackingNumber, render: (l) => (
+      <Link href={`/sms/shipments/${l.shipmentId}`} className="text-primary hover:underline font-mono text-xs font-medium">{l.trackingNumber || `Shipment ${l.shipmentId}`}</Link>
     ) },
     { key: 'supplier', label: 'Supplier', accessor: (l) => l.supplier, render: (l) => dim(l.supplier) },
-    { key: 'ship_date', label: 'Ship Date', accessor: (l) => l.ship_date, render: (l) => dim(l.ship_date) },
+    { key: 'shipDate', label: 'Ship Date', accessor: (l) => l.shipDate, render: (l) => dim(l.shipDate) },
     // What NetSuite will receive as the shipping method (custbody16). An unbooked
     // parcel has no mode and posts as Courier — spelled out so it isn't a surprise.
     { key: 'mode', label: 'Ship Method', defaultVisible: false,
@@ -277,10 +277,10 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
         ? <span className="text-xs">{l.row.mode}</span>
         : <span className="text-muted-foreground text-xs">Courier (default)</span>) },
     { key: 'courier', label: 'Carrier', defaultVisible: false, accessor: (l) => l.row.courier, render: (l) => dim(l.row.courier) },
-    { key: 'po_number', label: 'PO', accessor: (l) => l.po_number, render: (l) => <span className="font-medium text-xs">{l.po_number}</span> },
-    { key: 'ir', label: 'Item Receipt', accessor: (l) => l.m?.netsuite_ir_tranid ?? '', render: (l) => matchControl(l) },
-    { key: 'ir_date', label: 'IR Date', accessor: (l) => l.m?.receipt_date ?? '', render: (l) => dim(l.m?.receipt_date) },
-    { key: 'ci_value', label: 'CI Value', align: 'right', accessor: (l) => l.ci_value, render: (l) => <span className="tabular-nums">{usd(l.ci_value)}</span> },
+    { key: 'poNumber', label: 'PO', accessor: (l) => l.poNumber, render: (l) => <span className="font-medium text-xs">{l.poNumber}</span> },
+    { key: 'ir', label: 'Item Receipt', accessor: (l) => l.m?.netsuiteIrTranid ?? '', render: (l) => matchControl(l) },
+    { key: 'ir_date', label: 'IR Date', accessor: (l) => l.m?.receiptDate ?? '', render: (l) => dim(l.m?.receiptDate) },
+    { key: 'ciValue', label: 'CI Value', align: 'right', accessor: (l) => l.ciValue, render: (l) => <span className="tabular-nums">{usd(l.ciValue)}</span> },
     { key: 'freight', label: 'Freight', align: 'right', accessor: (l) => l.freight, render: (l) => <span className="tabular-nums">{usd(l.freight)}</span> },
     { key: 'duty', label: 'Duty', align: 'right', accessor: (l) => l.duty, render: (l) => <span className="tabular-nums">{usd(l.duty)}</span> },
     { key: 'commission', label: 'Commission', align: 'right', accessor: (l) => l.commission, render: (l) => (
@@ -289,18 +289,18 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
     // Basis: a booked consignment posts ACTUALS off the bill; unbooked posts the
     // CI × rate estimate. Shown so a $0 booked row reads as "bill not in yet".
     { key: 'basis', label: 'Basis', defaultVisible: false, accessor: (l) => l.row.basis, render: (l) => (
-      l.row.is_booked
+      l.row.isBooked
         ? <Badge variant="outline" className="border-blue-500/40 text-blue-600 dark:text-blue-400">Actual bill</Badge>
         : <span className="text-muted-foreground text-xs">Estimate</span>
     ) },
     { key: 'status', label: 'Status',
-      accessor: (l) => l.row.posted ? 'Posted' : !l.row.has_shipping_data ? 'No shipping data' : l.row.awaiting_actual ? 'Awaiting actual' : 'Pending',
+      accessor: (l) => l.row.posted ? 'Posted' : !l.row.hasShippingData ? 'No shipping data' : l.row.awaitingActual ? 'Awaiting actual' : 'Pending',
       render: (l) => (
         l.row.posted
           ? <Badge variant="outline" className={cn(STATUS_BADGE, 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400')}><Check className="h-3 w-3 mr-1" />Posted</Badge>
-          : !l.row.has_shipping_data
+          : !l.row.hasShippingData
             ? <Badge variant="outline" className={cn(STATUS_BADGE, 'border-amber-500/40 text-amber-600 dark:text-amber-400')}>No shipping data</Badge>
-            : l.row.awaiting_actual
+            : l.row.awaitingActual
               ? <Badge variant="outline" className={cn(STATUS_BADGE, 'border-amber-500/40 text-amber-600 dark:text-amber-400')} title="Booked consignment — enter the broker bill on the shipment">Awaiting actual</Badge>
               : <Badge variant="outline" className={cn(STATUS_BADGE, 'text-muted-foreground')}>Pending</Badge>
       ) },
@@ -314,7 +314,7 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
           <span className={POST_SLOT}>
             {canEdit && (l.row.posted
               ? <Button size="sm" variant="ghost" className={ICON_BTN} disabled={busy !== null} onClick={() => unpost(l.row)} title="Unpost (correction — NetSuite value stays)"><RotateCcw className="h-3.5 w-3.5" /></Button>
-              : <Button size="sm" variant="outline" className="h-7 px-2" disabled={busy !== null || !!blockReason} onClick={() => post(l.row)} title={blockReason || 'Post & send to NetSuite'}>{busy === l.shipment_id ? 'Posting…' : 'Post'}</Button>)}
+              : <Button size="sm" variant="outline" className="h-7 px-2" disabled={busy !== null || !!blockReason} onClick={() => post(l.row)} title={blockReason || 'Post & send to NetSuite'}>{busy === l.shipmentId ? 'Posting…' : 'Post'}</Button>)}
           </span>
         </span>
       );
@@ -358,7 +358,7 @@ export default function LandedCostsTable({ rows }: { rows: SmsLandedCostRow[] })
         searchPlaceholder="Search tracking #, PO, IR…"
         emptyText="No SMS shipments for this period."
         pageSize={20}
-        initialSort={{ key: 'ship_date', dir: 'desc' }}
+        initialSort={{ key: 'shipDate', dir: 'desc' }}
         storageKey="landed_cost_columns"
       />
 

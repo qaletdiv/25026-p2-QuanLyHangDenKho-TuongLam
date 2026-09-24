@@ -158,10 +158,10 @@ export default function FreightsClient({ initialRecords = [] }: { initialRecords
   const handleExport = async (record: FreightRecord) => {
     setIsExporting(true);
     try {
-      const { file_url } = await exportFreightRecord(record.id);
+      const { fileUrl } = await exportFreightRecord(record.id);
       const a = document.createElement('a');
-      a.href = docHref(file_url);
-      a.download = file_url.split('/').pop() || 'freight.xlsx';
+      a.href = docHref(fileUrl);
+      a.download = fileUrl.split('/').pop() || 'freight.xlsx';
       a.click();
       toast.success('Excel exported');
     } catch (err: any) {

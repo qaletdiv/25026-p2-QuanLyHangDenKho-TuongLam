@@ -9,7 +9,7 @@ import { CalendarClock, Plus } from 'lucide-react';
 import { EditLockActions } from './EditLockActions';
 import { SettingsTable, type SettingsColumn } from './SettingsTable';
 
-type ScheduleRow = { season_id: string; season: string; ontime_by: string | null; atrisk_by: string | null };
+type ScheduleRow = { seasonId: string; season: string; ontimeBy: string | null; atriskBy: string | null };
 
 // Per-season delivery KPI gates. E-DEL ≤ On Time cutoff → On Time; ≤ At Risk
 // cutoff → At Risk; later → Late. Seasons appear automatically as PO/WIP syncs
@@ -29,11 +29,11 @@ export function ProductionScheduleSettings() {
   });
   useEffect(() => { load(); }, []);
 
-  const setField = (season_id: string, key: 'ontime_by' | 'atrisk_by', value: string) =>
-    setRows(rows.map((r) => (r.season_id === season_id ? { ...r, [key]: value || null } : r)));
+  const setField = (seasonId: string, key: 'ontimeBy' | 'atriskBy', value: string) =>
+    setRows(rows.map((r) => (r.seasonId === seasonId ? { ...r, [key]: value || null } : r)));
 
   // Pre-load next season before its POs exist. The row is created in the SEASONS
-  // table (3NF — the schedule stays keyed on season_id); later WIP/NetSuite syncs
+  // table (3NF — the schedule stays keyed on seasonId); later WIP/NetSuite syncs
   // match it by code instead of creating a duplicate.
   const addSeason = async () => {
     const code = newCode.trim();
@@ -48,9 +48,9 @@ export function ProductionScheduleSettings() {
   };
 
   const handleSave = async () => {
-    const bad = rows.find((r) => r.ontime_by && r.atrisk_by && r.atrisk_by < r.ontime_by);
+    const bad = rows.find((r) => r.ontimeBy && r.atriskBy && r.atriskBy < r.ontimeBy);
     if (bad) { toast.error(`${bad.season}: At Risk cutoff cannot be before On Time cutoff`); return; }
-    const res = await updateProductionSchedules(rows.map(({ season_id, ontime_by, atrisk_by }) => ({ season_id, ontime_by, atrisk_by })));
+    const res = await updateProductionSchedules(rows.map(({ seasonId, ontimeBy, atriskBy }) => ({ seasonId, ontimeBy, atriskBy })));
     if (res?.error) { toast.error(res.error); return; }
     saved.current = rows; setEditing(false);
     toast.success('Production schedule updated — the season KPI report now grades against it.');
@@ -60,18 +60,18 @@ export function ProductionScheduleSettings() {
 
   if (isLoading) return <div className="p-4 text-sm text-muted-foreground italic">Loading production schedules...</div>;
 
-  const dateCol = (key: 'ontime_by' | 'atrisk_by', label: string): SettingsColumn<ScheduleRow> => ({
+  const dateCol = (key: 'ontimeBy' | 'atriskBy', label: string): SettingsColumn<ScheduleRow> => ({
     key, label,
     accessor: (r) => r[key] ?? '',
     cell: (r) => (
-      <Input type="date" value={r[key] ?? ''} onChange={(e) => setField(r.season_id, key, e.target.value)} className="h-8 text-sm w-44" />
+      <Input type="date" value={r[key] ?? ''} onChange={(e) => setField(r.seasonId, key, e.target.value)} className="h-8 text-sm w-44" />
     ),
   });
 
   const columns: SettingsColumn<ScheduleRow>[] = [
     { key: 'season', label: 'Season', cellClassName: 'font-medium', cell: (r) => r.season },
-    dateCol('ontime_by', 'On Time — deliver by'),
-    dateCol('atrisk_by', 'At Risk — deliver by'),
+    dateCol('ontimeBy', 'On Time — deliver by'),
+    dateCol('atriskBy', 'At Risk — deliver by'),
   ];
 
   return (
@@ -108,7 +108,7 @@ export function ProductionScheduleSettings() {
       <SettingsTable
         rows={rows}
         columns={columns}
-        rowKey={(r) => r.season_id}
+        rowKey={(r) => r.seasonId}
         disabled={!editing}
         storageKey="settings-production-schedules-colorder"
         emptyText="No seasons yet — sync POs first"

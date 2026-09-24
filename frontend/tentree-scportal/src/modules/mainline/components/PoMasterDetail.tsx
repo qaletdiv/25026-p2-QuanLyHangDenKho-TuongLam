@@ -33,11 +33,11 @@ export default function PoMasterDetail({
           <ArrowLeft className="w-4 h-4" /> Purchase Orders
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">{master.trn_number}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{master.trnNumber}</h1>
           {master.bookable && <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">bookable</Badge>}
         </div>
         <p className="text-sm text-muted-foreground mt-1">
-          {master.supplier ?? master.supplier_id ?? DASH}
+          {master.supplier ?? master.supplierId ?? DASH}
         </p>
         <p className="text-sm text-muted-foreground mt-1">
           {master.season}
@@ -64,21 +64,21 @@ export default function PoMasterDetail({
               ) : (
                 <>
                   {visibleRows.map((r) => (
-                    <TableRow key={r.sku_code} className="border-border hover:bg-muted/30">
-                      <TableCell className="font-mono text-xs">{r.sku_code}</TableCell>
-                      <TableCell className="text-right tabular-nums">{r.ordered_qty.toLocaleString()}</TableCell>
-                      <TableCell className="text-right tabular-nums">{r.allocated_qty.toLocaleString()}</TableCell>
-                      <TableCell className="text-right tabular-nums">{r.shipped_qty.toLocaleString()}</TableCell>
-                      <TableCell className="text-right tabular-nums text-muted-foreground">{r.received_qty.toLocaleString()}</TableCell>
-                      <TableCell className={cn('text-right tabular-nums', r.remaining_qty > 0 ? 'text-amber-600' : 'text-emerald-600')}>{r.remaining_qty.toLocaleString()}</TableCell>
+                    <TableRow key={r.skuCode} className="border-border hover:bg-muted/30">
+                      <TableCell className="font-mono text-xs">{r.skuCode}</TableCell>
+                      <TableCell className="text-right tabular-nums">{r.orderedQty.toLocaleString()}</TableCell>
+                      <TableCell className="text-right tabular-nums">{r.allocatedQty.toLocaleString()}</TableCell>
+                      <TableCell className="text-right tabular-nums">{r.shippedQty.toLocaleString()}</TableCell>
+                      <TableCell className="text-right tabular-nums text-muted-foreground">{r.receivedQty.toLocaleString()}</TableCell>
+                      <TableCell className={cn('text-right tabular-nums', r.remainingQty > 0 ? 'text-amber-600' : 'text-emerald-600')}>{r.remainingQty.toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="bg-card/80 font-medium">
-                    <TableCell>Total ({fulfillment.sku_count} SKUs)</TableCell>
-                    <TableCell className="text-right tabular-nums">{fulfillment.totals.ordered_qty.toLocaleString()}</TableCell>
-                    <TableCell className="text-right tabular-nums">{fulfillment.totals.allocated_qty.toLocaleString()}</TableCell>
-                    <TableCell className="text-right tabular-nums">{fulfillment.totals.shipped_qty.toLocaleString()}</TableCell>
-                    <TableCell className="text-right tabular-nums">{fulfillment.totals.received_qty.toLocaleString()}</TableCell>
+                    <TableCell>Total ({fulfillment.skuCount} SKUs)</TableCell>
+                    <TableCell className="text-right tabular-nums">{fulfillment.totals.orderedQty.toLocaleString()}</TableCell>
+                    <TableCell className="text-right tabular-nums">{fulfillment.totals.allocatedQty.toLocaleString()}</TableCell>
+                    <TableCell className="text-right tabular-nums">{fulfillment.totals.shippedQty.toLocaleString()}</TableCell>
+                    <TableCell className="text-right tabular-nums">{fulfillment.totals.receivedQty.toLocaleString()}</TableCell>
                     <TableCell />
                   </TableRow>
                 </>
@@ -120,36 +120,36 @@ export default function PoMasterDetail({
                       <TableRow
                         key={leg.id}
                         className="border-border hover:bg-muted/30 cursor-pointer"
-                        onClick={() => router.push(`/mainline/purchase-orders/${encodeURIComponent(master.trn_number)}/${leg.id}`)}
+                        onClick={() => router.push(`/mainline/purchase-orders/${encodeURIComponent(master.trnNumber)}/${leg.id}`)}
                       >
                         <TableCell className="font-medium">
                           {/* a TRN can mix approved and unapproved POs, so the badge
                               belongs per PO row, not on the TRN header */}
                           <span className="inline-flex items-center gap-2">
-                            {o.po_number}<ApprovalBadge status={o.approval_status} />
+                            {o.poNumber}<ApprovalBadge status={o.approvalStatus} />
                           </span>
                         </TableCell>
-                        <TableCell className="font-mono text-xs text-muted-foreground">{o.netsuite_id ?? DASH}</TableCell>
-                        <TableCell className="text-muted-foreground">{o.destination_facility ?? DASH}</TableCell>
-                        <TableCell className="text-muted-foreground">{o.allocation_channel ?? DASH}</TableCell>
-                        <TableCell>{leg.mode || modeMap[leg.mode_id || ''] || leg.mode_id || DASH}</TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">{o.netsuiteId ?? DASH}</TableCell>
+                        <TableCell className="text-muted-foreground">{o.destinationFacility ?? DASH}</TableCell>
+                        <TableCell className="text-muted-foreground">{o.allocationChannel ?? DASH}</TableCell>
+                        <TableCell>{leg.mode || modeMap[leg.modeId || ''] || leg.modeId || DASH}</TableCell>
                         <TableCell className="text-muted-foreground">{leg.crd ?? DASH}</TableCell>
                         <TableCell className="text-right tabular-nums">{leg.leg_lines?.length ?? 0}</TableCell>
-                        <TableCell className="text-right tabular-nums">{(leg.expected_qty ?? 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-right tabular-nums">{(leg.expectedQty ?? 0).toLocaleString()}</TableCell>
                       </TableRow>
                     ))
                   : [
-                      <TableRow key={o.po_number} className="border-border hover:bg-muted/30">
+                      <TableRow key={o.poNumber} className="border-border hover:bg-muted/30">
                         <TableCell className="font-medium">
                           {/* a TRN can mix approved and unapproved POs, so the badge
                               belongs per PO row, not on the TRN header */}
                           <span className="inline-flex items-center gap-2">
-                            {o.po_number}<ApprovalBadge status={o.approval_status} />
+                            {o.poNumber}<ApprovalBadge status={o.approvalStatus} />
                           </span>
                         </TableCell>
-                        <TableCell className="font-mono text-xs text-muted-foreground">{o.netsuite_id ?? DASH}</TableCell>
-                        <TableCell className="text-muted-foreground">{o.destination_facility ?? DASH}</TableCell>
-                        <TableCell className="text-muted-foreground">{o.allocation_channel ?? DASH}</TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">{o.netsuiteId ?? DASH}</TableCell>
+                        <TableCell className="text-muted-foreground">{o.destinationFacility ?? DASH}</TableCell>
+                        <TableCell className="text-muted-foreground">{o.allocationChannel ?? DASH}</TableCell>
                         <TableCell colSpan={4} className="italic text-muted-foreground">forecast — not split into air/sea yet ({o.order_lines.length} SKU line{o.order_lines.length === 1 ? '' : 's'})</TableCell>
                       </TableRow>,
                     ]

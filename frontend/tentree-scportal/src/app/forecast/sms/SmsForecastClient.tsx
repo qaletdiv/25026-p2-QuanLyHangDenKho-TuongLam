@@ -55,38 +55,38 @@ export default function SmsForecastClient({ rows }: { rows: SmsForecastRow[] }) 
   // POs with incoming units but no forecast date at all (no Expected Receive Date
   // AND no HOD) can't be placed on the timeline — surfaced, never silently dropped.
   const undated = useMemo(
-    () => filtered.filter((r) => r.incoming_qty > 0 && !r.forecast_date),
+    () => filtered.filter((r) => r.incomingQty > 0 && !r.forecastDate),
     [filtered],
   );
-  const undatedUnits = undated.reduce((a, r) => a + r.incoming_qty, 0);
+  const undatedUnits = undated.reduce((a, r) => a + r.incomingQty, 0);
 
   // Units placed on a PROJECTED date (HOD fallback, because the real Expected
   // Receive Date hasn't synced yet) — flagged so the timeline stays honest.
   const projectedRows = useMemo(
-    () => filtered.filter((r) => r.incoming_qty > 0 && r.forecast_date && r.date_basis === 'projected'),
+    () => filtered.filter((r) => r.incomingQty > 0 && r.forecastDate && r.dateBasis === 'projected'),
     [filtered],
   );
-  const projectedUnits = projectedRows.reduce((a, r) => a + r.incoming_qty, 0);
+  const projectedUnits = projectedRows.reduce((a, r) => a + r.incomingQty, 0);
 
   const { weeks, facilities } = useMemo(() => {
     const map = new Map<string, WeekBucket>();
     const facs = new Set<string>();
     filtered.forEach((r) => {
-      if (r.incoming_qty <= 0 || !r.forecast_date) return;
-      const { weekNo, weekYear } = isoWeek(r.forecast_date);
+      if (r.incomingQty <= 0 || !r.forecastDate) return;
+      const { weekNo, weekYear } = isoWeek(r.forecastDate);
       const key = `${weekYear}-W${String(weekNo).padStart(2, '0')}`;
       let b = map.get(key);
       if (!b) {
-        b = { key, label: `W${weekNo} - ${weekYear}`, weekShort: `W${weekNo}`, sortKey: r.forecast_date, units: 0, projectedUnits: 0, poCount: 0, facilities: {} };
+        b = { key, label: `W${weekNo} - ${weekYear}`, weekShort: `W${weekNo}`, sortKey: r.forecastDate, units: 0, projectedUnits: 0, poCount: 0, facilities: {} };
         map.set(key, b);
       }
-      if (r.forecast_date < b.sortKey) b.sortKey = r.forecast_date;
+      if (r.forecastDate < b.sortKey) b.sortKey = r.forecastDate;
       const fac = facilityLabel(r.facility) || 'Unknown';
       facs.add(fac);
-      b.units += r.incoming_qty;
-      if (r.date_basis === 'projected') b.projectedUnits += r.incoming_qty;
+      b.units += r.incomingQty;
+      if (r.dateBasis === 'projected') b.projectedUnits += r.incomingQty;
       b.poCount += 1;
-      b.facilities[fac] = (b.facilities[fac] || 0) + r.incoming_qty;
+      b.facilities[fac] = (b.facilities[fac] || 0) + r.incomingQty;
     });
     return {
       weeks: [...map.values()].sort((a, b) => a.sortKey.localeCompare(b.sortKey)),
@@ -100,8 +100,8 @@ export default function SmsForecastClient({ rows }: { rows: SmsForecastRow[] }) 
 
   // Total pipeline (dated + undated) so the headline is meaningful even before the
   // Expected Receive Dates have synced (dated units alone can be 0).
-  const incomingRows = useMemo(() => filtered.filter((r) => r.incoming_qty > 0), [filtered]);
-  const allIncomingUnits = incomingRows.reduce((a, r) => a + r.incoming_qty, 0);
+  const incomingRows = useMemo(() => filtered.filter((r) => r.incomingQty > 0), [filtered]);
+  const allIncomingUnits = incomingRows.reduce((a, r) => a + r.incomingQty, 0);
   const allFacilities = useMemo(() => [...new Set(incomingRows.map((r) => facilityLabel(r.facility) || 'Unknown'))], [incomingRows]);
 
   const chartData = weeks.map((w) => ({ week: w.weekShort, Units: w.units }));

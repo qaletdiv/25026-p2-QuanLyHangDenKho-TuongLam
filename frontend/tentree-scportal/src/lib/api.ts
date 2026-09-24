@@ -10,7 +10,7 @@ export const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:
  * it only has the httpOnly cookie. The route handler at /api/documents reads that
  * cookie server-side and streams the file through.
  *
- * Client components must use this instead of building `${BACKEND_URL}${file_url}`.
+ * Client components must use this instead of building `${BACKEND_URL}${fileUrl}`.
  */
 export function docHref(fileUrl: string | null | undefined): string {
   if (!fileUrl) return '#';
@@ -20,7 +20,7 @@ export function docHref(fileUrl: string | null | undefined): string {
 /**
  * Href for a generated CI / Packing List.
  *
- * NOT `docHref(d.file_url)`. The stored xlsx is a snapshot of the letterhead as it
+ * NOT `docHref(d.fileUrl)`. The stored xlsx is a snapshot of the letterhead as it
  * stood at upload — supplier address, consignee address, port of discharge and
  * notify party all come from master data edited later, so a file written in August
  * cannot show what was entered in September. These two routes REBUILD the workbook

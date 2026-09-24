@@ -24,7 +24,7 @@ export function LandedCostSettings() {
     });
   }, []);
 
-  const update = (id: string, key: 'freight_pct' | 'duty_pct', value: string) =>
+  const update = (id: string, key: 'freightPct' | 'dutyPct', value: string) =>
     setRates((rs) => rs.map((r) => (r.id === id ? { ...r, [key]: value === '' ? 0 : Number(value) } : r)));
 
   const handleSave = async () => {
@@ -37,7 +37,7 @@ export function LandedCostSettings() {
 
   if (loading) return <div className="p-4 text-sm text-muted-foreground italic">Loading rates…</div>;
 
-  const pctCol = (key: 'freight_pct' | 'duty_pct', label: string): SettingsColumn<LandedCostRate> => ({
+  const pctCol = (key: 'freightPct' | 'dutyPct', label: string): SettingsColumn<LandedCostRate> => ({
     key, label, headClassName: 'w-40',
     accessor: (r) => r[key],
     cell: (r) => (
@@ -52,8 +52,8 @@ export function LandedCostSettings() {
       accessor: (r) => MODULE_LABEL[r.module] ?? r.module,
       cell: (r) => MODULE_LABEL[r.module] ?? r.module,
     },
-    pctCol('freight_pct', 'Freight %'),
-    pctCol('duty_pct', 'Duty %'),
+    pctCol('freightPct', 'Freight %'),
+    pctCol('dutyPct', 'Duty %'),
   ];
 
   return (

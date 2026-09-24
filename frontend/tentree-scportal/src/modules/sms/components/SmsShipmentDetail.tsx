@@ -73,16 +73,16 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
   // The same test the server makes: a tracking number or a ship date means the
   // carrier has the box, and you cannot call off something already gone. Mirrored
   // here so the action is simply absent rather than offered and refused.
-  const handedOver = !!(shipment.tracking_number || shipment.ship_date);
-  const [tracking, setTracking] = useState(shipment.tracking_number ?? '');
-  const trackingDirty = tracking.trim() !== (shipment.tracking_number ?? '');
+  const handedOver = !!(shipment.trackingNumber || shipment.shipDate);
+  const [tracking, setTracking] = useState(shipment.trackingNumber ?? '');
+  const trackingDirty = tracking.trim() !== (shipment.trackingNumber ?? '');
   // Ship date is editable for the same reason the tracking number is: a booking
   // approval creates the consignment as a DRAFT with both fields empty (neither is
   // known until the box actually goes), and it is the field the Landed Costs
   // month-end view groups on — with it null a booked consignment sits in
   // "Unscheduled" no matter what the booking's cargo-ready date says.
-  const [shipDate, setShipDate] = useState(shipment.ship_date ?? '');
-  const shipDateDirty = shipDate !== (shipment.ship_date ?? '');
+  const [shipDate, setShipDate] = useState(shipment.shipDate ?? '');
+  const shipDateDirty = shipDate !== (shipment.shipDate ?? '');
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Booked consignments carry ACTUAL freight/duty off the broker bill + the customs
@@ -91,7 +91,7 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
   // cost is the derived CI × rate estimate shown on the Landed Costs page.
   const [editFin, setEditFin] = useState(false);
   const [fin, setFin] = useState({
-    customs_entry_number: shipment.customs_entry_number ?? '',
+    customsEntryNumber: shipment.customsEntryNumber ?? '',
     freight: shipment.freight != null ? String(shipment.freight) : '',
     duty: shipment.duty != null ? String(shipment.duty) : '',
   });
@@ -99,7 +99,7 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
   async function saveFinancials() {
     setBusy(true);
     const res = await updateSmsShipment(shipment.id, {
-      customs_entry_number: fin.customs_entry_number.trim() || null,
+      customsEntryNumber: fin.customsEntryNumber.trim() || null,
       freight: fin.freight === '' ? null : Number(fin.freight),
       duty: fin.duty === '' ? null : Number(fin.duty),
     });
@@ -121,7 +121,7 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
 
   async function saveTracking() {
     setBusy(true);
-    const res = await updateSmsShipment(shipment.id, { tracking_number: tracking.trim() || null });
+    const res = await updateSmsShipment(shipment.id, { trackingNumber: tracking.trim() || null });
     setBusy(false);
     if (res?.error) { toast.error(res.error); return; }
     toast.success('Tracking number updated');
@@ -130,7 +130,7 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
 
   async function saveShipDate() {
     setBusy(true);
-    const res = await updateSmsShipment(shipment.id, { ship_date: shipDate || null });
+    const res = await updateSmsShipment(shipment.id, { shipDate: shipDate || null });
     setBusy(false);
     if (res?.error) { toast.error(res.error); return; }
     toast.success(shipDate
@@ -139,26 +139,26 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
     router.refresh();
   }
 
-  async function saveCarrier(courier_id: string) {
-    if (courier_id === shipment.courier_id) return;
+  async function saveCarrier(courierId: string) {
+    if (courierId === shipment.courierId) return;
     setBusy(true);
-    const res = await updateSmsShipment(shipment.id, { courier_id });
+    const res = await updateSmsShipment(shipment.id, { courierId });
     setBusy(false);
     if (res?.error) { toast.error(res.error); return; }
-    toast.success(`Carrier → ${couriers.find((c) => c.id === courier_id)?.name ?? courier_id}`);
+    toast.success(`Carrier → ${couriers.find((c) => c.id === courierId)?.name ?? courierId}`);
     router.refresh();
   }
 
   // The mode is what the landed-cost push sends as the NetSuite shipping method
   // (custbody16). Changing it affects the NEXT post — an already-posted row keeps
   // its snapshot, so say that rather than implying NetSuite updates itself.
-  async function saveMode(mode_id: string) {
-    if (mode_id === shipment.mode_id) return;
+  async function saveMode(modeId: string) {
+    if (modeId === shipment.modeId) return;
     setBusy(true);
-    const res = await updateSmsShipment(shipment.id, { mode_id });
+    const res = await updateSmsShipment(shipment.id, { modeId });
     setBusy(false);
     if (res?.error) { toast.error(res.error); return; }
-    const name = modes.find((m) => m.id === mode_id)?.name ?? mode_id;
+    const name = modes.find((m) => m.id === modeId)?.name ?? modeId;
     toast.success(`Mode → ${name} — the landed cost will post to NetSuite as ${name}`);
     router.refresh();
   }
@@ -193,14 +193,14 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
 
   // The manual status is only a FALLBACK: a courier scan wins over it, and a
   // NetSuite Item Receipt (status "Received") wins over the courier's Delivered.
-  const derived = shipment.status_source !== 'manual';
-  const receivedInNs = shipment.status_source === 'netsuite';
+  const derived = shipment.statusSource !== 'manual';
+  const receivedInNs = shipment.statusSource === 'netsuite';
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-4xl mx-auto">
       <ConfirmDialog
         open={confirm === 'cancel'}
-        title={`Cancel consignment ${shipment.tracking_number || shipment.id}?`}
+        title={`Cancel consignment ${shipment.trackingNumber || shipment.id}?`}
         description="The consignment is called off. Its booking is untouched and still authorizes these lots, so approving it again issues a fresh draft."
         confirmLabel="Cancel consignment"
         busy={busy}
@@ -209,7 +209,7 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
       />
       <ConfirmDialog
         open={confirm === 'delete'}
-        title={`Delete shipment ${shipment.tracking_number || shipment.id}?`}
+        title={`Delete shipment ${shipment.trackingNumber || shipment.id}?`}
         description="The shipment, its PO lots and tracking history will be removed. This cannot be undone."
         confirmLabel="Delete"
         destructive
@@ -223,16 +223,16 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
           <ArrowLeft className="w-4 h-4" /> SMS Shipments
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight font-mono">{shipment.tracking_number || `Shipment ${shipment.id}`}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight font-mono">{shipment.trackingNumber || `Shipment ${shipment.id}`}</h1>
           <Badge variant="outline" className={cn(SMS_STATUS_STYLES[shipment.status || ''])}>{shipment.status ?? DASH}</Badge>
-          {shipment.is_draft && (
+          {shipment.isDraft && (
             <Badge variant="outline" className="bg-amber-500/10 border-amber-500/30 text-amber-700">Draft — add the tracking number</Badge>
           )}
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70">
-            {SMS_SOURCE_LABELS[shipment.status_source] ?? 'manual'}
+            {SMS_SOURCE_LABELS[shipment.statusSource] ?? 'manual'}
           </span>
           <Button size="sm" variant="outline" className="ml-auto" disabled={busy} onClick={() => fileRef.current?.click()}>
-            <Upload className="h-4 w-4 mr-1.5" /> {shipment.has_shipping_data ? 'Re-upload Shipping Data' : 'Upload Shipping Data'}
+            <Upload className="h-4 w-4 mr-1.5" /> {shipment.hasShippingData ? 'Re-upload Shipping Data' : 'Upload Shipping Data'}
           </Button>
           <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f); e.target.value = ''; }} />
@@ -252,17 +252,17 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
             </Button>
           )}
         </div>
-        <p className="text-sm text-muted-foreground mt-1">{shipment.courier ?? DASH} · shipped {shipment.ship_date ?? DASH}</p>
+        <p className="text-sm text-muted-foreground mt-1">{shipment.courier ?? DASH} · shipped {shipment.shipDate ?? DASH}</p>
       </div>
 
       {/* An Item Receipt was matched to this lot but nobody has confirmed the link, so
           the status deliberately stays Delivered — Received is a done state and is not
           asserted off a suggestion. Says so explicitly, with the one-click fix. */}
-      {shipment.received_irs.length > 0 && !shipment.received_confirmed && (
+      {shipment.receivedIrs.length > 0 && !shipment.receivedConfirmed && (
         <Card className="p-3 border-amber-500/30 bg-amber-500/5">
           <p className="text-xs text-amber-600">
             {'Item Receipt '}
-            <strong>{shipment.received_irs.join(', ')}</strong>
+            <strong>{shipment.receivedIrs.join(', ')}</strong>
             {' looks like it received this lot, but the match is a suggestion nobody has confirmed — so the status stays Delivered rather than Received. Confirm the match on the '}
             <Link href="/landed-costs/sms" className="underline">Landed Costs</Link>
             {' page and it becomes Received (that confirmation is also required before the landed cost can be posted).'}
@@ -288,20 +288,20 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
               when it is unset (a plain vendor-entered parcel). */}
           <div className="space-y-0.5">
             <div className="text-xs text-muted-foreground">Carrier</div>
-            <Select value={shipment.courier_id ?? ''} onValueChange={(v) => v && saveCarrier(v)} disabled={busy}>
+            <Select value={shipment.courierId ?? ''} onValueChange={(v) => v && saveCarrier(v)} disabled={busy}>
               <SelectTrigger className="h-8 w-full">
-                <span className={cn(!shipment.courier_id && 'text-muted-foreground')}>{shipment.courier || 'Select carrier'}</span>
+                <span className={cn(!shipment.courierId && 'text-muted-foreground')}>{shipment.courier || 'Select carrier'}</span>
               </SelectTrigger>
               <SelectContent>{couriers.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="space-y-0.5">
             <div className="text-xs text-muted-foreground">
-              Mode {!shipment.mode_id && <span className="text-muted-foreground/60">(unset — posts as Courier)</span>}
+              Mode {!shipment.modeId && <span className="text-muted-foreground/60">(unset — posts as Courier)</span>}
             </div>
-            <Select value={shipment.mode_id ?? ''} onValueChange={(v) => v && saveMode(v)} disabled={busy}>
+            <Select value={shipment.modeId ?? ''} onValueChange={(v) => v && saveMode(v)} disabled={busy}>
               <SelectTrigger className="h-8 w-full">
-                <span className={cn(!shipment.mode_id && 'text-muted-foreground')}>{shipment.mode || 'Courier (default)'}</span>
+                <span className={cn(!shipment.modeId && 'text-muted-foreground')}>{shipment.mode || 'Courier (default)'}</span>
               </SelectTrigger>
               <SelectContent>{modes.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}</SelectContent>
             </Select>
@@ -320,26 +320,26 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
           {/* Receiving in NetSuite — the Item Receipt(s) attributed to this lot.
               This is what promotes the status from Delivered to Received; correct a
               wrong match on the Landed Costs page and the status follows. */}
-          {shipment.received_irs.length > 0 && (
+          {shipment.receivedIrs.length > 0 && (
             <Meta
               // An UNCONFIRMED attribution is only a suggestion — it no longer moves
               // the status to Received, so label it as what it is rather than implying
               // the goods are booked in.
-              label={shipment.received_confirmed ? 'Received in NetSuite' : 'Item Receipt found'}
+              label={shipment.receivedConfirmed ? 'Received in NetSuite' : 'Item Receipt found'}
               value={
                 <span>
-                  {shipment.received_date ?? DASH}
+                  {shipment.receivedDate ?? DASH}
                   <span className="ml-1.5 font-normal text-xs text-muted-foreground">
-                    {shipment.received_irs.join(', ')}
-                    {!shipment.received_confirmed && ' · not confirmed'}
+                    {shipment.receivedIrs.join(', ')}
+                    {!shipment.receivedConfirmed && ' · not confirmed'}
                   </span>
                 </span>
               }
             />
           )}
           {/* Booking is OPTIONAL — most SMS consignments are entered directly. */}
-          <Meta label="Booking" value={shipment.booking_id
-            ? <Link href={`/sms/bookings/${shipment.booking_id}`} className="text-primary hover:underline">{shipment.booking_number ?? 'view booking'}</Link>
+          <Meta label="Booking" value={shipment.bookingId
+            ? <Link href={`/sms/bookings/${shipment.bookingId}`} className="text-primary hover:underline">{shipment.bookingNumber ?? 'view booking'}</Link>
             : <span className="text-muted-foreground font-normal">None — entered directly</span>} />
           <div className="space-y-0.5">
             <div className="text-xs text-muted-foreground">
@@ -362,7 +362,7 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
       <section className="space-y-2">
         <h2 className="text-sm font-medium text-muted-foreground">Landed Cost — Freight &amp; Duty</h2>
         <Card className="p-4">
-          {!shipment.is_booked ? (
+          {!shipment.isBooked ? (
             <p className="text-sm text-muted-foreground">
               Entered directly with no booking — freight and duty are ESTIMATED as a percentage of the
               commercial-invoice value (Settings → Landed Cost Rates) and shown on the{' '}
@@ -381,7 +381,7 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
                     <Button size="sm" variant="ghost" disabled={busy} onClick={() => {
                       setEditFin(false);
                       setFin({
-                        customs_entry_number: shipment.customs_entry_number ?? '',
+                        customsEntryNumber: shipment.customsEntryNumber ?? '',
                         freight: shipment.freight != null ? String(shipment.freight) : '',
                         duty: shipment.duty != null ? String(shipment.duty) : '',
                       });
@@ -406,9 +406,9 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
                       onValueChange={(v) => setFin((f) => ({ ...f, duty: v }))} />
                   : money(shipment.duty)} />
                 <Meta label="Entry Number" value={editFin
-                  ? <Input className="h-8" placeholder="Customs entry #" value={fin.customs_entry_number}
-                      onChange={(e) => setFin((f) => ({ ...f, customs_entry_number: e.target.value }))} />
-                  : (shipment.customs_entry_number ?? DASH)} />
+                  ? <Input className="h-8" placeholder="Customs entry #" value={fin.customsEntryNumber}
+                      onChange={(e) => setFin((f) => ({ ...f, customsEntryNumber: e.target.value }))} />
+                  : (shipment.customsEntryNumber ?? DASH)} />
               </div>
               {(shipment.freight == null || shipment.duty == null) && !editFin && (
                 <p className="text-xs text-amber-600 mt-3">
@@ -417,7 +417,7 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
               )}
               {/* The month-end view groups on SHIP DATE, not the booking's cargo-ready
                   date, so a draft that never got one lands in "Unscheduled". */}
-              {!shipment.ship_date && (
+              {!shipment.shipDate && (
                 <p className="text-xs text-amber-600 mt-3">
                   {'No ship date yet — this consignment appears under '}
                   <strong>Unscheduled</strong>
@@ -439,7 +439,7 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
       {/* ── PO lots in this box ── */}
       <section className="space-y-2">
         <h2 className="text-sm font-medium text-muted-foreground">
-          Contents — {shipment.pos.length} PO{shipment.pos.length === 1 ? '' : 's'} · {shipment.total_units.toLocaleString()} units{shipment.total_cartons ? ` · ${shipment.total_cartons.toLocaleString()} cartons` : ''}
+          Contents — {shipment.pos.length} PO{shipment.pos.length === 1 ? '' : 's'} · {shipment.totalUnits.toLocaleString()} units{shipment.totalCartons ? ` · ${shipment.totalCartons.toLocaleString()} cartons` : ''}
         </h2>
         <Card className="overflow-x-auto">
           <Table className="bg-card">
@@ -450,23 +450,23 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
                 <TableHead>Lot</TableHead>
                 {/* Booked qty only exists on a booked consignment — the variance
                     against shipped is derived at read, never stored. */}
-                {shipment.is_booked && <TableHead className="text-right">Booked</TableHead>}
-                <TableHead className="text-right">{shipment.is_booked ? 'Shipped' : 'Units'}</TableHead>
+                {shipment.isBooked && <TableHead className="text-right">Booked</TableHead>}
+                <TableHead className="text-right">{shipment.isBooked ? 'Shipped' : 'Units'}</TableHead>
                 <TableHead className="text-right">Cartons</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {shipment.pos.map((p) => {
-                const variance = p.booked_units == null ? null : p.units - p.booked_units;
+                const variance = p.bookedUnits == null ? null : p.units - p.bookedUnits;
                 return (
-                  <TableRow key={p.po_number} className="border-border hover:bg-muted/30">
+                  <TableRow key={p.poNumber} className="border-border hover:bg-muted/30">
                     <TableCell>
-                      <Link href={`/sms/purchase-orders/${encodeURIComponent(p.po_number)}`} className="text-primary hover:underline font-medium">{p.po_number}</Link>
+                      <Link href={`/sms/purchase-orders/${encodeURIComponent(p.poNumber)}`} className="text-primary hover:underline font-medium">{p.poNumber}</Link>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{p.supplier ?? DASH}</TableCell>
-                    <TableCell className="text-muted-foreground">Lot {p.lot_number}</TableCell>
-                    {shipment.is_booked && (
-                      <TableCell className="text-right tabular-nums text-muted-foreground">{p.booked_units?.toLocaleString() ?? DASH}</TableCell>
+                    <TableCell className="text-muted-foreground">Lot {p.lotNumber}</TableCell>
+                    {shipment.isBooked && (
+                      <TableCell className="text-right tabular-nums text-muted-foreground">{p.bookedUnits?.toLocaleString() ?? DASH}</TableCell>
                     )}
                     <TableCell className="text-right tabular-nums">
                       {p.units.toLocaleString()}
@@ -489,20 +489,20 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
       <section className="space-y-2">
         <h2 className="text-sm font-medium text-muted-foreground">Shipping data &amp; documents</h2>
         <Card className="p-4 space-y-4">
-          {!shipment.has_shipping_data ? (
+          {!shipment.hasShippingData ? (
             <p className="text-sm text-muted-foreground py-2 text-center">
               No shipping data yet — upload the packing Excel (cartons × SKUs) to record shipped quantities and generate the commercial invoice &amp; packing list.
             </p>
           ) : (
             <>
-              {shipment.packing_summary && (
+              {shipment.packingSummary && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 text-sm">
-                  <Meta label="Pieces" value={shipment.packing_summary.total_pcs.toLocaleString()} />
-                  <Meta label="Cartons" value={shipment.packing_summary.total_cartons.toLocaleString()} />
-                  <Meta label="Value" value={`$${shipment.packing_summary.total_value.toLocaleString()}`} />
-                  <Meta label="Net Wt (kg)" value={shipment.packing_summary.total_net_weight.toLocaleString()} />
-                  <Meta label="Gross Wt (kg)" value={shipment.packing_summary.total_gross_weight.toLocaleString()} />
-                  <Meta label="CBM" value={shipment.packing_summary.total_cbm.toLocaleString()} />
+                  <Meta label="Pieces" value={shipment.packingSummary.totalPcs.toLocaleString()} />
+                  <Meta label="Cartons" value={shipment.packingSummary.totalCartons.toLocaleString()} />
+                  <Meta label="Value" value={`$${shipment.packingSummary.totalValue.toLocaleString()}`} />
+                  <Meta label="Net Wt (kg)" value={shipment.packingSummary.totalNetWeight.toLocaleString()} />
+                  <Meta label="Gross Wt (kg)" value={shipment.packingSummary.totalGrossWeight.toLocaleString()} />
+                  <Meta label="CBM" value={shipment.packingSummary.totalCbm.toLocaleString()} />
                 </div>
               )}
               {documents.length > 0 && (
@@ -510,10 +510,10 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
                   {scopeOrder(documents).map((scope) => (
                     <div key={scope} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                       <span className="w-full sm:w-40 shrink-0 text-muted-foreground">{scope}</span>
-                      {documents.filter((d) => d.scope === scope).sort((a) => (a.doc_type === 'commercial_invoice' ? -1 : 1)).map((d) => (
+                      {documents.filter((d) => d.scope === scope).sort((a) => (a.docType === 'commercial_invoice' ? -1 : 1)).map((d) => (
                         <a key={d.id} href={generatedDocHref('sms', d.id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
-                          {d.doc_type === 'commercial_invoice' ? <FileText className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
-                          {d.doc_type === 'commercial_invoice' ? 'Commercial Invoice' : 'Packing List'}
+                          {d.docType === 'commercial_invoice' ? <FileText className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
+                          {d.docType === 'commercial_invoice' ? 'Commercial Invoice' : 'Packing List'}
                         </a>
                       ))}
                     </div>
@@ -527,26 +527,26 @@ export default function SmsShipmentDetail({ shipment, documents = [], couriers =
 
       {/* ── tracking timeline (courier scans, newest first) ── */}
       <section className="space-y-2">
-        <h2 className="text-sm font-medium text-muted-foreground">Tracking history ({shipment.tracking_events.length} scan{shipment.tracking_events.length === 1 ? '' : 's'})</h2>
+        <h2 className="text-sm font-medium text-muted-foreground">Tracking history ({shipment.trackingEvents.length} scan{shipment.trackingEvents.length === 1 ? '' : 's'})</h2>
         <Card className="p-4">
-          {shipment.tracking_events.length === 0 ? (
+          {shipment.trackingEvents.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">
               No courier scans yet — events appear after the next tracking poll (every 4 hours, or use Poll Tracking on the shipments list).
             </p>
           ) : (
             <ol className="space-y-3">
-              {shipment.tracking_events.map((e) => (
+              {shipment.trackingEvents.map((e) => (
                 <li key={e.id} className="flex gap-3 text-sm">
                   <div className="w-36 shrink-0 text-xs text-muted-foreground tabular-nums pt-0.5">
-                    {fmtScanTime(e.event_time)}
+                    {fmtScanTime(e.eventTime)}
                   </div>
                   <div className="w-2 shrink-0 flex flex-col items-center">
                     <div className="w-2 h-2 rounded-full bg-primary mt-1.5" />
                     <div className="flex-1 w-px bg-border" />
                   </div>
                   <div className="pb-1">
-                    <div className="font-medium">{e.description || e.courier_code}</div>
-                    <div className="text-xs text-muted-foreground">{[e.courier_code, e.location].filter(Boolean).join(' · ')}</div>
+                    <div className="font-medium">{e.description || e.courierCode}</div>
+                    <div className="text-xs text-muted-foreground">{[e.courierCode, e.location].filter(Boolean).join(' · ')}</div>
                   </div>
                 </li>
               ))}

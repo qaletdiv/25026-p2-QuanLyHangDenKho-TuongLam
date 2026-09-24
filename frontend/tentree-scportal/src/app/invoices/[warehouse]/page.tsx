@@ -42,7 +42,7 @@ export default async function WarehouseInvoicesPage({ params }: { params: Promis
           without one is a working shell — its list, legend slice and rate card are
           real — so the page says WHY rather than hiding an upload box and leaving
           you to wonder. */}
-      {source.upload_enabled ? (
+      {source.uploadEnabled ? (
         <UploadVerify warehouse={source.code} label={source.label} />
       ) : (
         <section className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
@@ -88,36 +88,36 @@ export default async function WarehouseInvoicesPage({ params }: { params: Promis
                 {invoices.map(i => (
                   <tr key={i.id} className="border-b border-border last:border-0 hover:bg-muted/30">
                     <td className="px-4 py-2">
-                      <Link href={`/invoices/${warehouse}/${i.invoice_no}`} className="font-medium text-primary hover:underline">
-                        {i.invoice_no}
+                      <Link href={`/invoices/${warehouse}/${i.invoiceNo}`} className="font-medium text-primary hover:underline">
+                        {i.invoiceNo}
                       </Link>
-                      {!i.has_summary && (
+                      {!i.hasSummary && (
                         <Badge variant="outline" className="ml-2 border-amber-500/30 bg-amber-500/10 text-[10px] font-normal text-amber-700 dark:text-amber-300">
                           no PDF
                         </Badge>
                       )}
                     </td>
-                    <td className="px-4 py-2 text-muted-foreground">{i.invoice_date ?? DASH}</td>
-                    <td className="px-4 py-2 text-muted-foreground">{i.due_date ?? DASH}</td>
+                    <td className="px-4 py-2 text-muted-foreground">{i.invoiceDate ?? DASH}</td>
+                    <td className="px-4 py-2 text-muted-foreground">{i.dueDate ?? DASH}</td>
                     <td className="px-4 py-2 text-right font-medium tabular-nums">{usd(i.totals?.amount)}</td>
                     <td className="px-4 py-2">
-                      {i.tie_out_status === 'balanced' ? (
+                      {i.tieOutStatus === 'balanced' ? (
                         <span className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-300">
                           <CheckCircle2 className="h-3.5 w-3.5" /> ties
                         </span>
-                      ) : i.tie_out_status === 'no_summary' ? (
+                      ) : i.tieOutStatus === 'noSummary' ? (
                         <span className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-300">
                           <HelpCircle className="h-3.5 w-3.5" /> unproven
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-xs text-red-700 dark:text-red-300">
-                          <AlertTriangle className="h-3.5 w-3.5" /> {usdSigned(i.tie_out_variance)}
+                          <AlertTriangle className="h-3.5 w-3.5" /> {usdSigned(i.tieOutVariance)}
                         </span>
                       )}
                     </td>
                     <td className="px-4 py-2 text-right tabular-nums">
-                      {i.totals?.needs_attention > 0
-                        ? <span className="font-medium text-amber-700 dark:text-amber-300">{num(i.totals.needs_attention)}</span>
+                      {i.totals?.needsAttention > 0
+                        ? <span className="font-medium text-amber-700 dark:text-amber-300">{num(i.totals.needsAttention)}</span>
                         : <span className="text-muted-foreground">0</span>}
                     </td>
                     <td className="px-4 py-2">
@@ -145,12 +145,12 @@ export default async function WarehouseInvoicesPage({ params }: { params: Promis
 }
 
 function CrossInvoice({ summary }: { summary: NonNullable<Awaited<ReturnType<typeof getCostSummary>>> }) {
-  // by_gl arrives at (gl × class × month) grain. Month is summed away — this is the
+  // byGl arrives at (gl × class × month) grain. Month is summed away — this is the
   // period-to-date total — but CLASS is not: it becomes a column. Summing the
   // classes together, as this did, produced one figure per GL that nobody can post,
   // since which class the cost lands in is the whole question the coding answers.
-  const cells = summary.by_gl.map((r) => ({
-    gl: r.gl, gl_desc: r.gl_desc, class: r.class, amount: r.amount,
+  const cells = summary.byGl.map((r) => ({
+    gl: r.gl, glDesc: r.glDesc, class: r.class, amount: r.amount,
   }));
 
   return (
@@ -163,13 +163,13 @@ function CrossInvoice({ summary }: { summary: NonNullable<Awaited<ReturnType<typ
       />
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {summary.duplicate_monthly_fees.length > 0 && (
+        {summary.duplicateMonthlyFees.length > 0 && (
           <section className="rounded-lg border border-red-500/40 bg-red-500/5">
             <h2 className="flex items-center gap-2 border-b border-red-500/30 px-4 py-2.5 text-sm font-semibold text-red-700 dark:text-red-300">
               <AlertTriangle className="h-4 w-4" /> Monthly fee billed more than once
             </h2>
             <ul className="divide-y divide-red-500/20 text-sm">
-              {summary.duplicate_monthly_fees.map(f => (
+              {summary.duplicateMonthlyFees.map(f => (
                 <li key={`${f.service}|${f.month}`} className="flex items-baseline justify-between gap-3 px-4 py-2">
                   <span>
                     <span className="font-medium">{f.service}</span>
@@ -186,12 +186,12 @@ function CrossInvoice({ summary }: { summary: NonNullable<Awaited<ReturnType<typ
           </section>
         )}
 
-        {summary.storage_aging.length > 0 && (
+        {summary.storageAging.length > 0 && (
           <section className="rounded-lg border border-border bg-card">
             <h2 className="flex items-center gap-2 border-b border-border px-4 py-2.5 text-sm font-semibold">
               <TrendingUp className="h-4 w-4 text-primary" /> Storage aging premium
-              <span className={cn('ml-auto font-semibold tabular-nums', varianceTone(summary.storage_premium))}>
-                {usdSigned(summary.storage_premium)}
+              <span className={cn('ml-auto font-semibold tabular-nums', varianceTone(summary.storagePremium))}>
+                {usdSigned(summary.storagePremium)}
               </span>
             </h2>
             <table className="w-full text-sm">
@@ -205,12 +205,12 @@ function CrossInvoice({ summary }: { summary: NonNullable<Awaited<ReturnType<typ
                 </tr>
               </thead>
               <tbody>
-                {summary.storage_aging.map((s, i) => (
-                  <tr key={`${s.invoice_no}-${i}`} className="border-b border-border last:border-0">
+                {summary.storageAging.map((s, i) => (
+                  <tr key={`${s.invoiceNo}-${i}`} className="border-b border-border last:border-0">
                     <td className="px-4 py-2 text-muted-foreground">{s.month ?? DASH}</td>
                     <td className="px-4 py-2 text-right tabular-nums">{num(s.units)}</td>
-                    <td className="px-4 py-2 text-right tabular-nums">{s.effective_rate?.toFixed(4) ?? DASH}</td>
-                    <td className="px-4 py-2 text-right font-medium tabular-nums">{s.aging_multiple?.toFixed(2) ?? DASH}×</td>
+                    <td className="px-4 py-2 text-right tabular-nums">{s.effectiveRate?.toFixed(4) ?? DASH}</td>
+                    <td className="px-4 py-2 text-right font-medium tabular-nums">{s.agingMultiple?.toFixed(2) ?? DASH}×</td>
                     <td className={cn('px-4 py-2 text-right tabular-nums', varianceTone(s.premium))}>{usdSigned(s.premium)}</td>
                   </tr>
                 ))}

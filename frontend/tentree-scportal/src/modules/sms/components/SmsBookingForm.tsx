@@ -25,7 +25,7 @@ import type { SmsPo, IncotermOption, CourierOption, ModeOption } from '@/modules
 // mainline booking form — the actuals arrive later off the packing list
 // (sms_cartons holds the per-box net/gross). Both are optional.
 type RowInput = { units?: string; cartons?: string; weight?: string };
-type Warning = { po_number: string; ordered: number; already_booked: number; requested: number; overage: number };
+type Warning = { poNumber: string; ordered: number; already_booked: number; requested: number; overage: number };
 
 export default function SmsBookingForm({ open, onClose, pos, incoterms = [], couriers = [], modes = [] }: {
   open: boolean;
@@ -58,25 +58,25 @@ export default function SmsBookingForm({ open, onClose, pos, incoterms = [], cou
   // nothing else. The supplier control below is a staff convenience filter over an
   // already-authorized list, never a visibility control.
   //
-  // It keys on supplier_id. NEVER on the name: a previous version compared supplier
+  // It keys on supplierId. NEVER on the name: a previous version compared supplier
   // NAMES with plain trim/lowercase and matched 0 POs for the live vendor account
   // ("Best Star Fashions Co Ltd" vs the master-data "Best Star Fashions Co., Ltd."),
   // leaving the form with no selectable destination. The server matches on
   // supplierKey (punctuation-insensitive) — same trap, fixed backend-side 2026-08-12.
   const eligible = useMemo(
-    () => [...pos].sort((a, b) => (b.remaining_qty > 0 ? 1 : 0) - (a.remaining_qty > 0 ? 1 : 0) || a.po_number.localeCompare(b.po_number)),
+    () => [...pos].sort((a, b) => (b.remainingQty > 0 ? 1 : 0) - (a.remainingQty > 0 ? 1 : 0) || a.poNumber.localeCompare(b.poNumber)),
     [pos],
   );
 
   // One booking = one destination (G3), so Destination drives which POs are enterable.
   const destinations = useMemo(() => {
     const m = new Map<string, string>();
-    eligible.forEach((p) => { if (p.facility_id && !m.has(p.facility_id)) m.set(p.facility_id, facilityLabel(p.facility) ?? p.facility_id); });
+    eligible.forEach((p) => { if (p.facilityId && !m.has(p.facilityId)) m.set(p.facilityId, facilityLabel(p.facility) ?? p.facilityId); });
     return [...m.entries()].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
   }, [eligible]);
 
   const displayed = useMemo(
-    () => (facilityId ? eligible.filter((p) => p.facility_id === facilityId) : []),
+    () => (facilityId ? eligible.filter((p) => p.facilityId === facilityId) : []),
     [eligible, facilityId],
   );
 
@@ -84,7 +84,7 @@ export default function SmsBookingForm({ open, onClose, pos, incoterms = [], cou
   // rendered, which is exactly the vendor case (their POs are all one supplier).
   const supplierOptions = useMemo(() => {
     const m = new Map<string, string>();
-    displayed.forEach((p) => { if (p.supplier_id && !m.has(p.supplier_id)) m.set(p.supplier_id, p.supplier ?? p.supplier_id); });
+    displayed.forEach((p) => { if (p.supplierId && !m.has(p.supplierId)) m.set(p.supplierId, p.supplier ?? p.supplierId); });
     return [...m.entries()].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
   }, [displayed]);
 
@@ -92,21 +92,21 @@ export default function SmsBookingForm({ open, onClose, pos, incoterms = [], cou
   // narrowing the view must never silently drop units already entered on a PO that
   // the filter happens to hide.
   const visible = useMemo(
-    () => (filterSupplierId ? displayed.filter((p) => p.supplier_id === filterSupplierId) : displayed),
+    () => (filterSupplierId ? displayed.filter((p) => p.supplierId === filterSupplierId) : displayed),
     [displayed, filterSupplierId],
   );
 
   // G1: one supplier per booking. Which supplier is implied by the POs chosen.
   const selected = displayed
     .map((p) => {
-      const r = rows[p.po_number] || {};
+      const r = rows[p.poNumber] || {};
       const units = Number(r.units) || 0;
       return units > 0
-        ? { po: p, po_number: p.po_number, units, cartons: Number(r.cartons) || undefined, weight_kg: Number(r.weight) || undefined }
+        ? { po: p, poNumber: p.poNumber, units, cartons: Number(r.cartons) || undefined, weightKg: Number(r.weight) || undefined }
         : null;
     })
     .filter((x): x is NonNullable<typeof x> => x !== null);
-  const supplierIds = [...new Set(selected.map((s) => s.po.supplier_id).filter(Boolean))] as string[];
+  const supplierIds = [...new Set(selected.map((s) => s.po.supplierId).filter(Boolean))] as string[];
   // Kept as a last-resort guard. With the lock below it should never fire — but G1
   // is a real server rule, and this is cheaper than a 400 round-trip if it ever does.
   const supplierClash = supplierIds.length > 1;
@@ -117,7 +117,7 @@ export default function SmsBookingForm({ open, onClose, pos, incoterms = [], cou
   // making supplier the first pick. Clearing the units unlocks the rest.
   const lockedSupplierId = supplierIds.length === 1 ? supplierIds[0] : null;
   const lockedSupplierName = lockedSupplierId
-    ? (selected.find((s) => s.po.supplier_id === lockedSupplierId)?.po.supplier ?? null)
+    ? (selected.find((s) => s.po.supplierId === lockedSupplierId)?.po.supplier ?? null)
     : null;
   const isLocked = (supplierId: string | null) => lockedSupplierId != null && supplierId !== lockedSupplierId;
 
@@ -135,18 +135,18 @@ export default function SmsBookingForm({ open, onClose, pos, incoterms = [], cou
     if (!modeId) { toast.error('Pick the mode — it becomes the shipping method on the NetSuite receipt'); return; }
     setSubmitting(true);
     const res = await createSmsBooking({
-      supplier_id: supplierIds[0],
-      incoterm_id: incotermId || null,
-      courier_id: courierId,
-      mode_id: modeId,
-      cargo_ready_date: crd || null,
-      pos: selected.map(({ po_number, units, cartons, weight_kg }) => ({ po_number, units, cartons, weight_kg })),
+      supplierId: supplierIds[0],
+      incotermId: incotermId || null,
+      courierId: courierId,
+      modeId: modeId,
+      cargoReadyDate: crd || null,
+      pos: selected.map(({ poNumber, units, cartons, weightKg }) => ({ poNumber, units, cartons, weightKg })),
       force_overbook: force,
     });
     setSubmitting(false);
     if (res?.overbook_warning) { setWarnings(res.warnings); return; }
     if (res?.error) { toast.error(res.error); return; }
-    toast.success(`Booking ${res.booking_number} submitted — Logistics approves it, which creates the consignment`);
+    toast.success(`Booking ${res.bookingNumber} submitted — Logistics approves it, which creates the consignment`);
     onClose(); reset(); router.refresh();
   }
 
@@ -273,32 +273,32 @@ export default function SmsBookingForm({ open, onClose, pos, incoterms = [], cou
                     <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">No POs for this supplier at this destination.</TableCell></TableRow>
                   )}
                   {visible.map((p) => {
-                    const r = rows[p.po_number] || {};
+                    const r = rows[p.poNumber] || {};
                     const entered = Number(r.units) || 0;
-                    const over = entered > p.remaining_qty;
-                    const locked = isLocked(p.supplier_id ?? null);
+                    const over = entered > p.remainingQty;
+                    const locked = isLocked(p.supplierId ?? null);
                     return (
-                      <TableRow key={p.po_number} className={cn('border-border', entered > 0 && 'bg-primary/5', locked && 'opacity-40')}>
-                        <TableCell className="font-medium whitespace-nowrap">{p.po_number}</TableCell>
+                      <TableRow key={p.poNumber} className={cn('border-border', entered > 0 && 'bg-primary/5', locked && 'opacity-40')}>
+                        <TableCell className="font-medium whitespace-nowrap">{p.poNumber}</TableCell>
                         <TableCell className="text-muted-foreground whitespace-nowrap">{p.supplier ?? '—'}</TableCell>
                         <TableCell className="text-muted-foreground whitespace-nowrap">{p.hod ?? '—'}</TableCell>
                         <TableCell className="text-right tabular-nums whitespace-nowrap">
-                          <span className="text-red-600">{p.remaining_qty.toLocaleString()}</span>
-                          <span className="text-muted-foreground"> / {p.ordered_qty.toLocaleString()}</span>
+                          <span className="text-red-600">{p.remainingQty.toLocaleString()}</span>
+                          <span className="text-muted-foreground"> / {p.orderedQty.toLocaleString()}</span>
                         </TableCell>
                         <TableCell className="text-right">
                           <Input type="number" min={0} disabled={locked}
                             title={locked ? `Locked — this booking is for ${lockedSupplierName ?? 'another supplier'}` : undefined}
                             className={cn('w-20 h-8 ml-auto', over && 'border-amber-500 focus-visible:ring-amber-500')} placeholder="0"
-                            value={r.units ?? ''} onChange={(e) => setField(p.po_number, 'units', e.target.value)} />
-                          {over && <div className="text-[10px] text-amber-600 mt-0.5">over by {(entered - p.remaining_qty).toLocaleString()}</div>}
+                            value={r.units ?? ''} onChange={(e) => setField(p.poNumber, 'units', e.target.value)} />
+                          {over && <div className="text-[10px] text-amber-600 mt-0.5">over by {(entered - p.remainingQty).toLocaleString()}</div>}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Input type="number" min={0} disabled={locked} className="w-20 h-8 ml-auto" placeholder="—" value={r.cartons ?? ''} onChange={(e) => setField(p.po_number, 'cartons', e.target.value)} />
+                          <Input type="number" min={0} disabled={locked} className="w-20 h-8 ml-auto" placeholder="—" value={r.cartons ?? ''} onChange={(e) => setField(p.poNumber, 'cartons', e.target.value)} />
                         </TableCell>
                         {/* step 0.01 — the column is a decimal, unlike Units/Cartons */}
                         <TableCell className="text-right">
-                          <Input type="number" min={0} step="0.01" disabled={locked} className="w-24 h-8 ml-auto" placeholder="—" value={r.weight ?? ''} onChange={(e) => setField(p.po_number, 'weight', e.target.value)} />
+                          <Input type="number" min={0} step="0.01" disabled={locked} className="w-24 h-8 ml-auto" placeholder="—" value={r.weight ?? ''} onChange={(e) => setField(p.poNumber, 'weight', e.target.value)} />
                         </TableCell>
                       </TableRow>
                     );
@@ -318,7 +318,7 @@ export default function SmsBookingForm({ open, onClose, pos, incoterms = [], cou
             <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700 space-y-1">
               <p className="font-medium">Overbooking warning</p>
               {warnings.map((w, i) => (
-                <p key={i}>{w.po_number}: already booked {w.already_booked.toLocaleString()} + {w.requested.toLocaleString()} exceeds ordered {w.ordered.toLocaleString()} (over by {w.overage.toLocaleString()})</p>
+                <p key={i}>{w.poNumber}: already booked {w.already_booked.toLocaleString()} + {w.requested.toLocaleString()} exceeds ordered {w.ordered.toLocaleString()} (over by {w.overage.toLocaleString()})</p>
               ))}
             </div>
           )}

@@ -20,25 +20,25 @@ const TOOLTIP_STYLE = {
 // One PO#-grained row behind a forecast week, as emitted by
 // mainlineForecastController's per-week `lines[]`.
 type ForecastLine = {
-  po_number: string;
-  trn_number: string | null;
+  poNumber: string;
+  trnNumber: string | null;
   supplier: string | null;
   mode: string | null;
-  leg_id: string;
+  legId: string;
   crd: string | null;
   stage: string;
-  date_basis: string;
-  shipment_id: string | null;
-  shipment_number: string | null;
-  carrier_reference: string | null;
+  dateBasis: string;
+  shipmentId: string | null;
+  shipmentNumber: string | null;
+  carrierReference: string | null;
   warehouse: string;
   channel: string;
   units: number;
   cartons: number;
-  plan_date: string | null;
-  plan_week: string | null;
-  actual_date: string;
-  slip_days: number | null;
+  planDate: string | null;
+  planWeek: string | null;
+  actualDate: string;
+  slipDays: number | null;
 };
 
 // One breakdown cell, and one series (plan or actual) of a week.
@@ -47,12 +47,12 @@ type Series = {
   units: number;
   cartons: number;
   warehouses: Record<string, Cell>;
-  warehouse_channels: Record<string, Cell>;
+  warehouseChannels: Record<string, Cell>;
   suppliers: Record<string, Cell>;
 };
 // The three dimensions the matrix can toggle between. PO# is deliberately absent
 // — it is the row drill-down, not a column set (63 POs, 26 in one week).
-type BreakdownKey = 'warehouses' | 'warehouse_channels' | 'suppliers';
+type BreakdownKey = 'warehouses' | 'warehouseChannels' | 'suppliers';
 
 // A forecast week. The top-level units/cartons/maps MIRROR `actual` — the
 // best-known answer — so the matrix cells, the drill-down and the Actual column
@@ -120,9 +120,9 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
   // one the PO planned. Unbooked legs have actual == plan by construction, so
   // they contribute nothing here — an uncommitted leg has not slipped.
   const slipLater = useMemo(
-    () => allLines.filter((l) => (l.slip_days ?? 0) > 0).reduce((s, l) => s + l.units, 0), [allLines]);
+    () => allLines.filter((l) => (l.slipDays ?? 0) > 0).reduce((s, l) => s + l.units, 0), [allLines]);
   const slipEarlier = useMemo(
-    () => allLines.filter((l) => (l.slip_days ?? 0) < 0).reduce((s, l) => s + l.units, 0), [allLines]);
+    () => allLines.filter((l) => (l.slipDays ?? 0) < 0).reduce((s, l) => s + l.units, 0), [allLines]);
 
   const peakWeek = useMemo(() => {
     if (!forecast.length) return { week: '—', units: 0 };
@@ -130,7 +130,7 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
   }, [forecast]);
 
   // Breakdown matrix toggles: metric (units/cartons) and dimension. The controller
-  // emits `warehouses`, `warehouse_channels` and `suppliers` maps per week; `bkKey`
+  // emits `warehouses`, `warehouseChannels` and `suppliers` maps per week; `bkKey`
   // selects which one the matrix reads. PO# is deliberately NOT here — 63 POs (26
   // in one week) is not a column set; it is the drill-down below each week row.
   const [metric, setMetric] = useState<'units' | 'cartons'>('units');
@@ -143,7 +143,7 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
   // different question — "what is actually committed?" — not a filtered Δ.
   const [basis, setBasis] = useState<'all' | 'backed'>('all');
   const seriesKey: 'actual' | 'backed' = basis === 'backed' ? 'backed' : 'actual';
-  const bkKey: BreakdownKey = breakdown === 'channel' ? 'warehouse_channels'
+  const bkKey: BreakdownKey = breakdown === 'channel' ? 'warehouseChannels'
               : breakdown === 'supplier' ? 'suppliers'
               : 'warehouses';
 
@@ -623,12 +623,12 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
                                         // consignment's units are back to not-moving, so they can
                                         // be overdue again.
                                         const unmoved = !BACKED_STAGES.has(l.stage);
-                                        const overdue = unmoved && l.actual_date && l.actual_date < todayIso;
-                                        const slip = l.slip_days ?? 0;
+                                        const overdue = unmoved && l.actualDate && l.actualDate < todayIso;
+                                        const slip = l.slipDays ?? 0;
                                         return (
-                                          <tr key={`${l.leg_id}-${l.shipment_id ?? 'proj'}-${li}`} className="border-b border-border/40 last:border-0">
-                                            <td className="py-1.5 pr-4 font-bold text-foreground whitespace-nowrap">{l.po_number}</td>
-                                            <td className="py-1.5 pr-4 text-muted-foreground whitespace-nowrap">{l.trn_number || '—'}</td>
+                                          <tr key={`${l.legId}-${l.shipmentId ?? 'proj'}-${li}`} className="border-b border-border/40 last:border-0">
+                                            <td className="py-1.5 pr-4 font-bold text-foreground whitespace-nowrap">{l.poNumber}</td>
+                                            <td className="py-1.5 pr-4 text-muted-foreground whitespace-nowrap">{l.trnNumber || '—'}</td>
                                             <td className="py-1.5 pr-4 text-foreground">{l.supplier || '—'}</td>
                                             <td className="py-1.5 pr-4 text-muted-foreground whitespace-nowrap">{l.mode || '—'}</td>
                                             <td className="py-1.5 pr-4 text-muted-foreground whitespace-nowrap">{l.warehouse}</td>
@@ -637,13 +637,13 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
                                               <span className={cn('px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wide', STAGE_STYLE[l.stage] || 'bg-muted text-muted-foreground')}>
                                                 {l.stage}
                                               </span>
-                                              {l.shipment_number && (
-                                                <span className="ml-1.5 text-[10px] font-medium text-muted-foreground">{l.shipment_number}</span>
+                                              {l.shipmentNumber && (
+                                                <span className="ml-1.5 text-[10px] font-medium text-muted-foreground">{l.shipmentNumber}</span>
                                               )}
                                             </td>
-                                            <td className="py-1.5 pr-4 text-muted-foreground whitespace-nowrap">{l.plan_date || '—'}</td>
+                                            <td className="py-1.5 pr-4 text-muted-foreground whitespace-nowrap">{l.planDate || '—'}</td>
                                             <td className="py-1.5 pr-4 text-foreground whitespace-nowrap">
-                                              {l.actual_date || '—'}
+                                              {l.actualDate || '—'}
                                               {overdue && (
                                                 <span
                                                   className="ml-1.5 text-[9px] font-black uppercase text-amber-600 dark:text-amber-400"

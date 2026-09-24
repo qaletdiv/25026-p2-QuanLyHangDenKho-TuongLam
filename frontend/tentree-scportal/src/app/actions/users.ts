@@ -30,7 +30,7 @@ export async function updateUser(id: string, data: {
   password?: string;
   role?: string;
   supplier?: string | null;
-  must_change_password?: boolean;
+  mustChangePassword?: boolean;
 }) {
   const result = await fetchApi(`/users/${id}`, {
     method: 'PUT',

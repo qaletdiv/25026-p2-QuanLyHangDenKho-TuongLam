@@ -49,9 +49,9 @@ export default function UploadVerify({
       const res = await previewInvoice(build());
       if ('error' in res) { toast.error(res.error); setResult(null); return; }
       setResult(res);
-      const t = res.tie_out;
+      const t = res.tieOut;
       if (t.status === 'balanced') toast.success(t.message);
-      else if (t.status === 'no_summary') toast.warning('Loaded without an invoice PDF — the detail cannot be proven complete.');
+      else if (t.status === 'noSummary') toast.warning('Loaded without an invoice PDF — the detail cannot be proven complete.');
       else toast.error(t.message);
     });
   };
@@ -64,17 +64,17 @@ export default function UploadVerify({
     void (async () => {
       const res = await commitInvoice(fd);
       setCommitting(false);
-      if (res?.error === 'tie_out_failed') { toast.error(res.message || 'The detail does not tie to the invoice.'); return; }
+      if (res?.error === 'tieOutFailed') { toast.error(res.message || 'The detail does not tie to the invoice.'); return; }
       if (res?.error) { toast.error(res.message || res.error); return; }
-      toast.success(`Invoice ${res.invoice_no} loaded — ${res.lines} lines.`);
+      toast.success(`Invoice ${res.invoiceNo} loaded — ${res.lines} lines.`);
       setResult(null); setDetail(null); setInvoice(null);
       if (detailRef.current) detailRef.current.value = '';
       if (invoiceRef.current) invoiceRef.current.value = '';
-      router.push(`/invoices/${warehouse}/${res.invoice_no}`);
+      router.push(`/invoices/${warehouse}/${res.invoiceNo}`);
     })();
   };
 
-  const outOfBalance = result?.tie_out.status === 'out_of_balance';
+  const outOfBalance = result?.tieOut.status === 'outOfBalance';
 
   return (
     <div className="space-y-4">
@@ -138,15 +138,15 @@ export default function UploadVerify({
               )}
             </>
           )}
-          {result?.invoice?.invoice_no && (
+          {result?.invoice?.invoiceNo && (
             <Badge variant="outline" className="ml-auto font-normal">
-              Invoice {result.invoice.invoice_no}
+              Invoice {result.invoice.invoiceNo}
             </Badge>
           )}
         </div>
       </section>
 
-      {result && <ReconcileView data={result} sourceFile={result.source_file ?? detail?.name ?? null} />}
+      {result && <ReconcileView data={result} sourceFile={result.sourceFile ?? detail?.name ?? null} />}
     </div>
   );
 }

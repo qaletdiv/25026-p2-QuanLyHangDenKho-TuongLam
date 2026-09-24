@@ -52,7 +52,7 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
     // "⚠ mismatch(es)", which read as "your file was rejected" on a success toast —
     // ordered-vs-allocated divergence is expected whenever NetSuite has revised a PO.
     const mm = r?.reconciliation?.mismatch_count ?? 0;
-    const pos: string[] = r?.reconciliation?.po_numbers ?? [];
+    const pos: string[] = r?.reconciliation?.poNumbers ?? [];
     const on = pos.length === 1 ? ` on ${pos[0]}` : '';
     toast.success(`WIP import: ${r.added ?? 0} added, ${r.updated ?? 0} updated${mm ? ` · ${mm} SKU(s)${on} differ from NetSuite` : ''}`);
     router.refresh();
@@ -69,7 +69,7 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
     // (NetSuite usually rejects a PO after it was synced). Both are reported —
     // silently deleting rows from the order book would be worse than the bug.
     const rejectedIn = Array.isArray(r?.rejected_skipped) ? r.rejected_skipped.length : 0;
-    const removed: string[] = r?.rejected_removed?.po_numbers ?? [];
+    const removed: string[] = r?.rejected_removed?.poNumbers ?? [];
     const stuck: string[] = r?.rejected_kept_referenced ?? [];
     toast.success(`NetSuite sync: ${r.masters_upserted ?? 0} PO master(s), ${r.orders_upserted ?? 0} order(s), ${r.lines_upserted ?? 0} line(s)`
       + (prot ? ` · ${prot} protected (booked) skipped` : '')
@@ -81,11 +81,11 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
     // Item Receipts NetSuite has deleted are removed rather than left to add up
     // (the fold used to only ever insert). Named, never silent — and a removed
     // CONFIRMED match withdraws a human's assertion, so it is called out.
-    const irsGone: { ir: string; po_number: string; was_confirmed?: boolean }[] = r?.receipts_removed ?? [];
+    const irsGone: { ir: string; poNumber: string; was_confirmed?: boolean }[] = r?.receipts_removed ?? [];
     if (irsGone.length) {
       const confirmed = irsGone.filter((x) => x.was_confirmed);
       toast.warning(
-        `No longer in NetSuite, removed: ${irsGone.map((x) => `${x.ir} (${x.po_number})`).join(', ')}`
+        `No longer in NetSuite, removed: ${irsGone.map((x) => `${x.ir} (${x.poNumber})`).join(', ')}`
         + (confirmed.length ? ` — ${confirmed.length} carried a CONFIRMED match and need re-matching.` : ''),
         { duration: 12000 },
       );
@@ -94,11 +94,11 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
   }
 
   const columns: DataColumn<PoLegRow>[] = [
-    { key: 'po_number', label: 'PO Number', accessor: (l) => l.po_number, render: (l) => <span className="font-medium">{l.po_number}</span> },
-    { key: 'trn_number', label: 'TRN', accessor: (l) => l.trn_number, render: (l) => l.trn_number ? <Link href={`/mainline/purchase-orders/${l.trn_number}`} className="text-primary hover:underline" onClick={(e) => e.stopPropagation()}>{l.trn_number}</Link> : <span className="text-muted-foreground">—</span> },
+    { key: 'poNumber', label: 'PO Number', accessor: (l) => l.poNumber, render: (l) => <span className="font-medium">{l.poNumber}</span> },
+    { key: 'trnNumber', label: 'TRN', accessor: (l) => l.trnNumber, render: (l) => l.trnNumber ? <Link href={`/mainline/purchase-orders/${l.trnNumber}`} className="text-primary hover:underline" onClick={(e) => e.stopPropagation()}>{l.trnNumber}</Link> : <span className="text-muted-foreground">—</span> },
     { key: 'supplier', label: 'Supplier', accessor: (l) => l.supplier, render: (l) => <span className="text-muted-foreground">{l.supplier ?? '—'}</span> },
     { key: 'season', label: 'Season', accessor: (l) => l.season, render: (l) => <span className="text-muted-foreground">{l.season ?? '—'}</span> },
-    { key: 'main_shoulder', label: 'Shoulder', defaultVisible: false, accessor: (l) => l.main_shoulder, render: (l) => <span className="text-muted-foreground">{l.main_shoulder ?? '—'}</span> },
+    { key: 'mainShoulder', label: 'Shoulder', defaultVisible: false, accessor: (l) => l.mainShoulder, render: (l) => <span className="text-muted-foreground">{l.mainShoulder ?? '—'}</span> },
     { key: 'lifecycle', label: 'Stage', accessor: (l) => l.lifecycle, render: (l) => (
       l.lifecycle === 'forecast'
         ? <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">Forecast</Badge>
@@ -116,23 +116,23 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
     //    accessor, so typing "pending" matched 0 of 104 rows.
     // "1 Pending Approval" satisfies both: it sorts most-urgent-first and still
     // contains the words people type.
-    { key: 'approval_status', label: 'Approval',
+    { key: 'approvalStatus', label: 'Approval',
       accessor: (l) => (
-        l.approval_status === 'Rejected' ? '0 Rejected'
-          : l.approval_status === 'Pending Approval' ? '1 Pending Approval'
-            : l.approval_status === 'Approved' ? '2 Approved' : '3'
+        l.approvalStatus === 'Rejected' ? '0 Rejected'
+          : l.approvalStatus === 'Pending Approval' ? '1 Pending Approval'
+            : l.approvalStatus === 'Approved' ? '2 Approved' : '3'
       ),
-      render: (l) => <ApprovalBadge status={l.approval_status} /> },
+      render: (l) => <ApprovalBadge status={l.approvalStatus} /> },
     { key: 'mode', label: 'Mode', accessor: (l) => l.mode, render: (l) => l.mode ?? '—' },
     { key: 'coo', label: 'COO', defaultVisible: false, accessor: (l) => l.coo, render: (l) => <span className="text-muted-foreground">{l.coo ?? '—'}</span> },
-    { key: 'receiving_warehouse', label: 'Destination', accessor: (l) => l.receiving_warehouse, render: (l) => <span className="text-muted-foreground">{l.receiving_warehouse ?? '—'}</span> },
-    { key: 'allocation_channel', label: 'Channel', accessor: (l) => l.allocation_channel, render: (l) => <span className="text-muted-foreground">{l.allocation_channel ?? '—'}</span> },
+    { key: 'receivingWarehouse', label: 'Destination', accessor: (l) => l.receivingWarehouse, render: (l) => <span className="text-muted-foreground">{l.receivingWarehouse ?? '—'}</span> },
+    { key: 'allocationChannel', label: 'Channel', accessor: (l) => l.allocationChannel, render: (l) => <span className="text-muted-foreground">{l.allocationChannel ?? '—'}</span> },
     { key: 'incoterm', label: 'Incoterm', accessor: (l) => l.incoterm, render: (l) => <span className="text-muted-foreground">{l.incoterm ?? '—'}</span> },
     { key: 'crd', label: 'CRD', accessor: (l) => l.crd, render: (l) => <span className="text-muted-foreground">{l.crd ?? '—'}</span> },
-    { key: 'etd_pol', label: 'ETD POL', accessor: (l) => l.etd_pol, render: (l) => <span className="text-muted-foreground">{l.etd_pol ?? '—'}</span> },
-    { key: 'e_del', label: 'E-DEL', defaultVisible: false, accessor: (l) => l.e_del, render: (l) => <span className="text-muted-foreground">{l.e_del ?? '—'}</span> },
-    { key: 'expected_qty', label: 'Expected Qty', align: 'right', accessor: (l) => l.expected_qty, render: (l) => l.expected_qty.toLocaleString() },
-    { key: 'sku_count', label: 'SKUs', align: 'right', defaultVisible: false, accessor: (l) => l.sku_count, render: (l) => l.sku_count.toLocaleString() },
+    { key: 'etdPol', label: 'ETD POL', accessor: (l) => l.etdPol, render: (l) => <span className="text-muted-foreground">{l.etdPol ?? '—'}</span> },
+    { key: 'eDel', label: 'E-DEL', defaultVisible: false, accessor: (l) => l.eDel, render: (l) => <span className="text-muted-foreground">{l.eDel ?? '—'}</span> },
+    { key: 'expectedQty', label: 'Expected Qty', align: 'right', accessor: (l) => l.expectedQty, render: (l) => l.expectedQty.toLocaleString() },
+    { key: 'skuCount', label: 'SKUs', align: 'right', defaultVisible: false, accessor: (l) => l.skuCount, render: (l) => l.skuCount.toLocaleString() },
   ];
 
   const toolbar = (
@@ -169,8 +169,8 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
       onRowClick={(l) => router.push(
         // forecast rows have no real leg → open the master detail; split rows open the leg
         l.lifecycle === 'forecast'
-          ? `/mainline/purchase-orders/${encodeURIComponent(l.trn_number ?? '')}`
-          : `/mainline/purchase-orders/${encodeURIComponent(l.trn_number ?? '')}/${l.id}`,
+          ? `/mainline/purchase-orders/${encodeURIComponent(l.trnNumber ?? '')}`
+          : `/mainline/purchase-orders/${encodeURIComponent(l.trnNumber ?? '')}/${l.id}`,
       )}
     />
   );

@@ -7,23 +7,26 @@ The portal is **two fully separate datasets/modules** on a normalized (3NF) sche
 via FedEx/DHL). The old legacy stack (`/purchase-orders`, `/bookings`, `/shipments`
 routes, flat `bookings.json`/`shipments.json`/`purchase-orders.json`, drawer-era
 frontend trees) was **DELETED at the 2026-07-03 cutover** — do not reference it.
-`purchase-orders.json` survives as a FROZEN snapshot read only by `/forecast`
-(see "Known debt" below).
+Its last remnant, the frozen `purchase-orders.json` + `controllers/reportController.js`,
+was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`,
+`history` and `history_bookings` tables.
 
 - **Design docs (source of truth):** `backend/database.dbml` (mainline + SMS table
   families), `backend/SCHEMA_REDESIGN.md`, `backend/MAINLINE_MODULE_STRUCTURE.md`,
   `backend/MAINLINE_BUILD_PLAN.md`, `backend/SMS_MODULE_PLAN.md` (SMS schema,
   phases 1–7 all ✅, open items).
-- **Data: PostgreSQL since 2026-09-14** (database `tentree_portal`; see the
-  POSTGRES section below and `backend/db/README.md`). The table NAMES are still
-  the old filenames — `migrated/po_orders.json` is the `po_orders` table — and
+- **Data: PostgreSQL since 2026-09-14, via SEQUELIZE since 2026-09-21** (database
+  `tentree_portal`; see the SEQUELIZE section below and `backend/database/README.md`).
+  **`backend/models/` is the schema authority.** Table KEYS are still the old
+  filenames — `migrated/po_orders.json` resolves to the `po_orders` model — and
   modules still read/write whole arrays via `BaseModel`, so everything else in
   this file still describes the code accurately.
-  **⚠️ `backend/data/**.json` is now a FROZEN pre-migration snapshot.** Nothing
-  writes to it. Editing it changes nothing; reading it to answer a question about
-  live data gives migration-day values. Query the DB, or read through `BaseModel`.
-  **NEVER re-run `migrate-to-normalized.js`** (regenerates from deleted legacy
-  files → wipes live data). `scripts/migrate-sms.js` is standalone + idempotent.
+  **⚠️ `backend/database/seed-data/` is SEED INPUT ONLY.** Nothing reads it at runtime.
+  Editing it changes nothing; reading it to answer a question about live data
+  gives migration-day values. Query the DB, or read through `BaseModel`.
+  `scripts/migrate-to-normalized.js` and `scripts/migrate-sms.js` were DELETED
+  2026-09-21 — both were one-time migrations reading legacy files that no longer
+  exist, and the first was documented as wiping live data if ever re-run.
 - **No transactional tables are shared** between mainline and SMS. Shared =
   reference/master data only: suppliers, seasons, warehouse_facilities,
   allocation_channels, statuses (module column), couriers, product_skus, ports,
@@ -1062,8 +1065,9 @@ state and a 0 footer; 0 console errors.
   `modules/mainline/reports/mainlineForecastController.js` (leg-grained weekly
   inbound × facility; shipment legs by E-DEL, unshipped remainder projected onto
   leg E-DEL, cartons from confirmed packing). Same `/forecast` endpoint + output
-  contract → UI unchanged. The frozen `controllers/reportController.js` is now
-  UNUSED (kept on disk; `purchase-orders.json` snapshot no longer read anywhere).
+  contract → UI unchanged. `controllers/reportController.js` and the
+  `purchase-orders.json` snapshot were DELETED 2026-09-21 (dead since the
+  forecast rebuild; the `purchase_orders` table was dropped with them).
   `/reports/sms` + `/reports/sms/forecast` built. DHL tracking pending credentials.
 - Component-level permission checks still use hardcoded role names in some
   detail components (e.g. `RoleSettings`/`UserSettings` test `role === 'Admin'`).
@@ -1071,7 +1075,9 @@ state and a 0 footer; 0 console errors.
   and the route itself via `src/proxy.ts` + `lib/pageAccess` (see Auth below).
   Changing a user's ROLE still needs a re-login: the JWT carries the role name and
   permissions are resolved from it, so the old role applies until the token expires.
-- EOM tasks route (`/eom-tasks`) is mounted but its page/data were removed long ago.
+- ✅ RESOLVED (2026-09-21): the EOM tasks module is GONE — route, controller,
+  model, validator, the empty `eom_tasks` table and the `eom` permission key
+  (which offered an "EoM Progress" checkbox for a page that did not exist).
 - ✅ RESOLVED (2026-07-07): `mainline_ci_line_items` is now DERIVED at read-time
   from `mainline_packing_cartons`, not stored (`modules/mainline/ci/ciLines.js`;
   qty = Σ pcs_per_ctn, weight/cbm = Σ, matched_leg_id = the carton's leg). All
@@ -1144,34 +1150,90 @@ baseline; order-sensitivity 25 → **0** of 34.
 SKU grain, `plGenerator.js:109` takes `rows[0]`) — same latent order-dependence,
 deliberately left alone. Fix it the same way before the mainline data grows.
 
-## ✅ POSTGRES — the portal runs on it now (2026-09-14). JSON files are FROZEN.
+## ✅ SEQUELIZE ORM over PostgreSQL (2026-09-21). JSON is SEED INPUT ONLY.
 
-Records live in PostgreSQL (`tentree_portal`). **`backend/data/**.json` is a
-pre-migration SNAPSHOT — nothing writes to it any more.** Editing those files
-changes nothing; reading them to answer a question about live data gives the
-answer as of migration day. `backend/db/README.md` is the source of truth for
-this layer; `backend/db/QUERIES.md` has how to connect plus worked example
-queries (PO hierarchy, three-way match, booking→shipment, landed-cost basis,
-integrity checks) — read it before writing SQL against these tables, because
-most of what the UI shows is DERIVED per read and is not a column.
+Records live in PostgreSQL (`tentree_portal`), mapped by **Sequelize models in
+`backend/models/`** — 61 models, 75 foreign keys, one file per table, sitting in
+the MVC models directory beside `controllers/` and `routes/`.
+**Those models are the AUTHORITY on the schema**: add a column by editing a
+model, never by editing JSON. `backend/database/README.md` is the source of truth for
+this layer; `backend/database/QUERIES.md` has how to connect plus worked example
+queries — read it before writing SQL, because most of what the UI shows is
+DERIVED per read and is not a column.
+
+**`backend/database/seed-data/` is SEED INPUT and nothing else.** Nothing reads it at
+runtime; `DATA_BACKEND` is gone, as is `driveStorage`. Only the **19
+reference/master tables** (~5,000 rows) are genuinely seed data. The
+transactional files are a stale snapshot from migration day (2026-09-14) —
+loading them does not restore current state, it rolls the portal back to that
+date. Use `pg_dump` for a restore. `node database/init.js` loads reference data;
+`--all` also loads the snapshot, and refuses a non-empty database without
+`--force`.
 
 - **The swap is at ONE chokepoint.** Every module goes through
-  `BaseModel.read()/.write()` → `driveStorage` → `db/pgStore`, which keeps the
-  same signatures and hands back the same plain objects. **No controller,
-  service or report changed** — reads still pull whole tables and derive
-  everything per request, exactly as the 3NF discipline above describes.
-  `DATA_BACKEND=json` switches back to the frozen files (see the hazard above).
-- **The schema is GENERATED from `database.dbml`** (`db/buildSchema.js` →
-  `db/schema.sql`), so the dbml stays authoritative and cannot drift from the
-  DDL. It is merged with the keys actually present in the JSON, because the dbml
-  HAD drifted: `users` carries `role`/`supplier` name strings where the dbml
-  declares `role_id`/`supplier_id`, and `mainline_documents` + the seven `nri_*`
-  tables are not in the dbml at all. A column in the data but not the schema
-  would otherwise be silently dropped. 69 tables, 423 columns, 79 FKs.
-- **⚠️ `db/migrate.js --force` WIPES Postgres and reloads the frozen JSON.** It
-  refuses to run against a non-empty database without the flag — the same
-  protection this file puts around `migrate-to-normalized.js`, and for the same
-  reason.
+  `BaseModel.read()/.write()` → `db/modelStore`, which keeps the same signatures
+  and hands back the same plain objects. **No controller, service or report
+  changed** — reads still pull whole tables and derive everything per request,
+  exactly as the 3NF discipline above describes. Verified on live data: all
+  tables, 84,014 rows, **value-for-value identical** to the raw-SQL path
+  (`node db/verify.js` — run it after ANY change in `db/`).
+- **Tables are reached as `models.<table>`** (`db/models` → `backend/models`).
+  `models/BaseModel.js`, the five `*Model.js` facades and the
+  filename-as-table-key shim (`'migrated/po_orders.json'`) are all DELETED.
+  `models/index.js` attaches two statics to every model:
+  `await models.po_orders.read()` and `await models.po_orders.write(rows)`.
+  **`write()` REPLACES the table** — a row missing from the array is deleted —
+  which is the semantics all ~190 call sites were already written for. For
+  anything narrower use the ORM directly: `models.users.findOne({ where: { email } })`.
+  ⚠️ `db/modelStore.js` must NOT require `../models` at the top: `models/index.js`
+  requires IT (lazily, inside read/write), so a top-level require is a cycle.
+- **⚠️ camelCase GOES ALL THE WAY DOWN (2026-09-21).** The 218 snake_case
+  columns were RENAMED in Postgres, so an attribute IS a column, there is no
+  `field:` mapping, and nothing is translated at any boundary. **API responses
+  are camelCase and the frontend moved with them** — measured 0 snake_case keys
+  across 24 endpoints. Scale: 5,909 identifiers over 170 files.
+  ⚠️ **Identifiers must be QUOTED in hand-written SQL now** — Postgres folds
+  unquoted names to lowercase, so `SELECT poNumber` becomes `ponumber` and
+  errors. Sequelize always quotes; `db/QUERIES.md` examples do not and need
+  updating before reuse.
+  ⚠️ **There is deliberately no `snake()` helper**: four columns in
+  `nri_order_master` (`orderNo`, `custCode`, `custName`, `orderType`) were
+  ALREADY camelCase, so a regex round-trip would "restore" them to `order_no`
+  and friends — columns that have never existed.
+- **⚠️ THREE FILES ARE EXCLUDED FROM THE camelCase CONVENTION, deliberately:**
+  `services/integrationService.js`, `modules/landedcosts/netsuiteLandedCost.js`
+  and `services/fedexService.js`. In them the OBJECT KEYS are ours and camelCase,
+  but every `row.*` / `e.*` read is an **external field name** —  SuiteQL aliases
+  (`t.tranid AS po_number`), NetSuite custom fields (`custbody_*`,
+  `landedCostMethod`) and FedEx API fields. **NetSuite lowercases returned
+  aliases**, so renaming a SELECT alias to camelCase yields `undefined` on every
+  field, silently. `SKU_ATTR_COLUMNS[].key` IS a SQL alias and stays snake_case;
+  it is camelised only at the point it becomes a property.
+- **⚠️ `transit_time_standards.segment` VALUES were migrated too.** They are data
+  that the code keys on (`std[s.key]`), so renaming the code constants without
+  the 10 rows left every standard reading null — silently. Now
+  `productionHandover` / `originDwell` / `portToPort` / `destinationLeg` /
+  `receiving` in both places.
+- **`models/index.js` SKIPS `*Model.js` by name.** That directory also holds the
+  legacy facades (`BaseModel.js`, `UserModel.js`, `MasterDataModel.js`…), which
+  export a class or a BaseModel instance rather than a
+  `(sequelize, DataTypes)` factory. A duck-typed check would not save you —
+  `BaseModel` is a class, and a class IS `typeof "function"`, so it would be
+  called without `new` and throw.
+- **⚠️ Sequelize RE-PARSES two types wrongly and both failures are SILENT.**
+  It returns `DECIMAL` as a **string** (`"57.82"`) and `timestamptz` as a JS
+  `Date`. This codebase is built on `(m.get(k) || 0) + (l.allocated_qty || 0)`,
+  so a string means CONCATENATION — 28 + 5 becomes `"285"` and a forecast gains
+  250,000 units without anything throwing. `db/types.js` pins node-pg's parsers
+  AND `db/modelStore.js` decodes a second time against each model's declared
+  types. Both layers are load-bearing; `db/verify.js` is what proves it.
+- **⚠️ `deferrable` MUST sit INSIDE `references`.** As a sibling key Sequelize
+  accepts it silently and ignores it — measured: all 79 FKs came out
+  `condeferrable=false`, and seeding then failed on the first child whose parent
+  had not loaded yet. See the deferred-FK note below for why that is fatal.
+- **An unknown key is REFUSED, not dropped.** Sequelize writes only declared
+  attributes, so a field with no column would vanish silently. `writeData`
+  throws instead, naming the model file to edit.
 - **Rows are RECTANGLES now — a key absent from a sparse JSON row reads `null`,
   not `undefined`.** 289 such cells across 18 API field paths (`db/verify.js`
   lists them; e.g. `users.role_id`, `sms_shipments.booking_id`,
@@ -1180,17 +1242,19 @@ most of what the UI shows is DERIVED per read and is not a column.
   here tests these with `||`, `??` or truthiness, where null and undefined are
   the same; the code that genuinely distinguishes them (`nriInvoiceService`'s
   `l.gl === null`) is helped by this, not hurt.
-- **⚠️ Two type parsers in `db/pool.js` are LOAD-BEARING, and both failures are
-  silent.** node-pg returns `date` as a JS Date at LOCAL midnight (so
-  `"2026-05-06"` → `2026-05-06T07:00:00.000Z`, i.e. every CRD/E-DEL/HOD shifts a
-  day) and `numeric` as a **STRING** — and this codebase is built on
-  `(m.get(k) || 0) + (l.allocated_qty || 0)`, which with strings is
-  CONCATENATION. Both are pinned; do not remove them.
+- **⚠️ The type parsers in `db/types.js` are LOAD-BEARING.** node-pg returns
+  `date` as a JS Date at LOCAL midnight (so `"2026-05-06"` →
+  `2026-05-06T07:00:00.000Z`, i.e. every CRD/E-DEL/HOD shifts a day) and
+  `numeric` as a **STRING**. Both are pinned; do not remove them. They are NOT
+  sufficient on their own — see the Sequelize re-parsing note above.
 - **`_seq` carries row ORDER.** SQL has none, and this codebase depends on the
-  JSON array order in places it states outright (`plGenerator` takes `rows[0]`,
+  array order in places it states outright (`plGenerator` takes `rows[0]`,
   the receipt matcher walks "first still-free IR", and the sms_cartons note above
   records row order changing 25 of 34 packing summaries). Every read is
-  `ORDER BY _seq`; the column never reaches a caller.
+  `ORDER BY _seq`; the column never reaches a caller. On the **7 tables with no
+  natural key** it is also the PRIMARY KEY — Sequelize requires one, and `_seq`
+  is NOT NULL and unique by construction (assigned 0..n-1 on every write), so it
+  closes that gap without inventing an `id` column the table does not have.
 - **`sms_tracking_events.event_time` is `text`, deliberately** — the only column
   where the dbml's type was rejected. Values carry real offsets
   (`2026-07-13T13:02:00-08:00`); through `timestamptz` they return as UTC, a
@@ -1207,8 +1271,13 @@ most of what the UI shows is DERIVED per read and is not a column.
   now land whole or not at all; the transaction settles BEFORE the response body
   goes out, so a failed COMMIT becomes a 500 rather than a success the client was
   already told about. GET/HEAD skip it. Cron ticks and maintenance scripts are
-  not requests, so they ask via `db/tx.js` `atomically()` (a no-op on
-  DATA_BACKEND=json).
+  not requests, so they ask via `db/tx.js` `atomically()`.
+  ⚠️ The ambient object is a **Sequelize `Transaction`**, not a raw pg client.
+  It had to move when the models arrived: Sequelize owns its OWN connection
+  pool, so a model query would have run on a DIFFERENT connection than that
+  client — outside the transaction, self-committing, with the ambient BEGIN
+  having no effect. Nothing would have thrown; the atomicity would simply have
+  been gone.
 - **Foreign keys exist and bite** — `DEFERRABLE INITIALLY DEFERRED`, checked at
   COMMIT. They MUST be deferred: `writeData` replaces a whole table
   (DELETE-all + INSERT-all), so any write to a parent momentarily removes every
@@ -1266,15 +1335,19 @@ most of what the UI shows is DERIVED per read and is not a column.
 - **`mainline/statuses.js` in-memory cache** never invalidated after a
   statuses.json edit (restart required). → drop cache.
 - **Constraints the live data could NOT satisfy** (created as far as the data
-  allows; `db/migrate.js` reprints this list every run):
-  - `mainline_po_leg_lines` — **no PK, no `(leg_id, sku_code)` unique**: 22 rows
+  allows; the survivors are recorded in `db/schema.json` `notes[]`).
+  ⚠️ **Every table now HAS a primary key** as of 2026-09-21 — the 7 that had none
+  are keyed on `_seq` (see the `_seq` note above). That closes the "no PK" half
+  of the entries below; the GRAIN problems they describe are unchanged, because a
+  key on `_seq` says nothing about `id` or `(leg_id, sku_code)` being unique:
+  - `mainline_po_leg_lines` — **no `(leg_id, sku_code)` unique**: 22 rows
     duplicate both, on legs 15/45/85 (e.g. `mll_15_TCM6948-6346-L` at 28 and 5).
     Same class as the `sms_po_lines` grain bug above. **Currently harmless to
     every total** — all five consumers (`legCapacities`, `fulfillmentService` ×2,
     `legReconciliationService`, both report controllers, `wipImportController`)
     sum with `+=`, which is also what makes merging them a numerically neutral
     fix.
-  - `sms_po_lines` — **no PK on `id`**: `netsuite_line_id` holds the PO's line
+  - `sms_po_lines` — **`id` is not unique**: `netsuite_line_id` holds the PO's line
     SEQUENCE ("1".."245", 245 distinct over 4,961 rows), not NetSuite's global
     `transactionline.id`, so `id = spol_ns_<line_id>` collapses 4,961 rows onto
     245 ids. **The 2026-08-14 note above describes the intended fix, but the
@@ -1306,11 +1379,16 @@ most of what the UI shows is DERIVED per read and is not a column.
 ## Project Layout
 
 ```
-backend/                     Express API on PostgreSQL
-  db/                        the data layer — schema generated from database.dbml,
-                             pgStore (readData/writeData), per-request transactions.
-                             See db/README.md.
-  data/                      FROZEN pre-migration JSON snapshot (nothing writes here)
+backend/                     Express API on PostgreSQL + Sequelize (MVC)
+  models/                    THE SCHEMA AUTHORITY — one Sequelize model per table.
+                             camelCase attrs == camelCase columns (no `field:`).
+                             .read()/.write(rows) attached by models/index.js
+  db/                        the data layer — modelStore (readAll/replaceAll),
+                             per-request transactions, seed.js. See db/README.md.
+  data/                      SEED INPUT ONLY (nothing reads it at runtime).
+                             Reference data is real seed; the transactional
+                             files are a stale migration-day snapshot.
+  storage/fileStorage.js     generated xlsx blobs (CI / packing list / ASN)
   modules/po/                mainline PO hierarchy (WIP-sourced; NS sync dormant)
   modules/mainline/          bookings, shipments, ci/packing/asn, fulfillment, reports, wip import
   modules/sms/               SMS module (own dataset) + NetSuite sync + FedEx poll
@@ -1323,7 +1401,7 @@ backend/                     Express API on PostgreSQL
   services/                  integrationService (SuiteQL), fedexService, ciParser,
                              wipParser, asnService, ci/plGenerator, cronJobs (SMS poll)
   controllers/               auth, users, roles, masterData, contacts, freights,
-                             eomTasks, reportController (frozen /forecast only)
+                             (eomTasks + reportController deleted 2026-09-21)
 frontend/tentree-scportal/   Next.js RSC app (shadcn/ui, Tailwind)
   src/modules/mainline/      mainline types/actions/components (DataTable, ColumnPicker,
                              ConfirmDialog, RouteFallbacks are generic — SMS reuses them)
@@ -1392,10 +1470,22 @@ frontend/tentree-scportal/   Next.js RSC app (shadcn/ui, Tailwind)
 
 ## Auth / Users / Roles
 
-- `backend/utils/passwordUtils.js` — scrypt (`scrypt:<salt>:<hash>`) ONLY. The
-  legacy plaintext-verify branch was removed 2026-08-12 after
-  `scripts/migrate-passwords.js` hashed the last three plaintext users; anything
-  not matching `scrypt:` now fails closed, and the compare is `timingSafeEqual`.
+- `backend/utils/passwordUtils.js` — **bcrypt since 2026-09-21** (cost 12,
+  `BCRYPT_ROUNDS` env-overridable). New hashes are `$2b$…`; anything that is
+  neither bcrypt nor scrypt fails closed, so a plaintext value written back into
+  the store can never become a working credential.
+  **⚠️ THE scrypt BRANCH IS STILL LIVE AND MUST NOT BE DELETED YET.** Every
+  account was `scrypt:<salt>:<hash>` at the switch, and bcrypt CANNOT be computed
+  from a scrypt hash — it needs the plaintext, which is only ever in hand during
+  a successful login. So `authController` re-hashes transparently at that moment
+  (guarded by the verify, non-fatal if the write fails), and an account otherwise
+  moves only when an admin sets a new password. Deleting the branch early is a
+  SILENT lockout: login does not error, it answers 401 for a correct password.
+  Run `node scripts/password-status.js` — it is safe to delete only when
+  `legacy scrypt` reads 0. That script replaced `scripts/migrate-passwords.js`,
+  which hashed into `data/users.json` with `fs` and would now be writing to the
+  frozen seed snapshot. There is deliberately no "migrate" mode, because for
+  scrypt→bcrypt there cannot be one.
   **No working password is written in this repo** — the harness reads credentials from
   `E2E_EMAIL`/`E2E_PASSWORD` in backend/.env (gitignored). The three default accounts
   (admin@/logistics@/production@) were rotated to strong random values on 2026-08-12
@@ -1428,7 +1518,7 @@ frontend/tentree-scportal/   Next.js RSC app (shadcn/ui, Tailwind)
   `settings_edit`, `user_manage`) = write authorization.
 - **Enforcement is TIERED — do not "fix" tier 3 by adding a nav key.** Writes take
   action keys. Analytics/finance reads (`/reports/*`, `/forecast`, `/landed-costs/*`,
-  `/freights/*`, `/contacts`, `/eom-tasks`, `GET /roles`) take a nav key — verified
+  `/freights/*`, `/contacts`, `GET /roles`) take a nav key — verified
   safe because no shared page fetches them. Transactional reads (`/po/*`,
   `/mainline/*`, `/sms/*`, `GET /master-data/*`) are auth-only and must STAY that
   way: `app/sms/shipments` fetches `/sms/pos` and `app/mainline/bookings` fetches
@@ -1584,5 +1674,5 @@ Get-CimInstance Win32_Process -Filter "Name='node.exe'" |
 | Agent    | Owns                                          | Never touches |
 |----------|-----------------------------------------------|---------------|
 | frontend | `frontend/tentree-scportal/src/`              | `backend/`    |
-| backend  | `backend/server.js`, `backend/modules/`, `backend/services/`, `backend/data/` | `frontend/` |
+| backend  | `backend/server.js`, `backend/modules/`, `backend/services/`, `backend/database/seed-data/` | `frontend/` |
 | qa       | Read-only — no writes                         | —             |

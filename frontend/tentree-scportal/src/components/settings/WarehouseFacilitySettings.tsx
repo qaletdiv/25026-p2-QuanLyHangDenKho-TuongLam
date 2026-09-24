@@ -1,7 +1,7 @@
 'use client';
 
 // Destinations = `warehouse_facilities`, the physical places cargo is shipped to
-// (NRI US, NRI CA, …) — the CONSIGNEE, which the PO names via facility_id. These
+// (NRI US, NRI CA, …) — the CONSIGNEE, which the PO names via facilityId. These
 // fields are what the Commercial Invoice and Packing List print as the consignee
 // block and port of discharge, in both modules; the legacy Warehouses table below
 // is NOT read by either generator, which is why those cells came out blank on
@@ -68,7 +68,7 @@ export function WarehouseFacilitySettings() {
       cell: (f) => <AddressInput value={f.address} onChange={(v) => updateItem(f.id, 'address', v)}
         placeholder={'9988 Redwood Avenue LH Building\nFontana, California 92335, United States\nContact: …'} />,
     },
-    textCol('port_of_discharge', 'Port of Discharge'),
+    textCol('portOfDischarge', 'Port of Discharge'),
   ];
 
   return (

@@ -63,7 +63,7 @@ export default function TransitTimes({ data }: { data: TransitTimesReport }) {
   // A shipment's standard comes from its MODE — the per-mode rows already carry it,
   // so the shipment tab colours against the same numbers the lane tab does.
   const stdByMode = useMemo(
-    () => new Map(data.modes.map((m) => [m.mode_id, m.standard])),
+    () => new Map(data.modes.map((m) => [m.modeId, m.standard])),
     [data.modes],
   );
 
@@ -72,7 +72,7 @@ export default function TransitTimes({ data }: { data: TransitTimesReport }) {
   const shipments = useMemo(
     () => [...data.shipments].sort((a, b) =>
       (b.crd || '').localeCompare(a.crd || '') ||
-      (a.shipment_number || '').localeCompare(b.shipment_number || '')),
+      (a.shipmentNumber || '').localeCompare(b.shipmentNumber || '')),
     [data.shipments],
   );
 
@@ -80,14 +80,14 @@ export default function TransitTimes({ data }: { data: TransitTimesReport }) {
     const cell = (lane: TransitLaneRow, key: string) => {
       const a = key === 'total' ? lane.total : lane.segments[key];
       if (a) return `${a.avg}d`;
-      return lane.invalid_segments.includes(key) ? 'check dates' : '—';
+      return lane.invalidSegments.includes(key) ? 'check dates' : '—';
     };
     copyTable(
       ['Supplier', 'Origin', 'Departure Port', 'Mode', ...data.segments.map((s) => s.label), 'CRD → ATA'],
       // Lanes only — the copy mirrors what the table shows, and the table no
       // longer prints the standards rows.
       data.lanes.map((l) => [
-        l.supplier_name, l.coo, l.pol_port, l.mode,
+        l.supplierName, l.coo, l.polPort, l.mode,
         ...data.segments.map((s) => cell(l, s.key)), cell(l, 'total'),
       ]),
     );
@@ -98,9 +98,9 @@ export default function TransitTimes({ data }: { data: TransitTimesReport }) {
     copyTable(
       ['Shipment', 'Supplier', 'Origin', 'Departure Port', 'Mode', ...data.segments.map((s) => s.label), 'CRD → ATA'],
       shipments.map((s) => [
-        s.shipment_number || s.booking_number || '',
-        s.supplier_name, s.coo, s.pol_port, s.mode,
-        ...data.segments.map((seg) => cell(s.durations[seg.key])), cell(s.total_days),
+        s.shipmentNumber || s.bookingNumber || '',
+        s.supplierName, s.coo, s.polPort, s.mode,
+        ...data.segments.map((seg) => cell(s.durations[seg.key])), cell(s.totalDays),
       ]),
     );
   }
@@ -175,10 +175,10 @@ export default function TransitTimes({ data }: { data: TransitTimesReport }) {
                 <tr><td colSpan={5 + data.segments.length} className="px-4 py-6 text-center text-muted-foreground">No shipments yet — lanes appear here once shipment dates accumulate</td></tr>
               )}
               {data.lanes.map((lane) => (
-                <tr key={`${lane.supplier_name}|${lane.coo}|${lane.pol_port}|${lane.mode_id}`} className="border-b border-border hover:bg-muted/30 align-top">
-                  <td className="px-4 py-2 font-medium text-foreground max-w-[220px] truncate">{lane.supplier_name ?? '—'}</td>
+                <tr key={`${lane.supplierName}|${lane.coo}|${lane.polPort}|${lane.modeId}`} className="border-b border-border hover:bg-muted/30 align-top">
+                  <td className="px-4 py-2 font-medium text-foreground max-w-[220px] truncate">{lane.supplierName ?? '—'}</td>
                   <td className="px-4 py-2 text-muted-foreground whitespace-nowrap">{lane.coo ?? '—'}</td>
-                  <td className="px-4 py-2 text-muted-foreground whitespace-nowrap">{lane.pol_port ?? '—'}</td>
+                  <td className="px-4 py-2 text-muted-foreground whitespace-nowrap">{lane.polPort ?? '—'}</td>
                   <td className="px-4 py-2 text-muted-foreground whitespace-nowrap">{lane.mode ?? '—'}</td>
                   {data.segments.map((s) => {
                     const a = lane.segments[s.key];
@@ -187,7 +187,7 @@ export default function TransitTimes({ data }: { data: TransitTimesReport }) {
                         key={s.key}
                         value={a ? a.avg : null}
                         standard={lane.standard[s.key] ?? null}
-                        invalid={lane.invalid_segments.includes(s.key)}
+                        invalid={lane.invalidSegments.includes(s.key)}
                         title={a ? `${a.n} shipment${a.n === 1 ? '' : 's'} · min ${a.min}d · max ${a.max}d` : undefined}
                       />
                     );
@@ -195,7 +195,7 @@ export default function TransitTimes({ data }: { data: TransitTimesReport }) {
                   <DayCell
                     value={lane.total ? lane.total.avg : null}
                     standard={standardTotal(lane.standard, data.segments)}
-                    invalid={lane.invalid_segments.includes('total')}
+                    invalid={lane.invalidSegments.includes('total')}
                     title={lane.total ? `${lane.total.n} shipment${lane.total.n === 1 ? '' : 's'} · min ${lane.total.min}d · max ${lane.total.max}d` : undefined}
                   />
                 </tr>
@@ -207,13 +207,13 @@ export default function TransitTimes({ data }: { data: TransitTimesReport }) {
                 <tr><td colSpan={6 + data.segments.length} className="px-4 py-6 text-center text-muted-foreground">No shipments yet — journeys appear here once shipment dates are entered</td></tr>
               )}
               {shipments.map((s) => {
-                const std = stdByMode.get(s.mode_id ?? '') ?? {};
+                const std = stdByMode.get(s.modeId ?? '') ?? {};
                 return (
-                  <tr key={s.shipment_id} className="border-b border-border hover:bg-muted/30 align-top">
-                    <td className="px-4 py-2 font-semibold text-foreground whitespace-nowrap">{s.shipment_number || s.booking_number || '—'}</td>
-                    <td className="px-4 py-2 text-muted-foreground max-w-[220px] truncate">{s.supplier_name ?? '—'}</td>
+                  <tr key={s.shipmentId} className="border-b border-border hover:bg-muted/30 align-top">
+                    <td className="px-4 py-2 font-semibold text-foreground whitespace-nowrap">{s.shipmentNumber || s.bookingNumber || '—'}</td>
+                    <td className="px-4 py-2 text-muted-foreground max-w-[220px] truncate">{s.supplierName ?? '—'}</td>
                     <td className="px-4 py-2 text-muted-foreground whitespace-nowrap">{s.coo ?? '—'}</td>
-                    <td className="px-4 py-2 text-muted-foreground whitespace-nowrap">{s.pol_port ?? '—'}</td>
+                    <td className="px-4 py-2 text-muted-foreground whitespace-nowrap">{s.polPort ?? '—'}</td>
                     <td className="px-4 py-2 text-muted-foreground whitespace-nowrap">{s.mode ?? '—'}</td>
                     {data.segments.map((seg) => (
                       <DayCell
@@ -225,13 +225,13 @@ export default function TransitTimes({ data }: { data: TransitTimesReport }) {
                       />
                     ))}
                     <DayCell
-                      value={s.total_days}
+                      value={s.totalDays}
                       standard={standardTotal(std, data.segments)}
                       invalid={false}
                       // ATA is the NetSuite receive date — usually attributed from the
                       // Item Receipt, occasionally typed on the header. Name the source:
                       // the two segments that end at ATA are only as good as it is.
-                      title={`CRD ${s.crd ?? '—'} → ATA ${s.ata ?? '—'}${s.ata_source === 'netsuite' ? ' (from Item Receipt)' : s.ata_source === 'manual' ? ' (entered manually)' : ''}`}
+                      title={`CRD ${s.crd ?? '—'} → ATA ${s.ata ?? '—'}${s.ataSource === 'netsuite' ? ' (from Item Receipt)' : s.ataSource === 'manual' ? ' (entered manually)' : ''}`}
                     />
                   </tr>
                 );

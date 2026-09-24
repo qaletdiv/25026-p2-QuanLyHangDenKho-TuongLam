@@ -30,7 +30,7 @@ export const FLAGGED = 'Needs coding';
 
 export type GlClassCell = {
   gl: number | null;
-  gl_desc: string | null;
+  glDesc: string | null;
   /** the class this amount belongs to; anything in `flaggedAs` is bucketed as FLAGGED */
   class: string | null;
   amount: number;
@@ -54,13 +54,13 @@ export function GlClassMatrix({
   const { rows, classes, colTotals, grand } = useMemo(() => {
     const flagSet = new Set([FLAGGED, ...flaggedAs]);
     const classSet = new Set<string>();
-    const byRow = new Map<string, { gl: number | null; gl_desc: string | null; cells: Map<string, number>; total: number }>();
+    const byRow = new Map<string, { gl: number | null; glDesc: string | null; cells: Map<string, number>; total: number }>();
     let grandTotal = 0;
 
     for (const c of cells) {
       const key = c.gl === null || c.gl === undefined ? 'unmapped' : String(c.gl);
-      const row = byRow.get(key) ?? { gl: c.gl ?? null, gl_desc: c.gl_desc ?? null, cells: new Map(), total: 0 };
-      if (!row.gl_desc && c.gl_desc) row.gl_desc = c.gl_desc;
+      const row = byRow.get(key) ?? { gl: c.gl ?? null, glDesc: c.glDesc ?? null, cells: new Map(), total: 0 };
+      if (!row.glDesc && c.glDesc) row.glDesc = c.glDesc;
       const col = !c.class || flagSet.has(c.class) ? FLAGGED : c.class;
       if (col !== FLAGGED) classSet.add(col);
       row.cells.set(col, (row.cells.get(col) ?? 0) + c.amount);
@@ -87,7 +87,7 @@ export function GlClassMatrix({
   const copyTsv = async () => {
     const head = ['GL', 'Description', ...classes, 'Grand Total'].join('\t');
     const body = rows.map((r) => [
-      r.gl ?? 'unmapped', r.gl_desc ?? '',
+      r.gl ?? 'unmapped', r.glDesc ?? '',
       ...classes.map((c) => (r.cells.get(c) ?? '').toString()),
       r.total.toFixed(2),
     ].join('\t'));
@@ -140,7 +140,7 @@ export function GlClassMatrix({
             {rows.map((r) => (
               <tr key={String(r.gl ?? 'unmapped')} className="border-b border-border last:border-0 hover:bg-muted/30">
                 <td className="px-4 py-2 font-mono text-xs">{r.gl ?? <span className="text-amber-600 dark:text-amber-400">unmapped</span>}</td>
-                <td className="px-4 py-2 text-xs text-muted-foreground">{r.gl_desc?.split(':').pop()?.trim() ?? '—'}</td>
+                <td className="px-4 py-2 text-xs text-muted-foreground">{r.glDesc?.split(':').pop()?.trim() ?? '—'}</td>
                 {classes.map((c) => {
                   const v = r.cells.get(c);
                   return (
@@ -177,10 +177,10 @@ export function GlClassMatrix({
  */
 export default function GlClassPivot({
   lines, measure = 'charges',
-}: { lines: InvoiceLine[]; measure?: 'charges' | 'inv_amt' }) {
+}: { lines: InvoiceLine[]; measure?: 'charges' | 'invAmt' }) {
   const cells = useMemo<GlClassCell[]>(() => lines.map((l) => ({
     gl: l.gl ?? null,
-    gl_desc: l.gl_desc ?? null,
+    glDesc: l.glDesc ?? null,
     // no class OR no GL ⇒ cannot be posted ⇒ must not be folded into a real cell
     class: !l.class || l.gl === null || l.gl === undefined ? FLAGGED : l.class,
     amount: Number(l[measure]) || 0,

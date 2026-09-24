@@ -17,7 +17,7 @@ export async function getInvoiceSources(): Promise<InvoiceSource[]> {
 /** Register another invoicing warehouse. It arrives as a shell — uploads stay off
  *  until its detail-file layout is mapped (the server refuses to accept a parser
  *  flag over HTTP for exactly that reason). */
-export async function addInvoiceSource(input: { label: string; code?: string; entity?: string; facility_id?: string | null }) {
+export async function addInvoiceSource(input: { label: string; code?: string; entity?: string; facilityId?: string | null }) {
   const res = await fetchApi('/nri-invoices/sources', { method: 'POST', body: JSON.stringify(input) });
   if (res?.error) return { error: res.error as string };
   revalidate();
@@ -45,7 +45,7 @@ export async function getRateCard(): Promise<RateCardRow[]> {
 /**
  * Adopt a coding legend — the basis for every GL on every line.
  *
- * `formData` may carry `legend` (an uploaded .xlsx) and `dry_run`. With no file it
+ * `formData` may carry `legend` (an uploaded .xlsx) and `dryRun`. With no file it
  * falls back to the shared-drive path, which is how it worked before the legend
  * was configurable from the UI. A dry run reports the file's defects (duplicate
  * services, trailing-space keys, blank classes, missing GLs) WITHOUT adopting it.
@@ -53,7 +53,7 @@ export async function getRateCard(): Promise<RateCardRow[]> {
 export async function syncChargeCodes(formData: FormData) {
   const res = await fetchApi('/nri-invoices/charge-codes/sync', { method: 'POST', body: formData });
   if (res?.error) return { error: res.error as string };
-  if (formData.get('dry_run') !== 'true') revalidate();
+  if (formData.get('dryRun') !== 'true') revalidate();
   return res;
 }
 
@@ -61,7 +61,7 @@ export async function syncChargeCodes(formData: FormData) {
 export async function getOrderData(warehouse = 'nri-us') {
   const data = await fetchApi(`/nri-invoices/order-data?warehouse=${encodeURIComponent(warehouse)}`);
   return (data && !data.error ? data : null) as {
-    entity: string; orders: number; stored_rows: number;
+    entity: string; orders: number; storedRows: number;
     covers: { from: string; to: string } | null;
     sources: { label: string; rows?: number; added?: number; error?: string }[];
   } | null;
@@ -98,7 +98,7 @@ export async function getCostSummary(warehouse = 'nri-us'): Promise<CostSummary 
 /**
  * Reconcile WITHOUT saving. `formData` carries `detail` (the xlsx) and optionally
  * `invoice` (the PDF). Without the PDF there is no invoice number and no control
- * total, so the result comes back `no_summary` — loadable but unproven.
+ * total, so the result comes back `noSummary` — loadable but unproven.
  */
 export async function previewInvoice(formData: FormData): Promise<Reconcile | { error: string }> {
   const res = await fetchApi('/nri-invoices/preview', { method: 'POST', body: formData });
@@ -108,12 +108,12 @@ export async function previewInvoice(formData: FormData): Promise<Reconcile | { 
 
 export async function commitInvoice(formData: FormData) {
   const res = await fetchApi('/nri-invoices', { method: 'POST', body: formData });
-  if (res?.error) return { error: res.error as string, message: res.message as string | undefined, tie_out: res.tie_out };
+  if (res?.error) return { error: res.error as string, message: res.message as string | undefined, tieOut: res.tieOut };
   revalidate();
   return res;
 }
 
-/** Record a human coding decision for one line. Keyed on (invoice_no, seq). */
+/** Record a human coding decision for one line. Keyed on (invoiceNo, seq). */
 export async function setLineOverride(
   invoiceNo: string, seq: number, patch: { gl?: number | null; class?: string | null; note?: string | null },
 ) {

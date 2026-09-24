@@ -33,7 +33,7 @@ export async function getContainerTypes(): Promise<ContainerTypeOption[]> {
   const data = await fetchApi('/master-data/container-types');
   return Array.isArray(data) ? data : [];
 }
-// Carriers — parcel couriers AND freight forwarders. `provides_cost_invoices`
+// Carriers — parcel couriers AND freight forwarders. `providesCostInvoices`
 // decides the mainline landed-cost basis (actual off invoices vs CI-value estimate).
 export async function getCarriers(): Promise<CourierOption[]> {
   const data = await fetchApi('/master-data/couriers');
@@ -112,13 +112,13 @@ export async function getMainlineBooking(id: string): Promise<MainlineBooking | 
 }
 
 export async function createMainlineBooking(data: {
-  supplier_id: string;
-  po_legs: Array<{ leg_id: string; units?: number; cartons?: number; weight_kg?: number; cbm?: number }>;
-  incoterm_id?: string;
+  supplierId: string;
+  poLegs: Array<{ legId: string; units?: number; cartons?: number; weightKg?: number; cbm?: number }>;
+  incotermId?: string;
   // PLANNED carrier, optional. Copied onto the shipment at approve, where it decides
   // whether the landed cost is the actual off invoices or a CI-value estimate.
-  courier_id?: string | null;
-  cargo_ready_date?: string;
+  courierId?: string | null;
+  cargoReadyDate?: string;
   booking_date?: string;
   force_overbook?: boolean;
 }) {
@@ -242,7 +242,7 @@ export async function confirmMainlineCi(bookingId: string) {
   return result;
 }
 
-export async function getMainlinePacking(bookingId: string): Promise<{ booking_id: string; cartons: unknown[]; summary: PackingSummary; by_po: PackingByPo[] } | null> {
+export async function getMainlinePacking(bookingId: string): Promise<{ bookingId: string; cartons: unknown[]; summary: PackingSummary; by_po: PackingByPo[] } | null> {
   const data = await fetchApi(`/mainline/bookings/${bookingId}/packing`);
   if (!data || data.error) return null;
   return data;

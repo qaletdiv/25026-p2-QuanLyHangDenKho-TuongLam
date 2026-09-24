@@ -61,7 +61,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
   const [scope, setScope] = useState<Scope>('active');
   useEffect(() => { setSeason((cur) => (cur === 'all' && seasonOptions.length ? seasonOptions[0] : cur)); }, [seasonOptions]);
   const visibleBookings = useMemo(
-    () => applySeasonScope(bookings, { season, scope, isCompleted: (b) => BOOKING_DONE.has(b.booking_status || '') }),
+    () => applySeasonScope(bookings, { season, scope, isCompleted: (b) => BOOKING_DONE.has(b.bookingStatus || '') }),
     [bookings, season, scope],
   );
 
@@ -72,15 +72,15 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
   const [bookingDate, setBookingDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [rows, setRows] = useState<Record<string, RowInput>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [warning, setWarning] = useState<null | { warnings: Array<{ po_number: string; capacity: number; already_booked: number; requested: number }> }>(null);
+  const [warning, setWarning] = useState<null | { warnings: Array<{ poNumber: string; capacity: number; already_booked: number; requested: number }> }>(null);
 
-  const trnSupplier = useMemo(() => new Map(masters.map((m) => [m.trn_number, m.supplier_id])), [masters]);
+  const trnSupplier = useMemo(() => new Map(masters.map((m) => [m.trnNumber, m.supplierId])), [masters]);
   const suppliers = useMemo(() => {
     const m = new Map<string, string>();
     masters.forEach((ms) => {
-      if (ms.supplier_id && ms.bookable && !m.has(ms.supplier_id)) {
-        const leg = legs.find((l) => l.trn_number === ms.trn_number);
-        m.set(ms.supplier_id, leg?.supplier || ms.supplier_id);
+      if (ms.supplierId && ms.bookable && !m.has(ms.supplierId)) {
+        const leg = legs.find((l) => l.trnNumber === ms.trnNumber);
+        m.set(ms.supplierId, leg?.supplier || ms.supplierId);
       }
     });
     return [...m.entries()].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
@@ -97,15 +97,15 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
   const bookedByLeg = useMemo(() => {
     const m = new Map<string, number>();
     bookings.forEach((b) => {
-      if (['Cancelled', 'Rejected'].includes(b.booking_status || '')) return;
-      b.po_legs.forEach((pl) => m.set(pl.leg_id, (m.get(pl.leg_id) || 0) + (Number(pl.units) || 0)));
+      if (['Cancelled', 'Rejected'].includes(b.bookingStatus || '')) return;
+      b.poLegs.forEach((pl) => m.set(pl.legId, (m.get(pl.legId) || 0) + (Number(pl.units) || 0)));
     });
     return m;
   }, [bookings]);
-  const remainingOf = (l: PoLegRow) => l.expected_qty - (bookedByLeg.get(l.id) || 0);
+  const remainingOf = (l: PoLegRow) => l.expectedQty - (bookedByLeg.get(l.id) || 0);
 
   const supplierLegs = useMemo(
-    () => (effectiveSupplierId ? legs.filter((l) => trnSupplier.get(l.trn_number || '') === effectiveSupplierId) : []),
+    () => (effectiveSupplierId ? legs.filter((l) => trnSupplier.get(l.trnNumber || '') === effectiveSupplierId) : []),
     [legs, effectiveSupplierId, trnSupplier]
   );
 
@@ -117,7 +117,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
     .map((l) => {
       const r = rows[l.id] || {};
       const units = Number(r.units) || 0;
-      return units > 0 ? { leg_id: l.id, units, cartons: num(r.cartons), weight_kg: num(r.weight), cbm: num(r.cbm) } : null;
+      return units > 0 ? { legId: l.id, units, cartons: num(r.cartons), weightKg: num(r.weight), cbm: num(r.cbm) } : null;
     })
     .filter((x): x is NonNullable<typeof x> => x !== null);
 
@@ -127,13 +127,13 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
     () => supplierLegs.filter((l) => (Number(rows[l.id]?.units) || 0) > 0),
     [supplierLegs, rows],
   );
-  const destinations = [...new Set(selectedRows.map((l) => l.receiving_warehouse ?? '—'))];
+  const destinations = [...new Set(selectedRows.map((l) => l.receivingWarehouse ?? '—'))];
   const modesSel = [...new Set(selectedRows.map((l) => l.mode ?? '—'))];
   const consignmentConflict = selectedRows.length > 1 && (destinations.length > 1 || modesSel.length > 1);
 
   function resetForm() { setSupplierId(''); setCourierId(''); setRows({}); setWarning(null); setBookingDate(new Date().toISOString().slice(0, 10)); }
 
-  // "Book Now" on the PO masters table lands here with ?new=<supplier_id> —
+  // "Book Now" on the PO masters table lands here with ?new=<supplierId> —
   // open the create dialog with that supplier preselected.
   useEffect(() => {
     if (!initialNewSupplier) return;
@@ -147,11 +147,11 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
     if (!effectiveSupplierId || selected.length === 0) { toast.error('Pick a supplier and enter units on at least one PO'); return; }
     if (consignmentConflict) { toast.error('Multiple POs can be booked together only when they share one destination and one mode.'); return; }
     setSubmitting(true);
-    const res = await createMainlineBooking({ supplier_id: effectiveSupplierId, courier_id: courierId || null, booking_date: bookingDate || undefined, po_legs: selected, force_overbook: force });
+    const res = await createMainlineBooking({ supplierId: effectiveSupplierId, courierId: courierId || null, booking_date: bookingDate || undefined, poLegs: selected, force_overbook: force });
     setSubmitting(false);
     if (res?.overbook_warning) { setWarning(res); return; }
     if (res?.error) { toast.error(res.error); return; }
-    toast.success(`Booking ${res.booking_number} created (${selected.length} PO${selected.length === 1 ? '' : 's'})`);
+    toast.success(`Booking ${res.bookingNumber} created (${selected.length} PO${selected.length === 1 ? '' : 's'})`);
     setOpen(false); resetForm(); router.refresh();
   }
   async function approve(id: string) {
@@ -172,16 +172,16 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
   }
 
   const columns: DataColumn<MainlineBooking>[] = [
-    { key: 'booking_number', label: 'Booking #', accessor: (b) => b.booking_number, render: (b) => <Link href={`/mainline/bookings/${b.id}`} className="text-primary hover:underline font-medium">{b.booking_number}</Link> },
-    { key: 'supplier', label: 'Supplier', accessor: (b) => b.supplier_name ?? b.supplier_id, render: (b) => <span className="text-muted-foreground">{b.supplier_name ?? b.supplier_id ?? '—'}</span> },
+    { key: 'bookingNumber', label: 'Booking #', accessor: (b) => b.bookingNumber, render: (b) => <Link href={`/mainline/bookings/${b.id}`} className="text-primary hover:underline font-medium">{b.bookingNumber}</Link> },
+    { key: 'supplier', label: 'Supplier', accessor: (b) => b.supplierName ?? b.supplierId, render: (b) => <span className="text-muted-foreground">{b.supplierName ?? b.supplierId ?? '—'}</span> },
     { key: 'season', label: 'Season', defaultVisible: false, accessor: (b) => b.season, render: (b) => <span className="text-muted-foreground">{b.season ?? '—'}</span> },
     { key: 'mode', label: 'Mode', accessor: (b) => b.mode, render: (b) => b.mode ?? '—' },
-    { key: 'legs', label: 'POs', sortable: false, accessor: (b) => b.po_legs.map((l) => l.po_number).join(', '), render: (b) => <span className="text-xs">{b.po_legs.map((l) => l.po_number).filter(Boolean).join(', ') || '—'}</span> },
-    { key: 'units', label: 'Units', align: 'right', defaultVisible: false, accessor: (b) => b.po_legs.reduce((a, l) => a + (Number(l.units) || 0), 0), render: (b) => b.po_legs.reduce((a, l) => a + (Number(l.units) || 0), 0).toLocaleString() },
-    { key: 'booked', label: 'Booked', accessor: (b) => b.submitted_at, render: (b) => <span className="text-muted-foreground">{b.submitted_at ? b.submitted_at.slice(0, 10) : '—'}</span> },
-    { key: 'approved', label: 'Approved', defaultVisible: false, accessor: (b) => b.approved_at, render: (b) => <span className="text-muted-foreground">{b.approved_at ? b.approved_at.slice(0, 10) : '—'}</span> },
-    { key: 'cargo_ready_date', label: 'Cargo Ready', accessor: (b) => b.cargo_ready_date, render: (b) => <span className="text-muted-foreground">{b.cargo_ready_date ?? '—'}</span> },
-    { key: 'booking_status', label: 'Status', accessor: (b) => b.booking_status, render: (b) => <Badge variant="outline" className={cn(STATUS_STYLES[b.booking_status || ''])}>{b.booking_status ?? '—'}</Badge> },
+    { key: 'legs', label: 'POs', sortable: false, accessor: (b) => b.poLegs.map((l) => l.poNumber).join(', '), render: (b) => <span className="text-xs">{b.poLegs.map((l) => l.poNumber).filter(Boolean).join(', ') || '—'}</span> },
+    { key: 'units', label: 'Units', align: 'right', defaultVisible: false, accessor: (b) => b.poLegs.reduce((a, l) => a + (Number(l.units) || 0), 0), render: (b) => b.poLegs.reduce((a, l) => a + (Number(l.units) || 0), 0).toLocaleString() },
+    { key: 'booked', label: 'Booked', accessor: (b) => b.submittedAt, render: (b) => <span className="text-muted-foreground">{b.submittedAt ? b.submittedAt.slice(0, 10) : '—'}</span> },
+    { key: 'approved', label: 'Approved', defaultVisible: false, accessor: (b) => b.approvedAt, render: (b) => <span className="text-muted-foreground">{b.approvedAt ? b.approvedAt.slice(0, 10) : '—'}</span> },
+    { key: 'cargoReadyDate', label: 'Cargo Ready', accessor: (b) => b.cargoReadyDate, render: (b) => <span className="text-muted-foreground">{b.cargoReadyDate ?? '—'}</span> },
+    { key: 'bookingStatus', label: 'Status', accessor: (b) => b.bookingStatus, render: (b) => <Badge variant="outline" className={cn(STATUS_STYLES[b.bookingStatus || ''])}>{b.bookingStatus ?? '—'}</Badge> },
     // Approve stays VISIBLE and goes DISABLED for a role that may not press it —
     // a vendor watching their own booking should still see that it is sitting on
     // an approval, which a hidden button doesn't say. Delete is HIDDEN instead:
@@ -189,7 +189,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
     // because a disabled Button carries `pointer-events-none` and would eat it.
     { key: 'actions', label: 'Actions', align: 'right', sortable: false, render: (b) => (
       <div className="space-x-2 whitespace-nowrap">
-        {b.booking_status === 'Booking Pending' && (
+        {b.bookingStatus === 'Booking Pending' && (
           <span title={canApprove ? undefined : APPROVE_DENIED_HINT} className="inline-block">
             <Button size="sm" variant="outline" disabled={!canApprove || busyId === b.id} onClick={() => setConfirmAction({ kind: 'approve', booking: b })}><Check className="h-4 w-4 mr-1" /> Approve</Button>
           </span>
@@ -216,7 +216,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
 
       <ConfirmDialog
         open={confirmAction !== null}
-        title={confirmAction?.kind === 'delete' ? `Delete booking ${confirmAction.booking.booking_number}?` : `Approve booking ${confirmAction?.booking.booking_number}?`}
+        title={confirmAction?.kind === 'delete' ? `Delete booking ${confirmAction.booking.bookingNumber}?` : `Approve booking ${confirmAction?.booking.bookingNumber}?`}
         description={confirmAction?.kind === 'delete'
           ? 'The booking and its linked shipments will be removed. This cannot be undone.'
           : 'Approving creates the shipment records for this booking (one per destination + mode) and hands them to logistics.'}
@@ -284,7 +284,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
                 <Input type="date" value={bookingDate} onChange={(e) => setBookingDate(e.target.value)} />
               </div>
             </div>
-            {selectedCarrier && selectedCarrier.provides_cost_invoices === false && (
+            {selectedCarrier && selectedCarrier.providesCostInvoices === false && (
               <p className="text-xs text-amber-600 dark:text-amber-400">
                 {/* explicit {' '} — this toolchain drops the literal space that follows
                     an expression, rendering "FedExdoes not invoice…" */}
@@ -327,22 +327,22 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
                         // rule is unexpressible rather than a surprise on Submit.
                         // The server guard stays the authority (a stale page can
                         // still POST); this only stops the wasted keystrokes.
-                        const unapproved = l.approval_status === 'Pending Approval' || l.approval_status === 'Rejected';
+                        const unapproved = l.approvalStatus === 'Pending Approval' || l.approvalStatus === 'Rejected';
                         return (
                           <TableRow key={l.id} className={cn('border-border', entered > 0 && 'bg-primary/5', unapproved && 'opacity-60')}>
                             <TableCell className="font-medium whitespace-nowrap">
                               <span className="inline-flex items-center gap-2">
-                                {l.po_number}
-                                {unapproved && <ApprovalBadge status={l.approval_status} />}
+                                {l.poNumber}
+                                {unapproved && <ApprovalBadge status={l.approvalStatus} />}
                               </span>
                             </TableCell>
                             <TableCell className="whitespace-nowrap">{l.mode ?? '—'}</TableCell>
-                            <TableCell className="text-muted-foreground whitespace-nowrap">{l.receiving_warehouse ?? '—'}</TableCell>
-                            <TableCell className="text-muted-foreground whitespace-nowrap">{l.allocation_channel ?? '—'}</TableCell>
+                            <TableCell className="text-muted-foreground whitespace-nowrap">{l.receivingWarehouse ?? '—'}</TableCell>
+                            <TableCell className="text-muted-foreground whitespace-nowrap">{l.allocationChannel ?? '—'}</TableCell>
                             <TableCell className="text-muted-foreground whitespace-nowrap">{l.crd ?? '—'}</TableCell>
                             <TableCell className="text-right tabular-nums whitespace-nowrap">
                               <span className="text-red-600">{remaining.toLocaleString()}</span>
-                              <span className="text-muted-foreground"> / {l.expected_qty.toLocaleString()}</span>
+                              <span className="text-muted-foreground"> / {l.expectedQty.toLocaleString()}</span>
                             </TableCell>
                             <TableCell className="text-right">
                               <Input type="number" min={0} disabled={unapproved}
@@ -373,7 +373,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
             {warning && (
               <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700 space-y-1">
                 <p className="font-medium">Overbooking warning</p>
-                {warning.warnings.map((w, i) => <p key={i}>{w.po_number}: {w.already_booked}+{w.requested} &gt; capacity {w.capacity}</p>)}
+                {warning.warnings.map((w, i) => <p key={i}>{w.poNumber}: {w.already_booked}+{w.requested} &gt; capacity {w.capacity}</p>)}
               </div>
             )}
           </div>

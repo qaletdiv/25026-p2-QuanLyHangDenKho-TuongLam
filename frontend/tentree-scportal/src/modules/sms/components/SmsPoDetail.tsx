@@ -37,14 +37,14 @@ export default function SmsPoDetail({ po }: { po: SmsPoDetailT }) {
   // carries item name + unit price (server-enriched — populated even for SKUs that
   // were shipped but never ordered on this PO). Fall back to the order line if the
   // server value is somehow absent. Variance rows first — that's what logistics needs.
-  const lineBySku = new Map(po.lines.map((l) => [l.sku_code, l]));
+  const lineBySku = new Map(po.lines.map((l) => [l.skuCode, l]));
   const skuRows = [...rec.by_sku]
     .map((s) => ({
       ...s,
-      item_name: s.item_name ?? lineBySku.get(s.sku_code)?.item_name ?? null,
-      unit_price: s.unit_price ?? lineBySku.get(s.sku_code)?.unit_price ?? null,
+      itemName: s.itemName ?? lineBySku.get(s.skuCode)?.itemName ?? null,
+      unitPrice: s.unitPrice ?? lineBySku.get(s.skuCode)?.unitPrice ?? null,
     }))
-    .sort((a, b) => Math.abs(b.variance) - Math.abs(a.variance) || a.sku_code.localeCompare(b.sku_code));
+    .sort((a, b) => Math.abs(b.variance) - Math.abs(a.variance) || a.skuCode.localeCompare(b.skuCode));
   const shownSkus = showAll ? skuRows : skuRows.slice(0, 15);
 
   return (
@@ -54,23 +54,23 @@ export default function SmsPoDetail({ po }: { po: SmsPoDetailT }) {
           <ArrowLeft className="w-4 h-4" /> SMS Purchase Orders
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">{po.po_number}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{po.poNumber}</h1>
           <Badge variant="outline" className={cn(FULFILLMENT_STYLES[po.fulfillment])}>{FULFILLMENT_LABELS[po.fulfillment]}</Badge>
-          {po.approval_status && <Badge variant="outline" className="text-muted-foreground">{po.approval_status}</Badge>}
+          {po.approvalStatus && <Badge variant="outline" className="text-muted-foreground">{po.approvalStatus}</Badge>}
         </div>
         <p className="text-sm text-muted-foreground mt-1">{po.supplier ?? DASH}</p>
       </div>
 
       <Card className="p-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Meta label="tentree PO" value={po.trn_number} />
+          <Meta label="tentree PO" value={po.trnNumber} />
           <Meta label="Season" value={po.season} />
           <Meta label="HOD (handover date)" value={po.hod} />
-          <Meta label="Expected Receive Date" value={po.expected_received_date} />
-          <Meta label="Ship Method" value={po.ship_method} />
+          <Meta label="Expected Receive Date" value={po.expectedReceivedDate} />
+          <Meta label="Ship Method" value={po.shipMethod} />
           <Meta label="Destination" value={facilityLabel(po.facility)} />
-          <Meta label="Channel" value={po.allocation_channel} />
-          <Meta label="NetSuite ID" value={po.netsuite_id} />
+          <Meta label="Channel" value={po.allocationChannel} />
+          <Meta label="NetSuite ID" value={po.netsuiteId} />
         </div>
       </Card>
 
@@ -101,20 +101,20 @@ export default function SmsPoDetail({ po }: { po: SmsPoDetailT }) {
               {po.consignments.length === 0 ? (
                 <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Not shipped yet — the vendor enters shipments under SMS Shipments.</TableCell></TableRow>
               ) : po.consignments.map((c) => (
-                <TableRow key={`${c.shipment_id}-${c.lot_number}`} className="border-border hover:bg-muted/30">
-                  <TableCell className="font-medium">Lot {c.lot_number}</TableCell>
+                <TableRow key={`${c.shipmentId}-${c.lotNumber}`} className="border-border hover:bg-muted/30">
+                  <TableCell className="font-medium">Lot {c.lotNumber}</TableCell>
                   <TableCell>
-                    <Link href={`/sms/shipments/${c.shipment_id}`} className="text-primary hover:underline">{c.tracking_number || `Shipment ${c.shipment_id}`}</Link>
+                    <Link href={`/sms/shipments/${c.shipmentId}`} className="text-primary hover:underline">{c.trackingNumber || `Shipment ${c.shipmentId}`}</Link>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{c.ship_date ?? DASH}</TableCell>
+                  <TableCell className="text-muted-foreground">{c.shipDate ?? DASH}</TableCell>
                   <TableCell className="text-right tabular-nums">{c.units.toLocaleString()}</TableCell>
                   <TableCell className="text-right tabular-nums">{c.cartons ?? DASH}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className={cn(SMS_STATUS_STYLES[c.status || ''])}>{c.status ?? DASH}</Badge>
-                    {c.status_source === 'manual' && <span className="ml-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/70">manual</span>}
+                    {c.statusSource === 'manual' && <span className="ml-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/70">manual</span>}
                     {/* Received = an Item Receipt exists in NetSuite for this lot */}
-                    {c.status_source === 'netsuite' && c.received_date && (
-                      <span className="ml-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/70">{c.received_date}</span>
+                    {c.statusSource === 'netsuite' && c.receivedDate && (
+                      <span className="ml-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/70">{c.receivedDate}</span>
                     )}
                   </TableCell>
                 </TableRow>
@@ -128,7 +128,7 @@ export default function SmsPoDetail({ po }: { po: SmsPoDetailT }) {
       <section className="space-y-2">
         <h2 className="text-sm font-medium text-muted-foreground">
           Line items — ordered vs shipped vs received ({skuRows.length} SKUs)
-          {!rec.has_shipping_data && <span className="ml-2 text-xs text-muted-foreground/70">(shipped-per-SKU appears once shipping data is uploaded on the consignment)</span>}
+          {!rec.hasShippingData && <span className="ml-2 text-xs text-muted-foreground/70">(shipped-per-SKU appears once shipping data is uploaded on the consignment)</span>}
           {rec.shipped_vs_received_variance !== 0 && rec.received_total > 0 && (
             <span className="ml-2 text-red-600 font-semibold">shipped vs received variance: {rec.shipped_vs_received_variance.toLocaleString()}</span>
           )}
@@ -148,14 +148,14 @@ export default function SmsPoDetail({ po }: { po: SmsPoDetailT }) {
             </TableHeader>
             <TableBody>
               {shownSkus.map((s) => (
-                <TableRow key={s.sku_code} className={cn('border-border hover:bg-muted/30', s.variance !== 0 && s.received_qty > 0 && 'bg-amber-500/10')}>
-                  <TableCell className="font-mono text-xs">{s.sku_code}</TableCell>
-                  <TableCell>{s.item_name ?? DASH}</TableCell>
-                  <TableCell className="text-right tabular-nums">{s.unit_price != null ? `$${s.unit_price.toFixed(2)}` : DASH}</TableCell>
-                  <TableCell className="text-right tabular-nums">{s.ordered_qty.toLocaleString()}</TableCell>
-                  <TableCell className="text-right tabular-nums">{s.shipped_qty ? s.shipped_qty.toLocaleString() : '—'}</TableCell>
-                  <TableCell className="text-right tabular-nums">{s.received_qty.toLocaleString()}</TableCell>
-                  <TableCell className={cn('text-right tabular-nums', s.variance !== 0 && s.received_qty > 0 && 'text-red-600 font-semibold')}>
+                <TableRow key={s.skuCode} className={cn('border-border hover:bg-muted/30', s.variance !== 0 && s.receivedQty > 0 && 'bg-amber-500/10')}>
+                  <TableCell className="font-mono text-xs">{s.skuCode}</TableCell>
+                  <TableCell>{s.itemName ?? DASH}</TableCell>
+                  <TableCell className="text-right tabular-nums">{s.unitPrice != null ? `$${s.unitPrice.toFixed(2)}` : DASH}</TableCell>
+                  <TableCell className="text-right tabular-nums">{s.orderedQty.toLocaleString()}</TableCell>
+                  <TableCell className="text-right tabular-nums">{s.shippedQty ? s.shippedQty.toLocaleString() : '—'}</TableCell>
+                  <TableCell className="text-right tabular-nums">{s.receivedQty.toLocaleString()}</TableCell>
+                  <TableCell className={cn('text-right tabular-nums', s.variance !== 0 && s.receivedQty > 0 && 'text-red-600 font-semibold')}>
                     {s.variance === 0 ? '—' : s.variance.toLocaleString()}
                   </TableCell>
                 </TableRow>

@@ -8,7 +8,7 @@
  *      commercial_invoice (uploading shipment data sets this automatically,
  *      deleting it removes it), AND
  *   2. an estimated delivery date (E-DEL) exists on every shipment row in
- *      scope. Mainline rows carry `e_del`; SMS/courier rows use `eta` as their
+ *      scope. Mainline rows carry `eDel`; SMS/courier rows use `eta` as their
  *      delivery estimate, so either satisfies the requirement.
  *
  * The backend ASN endpoint enforces the same two conditions.
@@ -24,7 +24,7 @@ export interface AsnGateResult {
 }
 
 interface AsnRow {
-  e_del?: string | null;
+  eDel?: string | null;
   eta?: string | null;
   asn_sent?: boolean;
 }
@@ -42,7 +42,7 @@ interface AsnGateInput {
 
 /** Returns whether a row has an estimated delivery date (E-DEL, or ETA for SMS). */
 function hasEstimatedDelivery(row: AsnRow): boolean {
-  return Boolean(row.e_del || row.eta);
+  return Boolean(row.eDel || row.eta);
 }
 
 export function canSendAsn({ booking, rows }: AsnGateInput): AsnGateResult {

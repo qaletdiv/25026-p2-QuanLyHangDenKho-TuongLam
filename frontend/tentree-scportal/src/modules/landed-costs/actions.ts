@@ -61,10 +61,10 @@ export async function unpostLandedCost(id: string) {
 }
 
 // ─── Item Receipt match (confirm which IR a shipment's landed cost posts to) ──
-// Writes sms_item_receipts.matched_shipment_id via the SMS module (SMS owns it).
+// Writes sms_item_receipts.matchedShipmentId via the SMS module (SMS owns it).
 export async function confirmReceiptMatch(receiptId: string, shipmentId: string) {
   const res = await fetchApi(`/sms/receipts/${encodeURIComponent(receiptId)}/match`, {
-    method: 'POST', body: JSON.stringify({ shipment_id: shipmentId }),
+    method: 'POST', body: JSON.stringify({ shipmentId: shipmentId }),
   });
   if (res?.error) return { error: res.error as string };
   revalidateLandedCosts();
@@ -76,7 +76,7 @@ export async function confirmReceiptMatch(receiptId: string, shipmentId: string)
 // offers the next candidate, or the manual IR-# box when there is none.
 export async function rejectReceiptMatch(receiptId: string, shipmentId: string) {
   const res = await fetchApi(`/sms/receipts/${encodeURIComponent(receiptId)}/reject`, {
-    method: 'POST', body: JSON.stringify({ shipment_id: shipmentId }),
+    method: 'POST', body: JSON.stringify({ shipmentId: shipmentId }),
   });
   if (res?.error) return { error: res.error as string };
   revalidateLandedCosts();
@@ -94,7 +94,7 @@ export async function clearReceiptMatch(receiptId: string) {
 // when the auto-matcher found none. Backend resolves it (synced row or NetSuite lookup).
 export async function manualMatchReceipt(shipmentId: string, poNumber: string, irTranid: string) {
   const res = await fetchApi('/sms/receipts/manual-match', {
-    method: 'POST', body: JSON.stringify({ shipment_id: shipmentId, po_number: poNumber, ir_tranid: irTranid }),
+    method: 'POST', body: JSON.stringify({ shipmentId: shipmentId, poNumber: poNumber, ir_tranid: irTranid }),
   });
   if (res?.error) return { error: res.error as string };
   revalidateLandedCosts();
@@ -110,7 +110,7 @@ export async function getMainlineLandedCosts(): Promise<{ rows: MainlineLandedCo
 
 // Post ONE PO's landed cost on a shipment (posting is per PO — each PO → its own IR).
 export async function postMainlineLandedCost(shipmentId: string, poNumber: string) {
-  const res = await fetchApi(`/landed-costs/mainline/${encodeURIComponent(shipmentId)}/post`, { method: 'POST', body: JSON.stringify({ po_number: poNumber }) });
+  const res = await fetchApi(`/landed-costs/mainline/${encodeURIComponent(shipmentId)}/post`, { method: 'POST', body: JSON.stringify({ poNumber: poNumber }) });
   if (res?.error) return { error: res.error as string };
   revalidateLandedCosts();
   return res;
@@ -125,7 +125,7 @@ export async function previewMainlineNetsuite(shipmentId: string) {
 // IR match (mainline module owns the receipt table)
 export async function confirmMainlineReceiptMatch(receiptId: string, shipmentId: string) {
   const res = await fetchApi(`/mainline/receipts/${encodeURIComponent(receiptId)}/match`, {
-    method: 'POST', body: JSON.stringify({ shipment_id: shipmentId }),
+    method: 'POST', body: JSON.stringify({ shipmentId: shipmentId }),
   });
   if (res?.error) return { error: res.error as string };
   revalidateLandedCosts();
@@ -133,7 +133,7 @@ export async function confirmMainlineReceiptMatch(receiptId: string, shipmentId:
 }
 export async function rejectMainlineReceiptMatch(receiptId: string, shipmentId: string) {
   const res = await fetchApi(`/mainline/receipts/${encodeURIComponent(receiptId)}/reject`, {
-    method: 'POST', body: JSON.stringify({ shipment_id: shipmentId }),
+    method: 'POST', body: JSON.stringify({ shipmentId: shipmentId }),
   });
   if (res?.error) return { error: res.error as string };
   revalidateLandedCosts();
@@ -147,7 +147,7 @@ export async function clearMainlineReceiptMatch(receiptId: string) {
 }
 export async function manualMainlineReceiptMatch(shipmentId: string, poNumber: string, irTranid: string) {
   const res = await fetchApi('/mainline/receipts/manual-match', {
-    method: 'POST', body: JSON.stringify({ shipment_id: shipmentId, po_number: poNumber, ir_tranid: irTranid }),
+    method: 'POST', body: JSON.stringify({ shipmentId: shipmentId, poNumber: poNumber, ir_tranid: irTranid }),
   });
   if (res?.error) return { error: res.error as string };
   revalidateLandedCosts();

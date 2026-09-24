@@ -33,18 +33,18 @@ export default function LinesTable({
   const [editing, setEditing] = useState<InvoiceLine | null>(null);
 
   const counts = useMemo(() => ({
-    attention: lines.filter(l => l.coding_status !== 'coded').length,
-    variance: lines.filter(l => l.verdict !== 'ok' && l.verdict !== 'no_contract_rate').length,
+    attention: lines.filter(l => l.codingStatus !== 'coded').length,
+    variance: lines.filter(l => l.verdict !== 'ok' && l.verdict !== 'noContractRate').length,
     all: lines.length,
   }), [lines]);
 
   const rows = useMemo(() => {
-    const base = filter === 'attention' ? lines.filter(l => l.coding_status !== 'coded')
-      : filter === 'variance' ? lines.filter(l => l.verdict !== 'ok' && l.verdict !== 'no_contract_rate')
+    const base = filter === 'attention' ? lines.filter(l => l.codingStatus !== 'coded')
+      : filter === 'variance' ? lines.filter(l => l.verdict !== 'ok' && l.verdict !== 'noContractRate')
         : lines;
     const needle = q.trim().toLowerCase();
     const searched = needle
-      ? base.filter(l => [l.service, l.customer, l.client_ref_1, l.order, l.po_number, String(l.gl)]
+      ? base.filter(l => [l.service, l.customer, l.clientRef1, l.order, l.poNumber, String(l.gl)]
         .some(v => v && String(v).toLowerCase().includes(needle)))
       : base;
     return searched.slice(0, 400);
@@ -107,17 +107,17 @@ export default function LinesTable({
                   key={l.seq}
                   className={cn(
                     'border-b border-border last:border-0 hover:bg-muted/30',
-                    l.coding_status !== 'coded' && 'bg-amber-500/5',
+                    l.codingStatus !== 'coded' && 'bg-amber-500/5',
                   )}
                 >
                   <td className="px-3 py-2 font-mono text-xs text-muted-foreground">{l.seq}</td>
                   <td className="px-3 py-2">
                     <span className="font-medium">{l.service ?? '(blank)'}</span>
-                    {l.check_detail && (
-                      <span className="mt-0.5 block max-w-md text-xs text-muted-foreground">{l.check_detail}</span>
+                    {l.checkDetail && (
+                      <span className="mt-0.5 block max-w-md text-xs text-muted-foreground">{l.checkDetail}</span>
                     )}
-                    {l.coding_reason && (
-                      <span className="mt-0.5 block max-w-md text-xs text-amber-700 dark:text-amber-300">{l.coding_reason}</span>
+                    {l.codingReason && (
+                      <span className="mt-0.5 block max-w-md text-xs text-amber-700 dark:text-amber-300">{l.codingReason}</span>
                     )}
                   </td>
                   <td className="px-3 py-2 max-w-44 truncate text-xs text-muted-foreground" title={l.customer ?? ''}>
@@ -134,14 +134,14 @@ export default function LinesTable({
                   </td>
                   <td className="px-3 py-2 text-xs">
                     {l.class ?? <span className="text-red-600 dark:text-red-400">none</span>}
-                    {l.class && l.legend_class && l.class !== l.legend_class && (
+                    {l.class && l.legendClass && l.class !== l.legendClass && (
                       <span className="mt-0.5 block text-[11px] text-muted-foreground">
-                        legend said {l.legend_class}
+                        legend said {l.legendClass}
                       </span>
                     )}
                   </td>
                   <td className="px-3 py-2">
-                    <ConfidenceBadge basis={l.class_basis} confidence={l.class_confidence} />
+                    <ConfidenceBadge basis={l.classBasis} confidence={l.classConfidence} />
                   </td>
                   <td className="px-3 py-2"><VerdictBadge verdict={l.verdict} /></td>
                   {!readOnly && (
@@ -186,12 +186,12 @@ function OverrideDialog({
 }) {
   const [gl, setGl] = useState<string>(line.gl === null ? '' : String(line.gl));
   const [cls, setCls] = useState<string>(line.class ?? '');
-  const [note, setNote] = useState<string>(line.override_note ?? '');
+  const [note, setNote] = useState<string>(line.overrideNote ?? '');
   const [busy, setBusy] = useState(false);
 
   const glOptions = useMemo(() => {
     const seen = new Map<number, string>();
-    for (const c of chargeCodes) if (c.gl !== null && !seen.has(c.gl)) seen.set(c.gl, c.gl_desc ?? '');
+    for (const c of chargeCodes) if (c.gl !== null && !seen.has(c.gl)) seen.set(c.gl, c.glDesc ?? '');
     return [...seen.entries()].sort((a, b) => a[0] - b[0]);
   }, [chargeCodes]);
 
@@ -228,9 +228,9 @@ function OverrideDialog({
           <div className="rounded border border-border bg-muted/20 p-3 text-xs">
             <p><span className="text-muted-foreground">Charged</span> {usd(line.charges)} · <span className="text-muted-foreground">units</span> {num(line.units)}</p>
             {line.customer && <p className="mt-1"><span className="text-muted-foreground">Customer</span> {line.customer}</p>}
-            {line.client_ref_1 && <p className="mt-1"><span className="text-muted-foreground">Ref</span> {line.client_ref_1}</p>}
-            {line.coding_reason && <p className="mt-1 text-amber-700 dark:text-amber-300">{line.coding_reason}</p>}
-            {line.legend_note && <p className="mt-1 text-muted-foreground">Legend note: {line.legend_note}</p>}
+            {line.clientRef1 && <p className="mt-1"><span className="text-muted-foreground">Ref</span> {line.clientRef1}</p>}
+            {line.codingReason && <p className="mt-1 text-amber-700 dark:text-amber-300">{line.codingReason}</p>}
+            {line.legendNote && <p className="mt-1 text-muted-foreground">Legend note: {line.legendNote}</p>}
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">

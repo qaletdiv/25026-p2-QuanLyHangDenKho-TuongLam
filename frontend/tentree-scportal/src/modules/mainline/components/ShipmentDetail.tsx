@@ -48,7 +48,7 @@ function Cell({ label, children, hint }: { label: string; children: React.ReactN
 
 export default function ShipmentDetail({
   shipment: s, documents, asn, ports, containerTypes, couriers = [],
-}: { shipment: MainlineShipment; documents: MainlineDocument[]; asn: { file_url?: string } | null; ports: PortOption[]; containerTypes: ContainerTypeOption[]; couriers?: CourierOption[] }) {
+}: { shipment: MainlineShipment; documents: MainlineDocument[]; asn: { fileUrl?: string } | null; ports: PortOption[]; containerTypes: ContainerTypeOption[]; couriers?: CourierOption[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -65,9 +65,9 @@ export default function ShipmentDetail({
   // still come back; its message is written to be shown as-is.
   const isCancelled = s.status === 'Cancelled';
   const handover = [
-    s.cargo_received_date && `received at port ${s.cargo_received_date}`,
-    s.etd_pol && `ETD ${s.etd_pol}`,
-    s.bl_no && `BL ${s.bl_no}`,
+    s.cargoReceivedDate && `received at port ${s.cargoReceivedDate}`,
+    s.etdPol && `ETD ${s.etdPol}`,
+    s.blNo && `BL ${s.blNo}`,
   ].filter(Boolean) as string[];
   // POL = origin ports; POD (arrival) is one of the two NRI discharge ports only.
   const loadingPorts = ports.filter((p) => p.role !== 'discharge');
@@ -79,9 +79,9 @@ export default function ShipmentDetail({
   };
   // editable header-level fields — one edit covers every PO leg in this shipment
   const blank = {
-    status: s.status ?? '', bl_no: s.bl_no ?? '', courier_id: s.courier_id ?? '', carrier_reference: s.carrier_reference ?? '', customs_entry_number: s.customs_entry_number ?? '', container_type_id: s.container_type_id ?? '',
-    pol_port_id: s.pol_port_id ?? '', pod_port_id: s.pod_port_id ?? (FACILITY_POD[s.facility_id ?? ''] ?? ''),
-    cargo_received_date: s.cargo_received_date ?? '', etd_pol: s.etd_pol ?? '', eta_pod: s.eta_pod ?? '', e_del: s.e_del ?? '',
+    status: s.status ?? '', blNo: s.blNo ?? '', courierId: s.courierId ?? '', carrierReference: s.carrierReference ?? '', customsEntryNumber: s.customsEntryNumber ?? '', containerTypeId: s.containerTypeId ?? '',
+    polPortId: s.polPortId ?? '', podPortId: s.podPortId ?? (FACILITY_POD[s.facilityId ?? ''] ?? ''),
+    cargoReceivedDate: s.cargoReceivedDate ?? '', etdPol: s.etdPol ?? '', etaPod: s.etaPod ?? '', eDel: s.eDel ?? '',
     ata: s.ata ?? '',   // actual receipt date — manual entry
     freight: s.freight != null ? String(s.freight) : '',   // total landed-cost freight/duty
     duty: s.duty != null ? String(s.duty) : '',
@@ -92,30 +92,30 @@ export default function ShipmentDetail({
   // Landed-cost BASIS follows the carrier currently selected in the form (not the
   // saved one), so switching to FedEx immediately hides the freight/duty inputs
   // rather than letting the user type values the server will reject.
-  const selectedCourier = couriers.find((c) => c.id === form.courier_id) || null;
-  const isEstimateBasis = !!selectedCourier && selectedCourier.provides_cost_invoices === false;
+  const selectedCourier = couriers.find((c) => c.id === form.courierId) || null;
+  const isEstimateBasis = !!selectedCourier && selectedCourier.providesCostInvoices === false;
 
-  const legIds = useMemo(() => new Set(s.legs.map((l) => l.leg_id)), [s.legs]);
-  const shipmentDocs = documents.filter((d) => d.leg_id === null || legIds.has(d.leg_id as string));
+  const legIds = useMemo(() => new Set(s.legs.map((l) => l.legId)), [s.legs]);
+  const shipmentDocs = documents.filter((d) => d.legId === null || legIds.has(d.legId as string));
   const portLabel = (p: PortOption) => (p.code ? `${p.name} (${p.code})` : p.name);
 
   async function save() {
     setBusy(true);
     const res = await updateMainlineShipment(s.id, {
       status: form.status || undefined,
-      bl_no: form.bl_no || null,
-      courier_id: form.courier_id || null,
-      carrier_reference: form.carrier_reference || null,
-      customs_entry_number: form.customs_entry_number || null,
-      container_type_id: form.container_type_id || null,
-      pol_port_id: form.pol_port_id || null,
-      pod_port_id: form.pod_port_id || null,
-      cargo_received_date: form.cargo_received_date || null,
-      etd_pol: form.etd_pol || null,
-      eta_pod: form.eta_pod || null,
-      e_del: form.e_del || null,
+      blNo: form.blNo || null,
+      courierId: form.courierId || null,
+      carrierReference: form.carrierReference || null,
+      customsEntryNumber: form.customsEntryNumber || null,
+      containerTypeId: form.containerTypeId || null,
+      polPortId: form.polPortId || null,
+      podPortId: form.podPortId || null,
+      cargoReceivedDate: form.cargoReceivedDate || null,
+      etdPol: form.etdPol || null,
+      etaPod: form.etaPod || null,
+      eDel: form.eDel || null,
       // ATA is derived from NetSuite Item Receipts when present — don't overwrite it
-      ata: s.ata_source === 'netsuite' ? undefined : (form.ata || null),
+      ata: s.ataSource === 'netsuite' ? undefined : (form.ata || null),
       // Omitted entirely on an estimate-basis carrier: the server refuses typed
       // amounts there (they would contradict the derived CI × rate figure), and
       // sending even a null would be asserting something about a field we don't own.
@@ -137,7 +137,7 @@ export default function ShipmentDetail({
     setBusy(false);
     setConfirm(null);
     if (res?.error) { toast.error(res.error); return; }
-    toast.success(`${s.shipment_number} cancelled — the booking still holds these units, so re-approving it issues a new consignment`);
+    toast.success(`${s.shipmentNumber} cancelled — the booking still holds these units, so re-approving it issues a new consignment`);
     router.refresh();
   }
 
@@ -146,7 +146,7 @@ export default function ShipmentDetail({
     const res = await deleteMainlineShipment(s.id);
     setBusy(false);
     if (res?.error) { toast.error(res.error); setConfirm(null); return; }
-    toast.success(`${s.shipment_number} deleted`);
+    toast.success(`${s.shipmentNumber} deleted`);
     router.push('/mainline/shipments');
   }
 
@@ -165,7 +165,7 @@ export default function ShipmentDetail({
   );
   // label rendered directly in the trigger — base-ui <SelectValue> shows the raw id
   // when the value is set programmatically (see CLAUDE.md Radix/base-ui Select gotcha).
-  const portSelect = (k: 'pol_port_id' | 'pod_port_id', options: PortOption[]) => {
+  const portSelect = (k: 'polPortId' | 'podPortId', options: PortOption[]) => {
     const sel = options.find((p) => p.id === form[k]);
     return (
       <Select value={form[k] || NONE} onValueChange={(v) => setF(k, v === NONE ? '' : (v ?? ''))}>
@@ -184,11 +184,11 @@ export default function ShipmentDetail({
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{s.shipment_number}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">{s.shipmentNumber}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {asn?.file_url && <a href={docHref(asn.file_url)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline text-sm"><Download className="h-3.5 w-3.5" /> Latest ASN</a>}
-            <Button size="sm" variant="outline" disabled={busy || !s.e_del} title={s.e_del ? 'Generate ASN' : 'Needs an estimated delivery date (E-DEL)'} onClick={genAsn}>
+            {asn?.fileUrl && <a href={docHref(asn.fileUrl)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline text-sm"><Download className="h-3.5 w-3.5" /> Latest ASN</a>}
+            <Button size="sm" variant="outline" disabled={busy || !s.eDel} title={s.eDel ? 'Generate ASN' : 'Needs an estimated delivery date (E-DEL)'} onClick={genAsn}>
               <FileText className="h-4 w-4 mr-1" /> {asn ? 'Regenerate ASN' : 'Generate ASN'}
             </Button>
             {editing ? (
@@ -226,7 +226,7 @@ export default function ShipmentDetail({
 
       <ConfirmDialog
         open={confirm === 'cancel'}
-        title={`Cancel ${s.shipment_number}?`}
+        title={`Cancel ${s.shipmentNumber}?`}
         description="The consignment is called off, but its booking keeps authorizing these units — re-approving the booking issues a new one. Cancelled consignments can then be deleted."
         confirmLabel="Cancel consignment"
         busy={busy}
@@ -235,7 +235,7 @@ export default function ShipmentDetail({
       />
       <ConfirmDialog
         open={confirm === 'delete'}
-        title={`Delete ${s.shipment_number}?`}
+        title={`Delete ${s.shipmentNumber}?`}
         description="Its lot rows, ASN and receipt-match rejections are removed and any item receipts are unlinked (never deleted). The booking's commercial invoice and packing data are untouched. This cannot be undone."
         confirmLabel="Delete"
         destructive
@@ -251,8 +251,8 @@ export default function ShipmentDetail({
           {/* line 1 — booking + status + carrier + its reference */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <Cell label="Booking">
-              {s.booking_id
-                ? <Link href={`/mainline/bookings/${s.booking_id}`} className="text-primary hover:underline">{s.booking_number ?? 'view booking'}</Link>
+              {s.bookingId
+                ? <Link href={`/mainline/bookings/${s.bookingId}`} className="text-primary hover:underline">{s.bookingNumber ?? 'view booking'}</Link>
                 : '—'}
             </Cell>
             <Cell label="Status">
@@ -268,11 +268,11 @@ export default function ShipmentDetail({
                 actual off their invoices or an estimate from the CI value. */}
             <Cell label="Carrier" hint={isEstimateBasis ? 'no separate freight & duty invoice — landed cost is estimated' : undefined}>
               {editing
-                ? <Select value={form.courier_id || NONE} onValueChange={(v) => setF('courier_id', v === NONE ? '' : (v ?? ''))}>
+                ? <Select value={form.courierId || NONE} onValueChange={(v) => setF('courierId', v === NONE ? '' : (v ?? ''))}>
                     {/* label rendered directly — see the Radix Select gotcha in CLAUDE.md */}
                     <SelectTrigger className="h-8">
-                      <span className={cn(!form.courier_id && 'text-muted-foreground')}>
-                        {couriers.find((c) => c.id === form.courier_id)?.name ?? '—'}
+                      <span className={cn(!form.courierId && 'text-muted-foreground')}>
+                        {couriers.find((c) => c.id === form.courierId)?.name ?? '—'}
                       </span>
                     </SelectTrigger>
                     <SelectContent>
@@ -286,27 +286,27 @@ export default function ShipmentDetail({
                 portal's own SHP-N in the header above. */}
             <Cell label="Carrier Ref #" hint="the carrier's own reference for this shipment">
               {editing
-                ? <Input className="h-8" placeholder="carrier reference" value={form.carrier_reference} onChange={(e) => setF('carrier_reference', e.target.value)} />
-                : (s.carrier_reference ?? '—')}
+                ? <Input className="h-8" placeholder="carrier reference" value={form.carrierReference} onChange={(e) => setF('carrierReference', e.target.value)} />
+                : (s.carrierReference ?? '—')}
             </Cell>
           </div>
           {/* line 2 — cargo identity */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Cell label="Supplier">{s.supplier_name ?? '—'}</Cell>
+            <Cell label="Supplier">{s.supplierName ?? '—'}</Cell>
             <Cell label="Mode">{s.mode ?? '—'}</Cell>
             <Cell label="Container Type">
               {editing
-                ? <Select value={form.container_type_id || NONE} onValueChange={(v) => setF('container_type_id', v === NONE ? '' : (v ?? ''))}>
+                ? <Select value={form.containerTypeId || NONE} onValueChange={(v) => setF('containerTypeId', v === NONE ? '' : (v ?? ''))}>
                     {/* label rendered directly — <SelectValue> shows the raw id (ct_lcl) for a programmatic value */}
-                    <SelectTrigger className="h-8"><span className={cn(!form.container_type_id && 'text-muted-foreground')}>{containerTypes.find((c) => c.id === form.container_type_id)?.name ?? '—'}</span></SelectTrigger>
+                    <SelectTrigger className="h-8"><span className={cn(!form.containerTypeId && 'text-muted-foreground')}>{containerTypes.find((c) => c.id === form.containerTypeId)?.name ?? '—'}</span></SelectTrigger>
                     <SelectContent><SelectItem value={NONE}>—</SelectItem>{containerTypes.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
                   </Select>
-                : (s.container_type ?? '—')}
+                : (s.containerType ?? '—')}
             </Cell>
             <Cell label="BL No.">
               {editing
-                ? <Input className="h-8" placeholder="Bill of lading #" value={form.bl_no} onChange={(e) => setF('bl_no', e.target.value)} />
-                : (s.bl_no ?? '—')}
+                ? <Input className="h-8" placeholder="Bill of lading #" value={form.blNo} onChange={(e) => setF('blNo', e.target.value)} />
+                : (s.blNo ?? '—')}
             </Cell>
           </div>
         </Card>
@@ -319,21 +319,21 @@ export default function ShipmentDetail({
           {/* route */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Cell label="COO">{s.coo.length ? s.coo.join(', ') : '—'}</Cell>
-            <Cell label="Departure Port (POL)">{editing ? portSelect('pol_port_id', loadingPorts) : (s.pol_port ?? '—')}</Cell>
-            <Cell label="Arrival Port (POD)" hint={editing ? 'NRI CA → Vancouver · NRI US → Los Angeles' : undefined}>{editing ? portSelect('pod_port_id', dischargePorts) : (s.pod_port ?? '—')}</Cell>
-            <Cell label="Destination">{s.destination_facility ?? '—'}</Cell>
+            <Cell label="Departure Port (POL)">{editing ? portSelect('polPortId', loadingPorts) : (s.polPort ?? '—')}</Cell>
+            <Cell label="Arrival Port (POD)" hint={editing ? 'NRI CA → Vancouver · NRI US → Los Angeles' : undefined}>{editing ? portSelect('podPortId', dischargePorts) : (s.podPort ?? '—')}</Cell>
+            <Cell label="Destination">{s.destinationFacility ?? '—'}</Cell>
           </div>
           {/* timeline — chronological order */}
           <div className="border-t border-border pt-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Cell label="CRD">{s.crd ?? '—'}</Cell>
-              <Cell label="Received at Port">{editing ? dateInput('cargo_received_date') : (s.cargo_received_date ?? '—')}</Cell>
-              <Cell label="ETD POL">{editing ? dateInput('etd_pol') : (s.etd_pol ?? '—')}</Cell>
-              <Cell label="ETA POD">{editing ? dateInput('eta_pod') : (s.eta_pod ?? '—')}</Cell>
-              <Cell label="E-DEL">{editing ? dateInput('e_del') : (s.e_del ?? '—')}</Cell>
-              <Cell label="Expected ATA" hint="derived = E-DEL + 5">{s.expected_ata ?? '—'}</Cell>
-              <Cell label="ATA" hint={s.ata_source === 'netsuite' ? 'from NetSuite Item Receipt' : 'actual — received in system'}>
-                {s.ata_source === 'netsuite' ? (s.ata ?? '—') : (editing ? dateInput('ata') : (s.ata ?? '—'))}
+              <Cell label="Received at Port">{editing ? dateInput('cargoReceivedDate') : (s.cargoReceivedDate ?? '—')}</Cell>
+              <Cell label="ETD POL">{editing ? dateInput('etdPol') : (s.etdPol ?? '—')}</Cell>
+              <Cell label="ETA POD">{editing ? dateInput('etaPod') : (s.etaPod ?? '—')}</Cell>
+              <Cell label="E-DEL">{editing ? dateInput('eDel') : (s.eDel ?? '—')}</Cell>
+              <Cell label="Expected ATA" hint="derived = E-DEL + 5">{s.expectedAta ?? '—'}</Cell>
+              <Cell label="ATA" hint={s.ataSource === 'netsuite' ? 'from NetSuite Item Receipt' : 'actual — received in system'}>
+                {s.ataSource === 'netsuite' ? (s.ata ?? '—') : (editing ? dateInput('ata') : (s.ata ?? '—'))}
               </Cell>
             </div>
           </div>
@@ -378,8 +378,8 @@ export default function ShipmentDetail({
             </Cell>
             <Cell label="Entry Number">
               {editing
-                ? <Input className="h-8" placeholder="Customs entry #" value={form.customs_entry_number} onChange={(e) => setF('customs_entry_number', e.target.value)} />
-                : (s.customs_entry_number ?? '—')}
+                ? <Input className="h-8" placeholder="Customs entry #" value={form.customsEntryNumber} onChange={(e) => setF('customsEntryNumber', e.target.value)} />
+                : (s.customsEntryNumber ?? '—')}
             </Cell>
           </div>
         </Card>
@@ -400,28 +400,28 @@ export default function ShipmentDetail({
             </TableHeader>
             <TableBody>
               {s.legs.map((l) => (
-                <TableRow key={l.leg_id} className="border-border hover:bg-muted/30">
+                <TableRow key={l.legId} className="border-border hover:bg-muted/30">
                   <TableCell className="font-medium">
-                    {l.po_number && l.trn_number
-                      ? <Link href={`/mainline/purchase-orders/${encodeURIComponent(l.trn_number)}/${l.leg_id}`} className="text-primary hover:underline">{l.po_number}</Link>
-                      : (l.po_number ?? `#${l.leg_id}`)}
+                    {l.poNumber && l.trnNumber
+                      ? <Link href={`/mainline/purchase-orders/${encodeURIComponent(l.trnNumber)}/${l.legId}`} className="text-primary hover:underline">{l.poNumber}</Link>
+                      : (l.poNumber ?? `#${l.legId}`)}
                   </TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">{l.netsuite_id ?? '—'}</TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">{l.netsuiteId ?? '—'}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {l.trn_number ? <Link href={`/mainline/purchase-orders/${l.trn_number}`} className="text-primary hover:underline">{l.trn_number}</Link> : '—'}
+                    {l.trnNumber ? <Link href={`/mainline/purchase-orders/${l.trnNumber}`} className="text-primary hover:underline">{l.trnNumber}</Link> : '—'}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{l.allocation_channel ?? '—'}</TableCell>
+                  <TableCell className="text-muted-foreground">{l.allocationChannel ?? '—'}</TableCell>
                   <TableCell className="text-muted-foreground">{l.crd ?? '—'}</TableCell>
                   <TableCell className="text-right tabular-nums">{l.cartons != null ? l.cartons.toLocaleString() : '—'}</TableCell>
-                  <TableCell className="text-right tabular-nums">{(l.expected_quantity ?? 0).toLocaleString()}</TableCell>
-                  <TableCell className="text-right tabular-nums">{l.invoice_value != null ? `$${l.invoice_value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}</TableCell>
+                  <TableCell className="text-right tabular-nums">{(l.expectedQuantity ?? 0).toLocaleString()}</TableCell>
+                  <TableCell className="text-right tabular-nums">{l.invoiceValue != null ? `$${l.invoiceValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}</TableCell>
                 </TableRow>
               ))}
               <TableRow className="bg-card/80 font-medium border-border">
                 <TableCell colSpan={5}>Total ({s.legs.length} PO{s.legs.length === 1 ? '' : 's'})</TableCell>
                 <TableCell className="text-right tabular-nums">{s.legs.reduce((a, l) => a + (l.cartons ?? 0), 0).toLocaleString()}</TableCell>
-                <TableCell className="text-right tabular-nums">{s.total_expected_quantity.toLocaleString()}</TableCell>
-                <TableCell className="text-right tabular-nums">{(() => { const t = s.legs.reduce((a, l) => a + (l.invoice_value ?? 0), 0); return t ? `$${t.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'; })()}</TableCell>
+                <TableCell className="text-right tabular-nums">{s.totalExpectedQuantity.toLocaleString()}</TableCell>
+                <TableCell className="text-right tabular-nums">{(() => { const t = s.legs.reduce((a, l) => a + (l.invoiceValue ?? 0), 0); return t ? `$${t.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'; })()}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -439,9 +439,9 @@ export default function ShipmentDetail({
               {[...new Set(shipmentDocs.map((d) => d.scope))].sort((a, b) => (a.startsWith('Combined') ? -1 : b.startsWith('Combined') ? 1 : a.localeCompare(b))).map((scope) => (
                 <div key={scope} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                   <span className="w-full sm:w-44 shrink-0 text-muted-foreground">{scope}</span>
-                  {shipmentDocs.filter((d) => d.scope === scope).sort((a) => (a.doc_type === 'commercial_invoice' ? -1 : 1)).map((d) => (
+                  {shipmentDocs.filter((d) => d.scope === scope).sort((a) => (a.docType === 'commercial_invoice' ? -1 : 1)).map((d) => (
                     <a key={d.id} href={generatedDocHref('mainline', d.id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
-                      <Download className="h-3.5 w-3.5" /> {d.doc_type === 'commercial_invoice' ? 'Commercial Invoice' : 'Packing Slip'}
+                      <Download className="h-3.5 w-3.5" /> {d.docType === 'commercial_invoice' ? 'Commercial Invoice' : 'Packing Slip'}
                     </a>
                   ))}
                 </div>

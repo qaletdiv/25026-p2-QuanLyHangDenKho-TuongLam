@@ -59,7 +59,7 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
   useEffect(() => { setSeason((cur) => (cur === 'all' && seasonOptions.length ? seasonOptions[0] : cur)); }, [seasonOptions]);
 
   const sorted = useMemo(
-    () => [...shipments].sort((a, b) => (a.shipment_number || '').localeCompare(b.shipment_number || '', undefined, { numeric: true })),
+    () => [...shipments].sort((a, b) => (a.shipmentNumber || '').localeCompare(b.shipmentNumber || '', undefined, { numeric: true })),
     [shipments],
   );
 
@@ -68,7 +68,7 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
     const q = search.trim().toLowerCase();
     if (!q) return scoped;
     return scoped.filter((s) =>
-      [s.shipment_number, s.booking_number, s.supplier_name, s.destination_facility, s.bl_no, s.carrier_reference, ...s.po_numbers]
+      [s.shipmentNumber, s.bookingNumber, s.supplierName, s.destinationFacility, s.blNo, s.carrierReference, ...s.poNumbers]
         .some((v) => (v || '').toLowerCase().includes(q)),
     );
   }, [sorted, search, season, scope]);
@@ -93,9 +93,9 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
     if (draft === undefined) return;                       // never edited this cell
     const next = draft.trim();
     const dropDraft = () => setCarrierRefEdits((p) => { const n = { ...p }; delete n[sh.id]; return n; });
-    if (next === (sh.carrier_reference ?? '')) { dropDraft(); return; }   // unchanged
+    if (next === (sh.carrierReference ?? '')) { dropDraft(); return; }   // unchanged
     setBusyId(sh.id);
-    const res = await updateMainlineShipment(sh.id, { carrier_reference: next || null });
+    const res = await updateMainlineShipment(sh.id, { carrierReference: next || null });
     setBusyId(null);
     if (res?.error) { toast.error(res.error); return; }    // keep the draft so the edit isn't lost
     dropDraft();
@@ -105,38 +105,38 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
 
   const columns: ShipColumn[] = [
     { key: 'shipment', label: 'Shipment', render: (s) => (
-      <Link href={`/mainline/shipments/${s.id}`} className="text-primary hover:underline font-medium" onClick={(e) => e.stopPropagation()}>{s.shipment_number}</Link>
+      <Link href={`/mainline/shipments/${s.id}`} className="text-primary hover:underline font-medium" onClick={(e) => e.stopPropagation()}>{s.shipmentNumber}</Link>
     ) },
-    { key: 'booking', label: 'Booking', render: (s) => s.booking_number
-      ? <Link href={`/mainline/bookings/${s.booking_id}`} className="text-primary hover:underline" onClick={(e) => e.stopPropagation()}>{s.booking_number}</Link>
+    { key: 'booking', label: 'Booking', render: (s) => s.bookingNumber
+      ? <Link href={`/mainline/bookings/${s.bookingId}`} className="text-primary hover:underline" onClick={(e) => e.stopPropagation()}>{s.bookingNumber}</Link>
       : '—' },
-    { key: 'supplier', label: 'Supplier', render: (s) => dim(s.supplier_name) },
-    { key: 'destination', label: 'Destination', render: (s) => s.destination_facility ?? '—' },
+    { key: 'supplier', label: 'Supplier', render: (s) => dim(s.supplierName) },
+    { key: 'destination', label: 'Destination', render: (s) => s.destinationFacility ?? '—' },
     { key: 'season', label: 'Season', defaultVisible: false, render: (s) => dim(s.season) },
     { key: 'mode', label: 'Mode', render: (s) => s.mode ?? '—' },
-    { key: 'container_type', label: 'Container', defaultVisible: false, render: (s) => dim(s.container_type) },
-    { key: 'pos', label: 'POs', render: (s) => <span className="text-xs">{s.po_numbers.length} PO{s.po_numbers.length === 1 ? '' : 's'}: {s.po_numbers.join(', ') || '—'}</span> },
-    { key: 'total_qty', label: 'Total Qty', align: 'right', render: (s) => <span className="tabular-nums">{s.total_expected_quantity.toLocaleString()}</span> },
-    { key: 'bl_no', label: 'BL No', defaultVisible: false, render: (s) => dim(s.bl_no) },
+    { key: 'containerType', label: 'Container', defaultVisible: false, render: (s) => dim(s.containerType) },
+    { key: 'pos', label: 'POs', render: (s) => <span className="text-xs">{s.poNumbers.length} PO{s.poNumbers.length === 1 ? '' : 's'}: {s.poNumbers.join(', ') || '—'}</span> },
+    { key: 'total_qty', label: 'Total Qty', align: 'right', render: (s) => <span className="tabular-nums">{s.totalExpectedQuantity.toLocaleString()}</span> },
+    { key: 'blNo', label: 'BL No', defaultVisible: false, render: (s) => dim(s.blNo) },
     { key: 'courier', label: 'Carrier', render: (s) => dim(s.courier) },
-    { key: 'carrier_reference', label: 'Carrier Ref #', stopClick: true, render: (s) => (
+    { key: 'carrierReference', label: 'Carrier Ref #', stopClick: true, render: (s) => (
       <Input
         className="h-8 w-40"
         placeholder="—"
-        value={carrierRefEdits[s.id] ?? (s.carrier_reference ?? '')}
+        value={carrierRefEdits[s.id] ?? (s.carrierReference ?? '')}
         disabled={busyId === s.id}
         onChange={(e) => setCarrierRefEdits((p) => ({ ...p, [s.id]: e.target.value }))}
         onBlur={() => saveCarrierRef(s)}
         onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
       />
     ) },
-    { key: 'pol_port', label: 'POL', defaultVisible: false, render: (s) => dim(s.pol_port) },
-    { key: 'pod_port', label: 'POD', defaultVisible: false, render: (s) => dim(s.pod_port) },
+    { key: 'polPort', label: 'POL', defaultVisible: false, render: (s) => dim(s.polPort) },
+    { key: 'podPort', label: 'POD', defaultVisible: false, render: (s) => dim(s.podPort) },
     { key: 'coo', label: 'COO', defaultVisible: false, render: (s) => dim(s.coo.join(', ')) },
     { key: 'crd', label: 'CRD', defaultVisible: false, render: (s) => dim(s.crd) },
-    { key: 'etd_pol', label: 'ETD POL', defaultVisible: false, render: (s) => dim(s.etd_pol) },
-    { key: 'eta_pod', label: 'ETA POD', defaultVisible: false, render: (s) => dim(s.eta_pod) },
-    { key: 'e_del', label: 'E-DEL', render: (s) => dim(s.e_del) },
+    { key: 'etdPol', label: 'ETD POL', defaultVisible: false, render: (s) => dim(s.etdPol) },
+    { key: 'etaPod', label: 'ETA POD', defaultVisible: false, render: (s) => dim(s.etaPod) },
+    { key: 'eDel', label: 'E-DEL', render: (s) => dim(s.eDel) },
     { key: 'ata', label: 'ATA', defaultVisible: false, render: (s) => dim(s.ata) },
     { key: 'status', label: 'Status', stopClick: true, render: (s) => (
       <Select value={s.status ?? undefined} onValueChange={(v) => v && changeStatus(s.id, v)} disabled={busyId === s.id}>
@@ -240,12 +240,12 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
                       The target columns are resolved from `visibleCols`, so hiding or
                       reordering via the Column picker carries the detail with it. */}
                   {isOpen && s.legs.map((l) => (
-                    <TableRow key={`${s.id}-${l.leg_id}`} className="bg-muted/20 hover:bg-muted/20 border-border/50">
+                    <TableRow key={`${s.id}-${l.legId}`} className="bg-muted/20 hover:bg-muted/20 border-border/50">
                       <TableCell />
                       {visibleCols.map((c) => (
                         <TableCell key={c.key} className={cn('py-1.5 text-sm', c.align === 'right' && 'text-right')}>
-                          {c.key === poColKey && <span className="text-muted-foreground">{l.po_number ?? `#${l.leg_id}`}</span>}
-                          {c.key === qtyColKey && <span className="tabular-nums text-muted-foreground">{(l.expected_quantity ?? 0).toLocaleString()}</span>}
+                          {c.key === poColKey && <span className="text-muted-foreground">{l.poNumber ?? `#${l.legId}`}</span>}
+                          {c.key === qtyColKey && <span className="tabular-nums text-muted-foreground">{(l.expectedQuantity ?? 0).toLocaleString()}</span>}
                         </TableCell>
                       ))}
                     </TableRow>

@@ -23,7 +23,7 @@ export default function NotificationBell() {
   const [unread, setUnread] = useState(0);
 
   const load = useCallback(async () => {
-    try { const r = await getNotifications(); setItems(r.notifications); setUnread(r.unread_count); } catch { /* ignore */ }
+    try { const r = await getNotifications(); setItems(r.notifications); setUnread(r.unreadCount); } catch { /* ignore */ }
   }, []);
 
   useEffect(() => {
