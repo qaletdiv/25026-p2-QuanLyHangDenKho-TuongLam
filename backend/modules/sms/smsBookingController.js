@@ -22,6 +22,8 @@ const M = require('./SmsModels');
 const svc = require('./smsBookingService');
 const { resolveVendorSupplierId } = require('../../utils/vendorScope');
 
+const { notifyChange } = require('../notifications/emailNotifier');
+
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
 
 const STATUS = {
@@ -262,6 +264,14 @@ async function update(req, res) {
   if (junctions !== c.bookingPos) await M.bookingPos.write(junctions);
 
   const c2 = await _ctx();
+  await notifyChange({
+    module: 'sms', entity: 'sms_booking', entityId: booking.id,
+    ref: booking.bookingNumber || booking.id,
+    before: booking, after: next,
+    supplierId: booking.supplierId || null,
+    actor: req.user, link: `/sms/bookings/${booking.id}`,
+  });
+
   res.json(_enrichOne(c2.bookings.find((b) => b.id === booking.id), c2));
 }
 
@@ -347,6 +357,19 @@ async function approve(req, res) {
   await M.shipmentPos.write([...c.shipmentPos, ...newJunctions]);
   await M.bookings.write(bookings);
 
+  await notifyChange({
+    module: 'sms', entity: 'sms_booking', entityId: booking.id,
+    ref: booking.bookingNumber || booking.id,
+    statusFrom: statusName, statusTo: 'Booking Approved',
+    supplierId: booking.supplierId || null,
+    actor: req.user, link: `/sms/bookings/${booking.id}`,
+    // The draft consignments are the actionable part of an approval — they are
+    // what the shipper puts a tracking number on.
+    context: newShipments.length
+      ? [{ label: 'Draft consignments created', value: newShipments.map((s) => s.id).join(', ') }]
+      : undefined,
+  });
+
   const c2 = await _ctx();
   res.status(201).json({
     booking: _enrichOne(c2.bookings.find((b) => b.id === booking.id), c2),
@@ -366,6 +389,14 @@ async function reject(req, res) {
   const bookings = [...c.bookings];
   bookings[idx] = { ...bookings[idx], bookingStatusId: STATUS.rejected };
   await M.bookings.write(bookings);
+
+  await notifyChange({
+    module: 'sms', entity: 'sms_booking', entityId: bookings[idx].id,
+    ref: bookings[idx].bookingNumber || bookings[idx].id,
+    statusFrom: statusName, statusTo: 'Rejected',
+    supplierId: bookings[idx].supplierId || null,
+    actor: req.user, link: `/sms/bookings/${bookings[idx].id}`,
+  });
 
   const c2 = await _ctx();
   res.json(_enrichOne(c2.bookings.find((b) => b.id === req.params.id), c2));
@@ -403,6 +434,21 @@ async function cancel(req, res) {
     await M.shipmentPos.write(c.shipmentPos.filter((j) => !draftIds.has(j.shipmentId)));
   }
   await M.bookings.write(bookings);
+
+  // ONE email for the booking, not one per deleted draft. The drafts had no
+  // tracking number — nothing had shipped — so they are an implementation detail
+  // of the cancel, not separate events anyone was tracking.
+  await notifyChange({
+    module: 'sms', entity: 'sms_booking', entityId: booking.id,
+    ref: booking.bookingNumber || booking.id,
+    action: 'has been CANCELLED',
+    context: [
+      { label: 'Status when cancelled', value: statusName },
+      ...(draftIds.size ? [{ label: 'Draft consignments removed', value: [...draftIds].join(', ') }] : []),
+    ],
+    supplierId: booking.supplierId || null,
+    actor: req.user, link: `/sms/bookings/${booking.id}`,
+  });
 
   const c2 = await _ctx();
   res.json({

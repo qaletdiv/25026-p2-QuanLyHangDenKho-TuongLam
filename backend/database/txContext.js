@@ -38,6 +38,46 @@ function currentTransaction() {
 }
 
 /**
+ * Register work to run ONLY IF THIS REQUEST'S WRITE ACTUALLY COMMITS.
+ *
+ * ⚠️ THIS IS WHY NOTIFICATION EMAIL IS NOT SENT FROM THE HANDLER. A handler runs
+ * inside the transaction, so at the moment it would call send() the write has
+ * not landed yet — and this file can still roll it back afterwards for three
+ * different reasons: a later guard throws, the response is a 4xx/5xx, or the
+ * COMMIT itself fails and becomes a 500. An email is not transactional; once it
+ * is gone it cannot be recalled. Sending from the handler therefore mails people
+ * about bookings that were never saved, and there is no way to take it back.
+ *
+ * Callbacks run AFTER a successful commit and AFTER the response has been
+ * flushed, so a slow SMTP host cannot delay the save the user is waiting on.
+ * They must not throw; a rejection is logged and the others still run.
+ *
+ * No-op outside a write request (reads have no transaction) — a caller in that
+ * position gets `false` back and can decide to act immediately instead.
+ *
+ * @returns {boolean} true if the callback was registered.
+ */
+function onCommitted(fn) {
+    const ctx = storage.getStore();
+    if (!ctx || ctx.settled) return false;
+    (ctx.afterCommit = ctx.afterCommit || []).push(fn);
+    return true;
+}
+
+/** Run the registered after-commit callbacks. Never rejects. */
+async function runAfterCommit(ctx) {
+    const hooks = ctx.afterCommit || [];
+    ctx.afterCommit = [];
+    for (const fn of hooks) {
+        try {
+            await fn();
+        } catch (err) {
+            console.error('[db] after-commit hook failed:', err && err.message);
+        }
+    }
+}
+
+/**
  * Query options carrying the ambient transaction, for database/modelStore.js.
  * Returns {} outside a transaction, which is what a read wants.
  */
@@ -67,6 +107,7 @@ async function withTransaction(fn) {
         const result = await storage.run(ctx, () => fn(transaction));
         ctx.settled = true;
         await transaction.commit();
+        await runAfterCommit(ctx);
         return result;
     } catch (err) {
         ctx.settled = true;
@@ -90,8 +131,12 @@ function transactionMiddleware(req, res, next) {
 
         // Settle once, whichever happens first: the response ending, or the
         // client hanging up mid-request.
+        // Returns { err, committed }. `committed` is what the after-commit hooks
+        // key on, and it is NOT the same as "no error": a 4xx rolls back
+        // successfully, which is an err of null and a committed of false. An
+        // email keyed on the error alone would go out for every refused request.
         const settle = async () => {
-            if (ctx.settled) return null;
+            if (ctx.settled) return { err: null, committed: false };
             ctx.settled = true;
             // A 4xx/5xx means a guard refused the request or a handler threw.
             // Some controllers write before validating something else, so the
@@ -99,12 +144,12 @@ function transactionMiddleware(req, res, next) {
             const commit = res.statusCode < 400;
             try {
                 await (commit ? transaction.commit() : transaction.rollback());
-                return null;
+                return { err: null, committed: commit };
             } catch (err) {
                 if (commit) {
                     try { await transaction.rollback(); } catch (_) { /* gone */ }
                 }
-                return err;
+                return { err, committed: false };
             }
         };
 
@@ -117,8 +162,15 @@ function transactionMiddleware(req, res, next) {
         const originalEnd = res.end.bind(res);
         res.end = function patchedEnd(...args) {
             if (ctx.settled) return originalEnd(...args);
-            settle().then((err) => {
-                if (!err) return originalEnd(...args);
+            settle().then(({ err, committed }) => {
+                if (!err) {
+                    const ended = originalEnd(...args);
+                    // AFTER the response is flushed, so a slow SMTP host delays
+                    // nothing the user is waiting on, and only when the write
+                    // genuinely landed.
+                    if (committed) runAfterCommit(ctx);
+                    return ended;
+                }
                 console.error('[db] COMMIT failed, rolled back:', err.message);
                 if (res.headersSent) return originalEnd(...args);
                 // Discard the handler's body — it describes a write that did not
@@ -143,6 +195,7 @@ module.exports = {
     currentTransaction,
     txOptions,
     withTransaction,
+    onCommitted,
     transactionMiddleware,
     storage,
 };

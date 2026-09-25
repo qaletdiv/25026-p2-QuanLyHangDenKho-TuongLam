@@ -17,8 +17,25 @@ const status = require('./smsService');
 const { receivedByShipment } = require('./receiptMatch');
 const { resolveVendorSupplierId } = require('../../utils/vendorScope');
 const { shipmentVisibilityFn, vendorScopeFor } = require('./vendorAccess');
+const { notifyChange } = require('../notifications/emailNotifier');
 
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
+
+// The supplier a consignment belongs to, for vendor-scoped mail. An SMS box may
+// legitimately carry several suppliers' POs (there is no same-supplier guard on
+// this module), and in that case the answer is NULL — the same `every` rule
+// vendorAccess applies to reads. Mailing a mixed box to one of its suppliers
+// would leak the other's PO numbers into their inbox.
+function _supplierOfShipment(shipmentId, c) {
+  const sids = [...new Set(c.shipmentPos
+    .filter((j) => j.shipmentId === shipmentId)
+    .map((j) => (c.poByNumber.get(j.poNumber) || {}).supplierId || null))];
+  return sids.length === 1 ? sids[0] : null;
+}
+
+// PO numbers in the box — the only handle an SMS recipient has on what moved.
+const _poRefs = (shipmentId, c) => [...new Set(c.shipmentPos
+  .filter((j) => j.shipmentId === shipmentId).map((j) => j.poNumber))].join(', ');
 
 // Vendor scoping lives in utils/vendorScope (one copy, was four). Write paths use
 // the default onUnlinked:'throw' — a vendor with no supplier link gets a 403.
@@ -312,9 +329,25 @@ async function update(req, res) {
   }
 
   const shipments = [...c.shipments];
+  const before = c.shipments[idx];
   shipments[idx] = next;
   await M.shipments.write(shipments);
   if (junctions !== c.shipmentPos) await M.shipmentPos.write(junctions);
+
+  // Only the HAND-SET status is reportable here. The consignment's real status is
+  // derived per read from the latest courier scan (smsService.deriveStatus), and a
+  // scan arriving from the FedEx poll is not something this request did — it would
+  // be reported as an edit somebody made, which is a lie about who acted.
+  const statusNameOf = (id) => (c.smsStatuses.find((s) => s.id === id) || {}).name || null;
+  await notifyChange({
+    module: 'sms', entity: 'sms_shipment', entityId: next.id,
+    ref: next.trackingNumber || next.id,
+    before, after: next,
+    statusFrom: statusNameOf(before.manualStatusId), statusTo: statusNameOf(next.manualStatusId),
+    supplierId: _supplierOfShipment(next.id, c),
+    actor: req.user, link: `/sms/shipments/${next.id}`,
+    context: [{ label: 'POs', value: _poRefs(next.id, c) || '—' }],
+  });
 
   const c2 = await _ctx();
   res.json(_enrich(c2.shipments.find((s) => s.id === next.id), c2));
@@ -428,6 +461,16 @@ async function cancel(req, res) {
   const shipments = [...c.shipments];
   shipments[idx] = { ...s, manualStatusId: 'sms_cancelled' };
   await M.shipments.write(shipments);
+
+  await notifyChange({
+    module: 'sms', entity: 'sms_shipment', entityId: s.id,
+    ref: s.trackingNumber || s.id,
+    action: 'has been CANCELLED',
+    context: [{ label: 'POs', value: _poRefs(s.id, c) || '—' }],
+    supplierId: _supplierOfShipment(s.id, c),
+    actor: req.user, link: `/sms/shipments/${s.id}`,
+  });
+
   const c2 = await _ctx();
   res.json(_enrich(c2.shipments.find((x) => x.id === s.id), c2));
 }

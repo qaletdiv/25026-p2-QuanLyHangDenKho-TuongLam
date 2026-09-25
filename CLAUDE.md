@@ -581,6 +581,80 @@ downloaded document, for two different reasons, and the distinction is the point
 - **Frontend:** top-bar bell (`components/layout/NotificationBell.tsx`) — polls 60s
   for the badge, popover lists items with entity links, opening marks-seen.
 
+### Notification EMAIL — the one thing this portal cannot derive (2026-09-25)
+
+Sent when a booking, shipment or Item-Receipt match is SAVED
+(`modules/notifications/{emailNotifier,emailEvents,emailRecipients}.js` +
+`services/emailService.js`).
+
+- **⚠️ THIS IS AN EVENT, AND THAT IS WHY IT BREAKS THE "DERIVED, NEVER STORED"
+  RULE.** Everything above is computed from current state — "a booking IS
+  pending" — and vanishes when the condition resolves. "A shipment WAS updated"
+  is a fact about the PAST: it has no representation in the present, so it cannot
+  be derived. The data layer offers no help either — `timestamps: false` is
+  global and deliberate, no transactional table has an `updatedAt`, and every
+  write is a whole-table replace, so even adding one would restamp every row on
+  every write. **The only moment before and after both exist is inside the
+  controller**, which is why the hooks live there and nowhere else.
+- **⚠️ SENT AFTER COMMIT, NEVER FROM THE HANDLER** —
+  `txContext.onCommitted(fn)`, added for this. A handler runs INSIDE the
+  transaction and `transactionMiddleware` rolls back on any 4xx/5xx, so mail sent
+  from a handler announces writes that never landed — and an email cannot be
+  recalled. `settle()` therefore returns `{err, committed}`: `committed` is NOT
+  the same as "no error", because a 4xx rolls back *successfully*. Hooks run
+  after `res.end`, so a free-tier SMTP host never delays a save. Verified: a
+  guarded 400 writes nothing and mails nothing.
+- **ONE SAVE = ONE EMAIL.** The request boundary IS the batch, so there is no
+  queue, no cron and no debounce. A form saving 5 fields sends one message;
+  booking-approve spawning 3 consignments sends one and names them;
+  `bulkStatus` over 10 shipments sends **one**, not ten (N near-identical
+  messages is exactly what gets a sender filtered). A batch passes `noun: ''`
+  and the plural `action`, or the subject reads "Shipment 3 consignments IS now".
+- **Subject shape** (Lam): a status move NAMES THE NEW STATE ("Shipment SHP-5 is
+  now In Transit"); a field edit only says it moved ("Shipment SHP-5 updated —
+  1 change") with the from → to table in the body. Both in one save ⇒ status
+  wins the subject, fields still listed.
+- **CURATED FIELDS ONLY** (`FIELD_SPECS`). Deliberately absent, so they are not
+  "fixed" back in: `netsuiteId`/`netsuiteIrId` (fires on every re-sync),
+  `submittedAt`/`approvedAt` (always move WITH the status change already being
+  reported), `overbooked` (derived), `_seq`. `normalize()` is load-bearing —
+  `null` vs `''`, `5` vs `"5.00"`, `'2026-05-06'` vs a full ISO stamp are the
+  same edit arriving from two different places, and without it every save would
+  report phantom changes.
+- **⚠️ `ROLE_EMAIL_RULES` IS A SEPARATE MATRIX FROM `ROLE_RULES`, ON PURPOSE.**
+  The bell is a free-to-show state list; email is a push that costs attention and
+  cannot be recalled. The clearest case is **Freight Forwarder**, who sees only
+  `leg_unbooked_past_crd` on the bell but is emailed on booking AND shipment
+  events across BOTH modules (Lam, 2026-09-25) — they physically act on a moved
+  date. Production gets status moves only; Vendors are supplier-scoped; receipts
+  go to Admin/Logistics alone. **The actor is never mailed** (by user id, not
+  email — two accounts can share a mailbox).
+- **A mixed-supplier record scopes to NOBODY.** An SMS box spanning suppliers, or
+  a bulk batch spanning them, passes `supplierId: null` so no vendor is mailed —
+  the same `every` rule `vendorAccess` applies to reads. One vendor must never
+  receive another's PO or shipment numbers.
+- **Transport is free by construction.** nodemailer (MIT-0) over whatever
+  `SMTP_HOST` names — Gmail App Password, Brevo free tier, M365. **With no
+  `SMTP_HOST` set nothing is sent: messages are written as `.eml` to
+  `storage/outbox/` (gitignored).** That is the default and it is safe to leave —
+  the feature is reviewable with no credentials and no spend. `EMAIL_NOTIFICATIONS=off`
+  is the kill switch. ⚠️ Port 587 is STARTTLS and `SMTP_SECURE` must stay false;
+  `secure:true` there makes the handshake HANG rather than fail, which reads as
+  "email is slow" instead of a config error.
+- **⚠️ NOTHING IN THIS PATH THROWS.** A notification failing is not the write
+  failing — `send()` and `notifyChange()` always resolve, and outcomes land in
+  `email_notifications` (`sent`/`outbox`/`skipped`/`failed` + the error text).
+- **`email_notifications` is the one append-only table here**: no FKs (a log must
+  outlive the booking it describes), recipients stored as the addresses actually
+  mailed, written with `.create()` NOT `.write()`. It has **no `_seq`** because it
+  is not on the whole-table array contract — `database/verify.js` skips models
+  without one and says so.
+- Verified: field edit → "updated" + the field; no-op save, uncurated-only save
+  and a refused 400 all send nothing; status move names the state; bulk of 3 →
+  one message reading "3 consignments are now In Transit"; SMS carries its PO
+  context line; actor excluded; vendor mail correct for its own supplier and
+  empty for another's; all 61 tables byte-identical afterwards.
+
 ## Landed Costs module (freight & duty — SMS; Post WRITES to live NetSuite)
 
 - **Additive & isolated:** `modules/landedcosts/*` (routes `/landed-costs`),

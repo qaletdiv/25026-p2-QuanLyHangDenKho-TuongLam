@@ -105,12 +105,24 @@ async function main() {
     }
 
     const report = [];
+    const skipped = [];
     let totalRows = 0;
     let checked = 0;
 
     for (const table of targets.sort()) {
         if (!models[table]) {
             report.push(`${table}: NO MODEL`);
+            continue;
+        }
+        // What this file verifies is the whole-table .read()/.write() contract,
+        // and `_seq` is that contract's row-order column. A table WITHOUT one is
+        // not part of it — email_notifications is append-only, keyed on its own
+        // id, written with .create() and never replaced wholesale — so there is
+        // no ordered array to compare and rawRead's ORDER BY "_seq" would simply
+        // error. Skipping is correct here; a MISSING _seq on a table that should
+        // have one still shows up, as the "NO MODEL"/diff it really is.
+        if (!models[table].rawAttributes[SEQ]) {
+            skipped.push(table);
             continue;
         }
         const [raw, orm] = await Promise.all([rawRead(table), store.readAll(models[table])]);
@@ -120,6 +132,7 @@ async function main() {
     }
 
     console.log(`compared ${checked} tables, ${totalRows.toLocaleString()} rows`);
+    if (skipped.length) console.log(`skipped ${skipped.length} (not on the read/write array contract — no _seq): ${skipped.join(', ')}`);
 
     if (report.length) {
         console.error(`\n${report.length} DIFFERENCE(S):`);

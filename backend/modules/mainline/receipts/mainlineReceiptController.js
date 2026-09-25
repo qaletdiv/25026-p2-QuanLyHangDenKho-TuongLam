@@ -11,7 +11,37 @@ const { models } = require('../../../models');
 const shipmentLegs = models.mainline_shipment_legs;
 const legs = models.mainline_po_legs;
 
+const { notifyChange } = require('../../notifications/emailNotifier');
+
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
+
+// Report a change of Item-Receipt ATTRIBUTION — the decision that makes a
+// consignment Received, and therefore postable to NetSuite. It is money-adjacent,
+// which is why it is mailed at all.
+//
+// Deliberately NOT called from `unrejectMatch`: removing a rejection asserts
+// nothing, it just lets the matcher offer that candidate again. The email goes
+// out when someone actually says yes or no.
+async function _notifyMatch(req, r, shipmentId, action) {
+  const [shipments, bookings] = await Promise.all([
+    models.mainline_shipments.read().catch(() => []),
+    models.mainline_bookings.read().catch(() => []),
+  ]);
+  const ship = shipments.find((s) => s.id === shipmentId);
+  const booking = ship ? bookings.find((b) => b.id === ship.bookingId) : null;
+  await notifyChange({
+    module: 'mainline', entity: 'mainline_receipt', entityId: r.id,
+    ref: r.netsuiteIrTranid || r.netsuiteIrId || r.id,
+    action: `${action} ${ship ? (ship.shipmentNumber || shipmentId) : shipmentId}`,
+    context: [
+      { label: 'PO', value: r.poNumber || '—' },
+      { label: 'Receipt date', value: r.receiptDate ? String(r.receiptDate).slice(0, 10) : '—' },
+    ],
+    supplierId: booking ? booking.supplierId || null : null,
+    actor: req.user,
+    link: ship ? `/mainline/shipments/${ship.id}` : null,
+  });
+}
 
 // The set of poNumbers a shipment carries (via its legs).
 async function _shipmentPos(shipmentId) {
@@ -51,6 +81,7 @@ async function setMatch(req, res) {
   const rejections = await models.mainline_receipt_match_rejections.read().catch(() => []);
   const kept = withoutRejection(rejections, r.id, shipmentId);
   if (kept.length !== rejections.length) await models.mainline_receipt_match_rejections.write(kept);
+  await _notifyMatch(req, r, shipmentId, 'was CONFIRMED against');
   res.json(r);
 }
 
@@ -77,6 +108,7 @@ async function rejectMatch(req, res) {
       rejectedBy: req.user?.id || null, rejectedAt: new Date().toISOString() });
     await models.mainline_receipt_match_rejections.write(rejections);
   }
+  await _notifyMatch(req, r, shipmentId, 'was REJECTED as the receipt for');
   res.json({ receiptId: r.id, shipmentId, rejected: true });
 }
 
@@ -95,8 +127,12 @@ async function clearMatch(req, res) {
   const receipts = await models.mainline_item_receipts.read();
   const r = receipts.find((x) => x.id === req.params.id);
   if (!r) err('Item receipt not found', 404);
+  // read the link before it is nulled — otherwise the email cannot say what the
+  // receipt was detached FROM, which is the only useful part of the message
+  const was = r.matchedShipmentId;
   r.matchedShipmentId = null; r.confirmedBy = null; r.confirmedAt = null;
   await models.mainline_item_receipts.write(receipts);
+  if (was) await _notifyMatch(req, r, was, 'was UNMATCHED from');
   res.json(r);
 }
 
@@ -128,6 +164,7 @@ async function manualMatch(req, res) {
   const rejections = await models.mainline_receipt_match_rejections.read().catch(() => []);
   const kept = withoutRejection(rejections, r.id, shipmentId);
   if (kept.length !== rejections.length) await models.mainline_receipt_match_rejections.write(kept);
+  await _notifyMatch(req, r, shipmentId, 'was MANUALLY MATCHED to');
   res.json(r);
 }
 

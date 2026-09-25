@@ -11,7 +11,40 @@ const M = require('./SmsModels');
 const { resolveForShipment } = require('./receiptMatch');
 const { assertShipmentVisible } = require('./vendorAccess');
 
+const { notifyChange } = require('../notifications/emailNotifier');
+
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
+
+// Mirror of mainlineReceiptController._notifyMatch. Same rule: the email goes out
+// when someone ASSERTS or WITHDRAWS an attribution, not when a rejection is undone
+// (that asserts nothing — it only re-opens the candidate to the matcher).
+//
+// The supplier comes from the POs in the box and is NULL when the box spans more
+// than one — the same `every` rule vendorAccess applies to reads, so a mixed
+// consignment never puts one supplier's PO numbers in another supplier's inbox.
+async function _notifyMatch(req, r, shipmentId, action) {
+  const [shipments, junctions, pos] = await Promise.all([
+    M.shipments.read().catch(() => []),
+    M.shipmentPos.read().catch(() => []),
+    M.pos.read().catch(() => []),
+  ]);
+  const ship = shipments.find((x) => x.id === shipmentId);
+  const poBy = new Map(pos.map((x) => [x.poNumber, x]));
+  const sids = [...new Set(junctions.filter((j) => j.shipmentId === shipmentId)
+    .map((j) => (poBy.get(j.poNumber) || {}).supplierId || null))];
+  await notifyChange({
+    module: 'sms', entity: 'sms_receipt', entityId: r.id,
+    ref: r.netsuiteIrTranid || r.netsuiteIrId || r.id,
+    action: `${action} ${ship ? (ship.trackingNumber || shipmentId) : shipmentId}`,
+    context: [
+      { label: 'PO', value: r.poNumber || '—' },
+      { label: 'Receipt date', value: r.receiptDate ? String(r.receiptDate).slice(0, 10) : '—' },
+    ],
+    supplierId: sids.length === 1 ? sids[0] : null,
+    actor: req.user,
+    link: ship ? `/sms/shipments/${ship.id}` : null,
+  });
+}
 
 // Drop any rejection of this (receipt, shipment) pair — confirming the pair is the
 // opposite assertion, so the two can never both stand. Also the undo path: re-adding
@@ -53,6 +86,7 @@ async function setMatch(req, res) {
   await M.receipts.write(receipts);
   const kept = withoutRejection(rejections, r.id, shipmentId);
   if (kept.length !== rejections.length) await M.receiptRejections.write(kept);
+  await _notifyMatch(req, r, shipmentId, 'was CONFIRMED against');
   res.json(r);
 }
 
@@ -81,6 +115,7 @@ async function rejectMatch(req, res) {
       rejectedBy: req.user?.id || null, rejectedAt: new Date().toISOString() });
     await M.receiptRejections.write(rejections);
   }
+  await _notifyMatch(req, r, shipmentId, 'was REJECTED as the receipt for');
   res.json({ receiptId: r.id, shipmentId, rejected: true });
 }
 
@@ -132,6 +167,7 @@ async function manualMatch(req, res) {
   await M.receipts.write(receipts);
   const kept = withoutRejection(rejections, r.id, shipmentId);
   if (kept.length !== rejections.length) await M.receiptRejections.write(kept);
+  await _notifyMatch(req, r, shipmentId, 'was MANUALLY MATCHED to');
   res.json(r);
 }
 
@@ -140,10 +176,14 @@ async function clearMatch(req, res) {
   const receipts = await M.receipts.read();
   const r = receipts.find((x) => x.id === req.params.id);
   if (!r) err('Item receipt not found', 404);
+  // captured before it is nulled — the only useful part of the message is which
+  // consignment the receipt was detached FROM
+  const was = r.matchedShipmentId;
   r.matchedShipmentId = null;
   r.confirmedBy = null;
   r.confirmedAt = null;
   await M.receipts.write(receipts);
+  if (was) await _notifyMatch(req, r, was, 'was UNMATCHED from');
   res.json(r);
 }
 

@@ -21,8 +21,18 @@ const ItemReceiptModel = models.mainline_item_receipts;
 // same attribution the ATA and the landed-cost push use — one answer to "which IR
 // belongs to this consignment", per the note at the top of that file
 const { resolveMainlineReceipts } = require('../receipts/mainlineReceiptMatch');
+const { notifyChange } = require('../../notifications/emailNotifier');
 
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
+
+// A shipment carries no supplier of its own — it inherits the booking's. Needed
+// so a Vendor is mailed about their own consignments and nobody else's.
+async function _supplierOf(shipment) {
+  if (!shipment || !shipment.bookingId) return null;
+  const bookings = await models.mainline_bookings.read().catch(() => []);
+  const b = bookings.find((x) => x.id === shipment.bookingId);
+  return b ? b.supplierId || null : null;
+}
 
 // Journey chronology guard: whichever of these dates are filled must not go
 // backwards, else transit-time durations turn negative and poison lane averages.
@@ -235,8 +245,21 @@ async function update(req, res) {
     if (req.body[k] !== undefined) next[k] = req.body[k];
   }
   checkChronology(next);   // 400 before anything is written
+  const before = shipments[idx];
   shipments[idx] = next;
   await models.mainline_shipments.write(shipments);
+
+  // Queued for after the COMMIT — see emailNotifier. `wasStatus` was read before
+  // the status was reassigned above, so it is genuinely the prior state.
+  await notifyChange({
+    module: 'mainline', entity: 'mainline_shipment', entityId: next.id,
+    ref: next.shipmentNumber || next.id,
+    before, after: next,
+    statusFrom: wasStatus, statusTo: await status.nameForId(next.statusId),
+    supplierId: await _supplierOf(next),
+    actor: req.user, link: `/mainline/shipments/${next.id}`,
+  });
+
   const ctx = await _ctx();
   res.json((await _enrich([shipments[idx]], ctx))[0]);
 }
@@ -247,8 +270,48 @@ async function bulkStatus(req, res) {
   const statusId = await status.idForName(statusName);
   const idSet = new Set(ids);
   let updated = 0;
+  // Prior status per row, captured BEFORE the loop overwrites it — a bulk move
+  // is still one status change per consignment as far as a recipient is concerned.
+  const wasById = new Map();
+  for (const s of shipments) {
+    if (!idSet.has(s.id)) continue;
+    wasById.set(s.id, await status.nameForId(s.statusId));
+  }
   shipments.forEach((s) => { if (idSet.has(s.id)) { s.statusId = statusId; updated++; } });
   await models.mainline_shipments.write(shipments);
+
+  // ONE email for the batch, never one per row. This is a single action by a
+  // single person, and N near-identical messages is precisely the noise that
+  // gets a notification sender filtered — the same reason a booking cancel
+  // reports its cascaded consignments in the body instead of mailing each.
+  const touched = shipments.filter((s) => idSet.has(s.id));
+  if (touched.length) {
+    const suppliers = [...new Set(await Promise.all(touched.map(_supplierOf)))];
+    await notifyChange({
+      module: 'mainline', entity: 'mainline_shipment',
+      entityId: touched.map((s) => s.id).join(','),
+      ref: touched.length === 1
+        ? (touched[0].shipmentNumber || touched[0].id)
+        : `${touched.length} consignments`,
+      // Drop the "Shipment" prefix on a batch — "3 consignments" already says it.
+      noun: touched.length === 1 ? undefined : '',
+      // A single row gets the normal status treatment, with its prior state and a
+      // from → to row. A batch takes the PLURAL `action` phrasing instead: ten rows
+      // may have had ten different prior statuses, so there is no one "was", and
+      // the status template would read "3 consignments IS now In Transit".
+      ...(touched.length === 1
+        ? { statusFrom: wasById.get(touched[0].id), statusTo: statusName }
+        : { action: `are now ${statusName}` }),
+      // Mixed-supplier batch ⇒ no supplier ⇒ no vendor is mailed. Same rule the
+      // SMS side applies to a box carrying several suppliers' POs: one vendor
+      // must never receive another's shipment numbers.
+      supplierId: suppliers.length === 1 ? suppliers[0] : null,
+      actor: req.user, link: '/mainline/shipments',
+      context: touched.length > 1
+        ? [{ label: 'Consignments', value: touched.map((s) => s.shipmentNumber || s.id).join(', ') }]
+        : undefined,
+    });
+  }
   res.json({ updated });
 }
 
@@ -285,6 +348,18 @@ async function cancel(req, res) {
 
   shipments[idx] = { ...ship, statusId: await status.idForName('Cancelled') };
   await models.mainline_shipments.write(shipments);
+
+  // `action` rather than a status move: "cancelled" is the fact, and the state it
+  // was cancelled FROM is the part people ask about, so it rides in the context.
+  await notifyChange({
+    module: 'mainline', entity: 'mainline_shipment', entityId: ship.id,
+    ref: ship.shipmentNumber || ship.id,
+    action: 'has been CANCELLED',
+    context: [{ label: 'Status when cancelled', value: statusName || '—' }],
+    supplierId: await _supplierOf(ship),
+    actor: req.user, link: `/mainline/shipments/${ship.id}`,
+  });
+
   const ctx = await _ctx();
   res.json({
     ...(await _enrich([shipments[idx]], ctx))[0],

@@ -19,6 +19,7 @@ const { permissionsForRole } = require('../../../utils/rolePermissions');
 // The SHIPMENT's own cancel guards, reused so a booking-level cancel can never
 // override what the consignment itself would refuse.
 const lifecycle = require('../shipments/shipmentLifecycle');
+const { notifyChange } = require('../../notifications/emailNotifier');
 
 // Everything else that keys on a booking — cleared by `remove`, which otherwise
 // leaves rows pointing at a booking that is gone.
@@ -294,6 +295,10 @@ async function update(req, res) {
   if (vendorSid != null && String(booking.supplierId) !== String(vendorSid)) err('Booking not found', 404);
   const newStatusName = req.body.bookingStatus;
   const oldStatusName = await status.nameForId(booking.bookingStatusId);
+  // `booking` IS ctx.bookings[idx] and is mutated in place below, so the prior
+  // state has to be copied out here — a reference would diff against itself and
+  // report no changes at all.
+  const before = { ...booking };
 
   // A STATUS CHANGE HERE IS AN APPROVAL DECISION, so it takes `booking_approve` —
   // the same key POST /bookings/:id/approve is gated on at the route.
@@ -354,6 +359,21 @@ async function update(req, res) {
     createdShipments = await _approve(booking, ctx);
   }
   await models.mainline_bookings.write(ctx.bookings);
+
+  await notifyChange({
+    module: 'mainline', entity: 'mainline_booking', entityId: booking.id,
+    ref: booking.bookingNumber || booking.id,
+    before, after: booking,
+    statusFrom: oldStatusName, statusTo: newStatusName || oldStatusName,
+    supplierId: booking.supplierId || null,
+    actor: req.user, link: `/mainline/bookings/${booking.id}`,
+    // An approval that spawned consignments is the thing the forwarder is
+    // waiting for; saying so here saves them opening the booking to find out.
+    context: createdShipments.length
+      ? [{ label: 'Consignments created', value: createdShipments.map((s) => s.shipmentNumber || s.id).join(', ') }]
+      : undefined,
+  });
+
   const enriched = (await _enrich([booking], ctx))[0];
   res.json({ ...enriched, shipments_created: createdShipments.length });
 }
@@ -364,10 +384,23 @@ async function approve(req, res) {
   const idx = ctx.bookings.findIndex((b) => b.id === req.params.id);
   if (idx < 0) err('Booking not found', 404);
   const booking = ctx.bookings[idx];
+  const wasStatus = await status.nameForId(booking.bookingStatusId);
   booking.bookingStatusId = await status.idForName('Booking Approved');
   booking.approvedAt = booking.approvedAt || new Date().toISOString();
   const created = await _approve(booking, ctx);
   await models.mainline_bookings.write(ctx.bookings);
+
+  await notifyChange({
+    module: 'mainline', entity: 'mainline_booking', entityId: booking.id,
+    ref: booking.bookingNumber || booking.id,
+    statusFrom: wasStatus, statusTo: 'Booking Approved',
+    supplierId: booking.supplierId || null,
+    actor: req.user, link: `/mainline/bookings/${booking.id}`,
+    context: created.length
+      ? [{ label: 'Consignments created', value: created.map((s) => s.shipmentNumber || s.id).join(', ') }]
+      : undefined,
+  });
+
   res.json({ ...(await _enrich([booking], ctx))[0], shipments_created: created.length });
 }
 
@@ -384,6 +417,15 @@ async function reject(req, res) {
   }
   booking.bookingStatusId = await status.idForName('Rejected');
   await models.mainline_bookings.write(ctx.bookings);
+
+  await notifyChange({
+    module: 'mainline', entity: 'mainline_booking', entityId: booking.id,
+    ref: booking.bookingNumber || booking.id,
+    statusFrom: was, statusTo: 'Rejected',
+    supplierId: booking.supplierId || null,
+    actor: req.user, link: `/mainline/bookings/${booking.id}`,
+  });
+
   res.json(await _enrich([booking], ctx).then((r) => r[0]));
 }
 
@@ -431,6 +473,22 @@ async function cancel(req, res) {
       : s)));
   }
   await models.mainline_bookings.write(ctx.bookings);
+
+  // ONE email for the whole cascade, not one per cancelled consignment. The
+  // booking is what was decided; the consignments went with it, and naming them
+  // in the body says that more clearly than N separate messages would.
+  await notifyChange({
+    module: 'mainline', entity: 'mainline_booking', entityId: booking.id,
+    ref: booking.bookingNumber || booking.id,
+    action: 'has been CANCELLED',
+    context: [
+      { label: 'Status when cancelled', value: was },
+      ...(mine.length ? [{ label: 'Consignments cancelled with it', value: mine.map((s) => s.shipmentNumber || s.id).join(', ') }] : []),
+    ],
+    supplierId: booking.supplierId || null,
+    actor: req.user, link: `/mainline/bookings/${booking.id}`,
+  });
+
   res.json({
     ...(await _enrich([booking], ctx))[0],
     shipments_cancelled: mine.length,

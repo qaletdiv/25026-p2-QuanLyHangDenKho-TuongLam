@@ -48,6 +48,11 @@ next-env.d.ts
 backend/server.out.log
 backend/server.err.log
 
+# Notification email written to disk when no SMTP_HOST is configured. Real
+# messages about real consignments — recipients, PO numbers, dates — so they
+# never belong in the repo.
+backend/storage/outbox/
+
 # Next.js dev server logs (local only)
 frontend/tentree-scportal/dev.out.log
 frontend/tentree-scportal/dev.err.log
