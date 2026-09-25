@@ -121,6 +121,7 @@ export interface PoLegDetail {
   coo: string | null;
   approvalStatus?: PoApprovalStatus;   // NetSuite sign-off (badge on the leg detail)
   crd: string | null;
+  hod: string | null;                    // hand-over to the forwarder (custbody8); v2 only
   etdPol: string | null;
   eDel: string | null;
   expectedQty: number;
@@ -147,6 +148,7 @@ export interface PoLegRow {
   allocationChannel: string | null;    // Reserved / First
   coo: string | null;                    // country of origin
   crd: string | null;
+  hod: string | null;                    // hand-over to the forwarder (custbody8); v2 only
   etdPol: string | null;
   eDel: string | null;
   expectedQty: number;

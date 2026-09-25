@@ -138,6 +138,10 @@ async function getLegs(req, res) {
       allocationChannel:  chanName.get(order.allocationChannelId) || null,  // Reserved/First
       coo:                 order.cooCountry || null,
       crd:                 leg.crd || null,
+      // Hand-over date (NetSuite custbody8) — when the supplier hands the goods
+      // to the forwarder. v2 ONLY: the WIP sheet never carried it, so FW26 legs
+      // are null and the column renders blank there.
+      hod:                 leg.hod || null,
       etdPol:             leg.etdPol || null,
       eDel:               leg.eDel || null,
       expectedQty,
@@ -172,6 +176,7 @@ async function getLegs(req, res) {
       allocationChannel:  chanName.get(order.allocationChannelId) || null,
       coo:                 order.cooCountry || null,
       crd:                 null,
+      hod:                 null,
       etdPol:             null,
       eDel:               null,
       expectedQty:        lines.reduce((s, l) => s + (l.orderedQty || 0), 0),
@@ -369,6 +374,7 @@ async function getAllLegLines(req, res) {
       allocationChannel:  chanName.get(order.allocationChannelId) || null,
       // planned (leg / WIP)
       crd:                 leg.crd || null,
+      hod:                 leg.hod || null,   // custbody8 — v2 only
       eDel:               leg.eDel || null,
       etdPolPlanned:     leg.etdPol || null,
       // actual (shipment)
@@ -457,6 +463,7 @@ async function getLeg(req, res) {
     coo:                  order.cooCountry || null,
     approvalStatus:      order.approvalStatus || null,   // NS sign-off state (badge)
     crd:                  leg.crd || null,
+    hod:                  leg.hod || null,   // custbody8 — v2 only
     etdPol:              leg.etdPol || null,
     eDel:                leg.eDel || null,
     expectedQty:         line_items.reduce((s, l) => s + l.allocatedQty, 0),

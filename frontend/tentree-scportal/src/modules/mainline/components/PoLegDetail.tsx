@@ -145,6 +145,12 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
               later on live rows. These were once labelled "CRD (target)" and
               "CRD (actual)", which read as two measurements of one date. */}
           <Meta label="Cargo Ready" value={leg.crd} />
+          {/* HAND OVER (NetSuite custbody8) — the supplier hands the goods to the
+              forwarder. A THIRD distinct event, not a restatement of the two
+              above: it sits 7 days after Cargo Ready on live rows, and earlier
+              again than the shipment's "Received at Port". v2 (SS27+) only — the
+              WIP sheet never carried it, so FW26 legs show a dash. */}
+          <Meta label="Hand Over" value={leg.hod} />
           <Meta label="E-DEL" value={leg.eDel} />
         </div>
       </Card>

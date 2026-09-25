@@ -136,6 +136,10 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
     { key: 'allocationChannel', label: 'Channel', accessor: (l) => l.allocationChannel, render: (l) => <span className="text-muted-foreground">{l.allocationChannel ?? '—'}</span> },
     { key: 'incoterm', label: 'Incoterm', accessor: (l) => l.incoterm, render: (l) => <span className="text-muted-foreground">{l.incoterm ?? '—'}</span> },
     { key: 'crd', label: 'CRD', accessor: (l) => l.crd, render: (l) => <span className="text-muted-foreground">{l.crd ?? '—'}</span> },
+    // Hand-over date (NetSuite custbody8) — the supplier hands the goods to the
+    // forwarder. A DIFFERENT event from Cargo Ready: 7 days later on live rows.
+    // v2 only, so FW26 legs show '—'.
+    { key: 'hod', label: 'HOD', accessor: (l) => l.hod, render: (l) => <span className="text-muted-foreground">{l.hod ?? '—'}</span> },
     { key: 'etdPol', label: 'ETD POL', accessor: (l) => l.etdPol, render: (l) => <span className="text-muted-foreground">{l.etdPol ?? '—'}</span> },
     { key: 'eDel', label: 'E-DEL', defaultVisible: false, accessor: (l) => l.eDel, render: (l) => <span className="text-muted-foreground">{l.eDel ?? '—'}</span> },
     { key: 'expectedQty', label: 'Expected Qty', align: 'right', accessor: (l) => l.expectedQty, render: (l) => l.expectedQty.toLocaleString() },
