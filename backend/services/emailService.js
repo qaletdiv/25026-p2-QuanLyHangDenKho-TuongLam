@@ -42,6 +42,21 @@ function mode() {
   return process.env.SMTP_HOST ? 'smtp' : 'outbox';
 }
 
+/**
+ * ⚠️ THE SAFETY VALVE FOR ANY NON-PRODUCTION HOST. With `MAIL_REDIRECT_TO` set,
+ * every message goes THERE instead of to its real recipients, which are named in
+ * the subject and body instead.
+ *
+ * This is not a nicety. The recipient list is resolved from the live `users`
+ * table, and it contains real colleagues AND `ff1@ceva.com` — an EXTERNAL
+ * freight forwarder. So the moment real SMTP credentials land in a developer's
+ * .env, a single test edit mails a partner company about a shipment that did not
+ * change, with links to `localhost` they cannot open. There is no recall.
+ *
+ * Rule of thumb: if APP_URL is localhost, this should be set.
+ */
+const redirectTo = () => (process.env.MAIL_REDIRECT_TO || '').trim() || null;
+
 function fromAddress() {
   return process.env.MAIL_FROM || process.env.SMTP_USER || 'tentree Supply Chain Portal <no-reply@localhost>';
 }
@@ -67,6 +82,8 @@ function transport() {
   });
   return _transport;
 }
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 /** Filesystem-safe fragment of a subject, for the outbox filename. */
 const slug = (s) => String(s).replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 60).toLowerCase();
@@ -108,11 +125,23 @@ async function writeToOutbox({ to, subject, text, html }, stamp) {
  * @returns {Promise<{status:'sent'|'outbox'|'skipped'|'failed', detail:string|null}>}
  */
 async function send({ to, subject, text, html }) {
-  const recipients = [...new Set((to || []).filter(Boolean))];
-  if (!recipients.length) return { status: 'skipped', detail: 'no recipients' };
+  const intended = [...new Set((to || []).filter(Boolean))];
+  if (!intended.length) return { status: 'skipped', detail: 'no recipients' };
 
   const m = mode();
   if (m === 'off') return { status: 'skipped', detail: 'EMAIL_NOTIFICATIONS=off' };
+
+  // Swap the recipients BEFORE anything is composed or written, so the outbox
+  // path is redirected too and there is no branch where the real list escapes.
+  const via = redirectTo();
+  const recipients = via ? [via] : intended;
+  if (via) {
+    const list = intended.join(', ');
+    subject = `[REDIRECTED] ${subject}`;
+    text = `** Redirected: this would have gone to ${list} **\n\n${text}`;
+    html = `<p style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:13px;background:#fef3c7;border:1px solid #fcd34d;padding:8px 12px;border-radius:6px;margin:0 0 16px">
+      <strong>Redirected.</strong> On a production host this would have gone to: ${esc(list)}</p>${html}`;
+  }
 
   const stamp = new Date().toISOString();
   try {
@@ -123,7 +152,12 @@ async function send({ to, subject, text, html }) {
     const info = await transport().sendMail({
       from: fromAddress(), to: recipients.join(', '), subject, text, html,
     });
-    return { status: 'sent', detail: info.messageId || null };
+    return {
+      status: via ? 'redirected' : 'sent',
+      // The audit log must record who it WOULD have reached, or a redirected
+      // deployment looks like it notified people it never notified.
+      detail: via ? `-> ${via} (intended: ${intended.join(', ')})` : (info.messageId || null),
+    };
   } catch (err) {
     console.error(`[email] ${m} delivery failed for "${subject}":`, err.message);
     return { status: 'failed', detail: err.message };
@@ -137,11 +171,12 @@ async function send({ to, subject, text, html }) {
  */
 async function verify() {
   const m = mode();
-  if (m !== 'smtp') return { ok: true, mode: m, detail: m === 'off' ? 'notifications disabled' : `writing to ${path.relative(path.join(__dirname, '..'), OUTBOX_DIR)}` };
+  const via = redirectTo() ? `, ALL MAIL REDIRECTED TO ${redirectTo()}` : '';
+  if (m !== 'smtp') return { ok: true, mode: m, detail: (m === 'off' ? 'notifications disabled' : `writing to ${path.relative(path.join(__dirname, '..'), OUTBOX_DIR)}`) + via };
   try {
     await transport().verify();
     _verified = true;
-    return { ok: true, mode: 'smtp', detail: `${process.env.SMTP_HOST}:${process.env.SMTP_PORT || 587} as ${process.env.SMTP_USER || '(no auth)'}` };
+    return { ok: true, mode: 'smtp', detail: `${process.env.SMTP_HOST}:${process.env.SMTP_PORT || 587} as ${process.env.SMTP_USER || '(no auth)'}${via}` };
   } catch (err) {
     _verified = false;
     return { ok: false, mode: 'smtp', detail: err.message };
