@@ -177,7 +177,14 @@ function mapSuiteQLRow(row) {
         poNumber: row.tranid || '',
         supplier: row.supplier || '',
         etd: fmtDate(row.shipdate),      // ETD (Ship Date in NS)
-        etdPol: fmtDate(row.duedate),    // ETD POL (Due Date in NS)
+        // ⚠️ duedate is the EXPECTED RECEIVE DATE — when NetSuite expects the
+        // goods booked in. It was previously mislabelled `etdPol` (departure
+        // from port of loading), which is the opposite end of the journey. That
+        // was harmless only because the sync's etdPol never reached a leg
+        // (0/87 populated); under v2 it would have fed the transit segments
+        // backwards. E-DEL is DERIVED from this — see netsuiteSyncService.
+        expectedReceiveDate: fmtDate(row.duedate),
+        crd: fmtDate(row.crd),           // custbody46 — cargo ready date
         expectedQty: Number(row.total_qty) || '',
         mode: row.mode || '',   // custbody16 AS mode
         incoterm: row.incoterm || '',
@@ -290,6 +297,7 @@ function buildHeaderQuery(typeClause = '', statusClause = poStatusClause(null)) 
         BUILTIN.DF(agg.custbody_tt_po_type) AS type,
         BUILTIN.DF(agg.incoterm)            AS incoterm,
         agg.hod,
+        agg.crd,
         BUILTIN.DF(agg.approvalstatus)      AS approval_status,
         agg.total_qty
     FROM (
@@ -302,7 +310,8 @@ function buildHeaderQuery(typeClause = '', statusClause = poStatusClause(null)) 
             t.custbody7,
             t.custbody16,
             t.custbody_tentree_po AS trn_number,
-            t.custbody8           AS hod,
+            t.custbody8           AS hod,   -- hand-over date
+            t.custbody46          AS crd,   -- cargo ready date (v2 leg.crd)
             t.approvalstatus,
             MAX(l.name)           AS receiving_warehouse,
             t.custbody_tt_po_type,
@@ -322,6 +331,7 @@ function buildHeaderQuery(typeClause = '', statusClause = poStatusClause(null)) 
           ${typeClause}
         GROUP BY t.id, t.tranid, v.altname, t.shipdate, t.duedate,
                  t.custbody7, t.custbody16, t.custbody_tentree_po, t.custbody8,
+                 t.custbody46,
                  t.approvalstatus, t.custbody_tt_po_type, t.incoterm
     ) agg
 `;

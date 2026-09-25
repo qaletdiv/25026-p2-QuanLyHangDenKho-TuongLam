@@ -252,6 +252,12 @@ Table po_masters {                      // STEP 1 — NetSuite master PO. PK is 
 Table po_orders {                       // STEP 2 — warehouse split. One per (TRN, warehouse).
   po_number     varchar [pk]            // unique at this grain (repeats only in legs)
   trn_number    varchar [ref: > po_masters.trn_number]
+  // Season from custbody7 ON THE PO (2026-09-25). po_masters also carries one,
+  // but the TRN is production's grain, not logistics': a PO with no TRN still
+  // has a season, and the v1/v2 leg rule keys on this.
+  season_id     varchar [ref: > seasons.id]
+  po_type       varchar                 // custbody_tt_po_type: Mainline | SMS | SMU
+                                        // SMU belongs to the MAINLINE module.
   netsuite_id   varchar                 // NS PO internal id at the COMPONENT grain —
                                         // Item Receipts attach here (createdfrom). The
                                         // po_masters copy is lossy when a TRN spans POs.
@@ -307,18 +313,44 @@ Table po_order_lines {
 //  Legs (air/sea) are WIP-owned. NO shared transactional tables with SMS.
 // ===========================================================================
 
-Table mainline_po_legs {                // STEP 3 — air/sea split (WIP). po_number repeats by mode.
-  id            varchar [pk]            // convenience FK target; NK is (po_number, mode_id, crd)
+// STEP 3 — the BOOKABLE grain. Built two ways; `source` says which.
+//
+//   source='wip'       v1 (FW26). The WIP spreadsheet splits a PO into air/sea
+//                      legs, so po_number REPEATS by mode — 16 of 64 FW26 POs
+//                      carry both. NetSuite has one mode per PO header and
+//                      cannot express that, which is why the sheet owns it.
+//
+//   source='netsuite'  v2 (SS27+). 1 PO = 1 warehouse = 1 method = ONE leg,
+//                      created by the NetSuite sync. id is `leg_ns_<po_number>`.
+//
+// ⚠️ The (po_number, mode_id, crd) unique is a v1 key. Under v2 a PO has exactly
+// one leg, so po_number alone identifies it.
+Table mainline_po_legs {
+  id            varchar [pk]            // v1: numeric; v2: leg_ns_<po_number>
   po_number     varchar [ref: > po_orders.po_number]
-  mode_id       varchar [ref: > modes.id]          // Sea FCL / Air
+  mode_id       varchar [ref: > modes.id]          // v2: custbody16 (SEA/AIR)
   incoterm_id   varchar [ref: > incoterms.id]
-  crd           date                                // cargo ready date (WIP)
-  // planned logistics dates from WIP; actuals live on the shipment and override at read-time:
-  etd_pol       date
+  crd           date                                // v1: WIP; v2: custbody46
+  hod           date                                // v2: custbody8 — hand-over date
+  // ⚠️ expected_receive_date is the NETSUITE FACT (`duedate`) — when NetSuite
+  // expects the goods booked in. e_del is DERIVED from it as
+  // `expected_receive_date - transit_time_standards.receiving` (5 days, sea and
+  // air alike), which is the exact inverse of the report's expectedAta = e_del+5.
+  // Storing the fact and deriving e_del (rather than the reverse) means editing
+  // the receiving standard corrects both ends instead of leaving e_del stale.
+  //
+  // ⚠️ BOTH ARE WRITTEN ONCE AND NEVER OVERWRITTEN. This is the plan production
+  // committed to at the start of the season; the forecast measures slippage as
+  // (actual − plan), and a plan that could move would make slippage read zero.
+  // The ACTUAL delivery date lives on mainline_shipments.e_del and is edited
+  // there — the two never write to each other.
+  expected_receive_date date
   e_del         date
+  etd_pol       date                                // v1 only; v2 leaves it null
+  source        varchar                             // 'wip' | 'netsuite'
 
   indexes {
-    (po_number, mode_id, crd) [unique, note: 'the real natural key — verified 0 collisions']
+    (po_number, mode_id, crd) [unique, note: 'v1 natural key — verified 0 collisions']
   }
 }
 

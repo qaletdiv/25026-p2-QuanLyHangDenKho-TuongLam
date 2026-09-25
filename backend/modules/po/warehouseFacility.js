@@ -21,11 +21,24 @@ const CHANNELS = [
 ];
 const channelIdByName = new Map(CHANNELS.map((c) => [norm(c.name), c.id]));
 
-// "NRI US Reserved" → { facilityName: 'NRI US', channelName: 'Reserved' }
-// "Direct US"       → { facilityName: 'Direct US', channelName: null }
+// "NRI US Reserved"         → { facilityName: 'NRI US', channelName: 'Reserved' }
+// "NRI CA First Inventory"  → { facilityName: 'NRI CA', channelName: 'First' }
+// "Direct US"               → { facilityName: 'Direct US', channelName: null }
+//
+// ⚠️ The trailing " Inventory" is OPTIONAL and must stay that way. NetSuite
+// names the First-channel locations "NRI CA First Inventory" / "NRI US First
+// Inventory", and with the channel word anchored strictly at the end the whole
+// string fell through as a facility name. That resolved to `fac_nri_ca_first_
+// inventory`, which does not exist, so 14 POs synced with facilityId = null.
+//
+// Inventing that facility would have been the WRONG fix: it splits NRI CA's
+// destination in two, breaks the (booking, facility, mode) shipment grain and
+// the G3 same-consignment guard, and contradicts this module's whole purpose —
+// "NRI CA First Inventory" is the First CHANNEL at the NRI CA FACILITY, and
+// both of those already exist.
 function splitWarehouseName(name) {
   if (name == null || name === '') return { facilityName: null, channelName: null };
-  const m = String(name).trim().match(/^(.*\S)\s+(Reserved|First)$/i);
+  const m = String(name).trim().match(/^(.*\S)\s+(Reserved|First)(?:\s+Inventory)?$/i);
   if (m) {
     const ch = CHANNELS.find((c) => norm(c.name) === norm(m[2]));
     return { facilityName: m[1].trim(), channelName: ch ? ch.name : null };

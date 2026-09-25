@@ -5,8 +5,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-05-06",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-05-25"
+    "eDel": "2026-05-25",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "2",
@@ -14,8 +17,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-06",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-15"
+    "eDel": "2026-07-15",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "3",
@@ -23,8 +29,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-05-06",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-05-25"
+    "eDel": "2026-05-25",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "4",
@@ -32,8 +41,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-06",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-15"
+    "eDel": "2026-07-15",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "5",
@@ -41,8 +53,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-04-24",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-08"
+    "eDel": "2026-07-08",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "6",
@@ -50,8 +65,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-16",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-10"
+    "eDel": "2026-07-10",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "7",
@@ -59,8 +77,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-05-16",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-04"
+    "eDel": "2026-06-04",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "8",
@@ -68,8 +89,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-04-24",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-26"
+    "eDel": "2026-06-26",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "9",
@@ -77,8 +101,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-06",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-10"
+    "eDel": "2026-07-10",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "10",
@@ -86,8 +113,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-06-07",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-17"
+    "eDel": "2026-07-17",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "11",
@@ -95,8 +125,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-06-07",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-17"
+    "eDel": "2026-07-17",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "12",
@@ -104,8 +137,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-06-21",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-17"
+    "eDel": "2026-07-17",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "13",
@@ -113,8 +149,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-01",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-25"
+    "eDel": "2026-06-25",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "14",
@@ -122,8 +161,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-05-20",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-09"
+    "eDel": "2026-06-09",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "15",
@@ -131,8 +173,11 @@
     "modeId": "m1",
     "incotermId": "i1",
     "crd": "2026-04-22",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-07"
+    "eDel": "2026-07-07",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "16",
@@ -140,8 +185,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-27"
+    "eDel": "2026-06-27",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "17",
@@ -149,8 +197,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-15",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-04"
+    "eDel": "2026-07-04",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "18",
@@ -158,8 +209,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-06-04",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-24"
+    "eDel": "2026-07-24",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "19",
@@ -167,8 +221,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-06-11",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-30"
+    "eDel": "2026-06-30",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "20",
@@ -176,8 +233,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-06",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-15"
+    "eDel": "2026-07-15",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "21",
@@ -185,8 +245,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-04-24",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-28"
+    "eDel": "2026-06-28",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "22",
@@ -194,8 +257,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-06",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-10"
+    "eDel": "2026-07-10",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "23",
@@ -203,8 +269,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-06-07",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-17"
+    "eDel": "2026-07-17",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "24",
@@ -212,8 +281,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-06-07",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-17"
+    "eDel": "2026-07-17",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "25",
@@ -221,8 +293,11 @@
     "modeId": "m1",
     "incotermId": "i1",
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-22"
+    "eDel": "2026-06-22",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "26",
@@ -230,8 +305,11 @@
     "modeId": "m1",
     "incotermId": "i1",
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-27"
+    "eDel": "2026-06-27",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "27",
@@ -239,8 +317,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-27"
+    "eDel": "2026-06-27",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "28",
@@ -248,8 +329,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-06-04",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-24"
+    "eDel": "2026-07-24",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "29",
@@ -257,8 +341,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-15",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-04"
+    "eDel": "2026-07-04",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "30",
@@ -266,8 +353,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-15",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-04"
+    "eDel": "2026-07-04",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "31",
@@ -275,8 +365,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-04-24",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-08"
+    "eDel": "2026-07-08",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "32",
@@ -284,8 +377,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-16",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-10"
+    "eDel": "2026-07-10",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "33",
@@ -293,8 +389,11 @@
     "modeId": "m1",
     "incotermId": "i1",
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-22"
+    "eDel": "2026-06-22",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "34",
@@ -302,8 +401,11 @@
     "modeId": "m1",
     "incotermId": "i1",
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-27"
+    "eDel": "2026-06-27",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "35",
@@ -311,8 +413,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-01",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-25"
+    "eDel": "2026-06-25",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "36",
@@ -320,8 +425,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-20",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-09"
+    "eDel": "2026-07-09",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "37",
@@ -329,8 +437,11 @@
     "modeId": "m1",
     "incotermId": "i1",
     "crd": "2026-04-22",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-07"
+    "eDel": "2026-07-07",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "38",
@@ -338,8 +449,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-04-24",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-08"
+    "eDel": "2026-07-08",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "39",
@@ -347,8 +461,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-16",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-10"
+    "eDel": "2026-07-10",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "40",
@@ -356,8 +473,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-05-16",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-04"
+    "eDel": "2026-06-04",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "41",
@@ -365,8 +485,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-06",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-10"
+    "eDel": "2026-07-10",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "42",
@@ -374,8 +497,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-04-24",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-28"
+    "eDel": "2026-06-28",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "43",
@@ -383,8 +509,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-01",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-25"
+    "eDel": "2026-06-25",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "44",
@@ -392,8 +521,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-20",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-09"
+    "eDel": "2026-07-09",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "45",
@@ -401,8 +533,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-04-29",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-22"
+    "eDel": "2026-07-22",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "46",
@@ -410,8 +545,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-27"
+    "eDel": "2026-06-27",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "47",
@@ -419,8 +557,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-15",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-04"
+    "eDel": "2026-07-04",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "48",
@@ -428,8 +569,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-06-11",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-30"
+    "eDel": "2026-06-30",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "49",
@@ -437,8 +581,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-06-04",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-24"
+    "eDel": "2026-07-24",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "50",
@@ -446,8 +593,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-08-15",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-09-02"
+    "eDel": "2026-09-02",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "51",
@@ -455,8 +605,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-08-15",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-10-24"
+    "eDel": "2026-10-24",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "52",
@@ -464,8 +617,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-20",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-09"
+    "eDel": "2026-07-09",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "53",
@@ -473,8 +629,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-22"
+    "eDel": "2026-06-22",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "54",
@@ -482,8 +641,11 @@
     "modeId": "m1",
     "incotermId": "i1",
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-27"
+    "eDel": "2026-06-27",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "55",
@@ -491,8 +653,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-22"
+    "eDel": "2026-06-22",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "56",
@@ -500,8 +665,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-06-04",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-24"
+    "eDel": "2026-07-24",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "57",
@@ -509,8 +677,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-06-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-09-01"
+    "eDel": "2026-09-01",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "58",
@@ -518,8 +689,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-06-03",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-18"
+    "eDel": "2026-07-18",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "59",
@@ -527,8 +701,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-06-03",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-18"
+    "eDel": "2026-06-18",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "60",
@@ -536,8 +713,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-05-28"
+    "eDel": "2026-05-28",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "61",
@@ -545,8 +725,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-22"
+    "eDel": "2026-06-22",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "62",
@@ -554,8 +737,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-20",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-09"
+    "eDel": "2026-07-09",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "63",
@@ -563,8 +749,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-27"
+    "eDel": "2026-06-27",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "64",
@@ -572,8 +761,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-01",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-25"
+    "eDel": "2026-06-25",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "65",
@@ -581,8 +773,11 @@
     "modeId": "m1",
     "incotermId": "i1",
     "crd": "2026-06-14",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-24"
+    "eDel": "2026-07-24",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "66",
@@ -590,8 +785,11 @@
     "modeId": "m2",
     "incotermId": "i1",
     "crd": "2026-06-14",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-24"
+    "eDel": "2026-07-24",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "67",
@@ -599,8 +797,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-27"
+    "eDel": "2026-06-27",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "68",
@@ -608,8 +809,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-06",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-10"
+    "eDel": "2026-07-10",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "69",
@@ -617,8 +821,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-04-24",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-26"
+    "eDel": "2026-06-26",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "70",
@@ -626,8 +833,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-06",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-15"
+    "eDel": "2026-07-15",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "71",
@@ -635,8 +845,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-16",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-10"
+    "eDel": "2026-07-10",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "72",
@@ -644,8 +857,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-15",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-04"
+    "eDel": "2026-07-04",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "73",
@@ -653,8 +869,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-04-24",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-08"
+    "eDel": "2026-07-08",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "74",
@@ -662,8 +881,11 @@
     "modeId": "m1",
     "incotermId": "i1",
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-27"
+    "eDel": "2026-06-27",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "75",
@@ -671,8 +893,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-06-04",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-24"
+    "eDel": "2026-07-24",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "76",
@@ -680,8 +905,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-15",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-04"
+    "eDel": "2026-07-04",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "77",
@@ -689,8 +917,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-04-29",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-22"
+    "eDel": "2026-07-22",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "78",
@@ -698,8 +929,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-22"
+    "eDel": "2026-06-22",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "79",
@@ -707,8 +941,11 @@
     "modeId": "m1",
     "incotermId": "i1",
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-22"
+    "eDel": "2026-06-22",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "80",
@@ -716,8 +953,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-06-04",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-24"
+    "eDel": "2026-07-24",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "81",
@@ -725,8 +965,11 @@
     "modeId": "m2",
     "incotermId": null,
     "crd": "2026-05-01",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-05-20"
+    "eDel": "2026-05-20",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "82",
@@ -734,8 +977,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-08",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-22"
+    "eDel": "2026-06-22",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "83",
@@ -743,8 +989,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-05-01",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-06-25"
+    "eDel": "2026-06-25",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "84",
@@ -752,8 +1001,11 @@
     "modeId": "m1",
     "incotermId": "i1",
     "crd": "2026-06-14",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-24"
+    "eDel": "2026-07-24",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "85",
@@ -761,8 +1013,11 @@
     "modeId": "m2",
     "incotermId": "i1",
     "crd": "2026-06-14",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-07-24"
+    "eDel": "2026-07-24",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "86",
@@ -770,8 +1025,11 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-07-24",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-09-10"
+    "eDel": "2026-09-10",
+    "source": "wip",
+    "expectedReceiveDate": null
   },
   {
     "id": "87",
@@ -779,7 +1037,298 @@
     "modeId": "m1",
     "incotermId": null,
     "crd": "2026-09-20",
+    "hod": null,
     "etdPol": null,
-    "eDel": "2026-10-19"
+    "eDel": "2026-10-19",
+    "source": "wip",
+    "expectedReceiveDate": null
+  },
+  {
+    "id": "leg_ns_PO04856",
+    "poNumber": "PO04856",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-11-20",
+    "hod": "2026-11-27",
+    "etdPol": null,
+    "eDel": "2027-01-15",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-20"
+  },
+  {
+    "id": "leg_ns_PO04855",
+    "poNumber": "PO04855",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-11-20",
+    "hod": "2026-11-27",
+    "etdPol": null,
+    "eDel": "2027-01-10",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-15"
+  },
+  {
+    "id": "leg_ns_PO04854",
+    "poNumber": "PO04854",
+    "modeId": "m1",
+    "incotermId": null,
+    "crd": "2026-11-20",
+    "hod": "2026-11-27",
+    "etdPol": null,
+    "eDel": "2027-01-15",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-20"
+  },
+  {
+    "id": "leg_ns_PO04853",
+    "poNumber": "PO04853",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-11-20",
+    "hod": "2026-11-27",
+    "etdPol": null,
+    "eDel": "2027-01-10",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-15"
+  },
+  {
+    "id": "leg_ns_PO04852",
+    "poNumber": "PO04852",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-10-23",
+    "hod": "2026-10-30",
+    "etdPol": null,
+    "eDel": "2027-01-15",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-20"
+  },
+  {
+    "id": "leg_ns_PO04851",
+    "poNumber": "PO04851",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-11-20",
+    "hod": "2026-11-27",
+    "etdPol": null,
+    "eDel": "2027-01-10",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-15"
+  },
+  {
+    "id": "leg_ns_PO04850",
+    "poNumber": "PO04850",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-11-20",
+    "hod": "2026-11-27",
+    "etdPol": null,
+    "eDel": "2027-01-10",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-15"
+  },
+  {
+    "id": "leg_ns_PO04849",
+    "poNumber": "PO04849",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-11-20",
+    "hod": "2026-11-27",
+    "etdPol": null,
+    "eDel": "2027-01-10",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-15"
+  },
+  {
+    "id": "leg_ns_PO04848",
+    "poNumber": "PO04848",
+    "modeId": "m1",
+    "incotermId": null,
+    "crd": "2026-11-30",
+    "hod": "2026-12-07",
+    "etdPol": null,
+    "eDel": "2027-01-15",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-20"
+  },
+  {
+    "id": "leg_ns_PO04847",
+    "poNumber": "PO04847",
+    "modeId": "m1",
+    "incotermId": null,
+    "crd": "2026-10-30",
+    "hod": "2026-11-06",
+    "etdPol": null,
+    "eDel": "2027-01-15",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-20"
+  },
+  {
+    "id": "leg_ns_PO04845",
+    "poNumber": "PO04845",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-10-20",
+    "hod": "2026-10-27",
+    "etdPol": null,
+    "eDel": "2027-01-15",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-20"
+  },
+  {
+    "id": "leg_ns_PO04846",
+    "poNumber": "PO04846",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-10-20",
+    "hod": "2026-10-27",
+    "etdPol": null,
+    "eDel": "2027-01-15",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-20"
+  },
+  {
+    "id": "leg_ns_PO04837",
+    "poNumber": "PO04837",
+    "modeId": "m1",
+    "incotermId": null,
+    "crd": "2026-10-30",
+    "hod": "2026-11-06",
+    "etdPol": null,
+    "eDel": "2027-01-15",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-20"
+  },
+  {
+    "id": "leg_ns_PO04836",
+    "poNumber": "PO04836",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-10-23",
+    "hod": "2026-10-30",
+    "etdPol": null,
+    "eDel": "2027-01-15",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-20"
+  },
+  {
+    "id": "leg_ns_PO04835",
+    "poNumber": "PO04835",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-11-20",
+    "hod": "2026-11-27",
+    "etdPol": null,
+    "eDel": "2027-01-10",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-15"
+  },
+  {
+    "id": "leg_ns_PO04833",
+    "poNumber": "PO04833",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-11-20",
+    "hod": "2026-11-27",
+    "etdPol": null,
+    "eDel": "2027-01-10",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-15"
+  },
+  {
+    "id": "leg_ns_PO04832",
+    "poNumber": "PO04832",
+    "modeId": "m1",
+    "incotermId": null,
+    "crd": "2026-11-30",
+    "hod": "2026-12-07",
+    "etdPol": null,
+    "eDel": "2027-01-15",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-20"
+  },
+  {
+    "id": "leg_ns_PO04831",
+    "poNumber": "PO04831",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-10-20",
+    "hod": "2026-10-27",
+    "etdPol": null,
+    "eDel": "2027-01-15",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-20"
+  },
+  {
+    "id": "leg_ns_PO04830",
+    "poNumber": "PO04830",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-11-20",
+    "hod": "2026-11-27",
+    "etdPol": null,
+    "eDel": "2027-01-10",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-15"
+  },
+  {
+    "id": "leg_ns_PO04829",
+    "poNumber": "PO04829",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-11-20",
+    "hod": "2026-11-27",
+    "etdPol": null,
+    "eDel": "2027-01-15",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-20"
+  },
+  {
+    "id": "leg_ns_PO04828",
+    "poNumber": "PO04828",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-11-20",
+    "hod": "2026-11-27",
+    "etdPol": null,
+    "eDel": "2027-01-10",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-15"
+  },
+  {
+    "id": "leg_ns_PO04827",
+    "poNumber": "PO04827",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-11-20",
+    "hod": "2026-11-27",
+    "etdPol": null,
+    "eDel": "2027-01-10",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-15"
+  },
+  {
+    "id": "leg_ns_PO04826",
+    "poNumber": "PO04826",
+    "modeId": "m1",
+    "incotermId": "i2",
+    "crd": "2026-10-20",
+    "hod": "2026-10-27",
+    "etdPol": null,
+    "eDel": "2027-01-15",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-20"
+  },
+  {
+    "id": "leg_ns_PO04834",
+    "poNumber": "PO04834",
+    "modeId": "m1",
+    "incotermId": null,
+    "crd": "2026-11-20",
+    "hod": "2026-11-27",
+    "etdPol": null,
+    "eDel": "2027-01-15",
+    "source": "netsuite",
+    "expectedReceiveDate": "2027-01-20"
   }
 ]

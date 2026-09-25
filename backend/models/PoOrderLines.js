@@ -13,9 +13,6 @@ module.exports = (sequelize, DataTypes) => {
     const PoOrderLines = sequelize.define('po_order_lines', {
         id: { type: DataTypes.TEXT, primaryKey: true },
         poNumber: { type: DataTypes.TEXT, references: { model: 'po_orders', key: 'poNumber', deferrable: Deferrable.INITIALLY_DEFERRED } },
-        // NetSuite's line number WITHIN the PO (1, 2, 3…) — NOT a global id.
-        // 4,096 live line rows carry only 804 distinct values, so this is unique
-        // only when scoped by poNumber. See the index below.
         netsuiteLineId: { type: DataTypes.TEXT },
         skuCode: { type: DataTypes.TEXT },
         orderedQty: { type: DataTypes.INTEGER },
@@ -24,12 +21,8 @@ module.exports = (sequelize, DataTypes) => {
     }, {
         tableName: 'po_order_lines',
         indexes: [
-            // ⚠️ (poNumber, skuCode) is a LOOKUP index, deliberately NOT unique.
-            // NetSuite repeats a SKU across PO lines (PO04826 does it 399 times),
-            // so a unique here aborts every sync. This is the same grain lesson
-            // recorded for sms_po_lines in CLAUDE.md.
-            { fields: ['poNumber', 'skuCode'] },
             { unique: true, fields: ['poNumber', 'netsuiteLineId'] },
+            { fields: ['poNumber', 'skuCode'] },
         ],
     });
 

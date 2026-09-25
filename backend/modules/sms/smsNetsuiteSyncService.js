@@ -100,7 +100,9 @@ function buildUpserts(nsPos, nsReceipts, existing) {
       // NS "Due Date" (t.duedate) is labelled Expected Receive Date for SMS POs
       // (Lam, 2026-07-06) — the forecast's arrival anchor. mapSuiteQLRow already
       // surfaces duedate as etdPol, so no query change is needed.
-      expectedReceivedDate: po.etdPol || null,
+      // `duedate` in NetSuite. SMS already treated it as the expected receive
+      // date; the mapper now names it that instead of the old `etdPol` misnomer.
+      expectedReceivedDate: po.expectedReceiveDate || null,
       shipMethod:     po.mode || null,
       approvalStatus: po.approvalStatus || null,
       facilityId:     loc.facilityId,

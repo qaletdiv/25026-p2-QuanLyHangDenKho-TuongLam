@@ -13,11 +13,13 @@ module.exports = (sequelize, DataTypes) => {
     const PoOrders = sequelize.define('po_orders', {
         poNumber: { type: DataTypes.TEXT, primaryKey: true },
         trnNumber: { type: DataTypes.TEXT, references: { model: 'po_masters', key: 'trnNumber', deferrable: Deferrable.INITIALLY_DEFERRED } },
+        seasonId: { type: DataTypes.TEXT },
         facilityId: { type: DataTypes.TEXT, references: { model: 'warehouse_facilities', key: 'id', deferrable: Deferrable.INITIALLY_DEFERRED } },
         allocationChannelId: { type: DataTypes.TEXT, references: { model: 'allocation_channels', key: 'id', deferrable: Deferrable.INITIALLY_DEFERRED } },
         cooCountry: { type: DataTypes.TEXT },
         netsuiteId: { type: DataTypes.TEXT },
         approvalStatus: { type: DataTypes.TEXT },
+        poType: { type: DataTypes.TEXT },
         _seq: { type: DataTypes.BIGINT, allowNull: false },
     }, {
         tableName: 'po_orders',

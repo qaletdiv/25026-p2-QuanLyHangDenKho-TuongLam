@@ -40,9 +40,54 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   Admin; button ACTIVE in PoLegsTable, reactivated 2026-07-07) bootstraps the PO
   hierarchy (masters/orders/order_lines, `type:'mainline'` so SMS `smm` POs are
   excluded; R1 protects booked orders); the **WIP import** creates the air/sea
-  `mainline_po_legs` (NS sync never creates legs — POs stay `forecast` lifecycle
-  until WIP splits them). Ingestion rules R1 (protect-if-booked) /
+  `mainline_po_legs` for v1 seasons. Ingestion rules R1 (protect-if-booked) /
   R2 (flag-on-conflict) / R3 (WIP-overwrites-legs) / R4 (refuse-rejected).
+- **⚠️ WORKFLOW v1 vs v2 — THE BOUNDARY IS THE SEASON (2026-09-25).** The old
+  "NS sync never creates legs" rule is GONE. `V1_SEASONS` in
+  `modules/po/netsuiteSyncService.js` is the switch, and `mainline_po_legs.source`
+  (`'wip' | 'netsuite'`) records which built a row.
+  - **v1 = FW26.** The WIP sheet splits a PO into air/sea legs, so `po_number`
+    repeats by mode — **16 of 64** legged FW26 POs carry both. NetSuite has ONE
+    mode per PO header and cannot express that, which is why the sheet owns it.
+  - **v2 = SS27+.** 1 PO = 1 warehouse = 1 method = **ONE leg**, built by the
+    sync (`leg_ns_<poNumber>`). No channel (everything lands in …First), no WIP
+    import, no air/sea split.
+  They coexist with **no migration**: FW26 kept its 87 WIP legs untouched and
+  SS27 had ZERO legs to convert. Reverting v2 = delete the condition; there is
+  no schema fork, because both regimes produce the same legs.
+  **v2 field map, all off the PO record:** `custbody7`→season (NOT via the TRN —
+  a PO with no TRN still has one), `custbody16`→mode (SEA/AIR both present),
+  `custbody46`→crd, `custbody8`→hod, `custbody_tt_po_type`→poType
+  (`Mainline|SMS|SMU`; **SMU is MAINLINE**), `duedate`→`expectedReceiveDate`.
+  ⚠️ **`duedate` was previously mislabelled `etdPol`** in the mapper — it is the
+  Expected RECEIVE date, the opposite end of the journey. Harmless under v1
+  (sync `etdPol` never reached a leg, 0/87) but it would have fed the transit
+  segments backwards under v2.
+  ⚠️ **`eDel` is DERIVED as `expectedReceiveDate − transit_time_standards
+  .receiving`** (5 days, sea and air alike) — the exact inverse of the report's
+  `expectedAta = eDel + 5`. The FACT is stored and `eDel` derived, not the
+  reverse, so editing the standard corrects both ends instead of leaving `eDel`
+  stale. **Both are written ONCE and never overwritten**: this is the plan
+  production committed to at season start, and a plan that could move would make
+  slippage read zero. The ACTUAL delivery date lives on
+  `mainline_shipments.eDel`; the two never write to each other.
+  **Three things v2 broke that v1 had hidden, all fixed:**
+  (1) v2 legs had no `mainline_po_leg_lines`, so 220,573 units were invisible to
+  the report and forecast — the sync now mirrors them **aggregated by SKU**
+  (PO04826 repeats a SKU 399 times; a 1:1 copy collides on `mll_<leg>_<sku>` and
+  double-counts). (2) `mainline_po_leg_lines.skuCode` has an FK to
+  `product_skus` that `po_order_lines` does not; forecast-stage SKUs were absent
+  from the master and only escaped notice because those POs had no legs — the
+  sync now seeds it like the WIP import (2,210 added). (3) `computeReferenced`
+  counted ANY leg as "in use", so a v2 PO could never be pruned by R4 — it now
+  ignores `source:'netsuite'` legs, since the sync creating one proves nothing.
+- **⚠️ `splitWarehouseName` tolerates a trailing " Inventory".** NetSuite names
+  the First-channel locations `NRI CA First Inventory`; with the channel word
+  anchored at the end the whole string fell through as a facility name and 14
+  POs synced with `facilityId = null`. **Inventing that facility would be the
+  wrong fix** — it splits NRI CA in two and breaks the `(booking, facility,
+  mode)` shipment grain and G3. It is the First CHANNEL at the NRI CA FACILITY,
+  and both already exist.
 - **R4 — a REJECTED NetSuite PO is not a PO (2026-09-08).** The mainline scope was
   `t.status IN ('A','B','C')`, commented as "Pending Receipt / Partially Received /
   Pending Billing" — a legend already known to be wrong when the SMS side was fixed.

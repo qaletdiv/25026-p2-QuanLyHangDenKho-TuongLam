@@ -1032,5 +1032,27 @@
     "matchedShipmentId": null,
     "confirmedBy": null,
     "confirmedAt": null
+  },
+  {
+    "id": "mir_97",
+    "netsuiteIrId": "34139413",
+    "netsuiteIrTranid": "IR66204",
+    "poNumber": "PO04735",
+    "receiptDate": "2026-09-24",
+    "source": "netsuite",
+    "matchedShipmentId": null,
+    "confirmedBy": null,
+    "confirmedAt": null
+  },
+  {
+    "id": "mir_98",
+    "netsuiteIrId": "34139419",
+    "netsuiteIrTranid": "IR66205",
+    "poNumber": "PO04763",
+    "receiptDate": "2026-09-24",
+    "source": "netsuite",
+    "matchedShipmentId": null,
+    "confirmedBy": null,
+    "confirmedAt": null
   }
 ]

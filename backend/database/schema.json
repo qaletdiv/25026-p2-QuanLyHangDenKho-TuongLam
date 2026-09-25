@@ -1729,6 +1729,14 @@
           "inData": true
         },
         {
+          "name": "hod",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
           "name": "etdPol",
           "type": "date",
           "notNull": false,
@@ -1738,6 +1746,22 @@
         },
         {
           "name": "eDel",
+          "type": "date",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "expectedReceiveDate",
           "type": "date",
           "notNull": false,
           "declaredNotNull": false,
@@ -2422,6 +2446,14 @@
           "inData": true
         },
         {
+          "name": "seasonId",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
           "name": "facilityId",
           "type": "text",
           "notNull": false,
@@ -2455,6 +2487,14 @@
         },
         {
           "name": "approvalStatus",
+          "type": "text",
+          "notNull": false,
+          "declaredNotNull": false,
+          "inDbml": true,
+          "inData": true
+        },
+        {
+          "name": "poType",
           "type": "text",
           "notNull": false,
           "declaredNotNull": false,

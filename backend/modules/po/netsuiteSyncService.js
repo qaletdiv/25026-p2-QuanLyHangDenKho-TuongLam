@@ -3,7 +3,9 @@
 // NetSuite sync (Phase 2a) — owns po_masters / po_orders / po_order_lines.
 // Consumes flat NS PO objects (from integrationService.fetchNetSuitePOs) where each
 // PO carries: poNumber, trnNumber, supplier, season, receivingWarehouse, line_items[].
-// Maps them into the three NetSuite-owned grains. NEVER writes legs (WIP owns those).
+// Maps them into the NetSuite-owned grains. Since 2026-09-25 it ALSO writes
+// mainline_po_legs for v2 seasons (one leg per PO, `source:'netsuite'`); FW26
+// legs stay owned by the WIP import. See the v1/v2 note below.
 //
 // R1 (protect-if-booked): a poNumber whose legs are referenced by a booking or
 // shipment is LOCKED — sync skips all writes touching it. A TRN with any locked
@@ -14,15 +16,57 @@ const { models } = require('../../models');
 const integrationService = require('../../services/integrationService');
 const { pruneStaleReceipts } = require('../../utils/pruneStaleReceipts');
 
-// ---- pure core: fold NS POs into the three grains, honoring R1 -------------
-// existing = { masters, orders, orderLines }
-// ctx      = { resolvers, lockedPoNumbers:Set, lockedTrns:Set }
+// ---------------------------------------------------------------------------
+//  WORKFLOW v1 vs v2 — the boundary is the SEASON, not a feature flag.
+//
+//  v1 (FW26)   a PO is split into air/sea legs by the WIP import. One PO can
+//              carry BOTH modes: 16 of 64 legged FW26 POs do. NetSuite has one
+//              mode per PO header and CANNOT express that, which is why the
+//              spreadsheet owns the split for this season.
+//
+//  v2 (SS27+)  1 PO = 1 warehouse = 1 method = ONE LEG, created right here from
+//              the NetSuite record. No channel (everything lands in …First), no
+//              WIP import, no air/sea split.
+//
+//  The two coexist with no migration: FW26 keeps its WIP-built legs untouched,
+//  SS27 had ZERO legs to convert. Reverting v2 is deleting the condition below —
+//  there is no schema fork to undo, because both regimes produce the same legs.
+//
+//  `source` records which built the row ('wip' | 'netsuite').
+// ---------------------------------------------------------------------------
+const V1_SEASONS = new Set(['FW26']);   // WIP import owns the split for these
+
+// Fallback only — the real value comes from transit_time_standards.receiving,
+// which is editable master data (5 days for both sea and air today).
+const DEFAULT_RECEIVING_DAYS = 5;
+
+const { addDays } = require('../mainline/reports/transitTimeService');
+
+// ---- pure core: fold NS POs into the grains, honoring R1 -------------------
+// existing = { masters, orders, orderLines, legs }
+// ctx      = { resolvers, lockedPoNumbers:Set, lockedTrns:Set, receivingDays:Map }
 function buildUpserts(pos, existing, ctx) {
-  const { resolvers, lockedPoNumbers, lockedTrns } = ctx;
+  const { resolvers, lockedPoNumbers, lockedTrns, receivingDays } = ctx;
   const masters    = new Map(existing.masters.map((m) => [m.trnNumber, m]));
   const orders     = new Map(existing.orders.map((o) => [o.poNumber, o]));
   // order lines indexed by poNumber → keep other POs' lines intact
   const linesByPo  = existing.orderLines.reduce((mp, l) => ((mp[l.poNumber] = mp[l.poNumber] || []).push(l), mp), {});
+  const legs       = new Map((existing.legs || []).map((l) => [l.id, l]));
+  // ⚠️ SKU MASTER must be seeded before a leg line can reference it.
+  // `mainline_po_leg_lines.skuCode` has an FK to product_skus; `po_order_lines`
+  // does NOT (the data never satisfied it). Under v1 that gap was invisible
+  // because forecast-stage POs had no legs — CLAUDE.md says as much: "none of
+  // those SKUs appear in any leg line". v2 gives every PO a leg, so the missing
+  // SKUs become a COMMIT-time FK failure. The WIP import already seeds them the
+  // same way (upsertSkus); this is the sync's equivalent.
+  const skus = new Map((existing.skus || []).map((s) => [s.skuCode, s]));
+  let skusAdded = 0;
+  // leg lines indexed by legId → WIP-owned legs keep theirs untouched
+  const legLinesByLeg = (existing.legLines || []).reduce(
+    (mp, l) => ((mp[l.legId] = mp[l.legId] || []).push(l), mp), {},
+  );
+  let legUpsert = 0;
+  const legsSkippedV1 = [];
 
   const protectedPos = [];
   const rejectedPos = [];
@@ -72,6 +116,13 @@ function buildUpserts(pos, existing, ctx) {
       ...prev,                             // preserve fields this sync doesn't own
       poNumber:             po.poNumber,
       trnNumber:            po.trnNumber || prev.trnNumber || null,
+      // Season from custbody7 ON THE PO, not via the TRN. The TRN still matters
+      // to production, but it is not the logistics grain: a PO with no TRN still
+      // has a season, and the v1/v2 rule below must not depend on one.
+      seasonId:             resolvers.seasonId(po.season, po.poNumber) ?? prev.seasonId ?? null,
+      // custbody_tt_po_type — 'Mainline' | 'SMS' | 'SMU'. SMU belongs to the
+      // mainline module (confirmed 2026-09-25); the SMS scope stays SMM/SMS only.
+      poType:               po.type || prev.poType || null,
       // NS PO internal id at the COMPONENT-PO grain — Item Receipts attach here
       // (createdfrom = this id), so received qty is scoped by it. (po_masters also
       // carries one, but that's lossy when a TRN spans several POs — this is the
@@ -91,6 +142,103 @@ function buildUpserts(pos, existing, ctx) {
       cooCountry:           po.coo || prev.cooCountry || null,
     });
     oUpsert++;
+
+    // --- v2: ONE LEG PER PO, straight from NetSuite -------------------------
+    const seasonCode = String(po.season || '').toUpperCase();
+    if (!V1_SEASONS.has(seasonCode)) {
+      const legId = `leg_ns_${po.poNumber}`;
+      const existingLeg = legs.get(legId);
+
+      // Never touch a leg the WIP import owns. v1 and v2 do not overlap today,
+      // but a PO hand-split before its season flipped would otherwise lose that
+      // split to a single generated leg.
+      if (existingLeg && existingLeg.source && existingLeg.source !== 'netsuite') {
+        legsSkippedV1.push(po.poNumber);
+      } else {
+        const modeId = resolvers.modeId(po.mode, po.poNumber)
+          ?? (existingLeg ? existingLeg.modeId : null);
+
+        // ⚠️ THE PLAN IS WRITTEN ONCE AND NEVER OVERWRITTEN.
+        // `duedate` is what production committed to at the start of the season,
+        // and the forecast measures slippage as (actual − plan). If a later sync
+        // could move it, the plan would chase reality and slippage would always
+        // read zero — the same self-healing trap the week bucketing avoids.
+        const expectedReceiveDate = (existingLeg && existingLeg.expectedReceiveDate)
+          || po.expectedReceiveDate || null;
+
+        // E-DEL is DERIVED: arriving at the DC is the receive date minus the
+        // `receiving` transit standard (5 days, equal for sea and air today).
+        // Reading it from master data rather than hardcoding 5 keeps this the
+        // exact inverse of the report's `expectedAta = eDel + 5`, so editing the
+        // standard corrects both ends at once.
+        const recvDays = receivingDays.get(modeId);
+        const eDel = (existingLeg && existingLeg.eDel)
+          || addDays(expectedReceiveDate, -(recvDays == null ? DEFAULT_RECEIVING_DAYS : recvDays));
+
+        legs.set(legId, {
+          id:         legId,
+          poNumber:   po.poNumber,
+          modeId,
+          incotermId: resolvers.incotermId(po.incoterm, po.poNumber)
+            ?? (existingLeg ? existingLeg.incotermId : null),
+          crd:        po.crd || (existingLeg && existingLeg.crd) || null,   // custbody46
+          hod:        po.hod || (existingLeg && existingLeg.hod) || null,   // custbody8
+          expectedReceiveDate,                                              // duedate — frozen
+          eDel,                                                             // derived — frozen
+          // v2 does not carry etdPol. The real one lives on the SHIPMENT and
+          // drives the transit segments; the leg's was never populated (0/87).
+          etdPol:     null,
+          source:     'netsuite',
+        });
+        legUpsert++;
+
+        // --- the leg's SKU allocation --------------------------------------
+        // With 1 PO = 1 leg the allocation IS the order line, but the report,
+        // forecast and three-way match all read mainline_po_leg_lines — so a leg
+        // without them contributes ZERO units and the PO is invisible. Mirroring
+        // them here is what keeps all 26 leg-aware files working untouched.
+        //
+        // ⚠️ AGGREGATED BY SKU, not copied per line. NetSuite repeats a SKU
+        // across PO lines (PO04826 does it 399 times), and the leg allocation is
+        // per SKU — copying 1:1 would collide on the `mll_<leg>_<sku>` id and
+        // double-count the quantity.
+        const bySku = new Map();
+        for (const li of po.line_items || []) {
+          if (!li.skuCode) continue;
+          bySku.set(li.skuCode, (bySku.get(li.skuCode) || 0) + (Number(li.expectedQty) || 0));
+          // Seed the master with anything it has not seen. Fills only — never
+          // clobbers richer NetSuite/migration-sourced attributes.
+          if (!skus.has(li.skuCode)) {
+            // Same shape the WIP import seeds (upsertSkus). The SKU's
+            // descriptive attributes (gender/category/composition/upc) arrive
+            // separately via SKU_ATTR_COLUMNS when those custom fields are
+            // configured — this only has to satisfy the FK and name the item.
+            skus.set(li.skuCode, {
+              skuCode:     li.skuCode,
+              styleColor:  null,
+              itemName:    li.description || null,
+              description: li.description || null,
+              colorway:    null,
+              size:        li.size || null,
+              htsCode:     null,
+              unitPrice:   Number(li.unitPrice) || null,
+              upc:         li.upc || null,
+              knitWoven:   li.knitWoven || null,
+              category:    li.category || null,
+              gender:      li.gender || null,
+              composition: li.composition || null,
+            });
+            skusAdded++;
+          }
+        }
+        legLinesByLeg[legId] = [...bySku.entries()].map(([skuCode, allocatedQty]) => ({
+          id: `mll_${legId}_${skuCode}`,
+          legId,
+          skuCode,
+          allocatedQty,
+        }));
+      }
+    }
 
     // --- po_order_lines (replace this PO's lines) ---
     //
@@ -125,8 +273,12 @@ function buildUpserts(pos, existing, ctx) {
     masters:    [...masters.values()],
     orders:     [...orders.values()],
     orderLines: Object.values(linesByPo).flat(),
+    legs:       [...legs.values()],
+    legLines:   Object.values(legLinesByLeg).flat(),
+    skus:       [...skus.values()],
     stats: {
       masters_upserted: mUpsert, orders_upserted: oUpsert, lines_upserted: lUpsert,
+      legs_upserted: legUpsert, legs_skipped_wip_owned: legsSkippedV1, skus_added: skusAdded,
       protected: protectedPos, rejected_skipped: rejectedPos,
     },
   };
@@ -159,7 +311,7 @@ function isRejected(po) {
  * Pure: takes and returns the tables. Same helper used by the sync and by
  * scripts/prune-rejected-pos.js.
  */
-function pruneRejected({ rejectedPoNumbers, masters, orders, orderLines, referencedPoNumbers }) {
+function pruneRejected({ rejectedPoNumbers, masters, orders, orderLines, legs, legLines, referencedPoNumbers }) {
   const rejected = rejectedPoNumbers instanceof Set ? rejectedPoNumbers : new Set(rejectedPoNumbers || []);
   const referenced = referencedPoNumbers instanceof Set ? referencedPoNumbers : new Set(referencedPoNumbers || []);
 
@@ -169,6 +321,11 @@ function pruneRejected({ rejectedPoNumbers, masters, orders, orderLines, referen
 
   const nextOrders = orders.filter((o) => !removeSet.has(o.poNumber));
   const nextLines = orderLines.filter((l) => !removeSet.has(l.poNumber));
+  // A v2 leg hangs off the PO, and mainline_po_legs.poNumber is a deferred FK to
+  // po_orders — leaving one behind would fail the whole sync at COMMIT.
+  const nextLegs = (legs || []).filter((l) => !removeSet.has(l.poNumber));
+  const goneLegIds = new Set((legs || []).filter((l) => removeSet.has(l.poNumber)).map((l) => l.id));
+  const nextLegLines = (legLines || []).filter((l) => !goneLegIds.has(l.legId));
   const survivingTrns = new Set(nextOrders.map((o) => o.trnNumber).filter(Boolean));
   const orphanedTrns = [...new Set(orders.filter((o) => removeSet.has(o.poNumber)).map((o) => o.trnNumber).filter(Boolean))]
     .filter((trn) => !survivingTrns.has(trn));
@@ -183,6 +340,7 @@ function pruneRejected({ rejectedPoNumbers, masters, orders, orderLines, referen
       poNumbers: removable,
       orders: orders.length - nextOrders.length,
       lines: orderLines.length - nextLines.length,
+      legs: (legs || []).length - nextLegs.length,
       masters: masters.length - nextMasters.length,
       trns: orphanedTrns,
     },
@@ -206,7 +364,14 @@ async function computeReferenced() {
   ]);
   const referenced = new Set();
   const poByLeg = new Map(legs.map((l) => [l.id, l.poNumber]));
-  legs.forEach((l) => { if (l.poNumber) referenced.add(l.poNumber); });
+  // ⚠️ A leg the SYNC created is not evidence of anything. Under v2 every PO
+  // gets one automatically, so counting it here would make every PO permanently
+  // "referenced" and R4 could never prune a rejected one. Only a leg a HUMAN
+  // produced (the WIP split) means someone committed to this PO — bookings,
+  // shipments and receipts below still count either way.
+  legs.forEach((l) => {
+    if (l.poNumber && l.source !== 'netsuite') referenced.add(l.poNumber);
+  });
   [...bookingLegs, ...shipmentLegs].forEach((r) => {
     const po = poByLeg.get(r.legId);
     if (po) referenced.add(po);
@@ -282,16 +447,29 @@ async function sync({ fetchPos } = {}) {
   try { pos = await fetch(); }
   catch (e) { fetchError = e.response?.data?.['o:errorDetails']?.[0]?.detail || e.message; pos = []; }
 
-  const [masters, orders, orderLines, resolvers, lockedPoNumbers] = await Promise.all([
+  const [masters, orders, orderLines, existingLegs, existingLegLines, existingSkus, transitStds, resolvers, lockedPoNumbers] = await Promise.all([
     models.po_masters.read(), models.po_orders.read(), models.po_order_lines.read(),
+    models.mainline_po_legs.read(),
+    models.mainline_po_leg_lines.read(),
+    models.product_skus.read(),
+    models.transit_time_standards.read().catch(() => []),
     loadResolvers(), computeLocked(),
   ]);
+  // modeId -> days for the `receiving` segment (E-DEL -> booked into NetSuite).
+  // Master data, so editing it corrects every derived E-DEL on the next sync.
+  const receivingDays = new Map(
+    transitStds.filter((s) => s.segment === 'receiving').map((s) => [s.modeId, Number(s.days)]),
+  );
   if (fetchError) {
     return { masters_upserted: 0, orders_upserted: 0, lines_upserted: 0, protected: [], warnings: [], fetched: 0, fetch_error: fetchError };
   }
   const lockedTrns = new Set(orders.filter((o) => lockedPoNumbers.has(o.poNumber)).map((o) => o.trnNumber));
 
-  const result = buildUpserts(pos, { masters, orders, orderLines }, { resolvers, lockedPoNumbers, lockedTrns });
+  const result = buildUpserts(
+    pos,
+    { masters, orders, orderLines, legs: existingLegs, legLines: existingLegLines, skus: existingSkus },
+    { resolvers, lockedPoNumbers, lockedTrns, receivingDays },
+  );
 
   // Rejected POs the portal is ALREADY holding. The pull can't surface these —
   // they're out of scope by definition — so ask NetSuite about what we hold and
@@ -320,6 +498,8 @@ async function sync({ fetchPos } = {}) {
       result.masters = p.masters;
       result.orders = p.orders;
       result.orderLines = p.orderLines;
+      result.legs = p.legs;
+      result.legLines = p.legLines;
       rejected_removed = p.removed;
       rejected_kept_referenced = p.kept_referenced;
       if (p.removed.poNumbers.length) console.log(`[PO sync] removed rejected PO(s): ${p.removed.poNumbers.join(', ')}`);
@@ -346,6 +526,11 @@ async function sync({ fetchPos } = {}) {
     models.po_masters.write(result.masters),
     models.po_orders.write(result.orders),
     models.po_order_lines.write(result.orderLines),
+    // v2 legs. FW26/WIP-owned rows pass through untouched — buildUpserts seeds
+    // this from the existing table and only adds/refreshes `source:'netsuite'`.
+    models.mainline_po_legs.write(result.legs),
+    models.product_skus.write(result.skus),
+    models.mainline_po_leg_lines.write(result.legLines),
   ]);
 
   // Item Receipts (received qty) — read-only, scoped to the mainline POs we hold

@@ -5838,5 +5838,149 @@
     "courierCode": "AR",
     "description": "Arrived at FedEx hub",
     "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_731",
+    "shipmentId": "48",
+    "eventTime": "2026-09-24T08:47:00-07:00",
+    "courierCode": "CC",
+    "description": "International shipment release - Import",
+    "location": "RICHMOND, BC, CA"
+  },
+  {
+    "id": "ste_732",
+    "shipmentId": "48",
+    "eventTime": "2026-09-24T06:34:00-07:00",
+    "courierCode": "AR",
+    "description": "At destination sort facility",
+    "location": "VANCOUVER, BC, CA"
+  },
+  {
+    "id": "ste_733",
+    "shipmentId": "48",
+    "eventTime": "2026-09-24T04:52:00-05:00",
+    "courierCode": "IT",
+    "description": "On the way",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_734",
+    "shipmentId": "48",
+    "eventTime": "2026-09-24T04:24:00-05:00",
+    "courierCode": "DP",
+    "description": "Departed FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_735",
+    "shipmentId": "48",
+    "eventTime": "2026-09-24T02:05:00-05:00",
+    "courierCode": "IT",
+    "description": "On the way",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_736",
+    "shipmentId": "48",
+    "eventTime": "2026-09-24T00:20:00-05:00",
+    "courierCode": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "MEMPHIS, TN, US"
+  },
+  {
+    "id": "ste_737",
+    "shipmentId": "48",
+    "eventTime": "2026-09-23T15:15:00-08:00",
+    "courierCode": "DP",
+    "description": "Departed FedEx hub",
+    "location": "ANCHORAGE, AK, US"
+  },
+  {
+    "id": "ste_738",
+    "shipmentId": "48",
+    "eventTime": "2026-09-24T13:50:00-07:00",
+    "courierCode": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "DELTA, BC, CA"
+  },
+  {
+    "id": "ste_739",
+    "shipmentId": "49",
+    "eventTime": "2026-09-24T13:55:00-07:00",
+    "courierCode": "CC",
+    "description": "International shipment release - Import",
+    "location": "LOS ANGELES, CA, US"
+  },
+  {
+    "id": "ste_740",
+    "shipmentId": "48",
+    "eventTime": "2026-09-25T06:45:37-07:00",
+    "courierCode": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_741",
+    "shipmentId": "48",
+    "eventTime": "2026-09-25T06:38:19-07:00",
+    "courierCode": "AR",
+    "description": "At local FedEx facility",
+    "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_742",
+    "shipmentId": "48",
+    "eventTime": "2026-09-25T00:38:00-07:00",
+    "courierCode": "DP",
+    "description": "Departed FedEx hub",
+    "location": "DELTA, BC, CA"
+  },
+  {
+    "id": "ste_743",
+    "shipmentId": "49",
+    "eventTime": "2026-09-25T06:39:01-07:00",
+    "courierCode": "OD",
+    "description": "On FedEx vehicle for delivery",
+    "location": "BLOOMINGTON, CA, US"
+  },
+  {
+    "id": "ste_744",
+    "shipmentId": "49",
+    "eventTime": "2026-09-25T05:34:36-07:00",
+    "courierCode": "AR",
+    "description": "At local FedEx facility",
+    "location": "BLOOMINGTON, CA, US"
+  },
+  {
+    "id": "ste_745",
+    "shipmentId": "49",
+    "eventTime": "2026-09-25T00:00:00-07:00",
+    "courierCode": "DP",
+    "description": "Departed FedEx hub",
+    "location": "CARSON, CA, US"
+  },
+  {
+    "id": "ste_746",
+    "shipmentId": "49",
+    "eventTime": "2026-09-24T21:39:00-07:00",
+    "courierCode": "AR",
+    "description": "Arrived at FedEx hub",
+    "location": "CARSON, CA, US"
+  },
+  {
+    "id": "ste_747",
+    "shipmentId": "49",
+    "eventTime": "2026-09-24T17:00:00-07:00",
+    "courierCode": "IT",
+    "description": "On the way",
+    "location": "LOS ANGELES, CA, US"
+  },
+  {
+    "id": "ste_748",
+    "shipmentId": "48",
+    "eventTime": "2026-09-25T08:22:00-07:00",
+    "courierCode": "DL",
+    "description": "Delivered",
+    "location": "KAMLOOPS, BC, CA"
   }
 ]

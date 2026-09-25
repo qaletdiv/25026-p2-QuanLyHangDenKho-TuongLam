@@ -16,8 +16,11 @@ module.exports = (sequelize, DataTypes) => {
         modeId: { type: DataTypes.TEXT, references: { model: 'modes', key: 'id', deferrable: Deferrable.INITIALLY_DEFERRED } },
         incotermId: { type: DataTypes.TEXT, references: { model: 'incoterms', key: 'id', deferrable: Deferrable.INITIALLY_DEFERRED } },
         crd: { type: DataTypes.DATEONLY },
+        hod: { type: DataTypes.DATEONLY },
         etdPol: { type: DataTypes.DATEONLY },
         eDel: { type: DataTypes.DATEONLY },
+        source: { type: DataTypes.TEXT },
+        expectedReceiveDate: { type: DataTypes.DATEONLY },
         _seq: { type: DataTypes.BIGINT, allowNull: false },
     }, {
         tableName: 'mainline_po_legs',
