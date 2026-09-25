@@ -2,7 +2,9 @@
 // SMS is a separate module; these types carry NO `type` discriminator and no
 // courier/tracking fields. See backend/database.dbml + SCHEMA_REDESIGN.md.
 
-export type MainlineLifecycle = 'forecast' | 'split' | 'partial';
+// null = v2 (SS27+). The sync builds one leg per PO, so there is no air/sea
+// "split" to report — see poController.lifecycleOf. Renders BLANK, not "Split".
+export type MainlineLifecycle = 'forecast' | 'split' | 'partial' | null;
 
 // GET /po  (list rows)
 export interface PoMasterSummary {
@@ -58,7 +60,7 @@ export interface PoOrderDetail {
   allocationChannel: string | null;      // Reserved / First
   order_lines: PoOrderLine[];
   legs: MainlineLeg[];
-  lifecycleState: 'forecast' | 'split';
+  lifecycleState: MainlineLifecycle;
   approvalStatus?: PoApprovalStatus;   // NetSuite sign-off (badge on the TRN detail)
 }
 
@@ -149,7 +151,7 @@ export interface PoLegRow {
   eDel: string | null;
   expectedQty: number;
   skuCount: number;
-  lifecycle: 'split' | 'forecast';       // 'forecast' = synced PO, not yet air/sea split
+  lifecycle: MainlineLifecycle;          // 'forecast' = synced, unsplit (v1); null = v2
   approvalStatus: PoApprovalStatus;
   bookable: boolean;
 }

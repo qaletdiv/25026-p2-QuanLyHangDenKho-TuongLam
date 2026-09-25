@@ -9,15 +9,13 @@ import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import ApprovalBadge from './ApprovalBadge';
-import type { PoMasterDetail as PoMasterDetailT, OrderIntent, Fulfillment, MainlineLifecycle } from '@/modules/mainline/types';
+import type { PoMasterDetail as PoMasterDetailT, OrderIntent, Fulfillment } from '@/modules/mainline/types';
 
 const DASH = '—';
 
-const LIFECYCLE_STYLES: Record<MainlineLifecycle, string> = {
-  forecast: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
-  partial: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-  split: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-};
+// (LIFECYCLE_STYLES removed 2026-09-25 — it was declared here but never
+//  rendered; this screen shows no stage badge. It only surfaced because
+//  MainlineLifecycle gained `null` for v2 and a Record key cannot be null.)
 
 export default function PoMasterDetail({
   master, intent, fulfillment, modeMap,

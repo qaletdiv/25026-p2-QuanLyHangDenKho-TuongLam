@@ -35,10 +35,25 @@ const groupBy = (rows, key) => rows.reduce((m, r) => {
 }, {});
 
 // forecast (no legs) | split (every order split) | partial (some orders split)
-const lifecycleOf = (legCount, splitOrders, orderCount) =>
-  legCount === 0 ? 'forecast'
-  : splitOrders === orderCount ? 'split'
-  : 'partial';
+//
+// ⚠️ THIS IS A v1 (FW26) CONCEPT AND IS NULL UNDER v2 (2026-09-25).
+// "split" means the WIP air/sea split has been done. In v2 the sync creates one
+// leg per PO by definition, so the value would be a constant `split` asserting
+// an operation that never happened. Null instead — the forecast's own stage
+// ladder (Awaiting Booking → Booking Pending → Booked—Not Shipped → In Transit
+// → Received) answers "where is this", and the Approval badge answers "can it be
+// booked", which is what `split` was really being read for.
+//
+// `v1LegCount` = legs NOT built by the sync. Legs exist but none are v1 ⇒ v2 ⇒ null.
+const lifecycleOf = (legCount, splitOrders, orderCount, v1LegCount) => {
+  if (legCount > 0 && v1LegCount === 0) return null;
+  return legCount === 0 ? 'forecast'
+    : splitOrders === orderCount ? 'split'
+    : 'partial';
+};
+
+/** A leg the WIP import produced — the only kind a "split" can describe. */
+const isV1Leg = (l) => l && l.source !== 'netsuite';
 
 // loadAll(vendorSupplierId) — the SINGLE scoping point for the whole PO read path.
 //
@@ -127,7 +142,8 @@ async function getLegs(req, res) {
       eDel:               leg.eDel || null,
       expectedQty,
       skuCount:           (d.legLinesByLeg[leg.id] || []).length,
-      lifecycle:           'split',
+      // null on a v2 leg — there was no split to do. See lifecycleOf.
+      lifecycle:           isV1Leg(leg) ? 'split' : null,
       // NetSuite's sign-off state for the PO this leg belongs to ('Pending
       // Approval' | 'Approved' | null). Stored on the order by the NS sync; carried
       // here so the list can badge a PO no supervisor has approved yet — until now
@@ -177,14 +193,15 @@ async function getAll(req, res) {
   const d = await loadAll(await scopeOf(req));
   const result = d.masters.map((m) => {
     const myOrders = d.ordersByTrn[m.trnNumber] || [];
-    let legCount = 0, ordered = 0, splitOrders = 0;
+    let legCount = 0, ordered = 0, splitOrders = 0, v1LegCount = 0;
     myOrders.forEach((o) => {
       const legs = d.legsByPo[o.poNumber] || [];
       legCount += legs.length;
+      v1LegCount += legs.filter(isV1Leg).length;
       if (legs.length) splitOrders += 1;
       (d.linesByPo[o.poNumber] || []).forEach((l) => { ordered += l.orderedQty || 0; });
     });
-    const lifecycleState = lifecycleOf(legCount, splitOrders, myOrders.length);
+    const lifecycleState = lifecycleOf(legCount, splitOrders, myOrders.length, v1LegCount);
     return {
       ...m,
       orderCount:       myOrders.length,
@@ -214,7 +231,7 @@ async function getOne(req, res) {
   if (!master) notFound(`PO master not found: ${trn}`);
 
   const myOrders = d.ordersByTrn[trn] || [];
-  let totalLegs = 0, splitOrders = 0, totalOrdered = 0;
+  let totalLegs = 0, splitOrders = 0, totalOrdered = 0, v1Legs = 0;
 
   const orders = myOrders.map((o) => {
     const legs = (d.legsByPo[o.poNumber] || []).map((leg) => ({
@@ -233,7 +250,7 @@ async function getOne(req, res) {
       allocationChannel:   chanName.get(o.allocationChannelId) || null,  // Reserved/First
       order_lines,
       legs,
-      lifecycleState: legs.length ? 'split' : 'forecast',
+      lifecycleState: lifecycleOf(legs.length, legs.length ? 1 : 0, 1, legs.filter(isV1Leg).length),
     };
   });
 
@@ -245,7 +262,7 @@ async function getOne(req, res) {
     orderCount:       myOrders.length,
     legCount:         totalLegs,
     totalOrderedQty: totalOrdered,
-    lifecycleState:   lifecycleOf(totalLegs, splitOrders, myOrders.length),
+    lifecycleState:   lifecycleOf(totalLegs, splitOrders, myOrders.length, v1Legs),
     bookable:          totalLegs > 0,
     orders,
   });

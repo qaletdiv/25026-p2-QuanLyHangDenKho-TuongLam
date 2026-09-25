@@ -99,10 +99,17 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
     { key: 'supplier', label: 'Supplier', accessor: (l) => l.supplier, render: (l) => <span className="text-muted-foreground">{l.supplier ?? '—'}</span> },
     { key: 'season', label: 'Season', accessor: (l) => l.season, render: (l) => <span className="text-muted-foreground">{l.season ?? '—'}</span> },
     { key: 'mainShoulder', label: 'Shoulder', defaultVisible: false, accessor: (l) => l.mainShoulder, render: (l) => <span className="text-muted-foreground">{l.mainShoulder ?? '—'}</span> },
-    { key: 'lifecycle', label: 'Stage', accessor: (l) => l.lifecycle, render: (l) => (
+    // Stage describes the v1 WIP air/sea SPLIT. A v2 leg (SS27+) is created 1:1 by
+    // the NetSuite sync, so there was no split to do and the API sends null —
+    // rendered BLANK, not "Split", which would assert an operation that never
+    // happened. Same blank-when-unremarkable rule as Carrier Ref # and Approval.
+    // "Where is this" is answered by the forecast's stage ladder instead.
+    { key: 'lifecycle', label: 'Stage', accessor: (l) => l.lifecycle ?? '', render: (l) => (
       l.lifecycle === 'forecast'
         ? <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">Forecast</Badge>
-        : <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Split</Badge>
+        : l.lifecycle === 'split'
+          ? <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Split</Badge>
+          : null
     ) },
     // NetSuite sign-off. Its OWN column rather than a second pill in Stage: they
     // answer different questions (has WIP split it / has a supervisor approved it),
