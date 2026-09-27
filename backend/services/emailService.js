@@ -57,6 +57,37 @@ function mode() {
  */
 const redirectTo = () => (process.env.MAIL_REDIRECT_TO || '').trim() || null;
 
+/**
+ * `MAIL_ALLOWLIST` — the STEP BETWEEN "nothing is real" and "everything is real".
+ *
+ * Going live is not one decision, because the recipient list is not one kind of
+ * address. Some are confirmed internal mailboxes, one is an external partner,
+ * and some are still seed placeholders that would simply bounce. An all-or-
+ * nothing switch forces you to either keep the whole feature fake or mail all
+ * three at once.
+ *
+ * With this set, only matching recipients are actually mailed; the rest are
+ * HELD — dropped from the send and recorded, never silently discarded. Widen it
+ * as each address is confirmed, and delete it once they all are.
+ *
+ * Entries are comma-separated and match either exactly (`logistics@tentree.com`)
+ * or by domain (`@tentree.com`). Case-insensitive.
+ *
+ * ⚠️ MAIL_REDIRECT_TO OUTRANKS THIS. Redirect is the dev-machine blunt
+ * instrument — "nothing leaves, whatever the list says" — so if both are set,
+ * redirect wins outright and the allowlist is not consulted.
+ */
+function allowFilter() {
+  const raw = (process.env.MAIL_ALLOWLIST || '').trim();
+  if (!raw) return null;
+  const rules = raw.split(',').map((r) => r.trim().toLowerCase()).filter(Boolean);
+  if (!rules.length) return null;
+  return (addr) => {
+    const a = String(addr).toLowerCase();
+    return rules.some((r) => (r.startsWith('@') ? a.endsWith(r) : a === r));
+  };
+}
+
 function fromAddress() {
   return process.env.MAIL_FROM || process.env.SMTP_USER || 'tentree Supply Chain Portal <no-reply@localhost>';
 }
@@ -134,7 +165,31 @@ async function send({ to, subject, text, html }) {
   // Swap the recipients BEFORE anything is composed or written, so the outbox
   // path is redirected too and there is no branch where the real list escapes.
   const via = redirectTo();
-  const recipients = via ? [via] : intended;
+
+  // Allowlist applies only when NOT redirecting — redirect already guarantees
+  // nothing reaches a real recipient, so filtering first would just be noise.
+  let held = [];
+  let permitted = intended;
+  if (!via) {
+    const allow = allowFilter();
+    if (allow) {
+      permitted = intended.filter(allow);
+      held = intended.filter((a) => !allow(a));
+      if (!permitted.length) {
+        // Reported, never silent: "held everyone" and "had nobody to tell" are
+        // different states and only one of them is a configuration problem.
+        return { status: 'skipped', detail: `all recipients held by MAIL_ALLOWLIST: ${held.join(', ')}` };
+      }
+    }
+  }
+
+  const recipients = via ? [via] : permitted;
+  if (held.length) {
+    const note = `Held by MAIL_ALLOWLIST (not yet confirmed as live mailboxes): ${held.join(', ')}`;
+    text = `** ${note} **\n\n${text}`;
+    html = `<p style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:13px;background:#fef3c7;border:1px solid #fcd34d;padding:8px 12px;border-radius:6px;margin:0 0 16px">
+      <strong>Partially delivered.</strong> ${esc(note)}</p>${html}`;
+  }
   if (via) {
     const list = intended.join(', ');
     subject = `[REDIRECTED] ${subject}`;
@@ -153,10 +208,14 @@ async function send({ to, subject, text, html }) {
       from: fromAddress(), to: recipients.join(', '), subject, text, html,
     });
     return {
-      status: via ? 'redirected' : 'sent',
-      // The audit log must record who it WOULD have reached, or a redirected
-      // deployment looks like it notified people it never notified.
-      detail: via ? `-> ${via} (intended: ${intended.join(', ')})` : (info.messageId || null),
+      status: via ? 'redirected' : (held.length ? 'partial' : 'sent'),
+      // The audit log must record who it WOULD have reached, or a diverted or
+      // filtered deployment looks like it notified people it never notified.
+      detail: via
+        ? `-> ${via} (intended: ${intended.join(', ')})`
+        : held.length
+          ? `sent to ${recipients.join(', ')}; HELD ${held.join(', ')}`
+          : (info.messageId || null),
     };
   } catch (err) {
     console.error(`[email] ${m} delivery failed for "${subject}":`, err.message);
@@ -171,7 +230,9 @@ async function send({ to, subject, text, html }) {
  */
 async function verify() {
   const m = mode();
-  const via = redirectTo() ? `, ALL MAIL REDIRECTED TO ${redirectTo()}` : '';
+  const via = redirectTo()
+    ? `, ALL MAIL REDIRECTED TO ${redirectTo()}`
+    : (process.env.MAIL_ALLOWLIST ? `, allowlist: ${process.env.MAIL_ALLOWLIST}` : ', ALL RECIPIENTS LIVE');
   if (m !== 'smtp') return { ok: true, mode: m, detail: (m === 'off' ? 'notifications disabled' : `writing to ${path.relative(path.join(__dirname, '..'), OUTBOX_DIR)}`) + via };
   try {
     await transport().verify();

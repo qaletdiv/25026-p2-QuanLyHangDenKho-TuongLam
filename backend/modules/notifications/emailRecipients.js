@@ -64,6 +64,18 @@ const ROLE_EMAIL_RULES = {
 
 const matches = (rule, key) => rule === ALL || (Array.isArray(rule) && rule.includes(key));
 
+// A role created on the Roles page has no entry above, so its holders receive
+// NOTHING — correct (never mail someone by guessing), but silent, and silence
+// is indistinguishable from "the email feature is broken". Warned once per role
+// per process so it shows up in the log without repeating on every save.
+const _warnedRoles = new Set();
+function warnUnknownRole(role) {
+  if (!role || _warnedRoles.has(role)) return;
+  _warnedRoles.add(role);
+  console.warn(`[email] role "${role}" has no entry in ROLE_EMAIL_RULES — nobody holding it `
+    + 'will be emailed. Add it to modules/notifications/emailRecipients.js.');
+}
+
 /**
  * Resolve the mailing list for one event.
  *
@@ -83,7 +95,7 @@ async function recipientsFor(ev) {
     if (ev.actorId != null && String(u.id) === String(ev.actorId)) continue;
 
     const rule = ROLE_EMAIL_RULES[u.role];
-    if (!rule) continue;
+    if (!rule) { warnUnknownRole(u.role); continue; }
     if (!matches(rule.types, ev.type)) continue;
     if (!matches(rule.modules, ev.module)) continue;
 
