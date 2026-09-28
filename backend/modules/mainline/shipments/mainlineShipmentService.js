@@ -151,7 +151,17 @@ function enrichShipments(shipments, { shipLegs = [], bookingLegs = [], packingCa
       expectedAta:          addDays(s.eDel, 5),
       coo:                   [...new Set(myLegs.map((l) => l.coo).filter(Boolean))],
       season:                [...new Set(myLegs.map((l) => l.season).filter(Boolean))].join(', ') || null,
-      crd:                   myLegs.map((l) => l.crd).filter(Boolean).sort()[0] || null,   // earliest cargo-ready
+      // ── THE THREE CARGO-READY DATES, each with ONE owner ──────────────────
+      // `crd`               the PO's, from NetSuite custbody46 — earliest across
+      //                     this consignment's legs (a shipment can carry several).
+      //                     DERIVED, read-only.
+      // `bookedCargoReadyDate` the vendor's, stated on the booking.
+      // `cargoReadyDate`    the REVISED one, the forwarder's — a real column on
+      //                     this row, arriving via `...s` above.
+      // None is a restatement of another, and none of the three is
+      // `cargoReceivedDate` (Received at Port), which is a different EVENT.
+      crd:                   myLegs.map((l) => l.crd).filter(Boolean).sort()[0] || null,
+      bookedCargoReadyDate: booking.cargoReadyDate || null,
       legs:                  myLegs,
       poNumbers:            myPos,
       trnNumber:            firstTrn,

@@ -22,11 +22,30 @@ module.exports = (sequelize, DataTypes) => {
         podPortId: { type: DataTypes.TEXT, references: { model: 'ports', key: 'id', deferrable: Deferrable.INITIALLY_DEFERRED } },
         blNo: { type: DataTypes.TEXT },
         carrierReference: { type: DataTypes.TEXT },
+        // CARGO READY (revised) — the forwarder's working date for this consignment.
+        // Seeded from the booking's cargoReadyDate at approve, then editable.
+        // ⚠️ NOT the same as cargoReceivedDate below: ready = the goods are
+        // available, received = the carrier physically has them. Ready is the
+        // EARLIER event (it heads the chronology guard), and the two differ on
+        // most live rows. Three CRDs exist in total and each has one owner:
+        //   mainline_po_legs.crd        — the PO's, from NetSuite custbody46
+        //   mainline_bookings.cargoReadyDate — the booked one, the vendor's
+        //   THIS                        — the revised one, the forwarder's
+        cargoReadyDate: { type: DataTypes.DATEONLY },
         etdPol: { type: DataTypes.DATEONLY },
         etaPod: { type: DataTypes.DATEONLY },
         eDel: { type: DataTypes.DATEONLY },
         cargoReceivedDate: { type: DataTypes.DATEONLY },
         ata: { type: DataTypes.DATEONLY },
+        // Free-text operational note, shared by everyone who can see the shipment
+        // (vendors included — they are supplier-scoped, not excluded). Single
+        // mutable field, so it carries no author or history: a later edit REPLACES
+        // what was there.
+        notes: { type: DataTypes.TEXT },
+        // "Needs attention" flag. Set only by Admin / Logistics Coordinator via the
+        // `shipment_flag_priority` permission — deliberately NOT `shipment_update_status`,
+        // which Production and the Freight Forwarder also hold.
+        priority: { type: DataTypes.BOOLEAN, defaultValue: false },
         netsuiteId: { type: DataTypes.TEXT },
         invoiceValue: { type: DataTypes.DECIMAL },
         duty: { type: DataTypes.DECIMAL },

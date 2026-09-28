@@ -271,10 +271,17 @@ export interface MainlineShipment {
   polPort: string | null;                // departure port (POL)
   podPortId: string | null;
   podPort: string | null;                // arrival port (POD)
+  // ── THE THREE CARGO-READY DATES ─────────────────────────────────────────
+  // Each has ONE owner, and none is a restatement of another:
+  //   crd                   the PO's (NetSuite custbody46), earliest across legs — READ-ONLY
+  //   bookedCargoReadyDate  the vendor's, stated on the booking               — READ-ONLY here
+  //   cargoReadyDate        the REVISED one, the forwarder's                  — EDITABLE
+  // And none of them is `cargoReceivedDate`, which is a different EVENT.
+  cargoReadyDate: string | null;        // revised cargo ready (this shipment's own)
   etdPol: string | null;
   etaPod: string | null;
   eDel: string | null;
-  cargoReceivedDate: string | null;     // received at port
+  cargoReceivedDate: string | null;     // received at port — the carrier HAS the cargo
   ata: string | null;                     // ACTUAL receipt date; derived from NetSuite Item Receipts, manual fallback
   ataSource: 'netsuite' | 'manual' | null; // where `ata` came from
   expectedAta: string | null;            // derived = eDel + 5 (never stored)
@@ -282,9 +289,12 @@ export interface MainlineShipment {
   invoiceValue: number | null;
   duty: number | null;
   freight: number | null;
+  notes: string | null;                   // free-text operational note (shared, no author/history)
+  priority: boolean | null;               // "needs attention" — set via shipment_flag_priority
   // joined / derived:
   coo: string[];                          // distinct countries of origin across legs
-  crd: string | null;                     // earliest cargo-ready across legs
+  crd: string | null;                     // PO cargo-ready — earliest across legs
+  bookedCargoReadyDate: string | null;   // the booking's cargo ready date
   // contents:
   legs: MainlineShipmentLeg[];
   poNumbers: string[];

@@ -4,12 +4,13 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ArrowLeft, Ban, Download, FileText, Pencil, Save, Trash2, X, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Ban, Download, FileText, Flag, Pencil, Save, Trash2, X, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { MoneyInput } from '@/components/ui/money-input';
+import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -57,6 +58,10 @@ export default function ShipmentDetail({
   const { user } = useSession();
   const canCancel = hasPermission(user, 'shipment_update_status');
   const canDelete = hasPermission(user, 'shipment_delete');
+  // Its OWN key — shipment_update_status is held by the Freight Forwarder and
+  // Production too, and the flag is Logistics' marker. The server is still the
+  // authority; this only stops the UI offering what the API would refuse.
+  const canFlagPriority = hasPermission(user, 'shipment_flag_priority');
 
   // Mirror of the server's handover predicate (shipmentLifecycle.js), so the button
   // can explain itself instead of costing a round trip to be told no. The SERVER is
@@ -81,10 +86,15 @@ export default function ShipmentDetail({
   const blank = {
     status: s.status ?? '', blNo: s.blNo ?? '', courierId: s.courierId ?? '', carrierReference: s.carrierReference ?? '', customsEntryNumber: s.customsEntryNumber ?? '', containerTypeId: s.containerTypeId ?? '',
     polPortId: s.polPortId ?? '', podPortId: s.podPortId ?? (FACILITY_POD[s.facilityId ?? ''] ?? ''),
+    // REVISED cargo ready — this shipment's own, the forwarder's to keep current.
+    // The PO's (s.crd) and the booked one (s.bookedCargoReadyDate) are shown beside
+    // it as read-only reference and are deliberately NOT in the form.
+    cargoReadyDate: s.cargoReadyDate ?? '',
     cargoReceivedDate: s.cargoReceivedDate ?? '', etdPol: s.etdPol ?? '', etaPod: s.etaPod ?? '', eDel: s.eDel ?? '',
     ata: s.ata ?? '',   // actual receipt date — manual entry
     freight: s.freight != null ? String(s.freight) : '',   // total landed-cost freight/duty
     duty: s.duty != null ? String(s.duty) : '',
+    notes: s.notes ?? '',
   };
   const [form, setForm] = useState(blank);
   const setF = (k: keyof typeof blank, v: string) => setForm((f) => ({ ...f, [k]: v }));
@@ -110,10 +120,12 @@ export default function ShipmentDetail({
       containerTypeId: form.containerTypeId || null,
       polPortId: form.polPortId || null,
       podPortId: form.podPortId || null,
+      cargoReadyDate: form.cargoReadyDate || null,
       cargoReceivedDate: form.cargoReceivedDate || null,
       etdPol: form.etdPol || null,
       etaPod: form.etaPod || null,
       eDel: form.eDel || null,
+      notes: form.notes || null,
       // ATA is derived from NetSuite Item Receipts when present — don't overwrite it
       ata: s.ataSource === 'netsuite' ? undefined : (form.ata || null),
       // Omitted entirely on an estimate-basis carrier: the server refuses typed
@@ -128,6 +140,19 @@ export default function ShipmentDetail({
     if (res?.error) { toast.error(res.error); return; }
     toast.success('Shipment updated');
     setEditing(false);
+    router.refresh();
+  }
+
+  // Saves on its own, outside the Edit form: flagging is a one-click act, and
+  // making someone open an editor, tick a box and press Save to say "look at this"
+  // is enough friction that it stops being used.
+  async function togglePriority() {
+    setBusy(true);
+    const next = !s.priority;
+    const res = await updateMainlineShipment(s.id, { priority: next });
+    setBusy(false);
+    if (res?.error) { toast.error(res.error); return; }
+    toast.success(next ? `${s.shipmentNumber} flagged as priority` : `Priority cleared on ${s.shipmentNumber}`);
     router.refresh();
   }
 
@@ -183,8 +208,27 @@ export default function ShipmentDetail({
           <ArrowLeft className="w-4 h-4" /> Shipments
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-semibold tracking-tight">{s.shipmentNumber}</h1>
+            {/* PRIORITY is a standalone toggle, not part of the Edit form: it is a
+                different ACT (asking for someone's attention) under a different
+                permission, and burying it behind Edit would hide it from the people
+                who read it. Same visible-but-disabled rule the Approve button uses —
+                a forwarder should still SEE that Logistics has flagged this. */}
+            <span title={canFlagPriority
+              ? (s.priority ? 'Clear the priority flag' : 'Flag this consignment as needing attention')
+              : 'Only Admin or a Logistics Coordinator can change this'} className="inline-block">
+              <Button
+                size="sm"
+                variant={s.priority ? 'default' : 'outline'}
+                disabled={busy || !canFlagPriority}
+                onClick={togglePriority}
+                className={cn(s.priority && 'bg-amber-500 hover:bg-amber-600 text-white border-amber-500')}
+              >
+                <Flag className={cn('h-3.5 w-3.5 mr-1.5', s.priority && 'fill-current')} />
+                {s.priority ? 'Priority' : 'Flag priority'}
+              </Button>
+            </span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {asn?.fileUrl && <a href={docHref(asn.fileUrl)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline text-sm"><Download className="h-3.5 w-3.5" /> Latest ASN</a>}
@@ -326,8 +370,21 @@ export default function ShipmentDetail({
           {/* timeline — chronological order */}
           <div className="border-t border-border pt-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Cell label="CRD">{s.crd ?? '—'}</Cell>
-              <Cell label="Received at Port">{editing ? dateInput('cargoReceivedDate') : (s.cargoReceivedDate ?? '—')}</Cell>
+              {/* THREE cargo-ready dates, oldest commitment first. They are NOT
+                  three readings of one date — each has its own owner, and the
+                  drift between them is the thing this row exists to show:
+                    PO      NetSuite custbody46, earliest across this
+                            consignment's legs. Read-only here; edit it in NetSuite.
+                    Booked  what the vendor committed to on the booking.
+                    Revised this shipment's own — the forwarder keeps it current.
+                  "Received at Port" below is a different EVENT again (the carrier
+                  physically has the cargo), which is why it is not in this group. */}
+              <Cell label="Cargo Ready (PO)" hint="from NetSuite — earliest across this shipment's legs">{s.crd ?? '—'}</Cell>
+              <Cell label="Cargo Ready (booked)" hint="stated by the vendor on the booking">{s.bookedCargoReadyDate ?? '—'}</Cell>
+              <Cell label="Cargo Ready (revised)" hint={editing ? 'the forwarder’s working date for this consignment' : undefined}>
+                {editing ? dateInput('cargoReadyDate') : (s.cargoReadyDate ?? '—')}
+              </Cell>
+              <Cell label="Received at Port" hint={editing ? 'the carrier has the cargo — later than Cargo Ready' : undefined}>{editing ? dateInput('cargoReceivedDate') : (s.cargoReceivedDate ?? '—')}</Cell>
               <Cell label="ETD POL">{editing ? dateInput('etdPol') : (s.etdPol ?? '—')}</Cell>
               <Cell label="ETA POD">{editing ? dateInput('etaPod') : (s.etaPod ?? '—')}</Cell>
               <Cell label="E-DEL">{editing ? dateInput('eDel') : (s.eDel ?? '—')}</Cell>
@@ -337,6 +394,38 @@ export default function ShipmentDetail({
               </Cell>
             </div>
           </div>
+        </Card>
+      </section>
+
+      {/* ── Notes ──
+          A SHARED operational note, not a private one: everyone who can see this
+          shipment sees it, vendors included (they are supplier-scoped, not
+          excluded). Single field, so it has no author and no history — a later
+          edit REPLACES what was there. Said out loud under the box, because a note
+          people think is private or appended is the way that bites.
+          Edited with the rest of the header so one Save covers the whole card. */}
+      <section className="space-y-2">
+        <h2 className="text-sm font-medium text-muted-foreground">Notes</h2>
+        <Card className="p-4 space-y-2">
+          {editing ? (
+            <>
+              <Textarea
+                value={form.notes}
+                onChange={(e) => setF('notes', e.target.value)}
+                placeholder="Anything the next person needs to know — a rolled sailing, a split delivery, who to chase."
+                rows={4}
+                maxLength={4000}
+                className="text-sm"
+              />
+              <p className="text-[10px] text-muted-foreground/70">
+                Visible to everyone who can see this shipment. Saving replaces the previous note.
+              </p>
+            </>
+          ) : (
+            <p className={cn('text-sm whitespace-pre-wrap', !s.notes && 'text-muted-foreground')}>
+              {s.notes || 'No notes.'}
+            </p>
+          )}
         </Card>
       </section>
 

@@ -9,6 +9,9 @@ const ModeModel = models.modes;
 const status = require('../statuses');
 const { enrichShipments } = require('./mainlineShipmentService');
 const { resolveVendorSupplierId } = require('../../../utils/vendorScope');
+// Resolved PER REQUEST (not from the JWT), so a granted/revoked key applies
+// immediately — same as requirePermission and the booking-approve in-handler check.
+const { permissionsForRole } = require('../../../utils/rolePermissions');
 const { assertLegVisible } = require('../vendorAccess');
 const { cascadeShipmentDelete } = require('./shipmentCleanup');
 const lifecycle = require('./shipmentLifecycle');
@@ -36,8 +39,14 @@ async function _supplierOf(shipment) {
 
 // Journey chronology guard: whichever of these dates are filled must not go
 // backwards, else transit-time durations turn negative and poison lane averages.
-// (CRD is leg-owned and can legitimately differ per leg, so it isn't checked here.)
+//
+// `cargoReadyDate` HEADS the list. The shipment owns its own revised cargo-ready
+// date as of 2026-09-28, and ready-then-received is the physical order: the goods
+// are available, then the carrier takes them. (The PO leg's `crd` is still NOT
+// checked here — it is leg-owned and a shipment can carry several legs with
+// different ones, so there is no single value to order against.)
 const DATE_ORDER = [
+  ['cargoReadyDate',    'Cargo Ready'],
   ['cargoReceivedDate', 'Cargo Received'],
   ['etdPol',             'ETD POL'],
   ['etaPod',             'ETA POD'],
@@ -240,10 +249,27 @@ async function update(req, res) {
   // (expectedQuantity + lotNumber are per-leg → live on the junction, not here.
   //  `ata` is the actual receipt date — manual now, NetSuite later. Expected ATA is
   //  derived (eDel + 5) and therefore not editable.)
-  for (const k of ['etdPol', 'etaPod', 'eDel', 'cargoReceivedDate', 'ata', 'netsuiteId',
-                   'blNo', 'carrierReference', 'customsEntryNumber', 'containerTypeId', 'polPortId', 'podPortId', 'invoiceValue', 'duty', 'freight']) {
+  for (const k of ['cargoReadyDate', 'etdPol', 'etaPod', 'eDel', 'cargoReceivedDate', 'ata', 'netsuiteId',
+                   'blNo', 'carrierReference', 'customsEntryNumber', 'containerTypeId', 'polPortId', 'podPortId', 'invoiceValue', 'duty', 'freight', 'notes']) {
     if (req.body[k] !== undefined) next[k] = req.body[k];
   }
+
+  // PRIORITY is gated IN THE HANDLER, not at the route — same shape as the
+  // booking-approve check. The route carries `shipment_update_status`, which the
+  // Freight Forwarder and Production also hold; the flag is Logistics' own
+  // "needs attention" marker, so it takes its own key. Checked only when the value
+  // actually MOVES, so a forwarder saving dates on a flagged shipment still passes.
+  if (req.body.priority !== undefined) {
+    const nextPriority = !!req.body.priority;
+    if (nextPriority !== !!next.priority) {
+      const granted = await permissionsForRole(req.user?.role);
+      if (!granted.includes('shipment_flag_priority')) {
+        err("Permission denied — 'shipment_flag_priority' required to flag a shipment (Admin / Logistics Coordinator)", 403);
+      }
+    }
+    next.priority = nextPriority;
+  }
+
   checkChronology(next);   // 400 before anything is written
   const before = shipments[idx];
   shipments[idx] = next;

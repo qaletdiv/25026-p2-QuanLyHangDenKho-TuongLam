@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, ChevronRight, ChevronDown, ChevronLeft } from 'lucide-react';
+import { Search, ChevronRight, ChevronDown, ChevronLeft, Flag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { updateMainlineShipment } from '@/modules/mainline/actions';
 import ColumnPicker from './ColumnPicker';
@@ -64,7 +64,16 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
   );
 
   const filtered = useMemo(() => {
-    const scoped = applySeasonScope(sorted, { season, scope, isCompleted: (s) => SHIP_DONE.has(s.status || '') });
+    // A FLAGGED consignment is never "done" for this filter, whatever its status.
+    // The flag means a human asked for eyes on it, and the Active view is where
+    // people look — letting Delivered hide a flagged row makes the flag a lie.
+    // This matters today rather than in theory: all 11 live shipments are
+    // Delivered/Received/Cancelled, so without this a flag set now would be
+    // invisible on the list by default. Clearing the flag returns it to Done.
+    const scoped = applySeasonScope(sorted, {
+      season, scope,
+      isCompleted: (s) => !s.priority && SHIP_DONE.has(s.status || ''),
+    });
     const q = search.trim().toLowerCase();
     if (!q) return scoped;
     return scoped.filter((s) =>
@@ -104,8 +113,14 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
   }
 
   const columns: ShipColumn[] = [
+    // The flag rides ON the Shipment cell rather than taking its own column: it is
+    // set on a minority of rows, and a column that is blank 95% of the time costs
+    // width on every row to say nothing. Amber + title so it reads without a legend.
     { key: 'shipment', label: 'Shipment', render: (s) => (
-      <Link href={`/mainline/shipments/${s.id}`} className="text-primary hover:underline font-medium" onClick={(e) => e.stopPropagation()}>{s.shipmentNumber}</Link>
+      <span className="inline-flex items-center gap-1.5">
+        {s.priority && <Flag className="h-3.5 w-3.5 shrink-0 fill-amber-500 text-amber-500" aria-label="Priority" />}
+        <Link href={`/mainline/shipments/${s.id}`} className="text-primary hover:underline font-medium" onClick={(e) => e.stopPropagation()}>{s.shipmentNumber}</Link>
+      </span>
     ) },
     { key: 'booking', label: 'Booking', render: (s) => s.bookingNumber
       ? <Link href={`/mainline/bookings/${s.bookingId}`} className="text-primary hover:underline" onClick={(e) => e.stopPropagation()}>{s.bookingNumber}</Link>
@@ -133,7 +148,10 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
     { key: 'polPort', label: 'POL', defaultVisible: false, render: (s) => dim(s.polPort) },
     { key: 'podPort', label: 'POD', defaultVisible: false, render: (s) => dim(s.podPort) },
     { key: 'coo', label: 'COO', defaultVisible: false, render: (s) => dim(s.coo.join(', ')) },
-    { key: 'crd', label: 'CRD', defaultVisible: false, render: (s) => dim(s.crd) },
+    // THREE distinct cargo-ready dates — see MainlineShipment in types.ts. Labelled
+    // in full here because a bare "CRD" column next to two others is unreadable.
+    { key: 'crd', label: 'Cargo Ready (PO)', defaultVisible: false, render: (s) => dim(s.crd) },
+    { key: 'cargoReadyDate', label: 'Cargo Ready (revised)', render: (s) => dim(s.cargoReadyDate) },
     { key: 'etdPol', label: 'ETD POL', defaultVisible: false, render: (s) => dim(s.etdPol) },
     { key: 'etaPod', label: 'ETA POD', defaultVisible: false, render: (s) => dim(s.etaPod) },
     { key: 'eDel', label: 'E-DEL', render: (s) => dim(s.eDel) },

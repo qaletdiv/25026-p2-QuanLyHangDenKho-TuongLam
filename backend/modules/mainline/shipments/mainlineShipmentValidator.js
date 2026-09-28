@@ -20,7 +20,16 @@ const update = Joi.object({
   status: Joi.string().valid(...MAINLINE_SHIPMENT_STATUSES).messages({
     'any.only': `'status' must be one of: ${MAINLINE_SHIPMENT_STATUSES.join(', ')}`,
   }),
+  // cargoReadyDate = the REVISED cargo ready date (the forwarder's). Distinct from
+  // cargoReceivedDate: ready is the earlier event, and checkChronology orders them.
+  cargoReadyDate: isoDate,
   etdPol: isoDate, etaPod: isoDate, eDel: isoDate, cargoReceivedDate: isoDate, ata: isoDate,
+  // Operational note. Capped so one paste cannot make every shipment payload huge —
+  // this rides on the list endpoint too.
+  notes: Joi.string().max(4000).allow(null, ''),
+  // "Needs attention". Accepted here, but the CONTROLLER gates it on
+  // `shipment_flag_priority`; validation is shape, not authority.
+  priority: Joi.boolean(),
   blNo: Joi.string().allow(null, ''),
   courierId: Joi.string().allow(null, ''),          // actual carrier; drives the landed-cost basis
   // Was `ceva_shipment_number` — the carrier is data now, so the column no longer

@@ -34,6 +34,7 @@ const DATE = 'date';
 const MONEY = 'money';
 const LOOKUP = 'lookup';   // an id whose NAME is what a reader needs
 const PLAIN = 'plain';
+const BOOL = 'bool';   // two-state flag — see normalize(): null and false are one value
 
 /**
  * Per-entity curated field list. `lookup` names the resolver key the notifier
@@ -65,7 +66,10 @@ const FIELD_SPECS = {
     fields: [
       // The transit chain, in the order it happens. These are the dates the
       // whole downstream plan hangs on — a moved ETD is the single most
-      // consequential edit anyone makes on this screen.
+      // consequential edit anyone makes on this screen. Cargo Ready (revised) is
+      // the forwarder's own field and the one they move most; it is a DIFFERENT
+      // event from Received at Port under it, not a restatement.
+      { key: 'cargoReadyDate', label: 'Cargo Ready (revised)', type: DATE },
       { key: 'cargoReceivedDate', label: 'Received at Port', type: DATE },
       { key: 'etdPol', label: 'ETD (POL)', type: DATE },
       { key: 'etaPod', label: 'ETA (POD)', type: DATE },
@@ -81,6 +85,12 @@ const FIELD_SPECS = {
       { key: 'invoiceValue', label: 'Invoice Value', type: MONEY },
       { key: 'freight', label: 'Freight', type: MONEY },
       { key: 'duty', label: 'Duty', type: MONEY },
+      // A note is written TO somebody — mailing it is the point, not a side effect.
+      { key: 'notes', label: 'Notes', type: PLAIN },
+      // The flag is a request for someone else's attention, so it has to leave the
+      // screen it was set on. BOOL folds null and false together, so seeding
+      // priority:false at approve can never report a phantom change.
+      { key: 'priority', label: 'Priority', type: BOOL },
     ],
   },
   // Receipt events are ACTS, not field edits — an Item Receipt attribution is
@@ -112,6 +122,11 @@ const FIELD_SPECS = {
  * curated list above exists to avoid.
  */
 function normalize(value, type) {
+  // BOOL folds null/false/'' to the SAME value on purpose: a flag is two-state, and
+  // "never set" and "set to false" are the same fact to a reader. Handled before the
+  // null guard below, or an unflag would read as a change to nothing. It also keeps
+  // the email saying "No → Yes" rather than "false → true".
+  if (type === BOOL) return value === true || value === 'true' ? 'Yes' : 'No';
   if (value === undefined || value === null || value === '') return null;
   if (type === MONEY) {
     const n = Number(value);

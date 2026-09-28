@@ -7,6 +7,7 @@ export const ALL_PERMISSIONS = [
   'booking_create_mainline', 'booking_create_sms', 'booking_approve', 'booking_delete',
   // Shipment actions
   'shipment_update_status', 'shipment_delete', 'shipment_import_export',
+  'shipment_flag_priority',
   // PO actions
   'po_edit',
   // Admin actions
@@ -70,6 +71,10 @@ export const PERMISSION_MANIFEST: { category: string; items: { key: Permission; 
       { key: 'shipment_update_status',   label: 'Update Status' },
       { key: 'shipment_delete',          label: 'Delete Shipment' },
       { key: 'shipment_import_export',   label: 'Import / Export' },
+      // Deliberately its OWN key rather than shipment_update_status: that one is
+      // held by Production and the Freight Forwarder too, and the flag is meant to
+      // be Logistics' own "needs attention" marker.
+      { key: 'shipment_flag_priority',   label: 'Flag Priority' },
     ],
   },
   {

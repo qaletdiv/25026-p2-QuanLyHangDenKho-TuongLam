@@ -250,6 +250,16 @@ async function _approve(booking, ctx) {
         // shipment. Deliberately NOT defaulted to a carrier: guessing one is the bug
         // this replaces (SMS approve used to hardcode FedEx).
         courierId: booking.courierId || null,
+        // REVISED cargo ready, seeded from the BOOKED one so the forwarder starts
+        // from the date the vendor committed to rather than an empty field. It
+        // diverges from here — the booking's value is frozen at approval (only
+        // Admin/Logistics may still move it), while this one is the forwarder's to
+        // keep current. Falls back to the leg's earliest CRD when the booking never
+        // carried its own, which is the same fallback the booking screen shows.
+        cargoReadyDate: booking.cargoReadyDate
+          || items.reduce((d, { leg }) => earliest(d, leg.crd || null), null),
+        notes: null,
+        priority: false,
         polPortId: null, podPortId: null, blNo: null, carrierReference: null,
         etdPol: items.reduce((d, { leg }) => earliest(d, leg.etdPol || null), null),
         etaPod: null,

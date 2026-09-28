@@ -180,7 +180,9 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
     { key: 'units', label: 'Units', align: 'right', defaultVisible: false, accessor: (b) => b.poLegs.reduce((a, l) => a + (Number(l.units) || 0), 0), render: (b) => b.poLegs.reduce((a, l) => a + (Number(l.units) || 0), 0).toLocaleString() },
     { key: 'booked', label: 'Booked', accessor: (b) => b.submittedAt, render: (b) => <span className="text-muted-foreground">{b.submittedAt ? b.submittedAt.slice(0, 10) : '—'}</span> },
     { key: 'approved', label: 'Approved', defaultVisible: false, accessor: (b) => b.approvedAt, render: (b) => <span className="text-muted-foreground">{b.approvedAt ? b.approvedAt.slice(0, 10) : '—'}</span> },
-    { key: 'cargoReadyDate', label: 'Cargo Ready', accessor: (b) => b.cargoReadyDate, render: (b) => <span className="text-muted-foreground">{b.cargoReadyDate ?? '—'}</span> },
+    // The BOOKED cargo ready date — the vendor's. The PO's own sits on each leg row
+    // in the expansion below, and the forwarder's revised one lives on the shipment.
+    { key: 'cargoReadyDate', label: 'Cargo Ready (booked)', accessor: (b) => b.cargoReadyDate, render: (b) => <span className="text-muted-foreground">{b.cargoReadyDate ?? '—'}</span> },
     { key: 'bookingStatus', label: 'Status', accessor: (b) => b.bookingStatus, render: (b) => <Badge variant="outline" className={cn(STATUS_STYLES[b.bookingStatus || ''])}>{b.bookingStatus ?? '—'}</Badge> },
     // Approve stays VISIBLE and goes DISABLED for a role that may not press it —
     // a vendor watching their own booking should still see that it is sitting on
