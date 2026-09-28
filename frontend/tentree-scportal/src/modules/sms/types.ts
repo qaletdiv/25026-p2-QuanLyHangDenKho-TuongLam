@@ -71,7 +71,7 @@ export interface SmsReconciliation {
   received_total: number;
   hasShippingData: boolean;  // shipped_total/by_sku from packing when true, else declared PO totals
   remaining_to_ship: number;
-  shipped_vs_received_variance: number;
+  received_vs_shipped_variance: number;  // RECEIVED − SHIPPED, same sign as mainline
   by_sku: SmsReconciliationSku[];
 }
 

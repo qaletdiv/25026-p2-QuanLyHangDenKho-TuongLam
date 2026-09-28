@@ -1076,7 +1076,25 @@ mainline 96 → 94 (NetSuite has 94), 0 orphaned lines, all 37 SMS + 16 mainline
 confirmed matches preserved, second run removes nothing. The 5 removed IRs were
 each verified ABSENT from NetSuite by tranid first.
 
-## Fulfillment `variance` = RECEIVED − SHIPPED (2026-09-16)
+## Fulfillment `variance` = RECEIVED − SHIPPED (2026-09-16; SMS joined 2026-09-28)
+
+**BOTH MODULES now use this sign** — SMS was flipped 2026-09-28 (Lam). `smsService
+.reconcilePo` computed `shipped − received`, the exact opposite of mainline, so one
+word meant two things depending on which page you were reading and "over-received"
+on the SMS PO detail was the mainline "short". Now `receivedQty - shippedQty` at
+SKU grain, and the PO-grain field was **RENAMED** `shipped_vs_received_variance` →
+`received_vs_shipped_variance` with the flip: its name encodes the direction, so
+reversing the value while keeping the key would have left a field that lies about
+itself. Both grains must agree here too — the PO heading and the SKU rows sit on
+the same screen. Blast radius was two consumers, both in `SmsPoDetail` (the row +
+heading); nothing branches on the sign, the amber highlight tests `!== 0` and the
+sort takes `Math.abs`. Verified over all 120 SMS POs: 0 sign violations, 0
+rollup mismatches (PO-grain === Σ SKU rows), and in the GUI over-received now
+reads positive (PO04791 `ZCM5755-6995-M` shipped 7 / received 11 → **+4**).
+⚠️ Most SMS "over-received" rows are the retrospective-entry gap, not real
+over-receipts: 88 of 120 POs have receipts and no portal consignment, so
+`shipped` is 0 and variance is the whole received qty. That population is
+unchanged by the flip — only its sign moved.
 
 `fulfillmentService` computed `shipped_qty - received_qty` at BOTH grains, which
 inverts the sign of every discrepancy: leg 77 over-received `TCM4546-6351-L` by one
@@ -1177,6 +1195,17 @@ Verified in the GUI: 1 header row; top-15 footer `15 of 374` / 744·853·853;
 Show all `374` / 12,301·12,750·12,757·+7; Over-received 5 rows / +15 with the
 header reading "Over-received"; + SKU `TCM6689` → 2 rows / +12; no match → empty
 state and a 0 footer; 0 console errors.
+
+**The SMS PO detail has the same two filters (2026-09-28)**, in
+`SmsPoDetail` — same markup and the same three rules, so the two PO pages read as
+one. Two differences, both structural rather than stylistic: that table has **no
+totals row**, so rule (1) lands on the SECTION HEADING instead — it reads
+`N of M SKUs` whenever the body is a subset — and the whole-PO figures stay in the
+unfiltered Stat cards; and `skuRows` is `useMemo`'d, because it map+sorts and
+without a stable identity it would re-run on every keystroke AND hand the filter
+memo a fresh array, making that memo a no-op. The variance predicates are now
+IDENTICAL to mainline's — see the variance section above for the sign flip that
+made that true; before it they had to be inverted.
 
 ## Known debt / deferred
 

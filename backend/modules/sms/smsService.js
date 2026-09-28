@@ -240,10 +240,13 @@ function reconcilePo(poNumber, { poLines, shipmentPos, receipts, receiptLines, p
     const orderedQty = myLines.filter((l) => l.skuCode === skuCode).reduce((a, l) => a + (Number(l.orderedQty) || 0), 0);
     const shippedQty = shippedBySku.get(skuCode) || 0;
     const receivedQty = receivedBySku.get(skuCode) || 0;
-    // variance = shipped − received (matches PO-grain shipped_vs_received_variance).
-    // >0 short-received / still in transit, <0 over-received. NOT vs ordered — an
-    // un-shipped SKU isn't a receiving discrepancy, just not shipped yet.
-    return { skuCode, orderedQty, shippedQty, receivedQty, variance: shippedQty - receivedQty };
+    // variance = RECEIVED − SHIPPED — actual minus expected, so over-received is
+    // POSITIVE and short is negative, which is how a warehouse discrepancy is
+    // spoken. Flipped 2026-09-28 (Lam): it was `shipped − received`, the opposite
+    // of mainline's `fulfillmentService`, so one number meant two things depending
+    // on which module's page you were reading. NOT vs ordered — an un-shipped SKU
+    // isn't a receiving discrepancy, just not shipped yet.
+    return { skuCode, orderedQty, shippedQty, receivedQty, variance: receivedQty - shippedQty };
   });
 
   return {
@@ -251,7 +254,11 @@ function reconcilePo(poNumber, { poLines, shipmentPos, receipts, receiptLines, p
     ordered_total, shipped_total, received_total,
     hasShippingData: hasShippingData,
     remaining_to_ship: ordered_total - shipped_total,
-    shipped_vs_received_variance: shipped_total - received_total,
+    // RENAMED with the flip, deliberately: the old key was `shipped_vs_received_
+    // variance` and its name encoded the direction, so keeping it while reversing
+    // the value would leave a field that lies about itself. Both grains must agree
+    // — the PO heading and the SKU rows sit on the same screen.
+    received_vs_shipped_variance: received_total - shipped_total,
     by_sku,
   };
 }

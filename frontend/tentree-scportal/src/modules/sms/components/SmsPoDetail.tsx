@@ -1,16 +1,38 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { FULFILLMENT_LABELS, FULFILLMENT_STYLES, SMS_STATUS_STYLES, facilityLabel } from './smsStatus';
 import type { SmsPoDetail as SmsPoDetailT } from '@/modules/sms/types';
 
 const DASH = '—';
+
+// Variance is RECEIVED − SHIPPED in BOTH modules as of 2026-09-28 — SMS used to
+// compute it the other way round, so these predicates agree with the identical
+// control in mainline's PoLegDetail and the two pages can be read as one. `over`
+// is the warehouse booking in more than the packing list said, `short` is less.
+// 'any' is the common case — "just show me what doesn't tie out" — and is offered
+// first for that reason.
+type VarianceFilter = 'all' | 'any' | 'over' | 'short';
+const VARIANCE_LABEL: Record<VarianceFilter, string> = {
+  all: 'All',
+  any: 'Discrepancies',
+  over: 'Over-received',
+  short: 'Short',
+};
+const VARIANCE_MATCH: Record<VarianceFilter, (v: number) => boolean> = {
+  all: () => true,
+  any: (v) => v !== 0,
+  over: (v) => v > 0,
+  short: (v) => v < 0,
+};
 
 function Meta({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -37,15 +59,39 @@ export default function SmsPoDetail({ po }: { po: SmsPoDetailT }) {
   // carries item name + unit price (server-enriched — populated even for SKUs that
   // were shipped but never ordered on this PO). Fall back to the order line if the
   // server value is somehow absent. Variance rows first — that's what logistics needs.
-  const lineBySku = new Map(po.lines.map((l) => [l.skuCode, l]));
-  const skuRows = [...rec.by_sku]
-    .map((s) => ({
-      ...s,
-      itemName: s.itemName ?? lineBySku.get(s.skuCode)?.itemName ?? null,
-      unitPrice: s.unitPrice ?? lineBySku.get(s.skuCode)?.unitPrice ?? null,
-    }))
-    .sort((a, b) => Math.abs(b.variance) - Math.abs(a.variance) || a.skuCode.localeCompare(b.skuCode));
-  const shownSkus = showAll ? skuRows : skuRows.slice(0, 15);
+  // Memoised so it keeps its identity across keystrokes in the SKU filter below —
+  // otherwise this map+sort re-runs on every character AND hands `filteredSkus` a
+  // fresh array each time, making that memo a no-op.
+  const skuRows = useMemo(() => {
+    const lineBySku = new Map(po.lines.map((l) => [l.skuCode, l]));
+    return [...rec.by_sku]
+      .map((s) => ({
+        ...s,
+        itemName: s.itemName ?? lineBySku.get(s.skuCode)?.itemName ?? null,
+        unitPrice: s.unitPrice ?? lineBySku.get(s.skuCode)?.unitPrice ?? null,
+      }))
+      .sort((a, b) => Math.abs(b.variance) - Math.abs(a.variance) || a.skuCode.localeCompare(b.skuCode));
+  }, [po.lines, rec.by_sku]);
+
+  // Filters live IN the table header, same as the mainline leg detail: this table
+  // runs to hundreds of SKUs and the question asked of it is almost always "which
+  // ones are off?", which otherwise means reading every row.
+  const [skuQuery, setSkuQuery] = useState('');
+  const [varianceFilter, setVarianceFilter] = useState<VarianceFilter>('all');
+  const filtering = skuQuery.trim() !== '' || varianceFilter !== 'all';
+
+  const filteredSkus = useMemo(() => {
+    const q = skuQuery.trim().toLowerCase();
+    return skuRows.filter((s) => {
+      // match the item name too — staff search by style as often as by SKU
+      if (q && !`${s.skuCode} ${s.itemName ?? ''}`.toLowerCase().includes(q)) return false;
+      return VARIANCE_MATCH[varianceFilter](s.variance);
+    });
+  }, [skuRows, skuQuery, varianceFilter]);
+
+  // A filter IS a request to see the matches — all of them. Capping a filtered
+  // result at 15 would hide the very rows the user just narrowed down to.
+  const shownSkus = filtering || showAll ? filteredSkus : filteredSkus.slice(0, 15);
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
@@ -127,23 +173,57 @@ export default function SmsPoDetail({ po }: { po: SmsPoDetailT }) {
       {/* ── line items + reconciliation (one table) ── */}
       <section className="space-y-2">
         <h2 className="text-sm font-medium text-muted-foreground">
-          Line items — ordered vs shipped vs received ({skuRows.length} SKUs)
+          {/* "N of M" whenever the body is a subset — from a filter OR the top-15
+              cap — so the count can never be read as the PO's SKU total. There is
+              deliberately no totals row on this table; the whole-PO figures are the
+              Stat cards above, which are NOT filtered. */}
+          Line items — ordered vs shipped vs received ({shownSkus.length === skuRows.length ? `${skuRows.length} SKUs` : `${shownSkus.length} of ${skuRows.length} SKUs`})
           {!rec.hasShippingData && <span className="ml-2 text-xs text-muted-foreground/70">(shipped-per-SKU appears once shipping data is uploaded on the consignment)</span>}
-          {rec.shipped_vs_received_variance !== 0 && rec.received_total > 0 && (
-            <span className="ml-2 text-red-600 font-semibold">shipped vs received variance: {rec.shipped_vs_received_variance.toLocaleString()}</span>
+          {rec.received_vs_shipped_variance !== 0 && rec.received_total > 0 && (
+            <span className="ml-2 text-red-600 font-semibold">received vs shipped variance: {rec.received_vs_shipped_variance.toLocaleString()}</span>
           )}
         </h2>
         <Card className="overflow-x-auto">
           <Table className="bg-card">
             <TableHeader>
+              {/* The SKU and Variance headers ARE their filters — one row, no
+                  separate filter strip. Each control shows the column name while it
+                  is unset and the active filter once it is, so the header always
+                  reads as both the label and the current state. */}
               <TableRow className="bg-card/80 hover:bg-card/80">
-                <TableHead>SKU</TableHead>
+                <TableHead className="py-1.5">
+                  <Input
+                    value={skuQuery}
+                    onChange={(e) => setSkuQuery(e.target.value)}
+                    placeholder="SKU"
+                    title="Filter by SKU or item name"
+                    aria-label="Filter by SKU or item name"
+                    className="h-7 w-full text-xs font-medium placeholder:font-medium placeholder:text-foreground"
+                  />
+                </TableHead>
                 <TableHead>Item</TableHead>
                 <TableHead className="text-right">Unit Price</TableHead>
                 <TableHead className="text-right">Ordered</TableHead>
                 <TableHead className="text-right">Shipped</TableHead>
                 <TableHead className="text-right">Received</TableHead>
-                <TableHead className="text-right">Variance</TableHead>
+                <TableHead className="py-1.5">
+                  <Select value={varianceFilter} onValueChange={(v) => setVarianceFilter((v as VarianceFilter) ?? 'all')}>
+                    {/* Label rendered directly — <SelectValue> can't derive one when
+                        the value is set programmatically (see CLAUDE.md). Unset
+                        reads "Variance", the column name. */}
+                    <SelectTrigger
+                      title="Filter by variance"
+                      className={cn('h-7 w-full text-xs font-medium', varianceFilter !== 'all' && 'text-primary')}
+                    >
+                      {varianceFilter === 'all' ? 'Variance' : VARIANCE_LABEL[varianceFilter]}
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(VARIANCE_LABEL) as VarianceFilter[]).map((k) => (
+                        <SelectItem key={k} value={k}>{VARIANCE_LABEL[k]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -160,10 +240,19 @@ export default function SmsPoDetail({ po }: { po: SmsPoDetailT }) {
                   </TableCell>
                 </TableRow>
               ))}
+              {filteredSkus.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="py-6 text-center text-sm text-muted-foreground">
+                    No SKU matches this filter.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </Card>
-        {skuRows.length > 15 && (
+        {/* Hidden while filtering: the filter already shows every match, so the
+            toggle would offer to expand a list that is not truncated. */}
+        {!filtering && skuRows.length > 15 && (
           <button onClick={() => setShowAll((v) => !v)} className="text-xs font-semibold text-primary hover:underline">
             {showAll ? 'Show top 15' : `Show all ${skuRows.length} SKUs`}
           </button>
