@@ -69,16 +69,64 @@ export default function BookingDetail({
   const isLive = isPending || isApproved;
   const isPrivileged = ['Admin', 'Logistics Coordinator'].includes(user?.role ?? '');
   const canEditCrd = isPending || isPrivileged;
-  const [editingCrd, setEditingCrd] = useState(false);
-  const [crd, setCrd] = useState(booking.cargoReadyDate ?? '');
 
-  async function saveCrd() {
+  // ONE form for the whole page — the header facts AND the per-leg estimates —
+  // behind ONE Edit/Save pair. It was a lone pencil on Cargo Ready beside five
+  // read-only cells, which reads as a broken page rather than a deliberate one.
+  // The estimates live on the booking↔leg junction, so they save in the same
+  // request (and the same transaction) as the header.
+  const blankForm = () => ({
+    cargoReadyDate: booking.cargoReadyDate ?? '',
+    submittedAt: booking.submittedAt ? booking.submittedAt.slice(0, 10) : '',
+    legs: Object.fromEntries(booking.poLegs.map((l) => [l.legId, {
+      units: l.units != null ? String(l.units) : '',
+      cartons: l.cartons != null ? String(l.cartons) : '',
+      weightKg: l.weightKg != null ? String(l.weightKg) : '',
+      cbm: l.cbm != null ? String(l.cbm) : '',
+    }])),
+  });
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState(blankForm);
+  // Set when the server answers 409 overbook_warning, so the NEXT save carries
+  // force_overbook. G2 is soft by design — shipping slightly over allocation is a
+  // coordinator's call — but it must be made explicitly, not by default.
+  const [forceOverbook, setForceOverbook] = useState(false);
+  const setLeg = (legId: string, k: 'units' | 'cartons' | 'weightKg' | 'cbm', v: string) =>
+    setForm((f) => ({ ...f, legs: { ...f.legs, [legId]: { ...f.legs[legId], [k]: v } } }));
+
+  // '' clears the value (null); anything else goes as a number. Sending '' would
+  // make Joi's number() reject the whole request over a field the user emptied.
+  const numOrNull = (v: string) => (v.trim() === '' ? null : Number(v));
+
+  async function saveAll() {
     setBusy(true);
-    const res = await updateMainlineBooking(booking.id, { cargoReadyDate: crd || null });
+    const res = await updateMainlineBooking(booking.id, {
+      cargoReadyDate: form.cargoReadyDate || null,
+      submittedAt: form.submittedAt || null,
+      ...(forceOverbook ? { force_overbook: true } : {}),
+      poLegs: booking.poLegs.map((l) => ({
+        legId: l.legId,
+        units: numOrNull(form.legs[l.legId]?.units ?? ''),
+        cartons: numOrNull(form.legs[l.legId]?.cartons ?? ''),
+        weightKg: numOrNull(form.legs[l.legId]?.weightKg ?? ''),
+        cbm: numOrNull(form.legs[l.legId]?.cbm ?? ''),
+      })),
+    });
     setBusy(false);
+    // G2 is SOFT and still applies to an estimate revision: the server answers 409
+    // with the legs that would exceed capacity rather than silently accepting it.
+    if (res?.overbook_warning) {
+      type OverbookWarning = { legId: string; poNumber?: string | null; overage: number };
+      const w = ((res.warnings ?? []) as OverbookWarning[])
+        .map((x) => `${x.poNumber ?? x.legId} over by ${x.overage}`).join('; ');
+      setForceOverbook(true);   // the next Save carries force_overbook
+      toast.warning(`Over allocation — ${w}. Press Save again to book it anyway.`, { duration: 10000 });
+      return;
+    }
     if (res?.error) { toast.error(res.error); return; }
-    setEditingCrd(false);
-    toast.success('Cargo Ready updated');
+    setEditing(false);
+    setForceOverbook(false);
+    toast.success('Booking updated');
     router.refresh();
   }
 
@@ -185,6 +233,25 @@ export default function BookingDetail({
             <h1 className="text-2xl font-semibold tracking-tight">{booking.bookingNumber}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            {/* ONE Edit/Save pair for the whole page — the header facts and the
+                per-leg estimates save in a single request. Gated on the same rule
+                Cargo Ready always used: the vendor may revise their own booking
+                while it is Pending, Admin/Logistics at any time. */}
+            {canEditCrd && (editing ? (
+              <>
+                <Button size="sm" variant="ghost" disabled={busy}
+                  onClick={() => { setEditing(false); setForm(blankForm()); setForceOverbook(false); }}>
+                  <X className="h-4 w-4 mr-1" /> Cancel
+                </Button>
+                <Button size="sm" disabled={busy} onClick={saveAll}>
+                  <Save className="h-4 w-4 mr-1" /> {forceOverbook ? 'Save anyway' : 'Save'}
+                </Button>
+              </>
+            ) : (
+              <Button size="sm" variant="outline" disabled={busy} onClick={() => setEditing(true)}>
+                <Pencil className="h-4 w-4 mr-1" /> Edit
+              </Button>
+            ))}
             {/* Shown to everyone, pressable only by a role holding booking_approve —
                 the vendor's own booking should still read as "waiting on approval".
                 Tooltip on the span: a disabled Button has pointer-events-none. */}
@@ -243,25 +310,22 @@ export default function BookingDetail({
           </div>
           {/* line 2 — booking facts */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Supplier is NOT editable: it is what G1 (one supplier per booking)
+                is built on, and changing it would re-open guards that only run at
+                create. Mode is not editable either — see the note above the
+                estimates table. */}
             <Cell label="Supplier">{booking.supplierName ?? booking.supplierId ?? DASH}</Cell>
-            <Cell label="Mode">{booking.mode ?? DASH}</Cell>
-            <Cell label="Cargo Ready" hint={isPending ? 'From WIP CRD — editable until approved' : undefined}>
-              {editingCrd ? (
-                <div className="flex items-center gap-1.5">
-                  <Input type="date" value={crd} onChange={(e) => setCrd(e.target.value)} className="h-8 w-[9.5rem]" disabled={busy} />
-                  <Button size="sm" variant="ghost" className="h-8 px-2" disabled={busy} onClick={saveCrd}><Save className="h-4 w-4" /></Button>
-                  <Button size="sm" variant="ghost" className="h-8 px-2" disabled={busy} onClick={() => { setEditingCrd(false); setCrd(booking.cargoReadyDate ?? ''); }}><X className="h-4 w-4" /></Button>
-                </div>
-              ) : (
-                <span className="inline-flex items-center gap-1.5">
-                  {booking.cargoReadyDate ?? DASH}
-                  {canEditCrd && (
-                    <Button size="sm" variant="ghost" className="h-6 px-1.5 text-muted-foreground" title="Edit Cargo Ready" onClick={() => setEditingCrd(true)}><Pencil className="h-3.5 w-3.5" /></Button>
-                  )}
-                </span>
-              )}
+            <Cell label="Mode" hint="from the PO legs">{booking.mode ?? DASH}</Cell>
+            <Cell label="Cargo Ready" hint={isPending ? 'the vendor’s date — editable until approved' : undefined}>
+              {editing
+                ? <Input type="date" value={form.cargoReadyDate} onChange={(e) => setForm((f) => ({ ...f, cargoReadyDate: e.target.value }))} className="h-8 w-[9.5rem]" disabled={busy} />
+                : (booking.cargoReadyDate ?? DASH)}
             </Cell>
-            <Cell label="Booked">{booking.submittedAt ? booking.submittedAt.slice(0, 10) : DASH}</Cell>
+            <Cell label="Booked">
+              {editing
+                ? <Input type="date" value={form.submittedAt} onChange={(e) => setForm((f) => ({ ...f, submittedAt: e.target.value }))} className="h-8 w-[9.5rem]" disabled={busy} />
+                : (booking.submittedAt ? booking.submittedAt.slice(0, 10) : DASH)}
+            </Cell>
           </div>
         </Card>
       </section>
@@ -280,11 +344,29 @@ export default function BookingDetail({
               {booking.poLegs.map((l) => (
                 <TableRow key={l.id} className="border-border hover:bg-muted/30">
                   <TableCell className="font-medium">{l.poNumber ?? l.legId}</TableCell>
+                  {/* Mode is the PO LEG's (NetSuite custbody16), not the booking's —
+                      read-only here. See the note above this table. */}
                   <TableCell>{l.mode ?? DASH}</TableCell>
-                  <TableCell className="text-right tabular-nums">{(l.units ?? 0).toLocaleString()}</TableCell>
-                  <TableCell className="text-right tabular-nums">{l.cartons ?? DASH}</TableCell>
-                  <TableCell className="text-right tabular-nums">{l.weightKg ?? DASH}</TableCell>
-                  <TableCell className="text-right tabular-nums">{l.cbm ?? DASH}</TableCell>
+                  {(['units', 'cartons', 'weightKg', 'cbm'] as const).map((k) => (
+                    <TableCell key={k} className="text-right tabular-nums">
+                      {editing ? (
+                        <Input
+                          type="number"
+                          min={0}
+                          step={k === 'cbm' ? '0.001' : k === 'weightKg' ? '0.01' : '1'}
+                          value={form.legs[l.legId]?.[k] ?? ''}
+                          onChange={(e) => setLeg(l.legId, k, e.target.value)}
+                          disabled={busy}
+                          className="h-8 w-28 ml-auto text-right tabular-nums"
+                          aria-label={`${l.poNumber ?? l.legId} ${k}`}
+                        />
+                      ) : (
+                        k === 'units'
+                          ? (l.units ?? 0).toLocaleString()
+                          : (l[k] ?? DASH)
+                      )}
+                    </TableCell>
+                  ))}
                 </TableRow>
               ))}
             </TableBody>

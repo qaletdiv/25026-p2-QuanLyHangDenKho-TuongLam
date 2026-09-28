@@ -42,7 +42,14 @@ const update = Joi.object({
     'any.only': `'bookingStatus' must be one of: ${MAINLINE_BOOKING_STATUSES.join(', ')}`,
   }),
   cargoReadyDate: isoDate,
+  // The "Booked" date shown on the detail. Stored as a timestamp; accepted as a
+  // plain calendar date because that is what the field displays and edits.
+  submittedAt: isoDate,
   courierId: courierId,
+  // Per-leg BOOKING ESTIMATES (units / cartons / weight / cbm). On update these
+  // revise the existing junction rows ONLY — the controller refuses a legId that
+  // is not already on the booking. Adding or removing legs is a create-time
+  // decision, because that is where G1/G2/G3 are enforced.
   poLegs: Joi.array().items(legRef).allow(null),
 }).unknown(true);
 

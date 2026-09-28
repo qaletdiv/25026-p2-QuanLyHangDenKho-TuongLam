@@ -362,6 +362,57 @@ async function update(req, res) {
     }
     booking.courierId = req.body.courierId || null;
   }
+  // BOOKED date. Stored as a timestamp but edited as a calendar day, so keep the
+  // existing time-of-day when only the date moves — rewriting it to midnight would
+  // silently reorder bookings submitted on the same day.
+  if (req.body.submittedAt !== undefined) {
+    if (!req.body.submittedAt) {
+      booking.submittedAt = null;
+    } else {
+      const t = booking.submittedAt ? String(booking.submittedAt).slice(10) : 'T00:00:00.000Z';
+      booking.submittedAt = `${req.body.submittedAt}${t}`;
+    }
+  }
+
+  // ── per-leg BOOKING ESTIMATES ────────────────────────────────────────────
+  // Revises units/cartons/weight/cbm on the junction rows this booking ALREADY
+  // has. Membership is deliberately immutable here: adding or removing a leg is
+  // what G1 (same supplier), G3 (same consignment) and G4 (approved) police, and
+  // they run in `create`. An unknown legId is refused rather than ignored, or a
+  // typo would silently drop the revision.
+  let junctionWrite = null;
+  if (Array.isArray(req.body.poLegs) && req.body.poLegs.length) {
+    const mine = ctx.bookingLegs.filter((bl) => bl.bookingId === booking.id);
+    const byLeg = new Map(mine.map((bl) => [String(bl.legId), bl]));
+    const unknown = req.body.poLegs.filter((p) => !byLeg.has(String(p.legId))).map((p) => p.legId);
+    if (unknown.length) {
+      err(`These legs are not on ${booking.bookingNumber || booking.id}: ${unknown.join(', ')}. Legs cannot be added or removed by editing — create a new booking.`, 400);
+    }
+
+    // G2 still applies. `bookedUnitsByLeg` counts every live booking, so THIS
+    // booking's current units must come out first or its own figure would be
+    // counted against itself and every edit would look like an overbooking.
+    if (!req.body.force_overbook) {
+      const others = await _enrich(ctx.bookings.filter((b) => b.id !== booking.id), ctx);
+      const bookedByLeg = svc.bookedUnitsByLeg(others, ctx.bookingLegs.filter((bl) => bl.bookingId !== booking.id));
+      const warnings = svc.overbookWarnings(req.body.poLegs, {
+        capacities: svc.legCapacities(ctx.legLines),
+        bookedByLeg,
+        legPo: new Map(ctx.legs.map((l) => [l.id, l.poNumber])),
+      });
+      if (warnings.length) return res.status(409).json({ overbook_warning: true, warnings });
+    }
+
+    const num = (v) => (v === '' || v === null || v === undefined ? null : Number(v));
+    for (const p of req.body.poLegs) {
+      const row = byLeg.get(String(p.legId));
+      if (p.units !== undefined) row.units = num(p.units);
+      if (p.cartons !== undefined) row.cartons = num(p.cartons);
+      if (p.weightKg !== undefined) row.weightKg = num(p.weightKg);
+      if (p.cbm !== undefined) row.cbm = num(p.cbm);
+    }
+    junctionWrite = ctx.bookingLegs;
+  }
 
   let createdShipments = [];
   if (newStatusName === 'Booking Approved' && oldStatusName !== 'Booking Approved') {
@@ -369,6 +420,9 @@ async function update(req, res) {
     createdShipments = await _approve(booking, ctx);
   }
   await models.mainline_bookings.write(ctx.bookings);
+  // Same request, same transaction (transactionMiddleware) — the header and its
+  // per-leg estimates land together or not at all.
+  if (junctionWrite) await models.mainline_booking_po_legs.write(junctionWrite);
 
   await notifyChange({
     module: 'mainline', entity: 'mainline_booking', entityId: booking.id,
