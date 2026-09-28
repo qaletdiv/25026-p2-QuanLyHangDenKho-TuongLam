@@ -215,13 +215,19 @@ export default function ShipmentDetail({
                 permission, and burying it behind Edit would hide it from the people
                 who read it. Same visible-but-disabled rule the Approve button uses —
                 a forwarder should still SEE that Logistics has flagged this. */}
-            <span title={canFlagPriority
-              ? (s.priority ? 'Clear the priority flag' : 'Flag this consignment as needing attention')
-              : 'Only Admin or a Logistics Coordinator can change this'} className="inline-block">
+            {/* A cancelled consignment cannot be flagged — mirrors the server.
+                One direction only: if it is somehow already flagged, CLEARING
+                stays available, so the row can never get stuck in the Active
+                view (flagged rows are exempt from the Done filter). */}
+            <span title={!canFlagPriority
+              ? 'Only Admin or a Logistics Coordinator can change this'
+              : (isCancelled && !s.priority
+                ? 'This consignment is cancelled — there is nothing left to action'
+                : (s.priority ? 'Clear the priority flag' : 'Flag this consignment as needing attention'))} className="inline-block">
               <Button
                 size="sm"
                 variant={s.priority ? 'default' : 'outline'}
-                disabled={busy || !canFlagPriority}
+                disabled={busy || !canFlagPriority || (isCancelled && !s.priority)}
                 onClick={togglePriority}
                 className={cn(s.priority && 'bg-amber-500 hover:bg-amber-600 text-white border-amber-500')}
               >

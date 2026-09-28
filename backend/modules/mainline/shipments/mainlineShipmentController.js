@@ -266,6 +266,16 @@ async function update(req, res) {
       if (!granted.includes('shipment_flag_priority')) {
         err("Permission denied — 'shipment_flag_priority' required to flag a shipment (Admin / Logistics Coordinator)", 403);
       }
+      // A CANCELLED consignment cannot be flagged. It is a terminal record —
+      // its status cannot move and it cannot be reopened — so "needs attention"
+      // asserts work that no longer exists, and because flagged rows are exempt
+      // from the Done filter it would pin a dead row into the Active view for
+      // good. ONE DIRECTION ONLY: clearing a flag is always allowed, which is
+      // both the undo and the way out if a flagged shipment is later cancelled
+      // by some path that does not clear it.
+      if (nextPriority && wasStatus === 'Cancelled') {
+        err(`${next.shipmentNumber} is cancelled — a cancelled consignment cannot be flagged for attention`, 409);
+      }
     }
     next.priority = nextPriority;
   }
@@ -372,7 +382,10 @@ async function cancel(req, res) {
     err(`${ship.shipmentNumber} cannot be cancelled because ${why.join('; and ')}.`, 409);
   }
 
-  shipments[idx] = { ...ship, statusId: await status.idForName('Cancelled') };
+  // Cancelling RESOLVES the flag. A cancelled consignment needs no attention, and
+  // leaving it set would pin a dead row into the Active view for good — flagged
+  // rows are deliberately exempt from the Done filter (ShipmentsTable).
+  shipments[idx] = { ...ship, statusId: await status.idForName('Cancelled'), priority: false };
   await models.mainline_shipments.write(shipments);
 
   // `action` rather than a status move: "cancelled" is the fact, and the state it
