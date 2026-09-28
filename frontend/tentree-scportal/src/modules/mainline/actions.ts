@@ -91,13 +91,9 @@ export async function syncNetSuite() {
   return result;
 }
 
-export async function importWip(file: File) {
-  const formData = new FormData();
-  formData.append('file', file);
-  const result = await fetchApi('/mainline/wip-import', { method: 'POST', body: formData });
-  revalidatePath('/mainline/purchase-orders');
-  return result;
-}
+// importWip() was REMOVED 2026-09-28 with the WIP import itself — POST
+// /mainline/wip-import no longer exists. Legs come only from the NetSuite sync
+// above, for SS27 onward; FW26's legs are history and are never refreshed.
 
 // ─── Bookings ────────────────────────────────────────────────────────────────
 export async function getMainlineBookings(): Promise<MainlineBooking[]> {

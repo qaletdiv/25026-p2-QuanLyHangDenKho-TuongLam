@@ -1,15 +1,19 @@
 'use strict';
 
-// Mainline module routes. Phase 2b mounts the WIP leg import; later phases add
-// bookings / shipments / ci / fulfillment / asn under the same /mainline prefix.
+// Mainline module routes — bookings / shipments / ci / fulfillment / asn under
+// the /mainline prefix.
+//
+// The WIP leg import (POST /mainline/wip-import) was RETIRED 2026-09-28. Legs are
+// now created only by the NetSuite sync, for SS27 onward; FW26's 87 WIP-built legs
+// remain as history and are never refreshed. See modules/po/netsuiteSyncService.js.
 const express = require('express');
 const router = express.Router();
 const { asyncWrap } = require('../../middleware/errorHandler');
 const upload = require('../../middleware/upload');
-const requireAdmin = require('../../middleware/requireAdmin');
+// (requireAdmin dropped with the WIP import — it was that route's only user; the
+//  remaining mainline writes are gated on permission keys, not on the role.)
 const requirePermission = require('../../middleware/requirePermission');
 const validate = require('../../middleware/validate');
-const wipImportController = require('./legs/wipImportController');
 const bookingController = require('./bookings/mainlineBookingController');
 const bookingSchemas = require('./bookings/mainlineBookingValidator');
 const shipmentController = require('./shipments/mainlineShipmentController');
@@ -30,9 +34,6 @@ const receiptController = require('./receipts/mainlineReceiptController');
 // while Logistics/the forwarder does it via `shipment_import_export`. Granting
 // on ANY key avoids stripping capability from a role that holds a different one.
 // ---------------------------------------------------------------------------
-
-// Legs (WIP) — Admin only; multipart field "file"
-router.post('/wip-import', requireAdmin, upload.single('file'), asyncWrap(wipImportController.importWip));
 
 // Bookings
 router.get('/bookings',                          asyncWrap(bookingController.getAll));

@@ -35,26 +35,37 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
 ## MAINLINE module
 
 - **PO identity hierarchy:** `po_masters (TRN)` → `po_orders (po_number)` →
-  `mainline_po_legs` (NK `po_number+mode+crd`). Two ingestion sources: the
-  mainline **NetSuite Sync** (`POST /po/sync/netsuite`, `modules/po/netsuiteSync*`,
-  Admin; button ACTIVE in PoLegsTable, reactivated 2026-07-07) bootstraps the PO
-  hierarchy (masters/orders/order_lines, `type:'mainline'` so SMS `smm` POs are
-  excluded; R1 protects booked orders); the **WIP import** creates the air/sea
-  `mainline_po_legs` for v1 seasons. Ingestion rules R1 (protect-if-booked) /
-  R2 (flag-on-conflict) / R3 (WIP-overwrites-legs) / R4 (refuse-rejected).
-- **⚠️ WORKFLOW v1 vs v2 — THE BOUNDARY IS THE SEASON (2026-09-25).** The old
-  "NS sync never creates legs" rule is GONE. `V1_SEASONS` in
-  `modules/po/netsuiteSyncService.js` is the switch, and `mainline_po_legs.source`
-  (`'wip' | 'netsuite'`) records which built a row.
-  - **v1 = FW26.** The WIP sheet splits a PO into air/sea legs, so `po_number`
-    repeats by mode — **16 of 64** legged FW26 POs carry both. NetSuite has ONE
-    mode per PO header and cannot express that, which is why the sheet owns it.
-  - **v2 = SS27+.** 1 PO = 1 warehouse = 1 method = **ONE leg**, built by the
-    sync (`leg_ns_<poNumber>`). No channel (everything lands in …First), no WIP
-    import, no air/sea split.
-  They coexist with **no migration**: FW26 kept its 87 WIP legs untouched and
-  SS27 had ZERO legs to convert. Reverting v2 = delete the condition; there is
-  no schema fork, because both regimes produce the same legs.
+  `mainline_po_legs` (NK `po_number+mode+crd`). **ONE ingestion source since
+  2026-09-28:** the mainline **NetSuite Sync** (`POST /po/sync/netsuite`,
+  `modules/po/netsuiteSync*`, Admin; button ACTIVE in PoLegsTable) bootstraps the
+  PO hierarchy (masters/orders/order_lines, `type:'mainline'` so SMS `smm` POs are
+  excluded; R1 protects booked orders) **and creates the legs, one per PO, from
+  SS27 on.** Ingestion rules R1 (protect-if-booked) / R2 (flag-on-conflict) /
+  R4 (refuse-rejected). **R3 (WIP-overwrites-legs) is RETIRED** with the importer.
+- **✅ v1 IS RETIRED (2026-09-28). v2 STARTS AT SS27.** The WIP import —
+  `POST /mainline/wip-import`, `wipImportController`, `services/wipParser`,
+  `legReconciliationService`, the **Upload WIP** button and the `importWip` action
+  — was DELETED. `V1_SEASONS` was renamed **`PRE_V2_SEASONS`** and still holds
+  `{'FW26'}`; `mainline_po_legs.source` (`'wip' | 'netsuite'`) still records which
+  built a row.
+  - **FW26 = HISTORY.** Its **87** WIP-built legs stay in the database, are never
+    refreshed, and can no longer be re-imported. They encode what NetSuite cannot
+    say: **87 legs = 64 POs + 16 air/sea splits + 7 staged-CRD splits** (the 7
+    verified SKU-**disjoint**, so they are genuine staged readiness, not
+    duplicates). NetSuite has ONE mode per PO header and ONE `custbody46`.
+  - **SS27+ = v2.** 1 PO = 1 warehouse = 1 method = **ONE leg**, built by the sync
+    (`leg_ns_<poNumber>`). No channel (everything lands in …First), no air/sea
+    split.
+  ⚠️ **DO NOT DELETE THE `PRE_V2_SEASONS` CONDITION to "finish the job."** It is
+  NOT leftover v1 — it is what stops the sync re-legging a closed season. The
+  `existingLeg.source !== 'netsuite'` guard beside it **cannot** catch these: it
+  looks up `leg_ns_<poNumber>` while WIP legs carry **numeric** ids (1, 2, 3…), so
+  it fires **0 times out of 64**. Removing the condition creates 64 NEW legs
+  ALONGSIDE the 87 existing ones and double-counts **265,349 units** in every
+  leg-grained rollup (forecast plan, order book, `/reports/mainline`). Measured.
+  Restore point for the pre-retirement state: tag **`v1-v2-mixed-2026-09-28`**
+  (code only) + `tentree_portal-FULL-BACKUP-2026-09-28.xlsx` (all 62 tables,
+  93,649 rows).
   **v2 field map, all off the PO record:** `custbody7`→season (NOT via the TRN —
   a PO with no TRN still has one), `custbody16`→mode (SEA/AIR both present),
   `custbody46`→crd, `custbody8`→hod, `custbody_tt_po_type`→poType
@@ -292,7 +303,7 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   Still a raw-column reader, deliberately: `landedCostController`
   (`ship_date`/`ship_month`, which groups posted finance snapshots).
 - **Backend:** `modules/po/*` (routes `/po`) + `modules/mainline/*` (routes
-  `/mainline/{wip-import,bookings,shipments,fulfillment,bookings/:id/ci|packing|
+  `/mainline/{bookings,shipments,fulfillment,bookings/:id/ci|packing|
   shipment-data|documents,shipments/:id/asn,legs/:legId/shipments}`).
 - **PO leg → its consignments (2026-09-01):** `GET /mainline/legs/:legId/shipments`
   feeds a Shipments (lot) section on the PO leg detail — the mainline answer to the
@@ -1610,8 +1621,8 @@ backend/                     Express API on PostgreSQL + Sequelize (MVC)
                              *Routes/*Validator), not the folder.
   controllers/               EMPTY — holds only a README pointing at modules/,
                              because that is where people look first.
-  modules/po/                mainline PO hierarchy (WIP-sourced; NS sync ACTIVE)
-  modules/mainline/          bookings, shipments, ci/packing/asn, fulfillment, reports, wip import
+  modules/po/                mainline PO hierarchy + legs (NetSuite sync; v1 WIP import retired 2026-09-28)
+  modules/mainline/          bookings, shipments, ci/packing/asn, fulfillment, reports
   modules/sms/               SMS module (own dataset) + NetSuite sync + FedEx poll
   modules/nriinvoices/       3PL invoice verification — "All Invoices" (own tables
                              under data/nri/). ONE TAB PER INVOICING WAREHOUSE from

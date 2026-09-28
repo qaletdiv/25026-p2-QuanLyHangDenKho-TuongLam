@@ -4,8 +4,8 @@
 // Consumes flat NS PO objects (from integrationService.fetchNetSuitePOs) where each
 // PO carries: poNumber, trnNumber, supplier, season, receivingWarehouse, line_items[].
 // Maps them into the NetSuite-owned grains. Since 2026-09-25 it ALSO writes
-// mainline_po_legs for v2 seasons (one leg per PO, `source:'netsuite'`); FW26
-// legs stay owned by the WIP import. See the v1/v2 note below.
+// mainline_po_legs (one leg per PO, `source:'netsuite'`) for every season from
+// SS27 on. See the v2-starts-at-SS27 note below.
 //
 // R1 (protect-if-booked): a poNumber whose legs are referenced by a booking or
 // shipment is LOCKED — sync skips all writes touching it. A TRN with any locked
@@ -17,24 +17,30 @@ const integrationService = require('../../services/integrationService');
 const { pruneStaleReceipts } = require('../../utils/pruneStaleReceipts');
 
 // ---------------------------------------------------------------------------
-//  WORKFLOW v1 vs v2 — the boundary is the SEASON, not a feature flag.
+//  v2 STARTS AT SS27. v1 (the WIP import) was RETIRED 2026-09-28.
 //
-//  v1 (FW26)   a PO is split into air/sea legs by the WIP import. One PO can
-//              carry BOTH modes: 16 of 64 legged FW26 POs do. NetSuite has one
-//              mode per PO header and CANNOT express that, which is why the
-//              spreadsheet owns the split for this season.
+//  v2 is now the only way a leg is created: 1 PO = 1 warehouse = 1 method =
+//  ONE LEG (`leg_ns_<poNumber>`, `source:'netsuite'`), built right here from the
+//  NetSuite record. No channel (everything lands in …First), no air/sea split.
 //
-//  v2 (SS27+)  1 PO = 1 warehouse = 1 method = ONE LEG, created right here from
-//              the NetSuite record. No channel (everything lands in …First), no
-//              WIP import, no air/sea split.
+//  ⚠️ FW26 IS EXCLUDED BELOW AND THAT EXCLUSION IS LOAD-BEARING — it is NOT
+//  leftover v1. Its 87 legs were built by the retired WIP import and encode
+//  something NetSuite cannot say:
+//      87 legs = 64 POs + 16 air/sea splits + 7 staged-CRD splits
+//  NetSuite has ONE mode per PO header and ONE custbody46, so it can express
+//  none of those 23 extras. The legs are kept as history and are never
+//  refreshed; the WIP sheets that produced them can no longer be re-imported.
 //
-//  The two coexist with no migration: FW26 keeps its WIP-built legs untouched,
-//  SS27 had ZERO legs to convert. Reverting v2 is deleting the condition below —
-//  there is no schema fork to undo, because both regimes produce the same legs.
+//  ⚠️ DO NOT DELETE THE CONDITION to "finish retiring v1". The guard at
+//  `existingLeg.source !== 'netsuite'` below CANNOT catch these: it looks up
+//  `leg_ns_<poNumber>` while WIP legs carry numeric ids (1, 2, 3…), so it fires
+//  0 times out of 64. Removing the exclusion creates 64 NEW legs ALONGSIDE the
+//  87 existing ones and double-counts 265,349 units in every leg-grained rollup
+//  (forecast plan, order book, /reports/mainline). Measured 2026-09-28.
 //
-//  `source` records which built the row ('wip' | 'netsuite').
+//  `source` still records which built a row ('wip' = pre-retirement | 'netsuite').
 // ---------------------------------------------------------------------------
-const V1_SEASONS = new Set(['FW26']);   // WIP import owns the split for these
+const PRE_V2_SEASONS = new Set(['FW26']);   // legs predate v2 — never re-leg these
 
 // Fallback only — the real value comes from transit_time_standards.receiving,
 // which is editable master data (5 days for both sea and air today).
@@ -66,7 +72,7 @@ function buildUpserts(pos, existing, ctx) {
     (mp, l) => ((mp[l.legId] = mp[l.legId] || []).push(l), mp), {},
   );
   let legUpsert = 0;
-  const legsSkippedV1 = [];
+  const legsSkippedPreV2 = [];
 
   const protectedPos = [];
   const rejectedPos = [];
@@ -143,17 +149,19 @@ function buildUpserts(pos, existing, ctx) {
     });
     oUpsert++;
 
-    // --- v2: ONE LEG PER PO, straight from NetSuite -------------------------
+    // --- ONE LEG PER PO, straight from NetSuite (SS27 onward) ---------------
     const seasonCode = String(po.season || '').toUpperCase();
-    if (!V1_SEASONS.has(seasonCode)) {
+    if (!PRE_V2_SEASONS.has(seasonCode)) {
       const legId = `leg_ns_${po.poNumber}`;
       const existingLeg = legs.get(legId);
 
-      // Never touch a leg the WIP import owns. v1 and v2 do not overlap today,
-      // but a PO hand-split before its season flipped would otherwise lose that
-      // split to a single generated leg.
+      // Belt-and-braces: never overwrite a leg this sync did not create. The
+      // SEASON exclusion above is what actually protects the pre-v2 legs (they
+      // carry numeric ids, so they can never be found at `leg_ns_<poNumber>` and
+      // this test cannot see them) — but a leg hand-built at THIS id must still
+      // survive a sync.
       if (existingLeg && existingLeg.source && existingLeg.source !== 'netsuite') {
-        legsSkippedV1.push(po.poNumber);
+        legsSkippedPreV2.push(po.poNumber);
       } else {
         const modeId = resolvers.modeId(po.mode, po.poNumber)
           ?? (existingLeg ? existingLeg.modeId : null);
@@ -278,7 +286,7 @@ function buildUpserts(pos, existing, ctx) {
     skus:       [...skus.values()],
     stats: {
       masters_upserted: mUpsert, orders_upserted: oUpsert, lines_upserted: lUpsert,
-      legs_upserted: legUpsert, legs_skipped_wip_owned: legsSkippedV1, skus_added: skusAdded,
+      legs_upserted: legUpsert, legs_skipped_foreign_source: legsSkippedPreV2, skus_added: skusAdded,
       protected: protectedPos, rejected_skipped: rejectedPos,
     },
   };

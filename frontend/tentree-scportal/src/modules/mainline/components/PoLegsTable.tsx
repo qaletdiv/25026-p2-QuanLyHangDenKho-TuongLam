@@ -1,24 +1,24 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { RefreshCw, Upload } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useSession } from '@/components/providers/SessionProvider';
 import { cn } from '@/lib/utils';
-import { importWip, syncNetSuite } from '@/modules/mainline/actions';
+import { syncNetSuite } from '@/modules/mainline/actions';
 import DataTable, { type DataColumn } from './DataTable';
 import ApprovalBadge from './ApprovalBadge';
 import type { PoLegRow } from '@/modules/mainline/types';
 
-// Mainline POs are WIP-import-sourced (the importer bootstraps missing
-// masters/orders). The mainline NetSuite sync exists but is DEACTIVATED for
-// now (button disabled below) — it is unrelated to the SMS NetSuite sync,
-// which lives in the SMS module with its own button.
+// Mainline POs come from the NetSuite sync, which since 2026-09-25 also creates
+// ONE leg per PO for SS27 onward. The v1 WIP import was RETIRED 2026-09-28, so
+// this is now the only ingestion path; FW26's WIP-built legs stay as history.
+// Unrelated to the SMS NetSuite sync, which has its own button in that module.
 // "SS27" → sortable number (year, then SS before FW) so seasons list newest-first.
 const seasonRank = (code: string) => {
   const m = String(code || '').match(/^([A-Za-z]+)\s*(\d+)$/);
@@ -30,8 +30,7 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
   const router = useRouter();
   const { user } = useSession();
   const isAdmin = user?.role === 'Admin';
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [busy, setBusy] = useState<null | 'wip' | 'sync'>(null);
+  const [busy, setBusy] = useState<null | 'sync'>(null);
 
   // Season filter (like the SMS PO table). Defaults to All so the full order book
   // shows unless narrowed. Download always exports everything, regardless of filter.
@@ -41,22 +40,6 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
   );
   const [season, setSeason] = useState<string>('all');
   const filtered = useMemo(() => (season === 'all' ? legs : legs.filter((l) => l.season === season)), [legs, season]);
-
-  async function onWip(file: File) {
-    setBusy('wip');
-    const r = await importWip(file);
-    setBusy(null);
-    if (r?.error) return void toast.error(r.error);
-    // The reconciliation is scoped server-side to the POs in THIS sheet, so the count
-    // describes the upload. Worded as a fact ("differ from NetSuite") rather than
-    // "⚠ mismatch(es)", which read as "your file was rejected" on a success toast —
-    // ordered-vs-allocated divergence is expected whenever NetSuite has revised a PO.
-    const mm = r?.reconciliation?.mismatch_count ?? 0;
-    const pos: string[] = r?.reconciliation?.poNumbers ?? [];
-    const on = pos.length === 1 ? ` on ${pos[0]}` : '';
-    toast.success(`WIP import: ${r.added ?? 0} added, ${r.updated ?? 0} updated${mm ? ` · ${mm} SKU(s)${on} differ from NetSuite` : ''}`);
-    router.refresh();
-  }
 
   async function onSync() {
     setBusy('sync');
@@ -157,17 +140,12 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
           {seasons.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
         </SelectContent>
       </Select>
+      {/* "Upload WIP" was REMOVED 2026-09-28 with the v1 import. The NetSuite sync
+          is now the only way a leg is created. */}
       {isAdmin && (
-        <>
-          <Button variant="outline" size="sm" disabled={busy !== null} onClick={onSync} title="Pull mainline POs from NetSuite (upserts masters/orders/lines; booked orders are protected)">
-            <RefreshCw className={cn('h-4 w-4 mr-1.5', busy === 'sync' && 'animate-spin')} />{busy === 'sync' ? 'Syncing…' : 'NetSuite Sync'}
-          </Button>
-          <Button variant="outline" size="sm" disabled={busy !== null} onClick={() => fileRef.current?.click()}>
-            <Upload className="h-4 w-4 mr-1.5" />{busy === 'wip' ? 'Uploading…' : 'Upload WIP'}
-          </Button>
-          <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) onWip(f); e.target.value = ''; }} />
-        </>
+        <Button variant="outline" size="sm" disabled={busy !== null} onClick={onSync} title="Pull mainline POs from NetSuite (upserts masters/orders/lines; creates one leg per PO from SS27 on; booked orders are protected)">
+          <RefreshCw className={cn('h-4 w-4 mr-1.5', busy === 'sync' && 'animate-spin')} />{busy === 'sync' ? 'Syncing…' : 'NetSuite Sync'}
+        </Button>
       )}
     </>
   );
@@ -176,7 +154,7 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
     <DataTable
       rows={filtered} columns={columns} rowKey={(l) => l.id}
       noun="PO row" searchPlaceholder="Search PO, TRN, supplier…"
-      toolbar={toolbar} emptyText="No purchase orders — sync from NetSuite or upload a WIP file" storageKey="mainline_po_columns"
+      toolbar={toolbar} emptyText="No purchase orders — run the NetSuite Sync" storageKey="mainline_po_columns"
       onRowClick={(l) => router.push(
         // forecast rows have no real leg → open the master detail; split rows open the leg
         l.lifecycle === 'forecast'
