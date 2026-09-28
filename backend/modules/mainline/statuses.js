@@ -12,6 +12,13 @@ const MAINLINE_BOOKING_STATUSES = ['No Booking', 'Booking Pending', 'Booking App
 // the UI renders "On Air" / "On the Water" from the shipment's mode.
 const MAINLINE_SHIPMENT_STATUSES = ['Ready to Ship', 'In Transit', 'At Port', 'Delivered', 'Received', 'Cancelled'];
 
+// CLOSED = the consignment is finished, whichever way it ended. The same three
+// the Active/All scope filter treats as Done (SHIP_DONE in ShipmentsTable).
+// A closed shipment cannot be FLAGGED for attention — there is no work left to
+// ask for. Clearing an existing flag stays allowed at every status, so a flag set
+// while the shipment was live can always be retired once it lands.
+const MAINLINE_SHIPMENT_CLOSED = ['Delivered', 'Received', 'Cancelled'];
+
 // MODULE-SCOPED, and that is the whole point. `statuses` is shared reference data
 // carrying a `module` column, and SIX names exist in both modules: Booking Pending,
 // Booking Approved, Rejected, In Transit, Delivered, Cancelled. Building nameToId
@@ -45,4 +52,4 @@ async function _maps() {
 async function idForName(name) { return (await _maps()).nameToId.get(name) || null; }
 async function nameForId(id)   { return (await _maps()).idToName.get(id) || null; }
 
-module.exports = { MAINLINE_BOOKING_STATUSES, MAINLINE_SHIPMENT_STATUSES, idForName, nameForId };
+module.exports = { MAINLINE_BOOKING_STATUSES, MAINLINE_SHIPMENT_STATUSES, MAINLINE_SHIPMENT_CLOSED, idForName, nameForId };

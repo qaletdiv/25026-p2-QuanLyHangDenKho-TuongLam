@@ -266,15 +266,17 @@ async function update(req, res) {
       if (!granted.includes('shipment_flag_priority')) {
         err("Permission denied — 'shipment_flag_priority' required to flag a shipment (Admin / Logistics Coordinator)", 403);
       }
-      // A CANCELLED consignment cannot be flagged. It is a terminal record —
-      // its status cannot move and it cannot be reopened — so "needs attention"
-      // asserts work that no longer exists, and because flagged rows are exempt
-      // from the Done filter it would pin a dead row into the Active view for
-      // good. ONE DIRECTION ONLY: clearing a flag is always allowed, which is
-      // both the undo and the way out if a flagged shipment is later cancelled
-      // by some path that does not clear it.
-      if (nextPriority && wasStatus === 'Cancelled') {
-        err(`${next.shipmentNumber} is cancelled — a cancelled consignment cannot be flagged for attention`, 409);
+      // A CLOSED consignment cannot be flagged — Delivered, Received or Cancelled.
+      // "Needs attention" asserts work that no longer exists, and because flagged
+      // rows are exempt from the Done filter it would pin a finished record into
+      // the Active view indefinitely.
+      //
+      // ONE DIRECTION ONLY: clearing a flag is allowed at EVERY status. That is
+      // both the undo and the thing that makes the exemption work — you flag a
+      // shipment while it is live, it stays visible as it lands, and it leaves the
+      // Active view when a human retires the flag rather than when the status moves.
+      if (nextPriority && status.MAINLINE_SHIPMENT_CLOSED.includes(wasStatus)) {
+        err(`${next.shipmentNumber} is ${String(wasStatus).toLowerCase()} — a closed consignment cannot be flagged for attention`, 409);
       }
     }
     next.priority = nextPriority;

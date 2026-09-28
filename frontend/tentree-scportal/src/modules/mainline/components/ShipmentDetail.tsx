@@ -69,6 +69,10 @@ export default function ShipmentDetail({
   // confirmed Item Receipt or a posted landed cost points here — so a refusal can
   // still come back; its message is written to be shown as-is.
   const isCancelled = s.status === 'Cancelled';
+  // CLOSED = finished, however it ended. Mirrors MAINLINE_SHIPMENT_CLOSED on the
+  // server and SHIP_DONE in ShipmentsTable — a closed consignment cannot be
+  // flagged, though an existing flag can always be cleared.
+  const isClosed = ['Delivered', 'Received', 'Cancelled'].includes(s.status || '');
   const handover = [
     s.cargoReceivedDate && `received at port ${s.cargoReceivedDate}`,
     s.etdPol && `ETD ${s.etdPol}`,
@@ -221,13 +225,13 @@ export default function ShipmentDetail({
                 view (flagged rows are exempt from the Done filter). */}
             <span title={!canFlagPriority
               ? 'Only Admin or a Logistics Coordinator can change this'
-              : (isCancelled && !s.priority
-                ? 'This consignment is cancelled — there is nothing left to action'
+              : (isClosed && !s.priority
+                ? `This consignment is ${(s.status || 'closed').toLowerCase()} — there is nothing left to action`
                 : (s.priority ? 'Clear the priority flag' : 'Flag this consignment as needing attention'))} className="inline-block">
               <Button
                 size="sm"
                 variant={s.priority ? 'default' : 'outline'}
-                disabled={busy || !canFlagPriority || (isCancelled && !s.priority)}
+                disabled={busy || !canFlagPriority || (isClosed && !s.priority)}
                 onClick={togglePriority}
                 className={cn(s.priority && 'bg-amber-500 hover:bg-amber-600 text-white border-amber-500')}
               >
