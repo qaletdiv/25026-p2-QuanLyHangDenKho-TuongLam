@@ -1,5 +1,11 @@
 # SMS Bookings + Booked-Shipment Financials — Build Plan (draft 2026-08-07)
 
+> ⚠️ **Backend paths in this document are pre-2026-09-28.** The backend moved from
+> feature folders (`backend/modules/<feature>/`) to layer-first MVC —
+> `routes/ controllers/ services/ validators/ lib/`. The FILE NAMES below are still
+> right (22 gained a feature prefix); only the folder changed. See `backend/README.md`.
+> **`src/modules/...` paths are the FRONTEND and are unchanged.**
+
 Adds an **optional booking step** to the SMS module and makes a *booked* SMS
 shipment behave like a mainline shipment for money: actual freight/duty from the
 broker/courier bill, a customs clearance number, and the same landed-cost

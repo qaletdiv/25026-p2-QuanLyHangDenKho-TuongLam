@@ -1,5 +1,11 @@
 # SMS / Mainline Backend Coupling Audit
 
+> ⚠️ **Backend paths in this document are pre-2026-09-28.** The backend moved from
+> feature folders (`backend/modules/<feature>/`) to layer-first MVC —
+> `routes/ controllers/ services/ validators/ lib/`. The FILE NAMES below are still
+> right (22 gained a feature prefix); only the folder changed. See `backend/README.md`.
+> **`src/modules/...` paths are the FRONTEND and are unchanged.**
+
 **Scope:** `backend/` controllers, services, models, validators, routes, server.js.
 **Read-only analysis — no files modified.**
 **Date:** 2026-06-24

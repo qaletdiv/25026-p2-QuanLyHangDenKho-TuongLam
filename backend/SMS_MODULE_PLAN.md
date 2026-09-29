@@ -1,5 +1,11 @@
 # SMS Module — Schema & Build Plan (draft 2026-07-01, NetSuite/FedEx answers 2026-07-02)
 
+> ⚠️ **Backend paths in this document are pre-2026-09-28.** The backend moved from
+> feature folders (`backend/modules/<feature>/`) to layer-first MVC —
+> `routes/ controllers/ services/ validators/ lib/`. The FILE NAMES below are still
+> right (22 gained a feature prefix); only the folder changed. See `backend/README.md`.
+> **`src/modules/...` paths are the FRONTEND and are unchanged.**
+
 > ⚠️ **SUPERSEDED IN ONE RESPECT (2026-08-07): SMS now has an OPTIONAL booking step.**
 > Everywhere below that says the SMS workflow has "no booking" describes the DEFAULT
 > path, which is unchanged — the vendor still enters most consignments directly after

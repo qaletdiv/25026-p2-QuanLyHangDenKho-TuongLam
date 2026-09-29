@@ -62,7 +62,7 @@ app.use('/login', rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
     message: 'Too many login attempts — please wait a few minutes and try again.',
-}), require('./modules/auth/authRoutes'));
+}), require('./routes/authRoutes'));
 
 // ---------------------------------------------------------------------------
 // AUTH GATE — everything mounted BELOW this line requires a valid JWT.
@@ -99,7 +99,7 @@ app.use(require('./middleware/auth'));
 // so any manual workflow keeps working, but Vendors are refused — they have no reason
 // to read internal templates, and some of those files ARE other suppliers' POs.
 // ---------------------------------------------------------------------------
-app.use('/uploads', require('./routes/documents'));
+app.use('/uploads', require('./routes/documentRoutes'));
 app.use('/templates', (req, res, next) => {
     if (req.user?.role === 'Vendor') {
         return res.status(404).json({ success: false, error: 'File not found' });
@@ -108,21 +108,21 @@ app.use('/templates', (req, res, next) => {
 }, express.static(path.join(__dirname, 'storage', 'templates')));
 
 // Who am I, with permissions resolved NOW (not the login-time snapshot). The
-// frontend page gate calls this on navigation — see modules/auth/meController.
-app.use('/me',                 require('./modules/auth/meRoutes'));
-app.use('/po',                 require('./modules/po/poRoutes'));        // normalized PO hierarchy (mainline)
-app.use('/mainline',           require('./modules/mainline/mainlineRoutes')); // mainline module
-app.use('/sms',                require('./modules/sms/smsRoutes'));      // SMS module — separate dataset (sms_* tables); see SMS_MODULE_PLAN.md
-app.use('/landed-costs',       require('./modules/landedcosts/landedCostRoutes')); // freight & duty (Phase 1: SMS estimates) — additive, own tables
-app.use('/nri-invoices',       require('./modules/nriinvoices/nriInvoiceRoutes')); // NRI 3PL invoice verification (invoice ↔ detail ↔ rate agreement) — additive, own tables under data/nri/
-app.use('/master-data',        require('./modules/masterdata/masterDataRoutes'));
-app.use('/contacts',           require('./modules/contacts/contactRoutes'));
-app.use('/reports',            require('./routes/reports'));
-app.use('/forecast',           require('./routes/forecast'));
-app.use('/users',              require('./modules/users/userRoutes'));
-app.use('/roles',              require('./modules/roles/roleRoutes'));
-app.use('/freights',           require('./modules/freights/freightRoutes'));
-app.use('/notifications',      require('./routes/notifications')); // derived, role-scoped alerts
+// frontend page gate calls this on navigation — see controllers/meController.
+app.use('/me',                 require('./routes/meRoutes'));
+app.use('/po',                 require('./routes/poRoutes'));        // normalized PO hierarchy (mainline)
+app.use('/mainline',           require('./routes/mainlineRoutes')); // mainline module
+app.use('/sms',                require('./routes/smsRoutes'));      // SMS module — separate dataset (sms_* tables); see SMS_MODULE_PLAN.md
+app.use('/landed-costs',       require('./routes/landedCostRoutes')); // freight & duty (Phase 1: SMS estimates) — additive, own tables
+app.use('/nri-invoices',       require('./routes/nriInvoiceRoutes')); // NRI 3PL invoice verification (invoice ↔ detail ↔ rate agreement) — additive, own tables under data/nri/
+app.use('/master-data',        require('./routes/masterDataRoutes'));
+app.use('/contacts',           require('./routes/contactRoutes'));
+app.use('/reports',            require('./routes/reportRoutes'));
+app.use('/forecast',           require('./routes/forecastRoutes'));
+app.use('/users',              require('./routes/userRoutes'));
+app.use('/roles',              require('./routes/roleRoutes'));
+app.use('/freights',           require('./routes/freightRoutes'));
+app.use('/notifications',      require('./routes/notificationRoutes')); // derived, role-scoped alerts
 
 // Global Error Handler must be last!
 app.use(errorHandler);

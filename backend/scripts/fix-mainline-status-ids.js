@@ -5,7 +5,7 @@
  *
  * Backfills mainline records that were stamped with SMS status ids.
  *
- * CAUSE: modules/mainline/statuses.js built its name→id map over ALL rows of the
+ * CAUSE: lib/mainlineStatuses.js built its name→id map over ALL rows of the
  * shared `statuses` table, keyed on name alone. Six names exist in both modules
  * (Booking Pending, Booking Approved, Rejected, In Transit, Delivered, Cancelled),
  * so the later (SMS) row won and every mainline write through idForName() stored an

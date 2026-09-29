@@ -17,7 +17,7 @@ const initCronJobs = () => {
     cron.schedule('0 */4 * * *', async () => {
         console.log('[Cron] SMS tracking poll starting...');
         try {
-            const r = await atomically(() => require('../modules/sms/smsTrackingService').poll());
+            const r = await atomically(() => require('./smsTrackingService').poll());
             console.log(`[Cron] SMS tracking poll: ${r.polled ?? 0} polled, ${r.events_added ?? 0} new events${r.fetch_error ? ' — ' + r.fetch_error : ''}`);
         } catch (e) {
             console.error('[Cron] SMS tracking poll failed:', e.message);
@@ -31,7 +31,7 @@ const initCronJobs = () => {
     cron.schedule('30 */4 * * *', async () => {
         console.log('[Cron] SMS NetSuite sync starting...');
         try {
-            const r = await atomically(() => require('../modules/sms/smsNetsuiteSyncService').sync());
+            const r = await atomically(() => require('./smsNetsuiteSyncService').sync());
             console.log(`[Cron] SMS NetSuite sync: ${r.pos_upserted ?? 0} POs, ${r.receipts_upserted ?? 0} receipts${r.fetch_error ? ' — ' + r.fetch_error : ''}`);
         } catch (e) {
             console.error('[Cron] SMS NetSuite sync failed:', e.message);
@@ -44,7 +44,7 @@ const initCronJobs = () => {
     cron.schedule('45 */4 * * *', async () => {
         console.log('[Cron] Mainline PO sync starting...');
         try {
-            const r = await atomically(() => require('../modules/po/netsuiteSyncService').sync());
+            const r = await atomically(() => require('./poNetsuiteSyncService').sync());
             console.log(`[Cron] Mainline PO sync: ${r.orders_upserted ?? 0} orders, ${r.receipts_upserted ?? 0} receipts${r.fetch_error ? ' — ' + r.fetch_error : ''}`);
         } catch (e) {
             console.error('[Cron] Mainline PO sync failed:', e.message);

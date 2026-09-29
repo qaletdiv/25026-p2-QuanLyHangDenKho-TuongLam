@@ -3,7 +3,7 @@ const { models } = require('../models');
 
 // ONE resolver for "what may this role do", used by every consumer:
 // middleware/requirePermission (route gating), authController.login (the session
-// payload) and modules/auth/meController (the frontend's page gate).
+// payload) and controllers/meController (the frontend's page gate).
 //
 // Resolved from roles.json PER CALL and deliberately NOT cached — a permission
 // change must take effect immediately, not at the user's next login. (Same reason

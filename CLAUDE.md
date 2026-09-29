@@ -37,7 +37,7 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
 - **PO identity hierarchy:** `po_masters (TRN)` → `po_orders (po_number)` →
   `mainline_po_legs` (NK `po_number+mode+crd`). **ONE ingestion source since
   2026-09-28:** the mainline **NetSuite Sync** (`POST /po/sync/netsuite`,
-  `modules/po/netsuiteSync*`, Admin; button ACTIVE in PoLegsTable) bootstraps the
+  `{services,controllers}/poNetsuiteSync*`, Admin; button ACTIVE in PoLegsTable) bootstraps the
   PO hierarchy (masters/orders/order_lines, `type:'mainline'` so SMS `smm` POs are
   excluded; R1 protects booked orders) **and creates the legs, one per PO, from
   SS27 on.** Ingestion rules R1 (protect-if-booked) / R2 (flag-on-conflict) /
@@ -232,7 +232,7 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   ungated field that reaches the same state is not a gate. `Cancelled` was removed
   from the shipment status dropdown for the same reason.
 - **⚠️ The gate is "HANDED OVER", and it is `cargo_received_date` — NOT the ETD, and
-  NEVER the CRD** (`shipments/shipmentLifecycle.js`). **CRD is the CARGO READY date**
+  NEVER the CRD** (`lib/mainlineShipmentLifecycle.js`). **CRD is the CARGO READY date**
   — the supplier's plan, which moves earlier and later, and which the VENDOR can
   edit while the booking is pending; gating on it would hand the vendor a switch for
   the guard. `cargo_received_date` is **Received at Port**: the forwarder has the
@@ -276,7 +276,7 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   polled), the manual-status route refuses the name, and the table's Done set
   includes it.
 - **Actual ATA is DERIVED from NetSuite Item Receipts, in every consumer**
-  (2026-09-02). `receipts/ataLoader.js` wraps the shared resolver
+  (2026-09-02). `lib/mainlineAtaLoader.js` wraps the shared resolver
   (`receipts/mainlineReceiptMatch.ataByShipment` — confirmed → quantity →
   sequence, LATEST of the shipment's PO receipt dates, null unless EVERY PO
   landed) and `effectiveAta()` holds the ONE precedence rule: **attributed
@@ -302,7 +302,7 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   `ata_source` column so a reconciler can see which rule produced the date.
   Still a raw-column reader, deliberately: `landedCostController`
   (`ship_date`/`ship_month`, which groups posted finance snapshots).
-- **Backend:** `modules/po/*` (routes `/po`) + `modules/mainline/*` (routes
+- **Backend:** `po*` files (routes `/po`) + `mainline*` files (routes
   `/mainline/{bookings,shipments,fulfillment,bookings/:id/ci|packing|
   shipment-data|documents,shipments/:id/asn,legs/:legId/shipments}`).
 - **PO leg → its consignments (2026-09-01):** `GET /mainline/legs/:legId/shipments`
@@ -313,7 +313,7 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   CRD (actual) / Shipped Qty / Shipped Cartons / Status. Three decisions worth
   keeping: **(1)** qty + cartons are the SHIPPED ACTUALS off the shipping-data upload
   (`mainline_packing_cartons`: Σ `pcs_per_ctn`, COUNT DISTINCT `ctn_number` — the same
-  derivation `ciLines.js` uses, so the PO view and the CI quote one number), NOT the
+  derivation `mainlineCiLines.js` uses, so the PO view and the CI quote one number), NOT the
   booked `expected_quantity`; NULL not 0 when nothing is uploaded. The packing table
   has no `shipment_id`, but keying on (booking, leg) is lossless BY CONSTRUCTION — a
   leg has one facility and one mode, and shipment grain is (booking, facility, mode),
@@ -385,7 +385,7 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   `sms_tracking_events` (append-only) + `courier_status_map` (carrier code →
   status as DATA) + `sms_item_receipts`/`_lines` (portal-owned confirmation:
   `matched_shipment_id`/`confirmed_by/at` — NS re-sync never touches it).
-- **Backend `modules/sms/*` (routes `/sms`):** bookings CRUD +
+- **Backend `sms*` files (routes `/sms`):** bookings CRUD +
   `/bookings/:id/{approve,reject,cancel}` (`smsBookingController` +
   `smsBookingService` pure guards); POs read-only; shipments CRUD
   with vendor scope (a Vendor may only ship POs whose supplier matches their
@@ -429,7 +429,7 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   further and means **NetSuite has an Item Receipt** — the warehouse booked the
   goods in. DERIVED per read like every other status: a Delivered consignment
   escalates when EVERY PO in the box has a **human-CONFIRMED** IR attributed to
-  that lot (`receiptMatch.receivedByShipment` computes the confirmed → quantity →
+  that lot (`smsReceiptMatch.receivedByShipment` computes the confirmed → quantity →
   sequence attribution the Landed Costs page exposes; `smsService.deriveStatus`
   then requires `confirmed`, so a match fixed there moves the status too).
   `status_source:'netsuite'`, plus derived `received_date` / `received_irs` /
@@ -455,8 +455,8 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
 ## CI / Packing List header block (2026-09-15, revised 2026-09-16)
 
 The shared `services/ciGenerator.js` + `plGenerator.js` render a `meta` object both
-modules build in their own `_meta` (`modules/mainline/ci/documentService.js`,
-`modules/sms/smsDocumentService.js`). Six header fields were blank on every
+modules build in their own `_meta` (`services/mainlineDocumentService.js`,
+`services/smsDocumentService.js`). Six header fields were blank on every
 downloaded document, for two different reasons, and the distinction is the point:
 
 - **No source in code.** `shipping_mode` and `notify_party_*` were read by the
@@ -576,7 +576,8 @@ downloaded document, for two different reasons, and the distinction is the point
 ## Notifications (derived, role-scoped)
 
 - **No stored log** — notifications are DERIVED from current state per request
-  (`backend/modules/notifications/*`, routes `/notifications` + `/notifications/seen`).
+  (`controllers/notificationController` + `services/notificationService`, routes
+  `/notifications` + `/notifications/seen`).
   Each has a deterministic `key` (type:entity); a tiny per-user
   `notification_seen.json` (pruned to active keys) drives the unread badge only.
   A resolved condition (booking approved, PO shipped) makes its notification
@@ -595,7 +596,7 @@ downloaded document, for two different reasons, and the distinction is the point
 ### Notification EMAIL — the one thing this portal cannot derive (2026-09-25)
 
 Sent when a booking, shipment or Item-Receipt match is SAVED
-(`modules/notifications/{emailNotifier,emailEvents,emailRecipients}.js` +
+(`lib/{emailNotifier,emailEvents,emailRecipients}.js` +
 `services/emailService.js`).
 
 - **⚠️ THIS IS AN EVENT, AND THAT IS WHY IT BREAKS THE "DERIVED, NEVER STORED"
@@ -668,7 +669,7 @@ Sent when a booking, shipment or Item-Receipt match is SAVED
 
 ## Landed Costs module (freight & duty — SMS; Post WRITES to live NetSuite)
 
-- **Additive & isolated:** `modules/landedcosts/*` (routes `/landed-costs`),
+- **Additive & isolated:** `landedCost*` files (routes `/landed-costs`),
   frontend `src/modules/landed-costs/*` + `app/landed-costs` + Settings page
   `app/settings/landed-costs`. Reads the SMS dataset READ-ONLY; writes ONLY its
   own two tables (`landed_cost_rates`, `landed_costs`). No sms_*/mainline_* rows
@@ -748,7 +749,7 @@ Sent when a booking, shipment or Item-Receipt match is SAVED
   there is no bulk endpoint: every write is one human clicking Post on one
   shipment. The separate `POST …/netsuite-push` route is `requireAdmin`.
 - **Push mechanics:** target = **Item Receipt**, ONE per PO
-  (`modules/landedcosts/netsuiteLandedCost.js`), auth via
+  (`lib/netsuiteLandedCost.js`), auth via
   `integrationService.buildOAuthHeader` (TBA/OAuth1). Field map: `memo`=PO number;
   `custbody_tt_customs_entry_number`= customs entry # else `"<courier>
   <tracking>"` (SMS) / customs entry # (mainline); `custbody16` (shipping method)=
@@ -761,7 +762,7 @@ Sent when a booking, shipment or Item-Receipt match is SAVED
   (a posted row keeps its snapshot — fix the mode BEFORE posting); landed-cost tab
   `landedcostmethod`='VALUE', `landedcostamount2`=duty, `landedcostamount5`=freight
   (per-PO split amounts). Item-Receipt ids are **auto-resolved** now (no longer
-  TODO): `modules/sms/receiptMatch.js` pairs each lot to its IR (confirmed →
+  TODO): `lib/smsReceiptMatch.js` pairs each lot to its IR (confirmed →
   quantity → sequence) and the same resolution drives the derived `Received`
   status, so correcting a match on the Landed Costs page moves both.
   `GET …/netsuite-preview` still SENDS NOTHING — use it to inspect payloads.
@@ -1107,7 +1108,7 @@ over-receipts: 88 of 120 POs have receipts and no portal consignment, so
 `shipped` is 0 and variance is the whole received qty. That population is
 unchanged by the flip — only its sign moved.
 
-`fulfillmentService` computed `shipped_qty - received_qty` at BOTH grains, which
+`mainlineFulfillmentService` computed `shipped_qty - received_qty` at BOTH grains, which
 inverts the sign of every discrepancy: leg 77 over-received `TCM4546-6351-L` by one
 unit (shipped 46, received 47) and the PO leg detail showed **−1**, while a genuine
 one-unit SHORTFALL showed **+1**. Now `received_qty - shipped_qty` — actual minus
@@ -1149,7 +1150,7 @@ one shipped leg would put every unshipped leg on the wrong basis. At TRN/PO grai
 the rows are SKU-grained across legs, so the expected quantity is
 `shipped_qty + Σ allocated of the legs with no consignment` — `shipped_qty` only
 ever accrues from legs with confirmed CI lines, so the two halves cannot
-double-count. `fulfillmentController._ctx` loads `mainline_shipment_legs` for this
+double-count. `mainlineFulfillmentController._ctx` loads `mainline_shipment_legs` for this
 one question; it is the service's ONLY consumer, so the ctx is always complete —
 the `shipmentLegs = []` default would silently put every leg on the allocated
 basis, so a new caller must pass it.
@@ -1160,7 +1161,7 @@ leg 77 (4 lots) keeps all 10 genuine discrepancies unchanged; 0 formula mismatch
 **Shipped + Received in the `PO item lines (SKUs)` export (2026-09-16).**
 `GET /po/leg-lines` is at (leg, SKU) grain, which is exactly the grain
 `reconcileLeg` already derives those two figures at — so rather than a second copy,
-the rules were extracted into `fulfillmentService.legActuals(ctx)`, which returns
+the rules were extracted into `mainlineFulfillmentService.legActuals(ctx)`, which returns
 `shippedByLegSku` / `recvByLegSku` for EVERY leg in one pass, and `reconcileLeg`
 now consumes it. A second implementation of "which leg gets credited this receipt"
 is how two screens start disagreeing about a discrepancy.
@@ -1221,7 +1222,7 @@ made that true; before it they had to be inverted.
 ## Known debt / deferred
 
 - `/forecast` (mainline) now runs on LIVE migrated data via
-  `modules/mainline/reports/mainlineForecastController.js` (leg-grained weekly
+  `controllers/mainlineForecastController.js` (leg-grained weekly
   inbound × facility; shipment legs by E-DEL, unshipped remainder projected onto
   leg E-DEL, cartons from confirmed packing). Same `/forecast` endpoint + output
   contract → UI unchanged. `controllers/reportController.js` and the
@@ -1238,7 +1239,7 @@ made that true; before it they had to be inverted.
   model, validator, the empty `eom_tasks` table and the `eom` permission key
   (which offered an "EoM Progress" checkbox for a page that did not exist).
 - ✅ RESOLVED (2026-07-07): `mainline_ci_line_items` is now DERIVED at read-time
-  from `mainline_packing_cartons`, not stored (`modules/mainline/ci/ciLines.js`;
+  from `mainline_packing_cartons`, not stored (`lib/mainlineCiLines.js`;
   qty = Σ pcs_per_ctn, weight/cbm = Σ, matched_leg_id = the carton's leg). All
   three consumers (CI view `mainlineCiController`, fulfillment three-way match,
   ASN `mainlineAsnController`) derive it; the shipment-data upload no longer writes
@@ -1362,7 +1363,7 @@ date. Use `pg_dump` for a restore. `node database/init.js` loads reference data;
   ALREADY camelCase, so a regex round-trip would "restore" them to `order_no`
   and friends — columns that have never existed.
 - **⚠️ THREE FILES ARE EXCLUDED FROM THE camelCase CONVENTION, deliberately:**
-  `services/integrationService.js`, `modules/landedcosts/netsuiteLandedCost.js`
+  `services/integrationService.js`, `lib/netsuiteLandedCost.js`
   and `services/fedexService.js`. In them the OBJECT KEYS are ours and camelCase,
   but every `row.*` / `e.*` read is an **external field name** —  SuiteQL aliases
   (`t.tranid AS po_number`), NetSuite custom fields (`custbody_*`,
@@ -1377,7 +1378,7 @@ date. Use `pg_dump` for a restore. `node database/init.js` loads reference data;
   `receiving` in both places.
 - **`models/index.js` SKIPS `*Model.js` by name.** That directory also holds the
   legacy facades — all now DELETED, but the rule stays because the three
-  surviving `*Models.js` MANIFESTS in `modules/` follow the same name — which
+  surviving `*Models.js` MANIFESTS in `lib/` follow the same name — which
   export an object or a class rather than a
   `(sequelize, DataTypes)` factory. A duck-typed check would not save you —
   `BaseModel` is a class, and a class IS `typeof "function"`, so it would be
@@ -1504,7 +1505,7 @@ npx eslint@8 --no-eslintrc -c /tmp/eslintrc.json --ext .js \
   from `mainline_packing_cartons`, so the orphans kept contributing to totals for
   a deleted booking. `DELETE /mainline/shipments/:id` cleaned only the junction,
   stranding ASNs, receipt matches and rejections. Both now use
-  `modules/mainline/shipments/shipmentCleanup.js`, which encodes the one
+  `lib/mainlineShipmentCleanup.js`, which encodes the one
   distinction that matters: the ASN and the rejections are artifacts OF the
   shipment and are DELETED, but `mainline_item_receipts` are NetSuite's record of
   goods that physically arrived — they are only UNLINKED
@@ -1520,7 +1521,7 @@ npx eslint@8 --no-eslintrc -c /tmp/eslintrc.json --ext .js \
 
 ### Resolved earlier (kept for the reasoning)
 
-- ✅ RESOLVED (2026-08-12): **`mainline/statuses.js` was MODULE-BLIND.** `_maps()`
+- ✅ RESOLVED (2026-08-12): **`lib/mainlineStatuses.js` was MODULE-BLIND.** `_maps()`
   built `nameToId` as `new Map(rows.map(r => [r.name, r.id]))` — keyed on NAME with
   the `module` column ignored — so for each of the six names present in both modules
   (Booking Pending, Booking Approved, Rejected, In Transit, Delivered, Cancelled) the
@@ -1546,7 +1547,7 @@ npx eslint@8 --no-eslintrc -c /tmp/eslintrc.json --ext .js \
   → SERIAL/IDENTITY. Not addressed: the ids are the app's own strings
   (`mll_15_SKU`, `SHP-6`) and changing them is a data migration, not a schema
   switch.
-- **`mainline/statuses.js` in-memory cache** never invalidated after a
+- **`lib/mainlineStatuses.js` in-memory cache** never invalidated after a
   statuses.json edit (restart required). → drop cache.
 - **Constraints the live data could NOT satisfy** (created as far as the data
   allows; the survivors are recorded in `db/schema.json` `notes[]`).
@@ -1557,7 +1558,7 @@ npx eslint@8 --no-eslintrc -c /tmp/eslintrc.json --ext .js \
   - `mainline_po_leg_lines` — **no `(leg_id, sku_code)` unique**: 22 rows
     duplicate both, on legs 15/45/85 (e.g. `mll_15_TCM6948-6346-L` at 28 and 5).
     Same class as the `sms_po_lines` grain bug above. **Currently harmless to
-    every total** — all five consumers (`legCapacities`, `fulfillmentService` ×2,
+    every total** — all five consumers (`legCapacities`, `mainlineFulfillmentService` ×2,
     `legReconciliationService`, both report controllers, `wipImportController`)
     sum with `+=`, which is also what makes merging them a numerically neutral
     fix.
@@ -1613,35 +1614,81 @@ backend/                     Express API on PostgreSQL + Sequelize (MVC)
                              commercially sensitive in templates/.
     reference/               NOT served — signed agreements, NRI source workbooks
     converted-docs/ archive/ source spreadsheets; superseded backups
-  modules/                   ONE FOLDER PER FEATURE — see modules/README.md.
-                             12 features incl. auth, users, roles, contacts,
-                             freights, masterdata (moved out of controllers/
-                             2026-09-22, so there is now ONE scheme, not two).
-                             Layer is the FILENAME SUFFIX (*Controller/*Service/
-                             *Routes/*Validator), not the folder.
-  controllers/               EMPTY — holds only a README pointing at modules/,
-                             because that is where people look first.
-  modules/po/                mainline PO hierarchy + legs (NetSuite sync; v1 WIP import retired 2026-09-28)
-  modules/mainline/          bookings, shipments, ci/packing/asn, fulfillment, reports
-  modules/sms/               SMS module (own dataset) + NetSuite sync + FedEx poll
-  modules/nriinvoices/       3PL invoice verification — "All Invoices" (own tables
-                             under data/nri/). ONE TAB PER INVOICING WAREHOUSE from
-                             nri_invoice_sources.json; `parser: null` = shell, uploads
-                             refused with a reason (a 3PL's workbook layout must be
-                             mapped in code). API stays /nri-invoices, UI is /invoices
-                             — see that module's README, which is the source of truth.
-  services/                  CROSS-CUTTING only — integrationService (SuiteQL),
+  ── LAYER-FIRST MVC since 2026-09-28. See backend/README.md. ──
+     The FEATURE is the FILENAME PREFIX (mainline*/sms*/po*/nri*/landedCost*),
+     the LAYER is the FOLDER. `backend/modules/` is GONE — do not recreate it.
+  routes/               16   mounted in server.js; one per feature + the 4 that
+                             span several (reportRoutes, forecastRoutes,
+                             notificationRoutes, documentRoutes — renamed from
+                             reports.js/forecast.js/… so routes/ is uniform)
+  controllers/          30   HTTP in/out, permission keys, vendor scoping
+  services/             24   business rules, no req/res. Also the genuinely
+                             cross-cutting ones: integrationService (SuiteQL),
                              fedexService, ciParser, wipParser, asnService,
-                             ci/plGenerator, cronJobs. A service with exactly ONE
-                             consumer belongs in that module instead.
-  routes/                    only the 4 that span several modules: reports,
-                             forecast, notifications, documents
+                             ci/plGenerator, cronJobs, transitTimeService
+  validators/            9   Joi schemas (middleware/validate.js applies them)
+  lib/                  27   domain logic that is no layer — mainlineCiLines,
+                             mainlineAtaLoader, mainlineStatuses, smsReceiptMatch,
+                             nriRateCard, poWarehouseFacility, email*, the three
+                             *Models.js manifests. ⚠ KEEP THE FEATURE PREFIX.
+     feature prefixes:  po*        PO hierarchy + legs (NetSuite sync; v1 WIP
+                                   import retired 2026-09-28)
+                        mainline*  bookings, shipments, ci/packing/asn,
+                                   fulfillment, reports
+                        sms*       SMS module (own dataset) + NS sync + FedEx poll
+                        landedCost* freight & duty; WRITES to live NetSuite
+                        nri*       3PL invoice verification — "All Invoices" (own
+                                   tables under data/nri/). ONE TAB PER INVOICING
+                                   WAREHOUSE from nri_invoice_sources.json;
+                                   `parser: null` = shell, uploads refused with a
+                                   reason (a 3PL's workbook layout must be mapped
+                                   in code). API /nri-invoices, UI /invoices — see
+                                   NRI_INVOICE_MODULE.md, the source of truth.
 frontend/tentree-scportal/   Next.js RSC app (shadcn/ui, Tailwind)
   src/modules/mainline/      mainline types/actions/components (DataTable, ColumnPicker,
                              ConfirmDialog, RouteFallbacks are generic — SMS reuses them)
   src/modules/sms/           SMS types/actions/components
   src/app/{mainline,sms,reports,settings,forecast,freights,contacts,login}
 ```
+
+⚠️ **The FRONTEND is still feature-first** (`src/modules/{mainline,sms}`) and was
+deliberately not touched. Only the backend moved.
+
+### ⚠️ The backend moved feature-first → layer-first on 2026-09-28 (per Lam)
+
+`backend/modules/<feature>/` held each feature's routes + controller + service +
+validator together from the 2026-07-03 rebuild until 2026-09-28, when it was
+flattened into `routes/ controllers/ services/ validators/ lib/` **at the
+maintainer's explicit direction, after the trade-off was put to him.** It is not
+drift and it is not an accident — **do not "restore" the module folders.**
+
+99 files moved, 272 require specifiers rewritten, 22 files renamed to carry
+their feature prefix. Verified neutral: all **31 read endpoints byte-identical**
+before and after on the same data (three-way compared against the pre-move code
+to separate a concurrent SMS cron write from the refactor), `no-undef` clean,
+tests 2/2, every relative require statically resolved.
+
+**What this costs, so it is not rediscovered as a bug:**
+- **Change locality.** A booking change touches 3 files in 3 folders, not 1.
+- **The mainline/SMS wall is no longer mirrored by folders.** It was the strongest
+  argument against flattening. `mainlineBookingController.js` and
+  `smsBookingController.js` now sit adjacent, which invites the "DRY these up"
+  change this file warns against everywhere. The wall is now enforced ONLY by the
+  filename prefix + the rule above, and the check is a grep (`backend/README.md`
+  carries it). Today the sole crossing is `lib/mainlineReceiptMatch.js` →
+  `lib/smsReceiptMatch.js`'s `matchPo`, a pure function.
+- **`lib/` is the bag layering has no name for** — 27 files that are no layer.
+  **Anything added there MUST keep its feature prefix**; `statuses.js` was
+  self-explanatory in `modules/mainline/` and meaningless in a shared `lib/`
+  (it is now `mainlineStatuses.js`).
+
+Two pre-existing defects surfaced, both recorded rather than silently patched:
+`scripts/verify-reconcile.js` requires `./returnsClass`, which has never existed
+in git history (the script has always thrown on load; nothing requires it), and
+`freightExportService`'s `UPLOADS_DIR` pointed at `backend/modules/storage/uploads`
+— a directory that does not exist, which `mkdirSync(recursive)` would have
+created on first use. The move corrected the second; the first is left broken
+and commented, because the right target is a guess.
 
 ## Conventions
 
@@ -1775,8 +1822,8 @@ frontend/tentree-scportal/   Next.js RSC app (shadcn/ui, Tailwind)
   **(2) an out-of-scope detail read returns 404, NEVER 403** — a 403 confirms the id
   exists, which is the oracle for enumerating other suppliers' TRNs, PO numbers,
   booking and shipment ids. Sub-resources hanging off a parent id use the guards in
-  `modules/mainline/vendorAccess.js` (booking/shipment/TRN/po_number/leg) and
-  `modules/sms/vendorAccess.js` (shipment). **Two traps encoded there:** SMS
+  `lib/mainlineVendorAccess.js` (booking/shipment/TRN/po_number/leg) and
+  `lib/smsVendorAccess.js` (shipment). **Two traps encoded there:** SMS
   visibility requires ALL of a consignment's POs to be the vendor's (`every`, not
   `some`) or a cross-supplier box leaks B's lines to A; and a junction-less row must
   be explicitly excluded because `[].every()` is `true`, which would expose every
@@ -1908,5 +1955,5 @@ Get-CimInstance Win32_Process -Filter "Name='node.exe'" |
 | Agent    | Owns                                          | Never touches |
 |----------|-----------------------------------------------|---------------|
 | frontend | `frontend/tentree-scportal/src/`              | `backend/`    |
-| backend  | `backend/server.js`, `backend/modules/`, `backend/models/`, `backend/database/`, `backend/services/` | `frontend/` |
+| backend  | `backend/server.js`, `backend/{routes,controllers,services,validators,lib}/`, `backend/models/`, `backend/database/` | `frontend/` |
 | qa       | Read-only — no writes                         | —             |

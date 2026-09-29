@@ -1,5 +1,11 @@
 # Mainline Backend Module Structure
 
+> ⚠️ **Backend paths in this document are pre-2026-09-28.** The backend moved from
+> feature folders (`backend/modules/<feature>/`) to layer-first MVC —
+> `routes/ controllers/ services/ validators/ lib/`. The FILE NAMES below are still
+> right (22 gained a feature prefix); only the folder changed. See `backend/README.md`.
+> **`src/modules/...` paths are the FRONTEND and are unchanged.**
+
 Target backend layout for the **mainline module** under the redesigned schema
 (`backend/database.dbml`, `backend/SCHEMA_REDESIGN.md`). Mainline only — SMS is a
 separate later pass. Keeps the existing MVC layering (controller / service / model /

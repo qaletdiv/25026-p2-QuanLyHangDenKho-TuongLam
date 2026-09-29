@@ -34,7 +34,7 @@
 
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const integrationService = require('../services/integrationService');
-const { pruneRejected, computeReferenced } = require('../modules/po/netsuiteSyncService');
+const { pruneRejected, computeReferenced } = require('../services/poNetsuiteSyncService');
 const { models } = require('../models');
 const { atomically, shutdown } = require('../database/tx');
 
