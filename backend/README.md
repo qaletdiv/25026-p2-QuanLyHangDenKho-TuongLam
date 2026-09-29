@@ -118,6 +118,13 @@ no route file moved. The schemas are `checkSchema` objects, which keeps them
 declarative data exactly as the Joi schemas were; `validators/rules.js` holds
 the field vocabulary shared across the nine files.
 
+⚠️ **`rules.js` stays** (Lam, 2026-09-28). It was raised at the port as arguably
+re-creating a little of Joi on top of express-validator, and kept deliberately:
+without it the nine files roughly double through repetition (~55 nullable-string
+call sites alone), and it is the only place the distinction below is stated
+once rather than per field — which is precisely how the 15 regressions got
+written. Do not inline these helpers back into the callers.
+
 ⚠️ **OPTIONAL, NULLABLE and BLANKABLE are three different things**, and this is
 the whole risk of the port. A differential test of the old schemas against the
 new ones over 362 payloads caught **15 fields** where the first pass collapsed

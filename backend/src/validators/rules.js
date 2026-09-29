@@ -5,6 +5,20 @@
  * These replace Joi fragments that were copy-pasted across the validators — the
  * ISO-date check existed five times, character for character.
  *
+ * ⚠️ KEEP THIS LAYER (Lam, 2026-09-28). It was flagged at the port as arguably
+ * re-creating a little of Joi on top of express-validator, and kept anyway,
+ * deliberately. Two reasons:
+ *
+ *   1. Without it the nine validator files roughly double through repetition —
+ *      every nullable string becomes four lines of `optional`/`isString`/
+ *      `trim`/`isLength` at each of its ~55 call sites.
+ *   2. It is the ONLY place the optional/nullable/blankable distinction below
+ *      is stated once. Spelling that out per field is exactly how the 15
+ *      regressions the differential test caught got written in the first place.
+ *
+ * So the alternative — idiomatic bare `checkSchema` entries everywhere — was
+ * considered and declined. Do not inline these helpers back into the callers.
+ *
  * ══════════════════════════════════════════════════════════════════════════
  * ⚠️ OPTIONAL, NULLABLE AND BLANKABLE ARE THREE DIFFERENT THINGS.
  *
