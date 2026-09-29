@@ -1635,7 +1635,8 @@ backend/                     Express API on PostgreSQL + Sequelize (MVC)
                              cross-cutting ones: integrationService (SuiteQL),
                              fedexService, ciParser, wipParser, asnService,
                              ci/plGenerator, cronJobs, transitTimeService
-    validators/          9   Joi schemas (middlewares/validate.js applies them)
+    validators/         10   express-validator checkSchema objects + rules.js
+                             (middlewares/validate.js runs them)
     lib/                27   domain logic that is no layer — mainlineCiLines,
                              mainlineAtaLoader, mainlineStatuses, smsReceiptMatch,
                              nriRateCard, poWarehouseFacility, email*, the three
@@ -1751,9 +1752,22 @@ refresh. It is a migration tool, not a build step.
 
 ## Conventions
 
-- **Validation:** every write route has a Joi schema (`src/middlewares/validate.js`);
-  business guards live in controllers/services. Dates validated as real ISO
-  calendar dates (see `smsValidators`/`mainlineShipmentValidator` isoDate).
+- **Validation:** every write route has an express-validator `checkSchema`
+  object (`src/middlewares/validate.js` runs it); business guards live in
+  controllers/services. Dates validated as real ISO calendar dates
+  (`validators/rules.js` `isoDate`, shared by all five users of it).
+  ⚠️ **Joi was replaced 2026-09-28**, and the trap is that **OPTIONAL, NULLABLE
+  and BLANKABLE are three different things**: `optional: true` skips only
+  `undefined`, `optional: {values:'null'}` also skips `null`, and `''` is a
+  separate question again. A differential test of the old Joi schemas against
+  the new ones over 362 payloads caught **15 fields** where collapsing them had
+  silently widened what the API accepts (the mainline BOOKING status allows
+  `''`/null, the SHIPMENT status does not — that asymmetry is real). The
+  vocabulary is in `validators/rules.js`; the table mapping each Joi form to its
+  helper is in `backend/README.md`. Also carried over deliberately: Joi's
+  `convert:true` became explicit `toInt`/`toFloat`/`toBoolean` sanitizers (drop
+  one and a controller gets a string where it did arithmetic), and unknown keys
+  still pass through — do NOT add `checkExact()`.
 - **3NF discipline:** ids not names in rows; names joined at read-time; derived
   values (totals, statuses, rollups, reconciliation) computed per request,
   never written. `database.dbml` is authoritative — keep it in sync.

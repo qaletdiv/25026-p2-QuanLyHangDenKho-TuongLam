@@ -1,53 +1,57 @@
 'use strict';
 
-const Joi = require('joi');
 const { MAINLINE_SHIPMENT_STATUSES } = require('../lib/mainlineStatuses');
+const {
+  isoDate, nullableString, nullableNumber, optionalBoolean, enumOf, requiredArray,
+} = require('./rules');
 
 // ISO calendar date — a malformed date would corrupt transit-time calculations.
-// The pattern catches the shape; the custom check catches impossible dates like
-// 2026-13-45 (ISO parsing returns Invalid Date for out-of-range components).
-// Ordering across the fields is the controller's checkChronology guard.
-const isoDate = Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/)
-  .custom((v, helpers) => (isNaN(new Date(v).getTime()) ? helpers.error('any.invalid') : v))
-  .allow(null, '').messages({
-    'string.pattern.base': 'Dates must be YYYY-MM-DD',
-    'any.invalid': 'Not a valid calendar date',
-  });
+// The shape check catches the format; the Date check catches impossible dates
+// like 2026-13-45. Ordering across fields is the controller's checkChronology.
+const date = () => isoDate('Dates must be YYYY-MM-DD');
 
 // Mainline shipment update — status vocabulary + header-field types. The
 // controller whitelists which fields are written; this validates their shape.
-const update = Joi.object({
-  status: Joi.string().valid(...MAINLINE_SHIPMENT_STATUSES).messages({
-    'any.only': `'status' must be one of: ${MAINLINE_SHIPMENT_STATUSES.join(', ')}`,
-  }),
+const update = {
+  // ⚠️ NOT nullable and NOT blankable — unlike the BOOKING status, which is.
+  // Joi wrote `.valid(...)` here and `.valid(...).allow('', null)` there.
+  status: enumOf(MAINLINE_SHIPMENT_STATUSES,
+    `'status' must be one of: ${MAINLINE_SHIPMENT_STATUSES.join(', ')}`),
   // cargoReadyDate = the REVISED cargo ready date (the forwarder's). Distinct from
   // cargoReceivedDate: ready is the earlier event, and checkChronology orders them.
-  cargoReadyDate: isoDate,
-  etdPol: isoDate, etaPod: isoDate, eDel: isoDate, cargoReceivedDate: isoDate, ata: isoDate,
+  cargoReadyDate: date(),
+  etdPol: date(), etaPod: date(), eDel: date(), cargoReceivedDate: date(), ata: date(),
   // Operational note. Capped so one paste cannot make every shipment payload huge —
   // this rides on the list endpoint too.
-  notes: Joi.string().max(4000).allow(null, ''),
+  notes: nullableString({ max: 4000 }),
   // "Needs attention". Accepted here, but the CONTROLLER gates it on
   // `shipment_flag_priority`; validation is shape, not authority.
-  priority: Joi.boolean(),
-  blNo: Joi.string().allow(null, ''),
-  courierId: Joi.string().allow(null, ''),          // actual carrier; drives the landed-cost basis
+  priority: optionalBoolean,
+  blNo: nullableString(),
+  courierId: nullableString(),          // actual carrier; drives the landed-cost basis
   // Was `ceva_shipment_number` — the carrier is data now, so the column no longer
   // names one. NOT `shipmentNumber`: that is the portal's own SHP-N sequence.
-  carrierReference: Joi.string().allow(null, ''),
-  customsEntryNumber: Joi.string().allow(null, ''),
-  containerTypeId: Joi.string().allow(null, ''),
-  polPortId: Joi.string().allow(null, ''),
-  podPortId: Joi.string().allow(null, ''),
-  netsuiteId: Joi.string().allow(null, ''),
-  invoiceValue: Joi.number().min(0).allow(null),
-  duty: Joi.number().min(0).allow(null),
-  freight: Joi.number().min(0).allow(null),
-}).unknown(true);
+  carrierReference: nullableString(),
+  customsEntryNumber: nullableString(),
+  containerTypeId: nullableString(),
+  polPortId: nullableString(),
+  podPortId: nullableString(),
+  netsuiteId: nullableString(),
+  invoiceValue: nullableNumber({ min: 0 }),
+  duty: nullableNumber({ min: 0 }),
+  freight: nullableNumber({ min: 0 }),
+};
 
-const bulkStatus = Joi.object({
-  ids:    Joi.array().items(Joi.string()).min(1).required(),
-  status: Joi.string().valid(...MAINLINE_SHIPMENT_STATUSES).required(),
-}).unknown(true);
+const bulkStatus = {
+  ids: requiredArray({ min: 1, errorMessage: "'ids' must contain at least one shipment" }),
+  'ids.*': { isString: { errorMessage: 'each id must be a string' } },
+  status: {
+    exists: { options: { values: 'undefined' }, errorMessage: "'status' is required" },
+    isIn: {
+      options: [MAINLINE_SHIPMENT_STATUSES],
+      errorMessage: `'status' must be one of: ${MAINLINE_SHIPMENT_STATUSES.join(', ')}`,
+    },
+  },
+};
 
 module.exports = { update, bulkStatus };

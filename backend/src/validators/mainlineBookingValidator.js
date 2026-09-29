@@ -1,56 +1,52 @@
 'use strict';
 
-const Joi = require('joi');
 const { MAINLINE_BOOKING_STATUSES } = require('../lib/mainlineStatuses');
+const {
+  isoDate, requiredString, nullableString, nullableNumber, enumOf, requiredArray, optionalArray,
+} = require('./rules');
 
-// ISO calendar date (YYYY-MM-DD); the custom check rejects impossible dates.
-const isoDate = Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/)
-  .custom((v, helpers) => (isNaN(new Date(v).getTime()) ? helpers.error('any.invalid') : v))
-  .allow(null, '').messages({
-    'string.pattern.base': 'Cargo Ready must be YYYY-MM-DD',
-    'any.invalid': 'Not a valid calendar date',
-  });
+// Per-leg BOOKING ESTIMATES, shared by create and update. Booking is keyed on
+// LEGS (legId), not poNumber — that enforces the leg-only rule at the shape
+// level. The controller verifies every leg belongs to the supplier (G1).
+const legRefFields = (prefix) => ({
+  [`${prefix}.*.legId`]: requiredString("each poLegs entry needs a 'legId'"),
+  [`${prefix}.*.units`]: nullableNumber({ min: 0 }),
+  [`${prefix}.*.cartons`]: nullableNumber({ min: 0 }),
+  [`${prefix}.*.weightKg`]: nullableNumber({ min: 0 }),
+  [`${prefix}.*.cbm`]: nullableNumber({ min: 0 }),
+});
 
-// Booking is keyed on LEGS (legId), not poNumber — enforces the leg-only rule
-// at the shape level. supplierId identifies the vendor; the controller verifies
-// every leg belongs to that supplier (G1).
-const legRef = Joi.object({
-  legId:  Joi.string().min(1).required().messages({ 'any.required': "each poLegs entry needs a 'legId'" }),
-  units:   Joi.number().min(0).allow(null),
-  cartons: Joi.number().min(0).allow(null),
-  weightKg: Joi.number().min(0).allow(null),
-  cbm:     Joi.number().min(0).allow(null),
-}).unknown(true);
+// Joi wrote `.allow('', null)` here — unlike the SHIPMENT status.
+const bookingStatus = enumOf(MAINLINE_BOOKING_STATUSES,
+  `'bookingStatus' must be one of: ${MAINLINE_BOOKING_STATUSES.join(', ')}`, { nullable: true });
 
-// PLANNED carrier — optional (not always decided when the vendor submits) and
-// correctable on the shipment afterwards. The controller checks it against
-// couriers.json; that is the real guard, since these schemas are unknown(true).
-const courierId = Joi.string().allow(null, '');
-
-const create = Joi.object({
-  supplierId: Joi.string().min(1).required().messages({ 'any.required': "'supplierId' is required" }),
-  courierId: courierId,
-  poLegs: Joi.array().items(legRef).min(1).required().messages({
-    'array.min': "'poLegs' must contain at least one leg",
-    'any.required': "'poLegs' is required",
+const create = {
+  supplierId: requiredString("'supplierId' is required"),
+  // PLANNED carrier — optional (not always decided when the vendor submits) and
+  // correctable on the shipment afterwards. The controller checks it against the
+  // couriers master; that is the real guard, since unknown keys pass through.
+  courierId: nullableString(),
+  poLegs: requiredArray({
+    min: 1,
+    errorMessage: "'poLegs' must contain at least one leg",
+    missingMessage: "'poLegs' is required",
   }),
-  bookingStatus: Joi.string().valid(...MAINLINE_BOOKING_STATUSES).allow('', null),
-}).unknown(true);
+  ...legRefFields('poLegs'),
+  bookingStatus,
+};
 
-const update = Joi.object({
-  bookingStatus: Joi.string().valid(...MAINLINE_BOOKING_STATUSES).allow('', null).messages({
-    'any.only': `'bookingStatus' must be one of: ${MAINLINE_BOOKING_STATUSES.join(', ')}`,
-  }),
-  cargoReadyDate: isoDate,
+const update = {
+  bookingStatus,
+  cargoReadyDate: isoDate('Cargo Ready must be YYYY-MM-DD'),
   // The "Booked" date shown on the detail. Stored as a timestamp; accepted as a
   // plain calendar date because that is what the field displays and edits.
-  submittedAt: isoDate,
-  courierId: courierId,
-  // Per-leg BOOKING ESTIMATES (units / cartons / weight / cbm). On update these
-  // revise the existing junction rows ONLY — the controller refuses a legId that
-  // is not already on the booking. Adding or removing legs is a create-time
-  // decision, because that is where G1/G2/G3 are enforced.
-  poLegs: Joi.array().items(legRef).allow(null),
-}).unknown(true);
+  submittedAt: isoDate('Cargo Ready must be YYYY-MM-DD'),
+  courierId: nullableString(),
+  // On update these revise the EXISTING junction rows only — the controller
+  // refuses a legId that is not already on the booking. Adding or removing legs
+  // is a create-time decision, because that is where G1/G2/G3 are enforced.
+  poLegs: optionalArray({ errorMessage: "'poLegs' must be an array", nullable: true }),
+  ...legRefFields('poLegs'),
+};
 
 module.exports = { create, update };

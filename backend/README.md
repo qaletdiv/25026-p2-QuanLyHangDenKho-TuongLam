@@ -14,7 +14,8 @@ backend/
     routes/         16      mounted in app.js — the entry points
     middlewares/     8      auth, validate, requirePermission, rateLimit, upload …
     services/       24      business rules, pure where possible, no req/res
-    validators/      9      Joi schemas (middlewares/validate.js applies them)
+    validators/     10      express-validator checkSchema objects + rules.js
+                            (middlewares/validate.js runs them)
     lib/            27      domain logic (mainlineCiLines, nriRateCard, …)
     utils/           5      shared plumbing (vendorScope, nameKey, passwordUtils)
     app.js                  builds and EXPORTS the express app — no port, no cron
@@ -109,6 +110,50 @@ Before trusting any bulk require rewrite: scan for `require(` occurring inside a
 string literal, and afterwards prove the generator round-trips — regenerate and
 confirm the output matches the live file. ⚠️ Do that against a **copy**: a real
 run overwrites hand-edited models (see the warning above).
+
+## Validation: express-validator (Joi replaced 2026-09-28)
+
+Every write route still reads `validate(schema)` — only the engine changed, so
+no route file moved. The schemas are `checkSchema` objects, which keeps them
+declarative data exactly as the Joi schemas were; `validators/rules.js` holds
+the field vocabulary shared across the nine files.
+
+⚠️ **OPTIONAL, NULLABLE and BLANKABLE are three different things**, and this is
+the whole risk of the port. A differential test of the old schemas against the
+new ones over 362 payloads caught **15 fields** where the first pass collapsed
+them and silently widened what the API accepts:
+
+| Joi | undefined | null | `''` | helper in rules.js |
+|---|---|---|---|---|
+| `.string().required()` | ✗ | ✗ | ✗ | `requiredString` |
+| `.string().min(1).optional()` | ✓ | ✗ | ✗ | `optionalString` |
+| `.string().allow('').optional()` | ✓ | ✗ | ✓ | `blankableString` |
+| `.string().allow(null, '')` | ✓ | ✓ | ✓ | `nullableString` |
+| `.number().min(0).allow(null)` | ✓ | ✓ | — | `nullableNumber` |
+| `.boolean()` | ✓ | ✗ | — | `optionalBoolean` |
+
+`optional: true` skips only `undefined`; `optional: {values:'null'}` skips
+`undefined` **and** `null`. Use the second only where Joi wrote `.allow(null)`.
+The mainline BOOKING status allowed `''`/null and the SHIPMENT status did not —
+that asymmetry is real, not an oversight.
+
+Two more behaviours that had to be carried over deliberately:
+
+- **Coercion.** Joi ran with `convert: true`, so `'5'` reached controllers as
+  `5`. express-validator does not coerce unless told, which is why every numeric
+  rule pairs its check with `toInt`/`toFloat` and every boolean with
+  `toBoolean`. Drop a sanitizer and a controller silently gets a string where it
+  did arithmetic.
+- **Unknown keys pass through.** Joi ran `allowUnknown: true` and several
+  schemas were `.unknown(true)`; partial updates depend on it. express-validator
+  only inspects the paths it is given, so this is free — but do **not** add
+  `checkExact()` to "tighten" it.
+
+`bail` is NOT a valid `checkSchema` key in express-validator 7 — it is accepted
+silently and ignored. One error per field comes from
+`result.array({ onlyFirstError: true })` in the middleware instead; without it a
+missing required field reports three times, because `requiredString` is three
+checks.
 
 ## ⚠️ mainline and SMS are still two separate datasets
 

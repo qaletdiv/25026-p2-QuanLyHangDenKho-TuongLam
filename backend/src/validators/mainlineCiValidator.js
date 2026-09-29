@@ -1,35 +1,28 @@
 'use strict';
 
-const Joi = require('joi');
+const { isoDate, requiredString, requiredNumber, nullableNumber, nullableString, optionalArray } = require('./rules');
 
 // POST /mainline/bookings/:id/ci — the CI header + SKU line items written to disk.
 // qty must be a non-negative number (a negative or garbage qty corrupts the
 // fulfillment three-way match); dates must be ISO calendar dates.
-const isoDate = Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/)
-  .custom((v, helpers) => (isNaN(new Date(v).getTime()) ? helpers.error('any.invalid') : v))
-  .allow(null, '').messages({
-    'string.pattern.base': 'Dates must be YYYY-MM-DD',
-    'any.invalid': 'Not a valid calendar date',
-  });
+// Unknown keys pass through, as they did under Joi's .unknown(true).
+const upsert = {
+  invoiceNumber: nullableString(),
+  invoiceDate: isoDate(),
+  source: nullableString(),
+  fileUrl: nullableString(),
 
-const lineItem = Joi.object({
-  skuCode: Joi.string().min(1).required().messages({ 'any.required': "each line item needs a 'skuCode'" }),
-  qty: Joi.number().min(0).required().messages({
-    'number.min': "'qty' cannot be negative",
-    'any.required': "each line item needs a 'qty'",
+  line_items: optionalArray({ errorMessage: "'line_items' must be an array" }),
+  'line_items.*.skuCode': requiredString("each line item needs a 'skuCode'"),
+  'line_items.*.qty': requiredNumber({
+    min: 0,
+    errorMessage: "'qty' cannot be negative",
+    missingMessage: "each line item needs a 'qty'",
   }),
-  weightKg: Joi.number().min(0).allow(null),
-  cbm: Joi.number().min(0).allow(null),
-  matched_leg_id: Joi.string().allow(null, ''),
-  matched_po: Joi.string().allow(null, ''),
-}).unknown(true);
-
-const upsert = Joi.object({
-  invoiceNumber: Joi.string().allow(null, ''),
-  invoiceDate: isoDate,
-  source: Joi.string().allow(null, ''),
-  fileUrl: Joi.string().allow(null, ''),
-  line_items: Joi.array().items(lineItem),
-}).unknown(true);
+  'line_items.*.weightKg': nullableNumber({ min: 0 }),
+  'line_items.*.cbm': nullableNumber({ min: 0 }),
+  'line_items.*.matched_leg_id': nullableString(),
+  'line_items.*.matched_po': nullableString(),
+};
 
 module.exports = { upsert };

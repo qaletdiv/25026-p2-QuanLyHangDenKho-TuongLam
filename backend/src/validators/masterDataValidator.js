@@ -1,50 +1,33 @@
-const Joi = require('joi');
+'use strict';
 
-// All master-data PUT bodies must be an array of objects with at least a 'name' field.
-// This prevents garbage or a plain string from overwriting a JSON file.
-const masterDataArray = Joi.array()
-    .items(
-        Joi.object({
-            name: Joi.string().min(1).required().messages({
-                'string.empty': "Each entry must have a non-empty 'name'",
-                'any.required': "Each entry must have a 'name'",
-            }),
-        }).unknown(true)
-    )
-    .required()
-    .messages({
-        'array.base': 'Request body must be an array',
-        'any.required': 'Request body must be an array',
-    });
+const { isoDate, requiredString } = require('./rules');
+
+// ⚠️ TOP-LEVEL ARRAY bodies. '' is the body itself, '*.field' each element.
+// All master-data PUT bodies must be an array of objects with at least a 'name'
+// field. This prevents garbage or a plain string from overwriting a table.
+const masterDataArray = {
+    '': { isArray: { errorMessage: 'Request body must be an array' } },
+    '*.name': requiredString("Each entry must have a non-empty 'name'"),
+};
 
 // Production schedules are keyed by seasonId (no 'name'): one row per season,
 // two ISO-date cutoffs (nullable — a season may not have gates set yet).
-const isoDate = Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/)
-    .custom((v, helpers) => (isNaN(new Date(v).getTime()) ? helpers.error('any.invalid') : v))
-    .messages({
-        'string.pattern.base': 'Dates must be YYYY-MM-DD',
-        'any.invalid': 'Not a valid calendar date',
-    });
-const productionScheduleArray = Joi.array()
-    .items(
-        Joi.object({
-            seasonId: Joi.string().min(1).required(),
-            ontimeBy: isoDate.allow(null, ''),
-            atriskBy: isoDate.allow(null, ''),
-        }).unknown(true)
-    )
-    .required()
-    .messages({
-        'array.base': 'Request body must be an array',
-        'any.required': 'Request body must be an array',
-    });
+const productionScheduleArray = {
+    '': { isArray: { errorMessage: 'Request body must be an array' } },
+    '*.seasonId': requiredString("Each entry must have a 'seasonId'"),
+    '*.ontimeBy': isoDate(),
+    '*.atriskBy': isoDate(),
+};
 
 // New-season creation (Settings → Production Schedule): just the season code.
-const seasonCreate = Joi.object({
-    code: Joi.string().trim().min(2).max(20).required().messages({
-        'string.empty': "Season 'code' is required (e.g. SS27)",
-        'any.required': "Season 'code' is required (e.g. SS27)",
-    }),
-});
+const seasonCreate = {
+    code: {
+        exists: { options: { values: 'undefined' }, errorMessage: "Season 'code' is required (e.g. SS27)" },
+        isString: { errorMessage: "Season 'code' is required (e.g. SS27)" },
+        trim: true,
+        notEmpty: { errorMessage: "Season 'code' is required (e.g. SS27)" },
+        isLength: { options: { min: 2, max: 20 }, errorMessage: "Season 'code' must be 2-20 characters" },
+    },
+};
 
 module.exports = { masterDataArray, productionScheduleArray, seasonCreate };

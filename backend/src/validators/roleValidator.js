@@ -1,17 +1,23 @@
-const Joi = require('joi');
+'use strict';
 
-const permissionKey = Joi.string().trim().min(1);
+const { requiredString, optionalString, blankableString, requiredArray, optionalArray } = require('./rules');
 
-const create = Joi.object({
-    name:        Joi.string().trim().min(1).required(),
-    description: Joi.string().trim().allow('').optional(),
-    permissions: Joi.array().items(permissionKey).required(),
-});
+// Permission keys: a non-empty string per entry. The CONTROLLER checks them
+// against the live key list — an unknown key there is a 400, not a silent grant.
+const permissionKey = { trim: true, notEmpty: { errorMessage: 'each permission must be a non-empty string' } };
 
-const update = Joi.object({
-    name:        Joi.string().trim().min(1).optional(),
-    description: Joi.string().trim().allow('').optional(),
-    permissions: Joi.array().items(permissionKey).optional(),
-});
+const create = {
+    name: requiredString("'name' is required"),
+    description: blankableString(),          // Joi: .allow('') but NOT null
+    permissions: requiredArray({ errorMessage: "'permissions' must be an array" }),
+    'permissions.*': permissionKey,
+};
+
+const update = {
+    name: optionalString("'name' must not be empty"),
+    description: blankableString(),
+    permissions: optionalArray({ errorMessage: "'permissions' must be an array" }),
+    'permissions.*': permissionKey,
+};
 
 module.exports = { create, update };
