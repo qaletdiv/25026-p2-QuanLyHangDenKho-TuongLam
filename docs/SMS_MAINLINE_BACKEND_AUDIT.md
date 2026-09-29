@@ -17,7 +17,7 @@
 >   or controllers yet.
 > - **PO ingestion now has a defined ownership split** (not covered in the original
 >   audit — it predates the TRN hierarchy decision). The new schema
->   (`backend/database.dbml`, `backend/SCHEMA_REDESIGN.md`) keys POs as
+>   (`backend/database.dbml`, `SCHEMA_REDESIGN.md`) keys POs as
 >   `po_masters (TRN) → po_orders (po_number) → mainline_po_legs (NK po_number,mode,crd)`:
 >     - `integrationController` (NetSuite sync) owns `po_masters`, `po_orders`, `po_order_lines`.
 >     - `wipImportController` (WIP upload) owns `mainline_po_legs`, `mainline_po_leg_lines`.

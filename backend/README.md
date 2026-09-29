@@ -209,13 +209,16 @@ match `*Models.js`, so it would try to call a manifest as a model factory.
 
 ## Feature docs
 
+The design docs, build plans and audits live in [`../docs/`](../docs/README.md)
+(moved out of `backend/` on 2026-09-29) — schema redesign, the mainline and SMS
+plans, the NRI invoice module, and the SQL query guide.
+
+Staying HERE, beside the code they describe:
+
 | doc | covers |
 |---|---|
-| `SCHEMA_REDESIGN.md`, `database.dbml` | the 3NF schema (authoritative) |
-| `MAINLINE_MODULE_STRUCTURE.md`, `MAINLINE_BUILD_PLAN.md` | mainline |
-| `SMS_MODULE_PLAN.md`, `SMS_BOOKING_BUILD_PLAN.md` | SMS |
-| `NRI_INVOICE_MODULE.md` | 3PL invoice verification (`/nri-invoices`) |
-| `database/README.md`, `database/QUERIES.md` | the data layer |
+| `database.dbml` | the table definitions (authoritative with `../docs/SCHEMA_REDESIGN.md`) |
+| `database/README.md` | the data layer — modelStore, transactions, type parsers |
 | `storage/README.md` | files on disk |
 
 ⚠️ Those docs predate 2026-09-28 and still spell backend paths as

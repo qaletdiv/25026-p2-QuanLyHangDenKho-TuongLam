@@ -7,7 +7,7 @@
 > **`src/modules/...` paths are the FRONTEND and are unchanged.**
 
 Target backend layout for the **mainline module** under the redesigned schema
-(`backend/database.dbml`, `backend/SCHEMA_REDESIGN.md`). Mainline only — SMS is a
+(`backend/database.dbml`, `SCHEMA_REDESIGN.md`). Mainline only — SMS is a
 separate later pass. Keeps the existing MVC layering (controller / service / model /
 validator / route) but reorganizes flat files into a self-contained module tree, with
 the shared PO hierarchy sitting above it.

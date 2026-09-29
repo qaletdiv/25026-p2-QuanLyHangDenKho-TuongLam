@@ -12,8 +12,8 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
 `history` and `history_bookings` tables.
 
 - **Design docs (source of truth):** `backend/database.dbml` (mainline + SMS table
-  families), `backend/SCHEMA_REDESIGN.md`, `backend/MAINLINE_MODULE_STRUCTURE.md`,
-  `backend/MAINLINE_BUILD_PLAN.md`, `backend/SMS_MODULE_PLAN.md` (SMS schema,
+  families), `docs/SCHEMA_REDESIGN.md`, `docs/MAINLINE_MODULE_STRUCTURE.md`,
+  `docs/MAINLINE_BUILD_PLAN.md`, `docs/SMS_MODULE_PLAN.md` (SMS schema,
   phases 1–7 all ✅, open items).
 - **Data: PostgreSQL since 2026-09-14, via SEQUELIZE since 2026-09-21** (database
   `tentree_portal`; see the SEQUELIZE section below and `backend/database/README.md`).
@@ -392,7 +392,7 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   account — server-enforced), per-PO lot auto-increment, overship 409 +
   `force_overship`; receipts + derived auto-match suggestion (qty → date →
   sequence) + confirm; `POST /sms/sync/netsuite` (Admin; `custbody_tt_po_type`
-  ='smm' POs + Item Receipts — field map in SMS_MODULE_PLAN.md);
+  ='smm' POs + Item Receipts — field map in docs/SMS_MODULE_PLAN.md);
   `POST /sms/tracking/poll` + 4h cron → FedEx Track API
   (`src/services/fedexService.js`, creds in backend/.env, batches ≤30).
 - **Frontend:** `src/modules/sms/*` + `app/sms/{purchase-orders,bookings,shipments}`.
@@ -1319,7 +1319,7 @@ Records live in PostgreSQL (`tentree_portal`), mapped by **Sequelize models in
 the MVC models directory beside `src/controllers/` and `src/routes/`.
 **Those models are the AUTHORITY on the schema**: add a column by editing a
 model, never by editing JSON. `backend/database/README.md` is the source of truth for
-this layer; `backend/database/QUERIES.md` has how to connect plus worked example
+this layer; `docs/QUERIES.md` has how to connect plus worked example
 queries — read it before writing SQL, because most of what the UI shows is
 DERIVED per read and is not a column.
 
@@ -1356,7 +1356,7 @@ date. Use `pg_dump` for a restore. `node database/init.js` loads reference data;
   across 24 endpoints. Scale: 5,909 identifiers over 170 files.
   ⚠️ **Identifiers must be QUOTED in hand-written SQL now** — Postgres folds
   unquoted names to lowercase, so `SELECT poNumber` becomes `ponumber` and
-  errors. Sequelize always quotes; `db/QUERIES.md` examples do not and need
+  errors. Sequelize always quotes; `docs/QUERIES.md` examples do not and need
   updating before reuse.
   ⚠️ **There is deliberately no `snake()` helper**: four columns in
   `nri_order_master` (`orderNo`, `custCode`, `custName`, `orderType`) were
@@ -1398,7 +1398,7 @@ date. Use `pg_dump` for a restore. `node database/init.js` loads reference data;
   names to lowercase, so `updatedAt` becomes `updatedat`. This silently broke
   every `_documents` write (`INSERT INTO _documents (… updatedAt)`) and was only
   caught because a fresh-database build exercised it — the live path is rare
-  enough that nothing noticed. `database/QUERIES.md` carries a banner: its
+  enough that nothing noticed. `docs/QUERIES.md` carries a banner: its
   example queries predate the rename and must be quoted before reuse.
 - **An unknown key is REFUSED, not dropped.** Sequelize writes only declared
   attributes, so a field with no column would vanish silently. `writeData`
@@ -1659,9 +1659,13 @@ backend/                     Express API on PostgreSQL + Sequelize (MVC)
                                    `parser: null` = shell, uploads refused with a
                                    reason (a 3PL's workbook layout must be mapped
                                    in code). API /nri-invoices, UI /invoices — see
-                                   NRI_INVOICE_MODULE.md, the source of truth.
+                                   docs/NRI_INVOICE_MODULE.md, the source of truth.
   scripts/              30   maintenance CLIs (idempotent, most take --dry-run)
   tests/                     jest + supertest
+docs/                        design docs, build plans, audits (moved out of
+                             backend/ + frontend/ 2026-09-29). See docs/README.md.
+                             ⚠ CLAUDE.md, AGENTS.md and every README.md stay put —
+                             their LOCATION is what makes them work.
 frontend/tentree-scportal/   Next.js RSC app (shadcn/ui, Tailwind)
   src/modules/mainline/      mainline types/actions/components (DataTable, ColumnPicker,
                              ConfirmDialog, RouteFallbacks are generic — SMS reuses them)
@@ -1736,7 +1740,7 @@ of a crash. Both are now the controller's own construction
 (`nriOrderData.load` → `nriLineClass.buildOrderIndex` → `reconcile({orderIndex})`).
 Measured over 3,000 real charge lines: with the index the reconcile resolves
 `(unclassed) · Amazon-US · INTL - Online · US - Online · US - Whsle`; without it
-only `(unclassed) · Amazon-US · US - Whsle`. See `NRI_INVOICE_MODULE.md`.
+only `(unclassed) · Amazon-US · US - Whsle`. See `docs/NRI_INVOICE_MODULE.md`.
 
 ⚠️ **`database/generateModels.js` is the trap for any future file move, and it
 caught the codemod on BOTH steps.** It emits `src/models/index.js` as STRING

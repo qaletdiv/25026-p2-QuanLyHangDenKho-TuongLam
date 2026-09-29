@@ -1,6 +1,6 @@
 // Mainline module types — mirror the normalized backend responses (/po, /mainline/*).
 // SMS is a separate module; these types carry NO `type` discriminator and no
-// courier/tracking fields. See backend/database.dbml + SCHEMA_REDESIGN.md.
+// courier/tracking fields. See backend/database.dbml + docs/SCHEMA_REDESIGN.md.
 
 // null = v2 (SS27+). The sync builds one leg per PO, so there is no air/sea
 // "split" to report — see poController.lifecycleOf. Renders BLANK, not "Split".

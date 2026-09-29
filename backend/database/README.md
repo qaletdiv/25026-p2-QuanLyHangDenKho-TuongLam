@@ -43,7 +43,7 @@ directory, beside `controllers/` and `routes/`. This directory is the data
 | `verify.js` | prove the ORM read path matches raw SQL value for value |
 | `generateModels.js` | **one-time migration tool** — re-running overwrites `models/` |
 | `dbml.js`, `schema.json` | frozen input to that tool; `database.dbml` stays the human-readable map |
-| `QUERIES.md` | how to connect + worked example queries |
+| `../../docs/QUERIES.md` | how to connect + worked example queries |
 
 ## Commands
 

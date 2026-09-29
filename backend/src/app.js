@@ -46,7 +46,7 @@ app.get('/health', (req, res) => res.status(200).json({ message: 'initial runnin
 // Legacy transactional stack (/shipments, /bookings, /purchase-orders, /history,
 // /history-bookings, /commercial-invoices, /documents, /integrations, /wip-import)
 // was REMOVED at the SMS cutover (2026-07-03) — mainline lives under /po +
-// /mainline, SMS under /sms. See backend/SMS_MODULE_PLAN.md phase 7.
+// /mainline, SMS under /sms. See docs/SMS_MODULE_PLAN.md phase 7.
 // Login is rate limited: it is the one unauthenticated write, so it is the only
 // endpoint where an attacker can guess indefinitely. Keyed per IP.
 const rateLimit = require('./middlewares/rateLimit');
@@ -103,7 +103,7 @@ app.use('/templates', (req, res, next) => {
 app.use('/me',                 require('./routes/meRoutes'));
 app.use('/po',                 require('./routes/poRoutes'));        // normalized PO hierarchy (mainline)
 app.use('/mainline',           require('./routes/mainlineRoutes')); // mainline module
-app.use('/sms',                require('./routes/smsRoutes'));      // SMS module — separate dataset (sms_* tables); see SMS_MODULE_PLAN.md
+app.use('/sms',                require('./routes/smsRoutes'));      // SMS module — separate dataset (sms_* tables); see docs/SMS_MODULE_PLAN.md
 app.use('/landed-costs',       require('./routes/landedCostRoutes')); // freight & duty (Phase 1: SMS estimates) — additive, own tables
 app.use('/nri-invoices',       require('./routes/nriInvoiceRoutes')); // NRI 3PL invoice verification (invoice ↔ detail ↔ rate agreement) — additive, own tables under data/nri/
 app.use('/master-data',        require('./routes/masterDataRoutes'));

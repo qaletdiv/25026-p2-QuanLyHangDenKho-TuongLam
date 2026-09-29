@@ -3,7 +3,7 @@
 //
 // ============================================================================
 //  tentree Supply Chain Portal — 3NF redesign (JSON → Aurora PostgreSQL target)
-//  Full audit + rationale: backend/SCHEMA_REDESIGN.md
+//  Full audit + rationale: docs/SCHEMA_REDESIGN.md
 // ============================================================================
 //
 // SCOPE: MAINLINE + SMS — two fully separate datasets in one schema file.
@@ -583,7 +583,7 @@ Table mainline_asns {
 //  Workflow: NO booking step — the VENDOR enters each shipment (per-PO qty +
 //  cartons, one tracking number + courier per consignment); one PO ships as
 //  2–3 lots; status = courier tracking state; receiving reconciles against
-//  NetSuite Item Receipts. Plan: SMS_MODULE_PLAN.md.
+//  NetSuite Item Receipts. Plan: docs/SMS_MODULE_PLAN.md.
 // ===========================================================================
 
 Table sms_pos {                         // SMS purchase order (one NetSuite PO, courier-fulfilled)
