@@ -5,16 +5,14 @@ const fs = require('fs');
 const parser = require('../src/lib/nriInvoiceParser');
 const chargeCodes = require('../src/lib/nriChargeCodes');
 const rateCard = require('../src/lib/nriRateCard');
-// ⚠️ BROKEN, and it predates the MVC move — `returnsClass` has never existed in
-// this repo's history, so this script has always thrown MODULE_NOT_FOUND on load.
-// It is required by nothing, which is why nobody noticed. The nearest surviving
-// module is lib/nriLineClass.js, but it exports `buildOrderIndex`, not the
-// `buildOrderContext` called on line 20 — so the mapping is a guess, not a rename,
-// and is deliberately NOT made here. Fix it with the NRI context to hand, or delete.
-const returnsClass = require('./returnsClass');
+const orderData = require('../src/lib/nriOrderData');
+const lineClass = require('../src/lib/nriLineClass');
+const M = require('../src/lib/NriInvoiceModels');
 const svc = require('../src/services/nriInvoiceService');
 
-const COMBINED = require('path').join(__dirname, '..', 'storage', 'reference', 'nri', 'NRI US_ALL Invoices 2026.xlsx');
+// Same override the controller honours, so the two read the same order master.
+const COMBINED = process.env.NRI_ORDER_DATA_WORKBOOK
+  || require('path').join(__dirname, '..', 'storage', 'reference', 'nri', 'NRI US_ALL Invoices 2026.xlsx');
 const m = n => '$' + (n === null || n === undefined ? '  -  ' : n.toFixed(2)).padStart(11);
 
 (async () => {
@@ -23,10 +21,27 @@ const m = n => '$' + (n === null || n === undefined ? '  -  ' : n.toFixed(2)).pa
 
   const pdf = pdfPath ? await parser.parseInvoicePdf(fs.readFileSync(pdfPath)) : null;
   const lines = await parser.parseDetailWorkbook(fs.readFileSync(xlsxPath), require('path').basename(xlsxPath));
-  const orderContext = returnsClass.buildOrderContext(await parser.parseOrderData(COMBINED));
+  // The CLASS depends on the order (channel x geography x marketplace), so the
+  // order master is a required input, not a nicety.
+  //
+  // This mirrors `orderMaster()` in nriInvoiceController — deliberately, because
+  // the point of this script is to reproduce what the endpoint does. It had
+  // drifted twice over: it called `returnsClass.buildOrderContext`, a module that
+  // has never existed in this repo, and passed the result as `orderContext`,
+  // which `reconcile` has never read (it takes `orderIndex`). So even once the
+  // require was satisfied the class would have come back unresolved on every
+  // line. Rows uploaded through the portal are ingested last and win — see
+  // nriOrderData.load.
+  const stored = (await M.orderMaster.read().catch(() => []))
+    .filter((r0) => !r0.entity || String(r0.entity).toUpperCase() === entity);
+  const master = await orderData.load({
+    workbook: COMBINED, stored,
+    storedLabel: `uploaded in the portal (${stored.length} rows)`,
+  });
+  const orderIndex = lineClass.buildOrderIndex(master);
 
   const r = svc.reconcile({
-    pdf, lines, entity, orderContext,
+    pdf, lines, entity, orderIndex,
     codeIndex: await chargeCodes.load(),
     rateIndex: await rateCard.load(),
   });
@@ -56,4 +71,9 @@ const m = n => '$' + (n === null || n === undefined ? '  -  ' : n.toFixed(2)).pa
     console.log(`      services: ${f.services.join(', ')}`);
     if (f.examples[0]) console.log(`      e.g. ${f.examples[0].detail}`);
   });
-})().catch(e => { console.error('FAILED: ' + e.message + '\n' + e.stack); process.exitCode = 1; });
+})()
+  .catch(e => { console.error('FAILED: ' + e.message + '\n' + e.stack); process.exitCode = 1; })
+  // chargeCodes/rateCard/orderMaster all read the database, and an open Sequelize
+  // pool is an active libuv handle — without this the script prints its report
+  // and then hangs instead of exiting.
+  .finally(() => require('../database/sequelize').sequelize.close().catch(() => {}));

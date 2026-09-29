@@ -1719,13 +1719,23 @@ both reach it without going through the app). So `src/config/db.js` is a
   self-explanatory in `modules/mainline/` and meaningless in a shared `lib/`
   (it is now `mainlineStatuses.js`).
 
-Two pre-existing defects surfaced, both recorded rather than silently patched:
-`scripts/verify-reconcile.js` requires `./returnsClass`, which has never existed
-in git history (the script has always thrown on load; nothing requires it), and
+Two pre-existing defects surfaced, both now fixed:
 `freightExportService`'s `UPLOADS_DIR` pointed at `backend/modules/storage/uploads`
 — a directory that does not exist, which `mkdirSync(recursive)` would have
-created on first use. The move corrected the second; the first is left broken
-and commented, because the right target is a guess.
+created on first use; the move corrected it. And `scripts/verify-reconcile.js`
+required `./returnsClass`, a module that has never existed in git history, so
+the CLI had always thrown on load (nothing requires it, so nothing said so).
+
+⚠️ **That second one had a worse bug behind the obvious one**, and it is the
+reason a dead require is worth chasing rather than deleting: the script also
+passed its result as `orderContext`, while `nriInvoiceService.reconcile` reads
+**`orderIndex`**. Fixing only the require would have produced a script that ran
+and silently resolved the NetSuite CLASS on zero lines — a wrong answer instead
+of a crash. Both are now the controller's own construction
+(`nriOrderData.load` → `nriLineClass.buildOrderIndex` → `reconcile({orderIndex})`).
+Measured over 3,000 real charge lines: with the index the reconcile resolves
+`(unclassed) · Amazon-US · INTL - Online · US - Online · US - Whsle`; without it
+only `(unclassed) · Amazon-US · US - Whsle`. See `NRI_INVOICE_MODULE.md`.
 
 ⚠️ **`database/generateModels.js` is the trap for any future file move, and it
 caught the codemod on BOTH steps.** It emits `src/models/index.js` as STRING

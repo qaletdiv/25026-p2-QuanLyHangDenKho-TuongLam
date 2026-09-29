@@ -26,13 +26,38 @@ were empty) and both ends changed together: verdicts are now `qtyUnsupported`,
 `noRateOnFile`, `noContractRate`, `agingPremium`, `needsCoding`, `needsClass`.
 Backend and frontend were verified to use an identical set of 11 strings.
 
-⚠️ `scripts/verify-reconcile.js` is BROKEN and was already broken before this
-change — it requires `./returnsClass`, which has never existed anywhere in this
-repository's history (confirmed against `git log --diff-filter=A`). The script
-throws `MODULE_NOT_FOUND` on load and is required by nothing, which is why it
-went unnoticed. The nearest surviving module is `lib/nriLineClass.js`, but it
-exports `buildOrderIndex`, not the `buildOrderContext` the script calls — so the
-mapping is a guess, not a rename, and has deliberately not been made.
+### ✅ FIXED 2026-09-28: `verify-reconcile.js` had drifted twice over
+
+The CLI had been dead for its whole life and nothing required it, so nothing
+said so. Two separate faults, and the second is the interesting one:
+
+1. It required `./returnsClass` — a module that has **never existed anywhere in
+   this repository's history** (confirmed against `git log --diff-filter=A`).
+   That threw `MODULE_NOT_FOUND` on load.
+2. It passed the result as **`orderContext`**, but `nriInvoiceService.reconcile`
+   destructures **`orderIndex`** and has never read `orderContext`. So even once
+   the require was satisfied, the argument would have been silently dropped and
+   the NetSuite CLASS would have come back unresolved on every line — a wrong
+   answer rather than a crash.
+
+Both now mirror `orderMaster()` in `nriInvoiceController`, which is the live
+path this script exists to reproduce: `nriOrderData.load({ workbook, stored })`
+→ `nriLineClass.buildOrderIndex(master)` → `reconcile({ …, orderIndex })`, with
+portal-uploaded rows ingested last so they win.
+
+Measured over 3,000 real charge lines from the combined workbook: with the index
+the reconcile resolves **`(unclassed) · Amazon-US · INTL - Online · US - Online ·
+US - Whsle`**; without it only **`(unclassed) · Amazon-US · US - Whsle`**. The
+two order-dependent classes are exactly what had been silently dead.
+
+Also fixed while there: the script now honours `NRI_ORDER_DATA_WORKBOOK` like the
+controller, and closes the Sequelize pool on exit (it reads three DB-backed
+indexes, so without that it printed its report and then hung).
+
+⚠️ It still needs a real per-invoice NRI **detail export**; no such fixture is in
+the repo, so a full run cannot be demonstrated here. Pointing it at the combined
+`_ALL Invoices` workbook fails with `could not find the detail header row`, which
+is the correct domain error for the wrong input.
 
 ## One tab per invoicing WAREHOUSE (2026-09-10)
 
@@ -116,7 +141,7 @@ a shared `lib/`.
 | `services/nriInvoiceService.js` | **pure** three-way reconcile: tie-out, coding, validation, rollups, findings |
 | `lib/NriInvoiceModels.js` | its own five tables under `data/nri/` |
 | `controllers/nriInvoiceController.js` / `routes/nriInvoiceRoutes.js` / `validators/nriInvoiceValidator.js` | HTTP |
-| `scripts/verify-reconcile.js` | read-only CLI: `node scripts/verify-reconcile.js <pdf> <xlsx>` — **broken, see above** |
+| `scripts/verify-reconcile.js` | read-only CLI: `node scripts/verify-reconcile.js <pdf> <detail.xlsx> [US\|CA]`. Mirrors the upload endpoint; needs a per-invoice DETAIL export, not the combined `_ALL` workbook |
 
 ## Flow
 
