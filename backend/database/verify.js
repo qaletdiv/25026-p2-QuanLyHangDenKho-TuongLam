@@ -25,7 +25,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const { Pool, types } = require('pg');
 const { applyTypeParsers, connectionString } = require('./types');
 const store = require('./modelStore');
-const { models } = require('../models');
+const { models } = require('../src/models');
 const { sequelize } = require('./sequelize');
 
 applyTypeParsers();

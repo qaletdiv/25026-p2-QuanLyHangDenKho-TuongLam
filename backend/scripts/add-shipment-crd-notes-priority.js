@@ -17,7 +17,7 @@
 // The UI falls back to showing the booked/PO date when this is null.
 
 require('dotenv').config({ quiet: true });
-const { sequelize } = require('../models');
+const { sequelize } = require('../src/models');
 
 const DRY = process.argv.includes('--dry-run');
 

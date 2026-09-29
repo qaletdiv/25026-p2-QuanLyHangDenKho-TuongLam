@@ -7,7 +7,7 @@
 // which is the whole reason it is a separate key.
 
 require('dotenv').config({ quiet: true });
-const { models } = require('../models');
+const { models } = require('../src/models');
 const { atomically } = require('../database/tx');
 
 const KEY = 'shipment_flag_priority';

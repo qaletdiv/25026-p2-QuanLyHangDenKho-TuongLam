@@ -25,7 +25,7 @@
 
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 
-const { models } = require('../models');
+const { models } = require('../src/models');
 const warehouses = models.warehouses;
 const { atomically } = require('../database/tx');
 

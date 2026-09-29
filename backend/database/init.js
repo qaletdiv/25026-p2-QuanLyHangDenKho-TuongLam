@@ -39,7 +39,7 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const { sequelize } = require('./sequelize');
-const { models } = require('../models');
+const { models } = require('../src/models');
 const store = require('./modelStore');
 const { withTransaction } = require('./txContext');
 

@@ -1,5 +1,7 @@
 const request = require('supertest');
-const app = require('../server');
+// app.js, NOT server.js — server.js is the entry point and binds the port and
+// starts the cron scheduler on require. app.js is the express app alone.
+const app = require('../src/app');
 
 describe('API Endpoints', () => {
     it('should return 200 OK on /health', async () => {

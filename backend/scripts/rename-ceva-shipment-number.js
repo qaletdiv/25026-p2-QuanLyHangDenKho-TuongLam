@@ -17,7 +17,7 @@
 //   node scripts/rename-ceva-shipment-number.js --dry-run
 //   node scripts/rename-ceva-shipment-number.js
 
-const { models } = require('../models');
+const { models } = require('../src/models');
 
 const OLD = 'ceva_shipment_number';
 const NEW = 'carrierReference';

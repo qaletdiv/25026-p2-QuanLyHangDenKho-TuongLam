@@ -21,9 +21,9 @@
  */
 
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
-const integrationService = require('../services/integrationService');
+const integrationService = require('../src/services/integrationService');
 
-const { models } = require('../models');
+const { models } = require('../src/models');
 const { shutdown } = require('../database/tx');
 
 const DRY_RUN = process.argv.includes('--dry-run');

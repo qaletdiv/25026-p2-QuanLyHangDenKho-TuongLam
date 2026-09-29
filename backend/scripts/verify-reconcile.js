@@ -2,9 +2,9 @@
 // Read-only end-to-end check: invoice PDF + detail xlsx + agreement -> verdict.
 //   node scripts/verify-reconcile.js <invoice.pdf> <detail.xlsx> [US|CA]
 const fs = require('fs');
-const parser = require('../lib/nriInvoiceParser');
-const chargeCodes = require('../lib/nriChargeCodes');
-const rateCard = require('../lib/nriRateCard');
+const parser = require('../src/lib/nriInvoiceParser');
+const chargeCodes = require('../src/lib/nriChargeCodes');
+const rateCard = require('../src/lib/nriRateCard');
 // ⚠️ BROKEN, and it predates the MVC move — `returnsClass` has never existed in
 // this repo's history, so this script has always thrown MODULE_NOT_FOUND on load.
 // It is required by nothing, which is why nobody noticed. The nearest surviving
@@ -12,7 +12,7 @@ const rateCard = require('../lib/nriRateCard');
 // `buildOrderContext` called on line 20 — so the mapping is a guess, not a rename,
 // and is deliberately NOT made here. Fix it with the NRI context to hand, or delete.
 const returnsClass = require('./returnsClass');
-const svc = require('../services/nriInvoiceService');
+const svc = require('../src/services/nriInvoiceService');
 
 const COMBINED = require('path').join(__dirname, '..', 'storage', 'reference', 'nri', 'NRI US_ALL Invoices 2026.xlsx');
 const m = n => '$' + (n === null || n === undefined ? '  -  ' : n.toFixed(2)).padStart(11);

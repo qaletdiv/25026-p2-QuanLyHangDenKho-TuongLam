@@ -17,7 +17,7 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   phases 1–7 all ✅, open items).
 - **Data: PostgreSQL since 2026-09-14, via SEQUELIZE since 2026-09-21** (database
   `tentree_portal`; see the SEQUELIZE section below and `backend/database/README.md`).
-  **`backend/models/` is the schema authority.** Modules still read/write WHOLE
+  **`backend/src/models/` is the schema authority.** Modules still read/write WHOLE
   ARRAYS — `await models.po_orders.read()` / `.write(next)` — so the derive-per-
   request discipline below still describes the code accurately. The old
   filename-as-table-key shim (`'migrated/po_orders.json'`) and `BaseModel` are
@@ -43,7 +43,7 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   SS27 on.** Ingestion rules R1 (protect-if-booked) / R2 (flag-on-conflict) /
   R4 (refuse-rejected). **R3 (WIP-overwrites-legs) is RETIRED** with the importer.
 - **✅ v1 IS RETIRED (2026-09-28). v2 STARTS AT SS27.** The WIP import —
-  `POST /mainline/wip-import`, `wipImportController`, `services/wipParser`,
+  `POST /mainline/wip-import`, `wipImportController`, `src/services/wipParser`,
   `legReconciliationService`, the **Upload WIP** button and the `importWip` action
   — was DELETED. `V1_SEASONS` was renamed **`PRE_V2_SEASONS`** and still holds
   `{'FW26'}`; `mainline_po_legs.source` (`'wip' | 'netsuite'`) still records which
@@ -232,7 +232,7 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   ungated field that reaches the same state is not a gate. `Cancelled` was removed
   from the shipment status dropdown for the same reason.
 - **⚠️ The gate is "HANDED OVER", and it is `cargo_received_date` — NOT the ETD, and
-  NEVER the CRD** (`lib/mainlineShipmentLifecycle.js`). **CRD is the CARGO READY date**
+  NEVER the CRD** (`src/lib/mainlineShipmentLifecycle.js`). **CRD is the CARGO READY date**
   — the supplier's plan, which moves earlier and later, and which the VENDOR can
   edit while the booking is pending; gating on it would hand the vendor a switch for
   the guard. `cargo_received_date` is **Received at Port**: the forwarder has the
@@ -276,7 +276,7 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   polled), the manual-status route refuses the name, and the table's Done set
   includes it.
 - **Actual ATA is DERIVED from NetSuite Item Receipts, in every consumer**
-  (2026-09-02). `lib/mainlineAtaLoader.js` wraps the shared resolver
+  (2026-09-02). `src/lib/mainlineAtaLoader.js` wraps the shared resolver
   (`receipts/mainlineReceiptMatch.ataByShipment` — confirmed → quantity →
   sequence, LATEST of the shipment's PO receipt dates, null unless EVERY PO
   landed) and `effectiveAta()` holds the ONE precedence rule: **attributed
@@ -394,7 +394,7 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   sequence) + confirm; `POST /sms/sync/netsuite` (Admin; `custbody_tt_po_type`
   ='smm' POs + Item Receipts — field map in SMS_MODULE_PLAN.md);
   `POST /sms/tracking/poll` + 4h cron → FedEx Track API
-  (`services/fedexService.js`, creds in backend/.env, batches ≤30).
+  (`src/services/fedexService.js`, creds in backend/.env, batches ≤30).
 - **Frontend:** `src/modules/sms/*` + `app/sms/{purchase-orders,bookings,shipments}`.
   SMS shares the sidebar's Purchase Orders / **Bookings** / Shipments entries with
   mainline via the `ModuleTabs` strip (`PO_TABS`/`BOOKING_TABS`/`SHIPMENT_TABS`) —
@@ -454,9 +454,9 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
 
 ## CI / Packing List header block (2026-09-15, revised 2026-09-16)
 
-The shared `services/ciGenerator.js` + `plGenerator.js` render a `meta` object both
-modules build in their own `_meta` (`services/mainlineDocumentService.js`,
-`services/smsDocumentService.js`). Six header fields were blank on every
+The shared `src/services/ciGenerator.js` + `plGenerator.js` render a `meta` object both
+modules build in their own `_meta` (`src/services/mainlineDocumentService.js`,
+`src/services/smsDocumentService.js`). Six header fields were blank on every
 downloaded document, for two different reasons, and the distinction is the point:
 
 - **No source in code.** `shipping_mode` and `notify_party_*` were read by the
@@ -576,7 +576,7 @@ downloaded document, for two different reasons, and the distinction is the point
 ## Notifications (derived, role-scoped)
 
 - **No stored log** — notifications are DERIVED from current state per request
-  (`controllers/notificationController` + `services/notificationService`, routes
+  (`src/controllers/notificationController` + `src/services/notificationService`, routes
   `/notifications` + `/notifications/seen`).
   Each has a deterministic `key` (type:entity); a tiny per-user
   `notification_seen.json` (pruned to active keys) drives the unread badge only.
@@ -596,8 +596,8 @@ downloaded document, for two different reasons, and the distinction is the point
 ### Notification EMAIL — the one thing this portal cannot derive (2026-09-25)
 
 Sent when a booking, shipment or Item-Receipt match is SAVED
-(`lib/{emailNotifier,emailEvents,emailRecipients}.js` +
-`services/emailService.js`).
+(`src/lib/{emailNotifier,emailEvents,emailRecipients}.js` +
+`src/services/emailService.js`).
 
 - **⚠️ THIS IS AN EVENT, AND THAT IS WHY IT BREAKS THE "DERIVED, NEVER STORED"
   RULE.** Everything above is computed from current state — "a booking IS
@@ -749,7 +749,7 @@ Sent when a booking, shipment or Item-Receipt match is SAVED
   there is no bulk endpoint: every write is one human clicking Post on one
   shipment. The separate `POST …/netsuite-push` route is `requireAdmin`.
 - **Push mechanics:** target = **Item Receipt**, ONE per PO
-  (`lib/netsuiteLandedCost.js`), auth via
+  (`src/lib/netsuiteLandedCost.js`), auth via
   `integrationService.buildOAuthHeader` (TBA/OAuth1). Field map: `memo`=PO number;
   `custbody_tt_customs_entry_number`= customs entry # else `"<courier>
   <tracking>"` (SMS) / customs entry # (mainline); `custbody16` (shipping method)=
@@ -762,7 +762,7 @@ Sent when a booking, shipment or Item-Receipt match is SAVED
   (a posted row keeps its snapshot — fix the mode BEFORE posting); landed-cost tab
   `landedcostmethod`='VALUE', `landedcostamount2`=duty, `landedcostamount5`=freight
   (per-PO split amounts). Item-Receipt ids are **auto-resolved** now (no longer
-  TODO): `lib/smsReceiptMatch.js` pairs each lot to its IR (confirmed →
+  TODO): `src/lib/smsReceiptMatch.js` pairs each lot to its IR (confirmed →
   quantity → sequence) and the same resolution drives the derived `Received`
   status, so correcting a match on the Landed Costs page moves both.
   `GET …/netsuite-preview` still SENDS NOTHING — use it to inspect payloads.
@@ -1067,7 +1067,7 @@ BOTH and summing them: **PO04801 read 658 received against NetSuite's 329**
 Received quantity feeds the three-way match, the derived `Received` status, the SMS
 report's received floor and the landed-cost push target, so this was not cosmetic.
 
-`utils/pruneStaleReceipts` (pure, shared — one sentence about NetSuite ownership,
+`src/utils/pruneStaleReceipts` (pure, shared — one sentence about NetSuite ownership,
 not module logic) now runs inside both folds: **within the PO scope the receipt
 query just covered, the fetched set is the whole truth.** Scope is everything —
 SMS scopes to the POs its pull returned, mainline to every held PO with a
@@ -1222,7 +1222,7 @@ made that true; before it they had to be inverted.
 ## Known debt / deferred
 
 - `/forecast` (mainline) now runs on LIVE migrated data via
-  `controllers/mainlineForecastController.js` (leg-grained weekly
+  `src/controllers/mainlineForecastController.js` (leg-grained weekly
   inbound × facility; shipment legs by E-DEL, unshipped remainder projected onto
   leg E-DEL, cartons from confirmed packing). Same `/forecast` endpoint + output
   contract → UI unchanged. `controllers/reportController.js` and the
@@ -1239,7 +1239,7 @@ made that true; before it they had to be inverted.
   model, validator, the empty `eom_tasks` table and the `eom` permission key
   (which offered an "EoM Progress" checkbox for a page that did not exist).
 - ✅ RESOLVED (2026-07-07): `mainline_ci_line_items` is now DERIVED at read-time
-  from `mainline_packing_cartons`, not stored (`lib/mainlineCiLines.js`;
+  from `mainline_packing_cartons`, not stored (`src/lib/mainlineCiLines.js`;
   qty = Σ pcs_per_ctn, weight/cbm = Σ, matched_leg_id = the carton's leg). All
   three consumers (CI view `mainlineCiController`, fulfillment three-way match,
   ASN `mainlineAsnController`) derive it; the shipment-data upload no longer writes
@@ -1315,8 +1315,8 @@ deliberately left alone. Fix it the same way before the mainline data grows.
 ## ✅ SEQUELIZE ORM over PostgreSQL (2026-09-21). JSON is SEED INPUT ONLY.
 
 Records live in PostgreSQL (`tentree_portal`), mapped by **Sequelize models in
-`backend/models/`** — 61 models, 75 foreign keys, one file per table, sitting in
-the MVC models directory beside `controllers/` and `routes/`.
+`backend/src/models/`** — 61 models, 75 foreign keys, one file per table, sitting in
+the MVC models directory beside `src/controllers/` and `src/routes/`.
 **Those models are the AUTHORITY on the schema**: add a column by editing a
 model, never by editing JSON. `backend/database/README.md` is the source of truth for
 this layer; `backend/database/QUERIES.md` has how to connect plus worked example
@@ -1342,12 +1342,12 @@ date. Use `pg_dump` for a restore. `node database/init.js` loads reference data;
 - **Tables are reached as `models.<table>`** (`db/models` → `backend/models`).
   `models/BaseModel.js`, the five `*Model.js` facades and the
   filename-as-table-key shim (`'migrated/po_orders.json'`) are all DELETED.
-  `models/index.js` attaches two statics to every model:
+  `src/models/index.js` attaches two statics to every model:
   `await models.po_orders.read()` and `await models.po_orders.write(rows)`.
   **`write()` REPLACES the table** — a row missing from the array is deleted —
   which is the semantics all ~190 call sites were already written for. For
   anything narrower use the ORM directly: `models.users.findOne({ where: { email } })`.
-  ⚠️ `db/modelStore.js` must NOT require `../models` at the top: `models/index.js`
+  ⚠️ `db/modelStore.js` must NOT require `../models` at the top: `src/models/index.js`
   requires IT (lazily, inside read/write), so a top-level require is a cycle.
 - **⚠️ camelCase GOES ALL THE WAY DOWN (2026-09-21).** The 218 snake_case
   columns were RENAMED in Postgres, so an attribute IS a column, there is no
@@ -1363,8 +1363,8 @@ date. Use `pg_dump` for a restore. `node database/init.js` loads reference data;
   ALREADY camelCase, so a regex round-trip would "restore" them to `order_no`
   and friends — columns that have never existed.
 - **⚠️ THREE FILES ARE EXCLUDED FROM THE camelCase CONVENTION, deliberately:**
-  `services/integrationService.js`, `lib/netsuiteLandedCost.js`
-  and `services/fedexService.js`. In them the OBJECT KEYS are ours and camelCase,
+  `src/services/integrationService.js`, `src/lib/netsuiteLandedCost.js`
+  and `src/services/fedexService.js`. In them the OBJECT KEYS are ours and camelCase,
   but every `row.*` / `e.*` read is an **external field name** —  SuiteQL aliases
   (`t.tranid AS po_number`), NetSuite custom fields (`custbody_*`,
   `landedCostMethod`) and FedEx API fields. **NetSuite lowercases returned
@@ -1376,7 +1376,7 @@ date. Use `pg_dump` for a restore. `node database/init.js` loads reference data;
   the 10 rows left every standard reading null — silently. Now
   `productionHandover` / `originDwell` / `portToPort` / `destinationLeg` /
   `receiving` in both places.
-- **`models/index.js` SKIPS `*Model.js` by name.** That directory also holds the
+- **`src/models/index.js` SKIPS `*Model.js` by name.** That directory also holds the
   legacy facades — all now DELETED, but the rule stays because the three
   surviving `*Models.js` MANIFESTS in `lib/` follow the same name — which
   export an object or a class rather than a
@@ -1505,7 +1505,7 @@ npx eslint@8 --no-eslintrc -c /tmp/eslintrc.json --ext .js \
   from `mainline_packing_cartons`, so the orphans kept contributing to totals for
   a deleted booking. `DELETE /mainline/shipments/:id` cleaned only the junction,
   stranding ASNs, receipt matches and rejections. Both now use
-  `lib/mainlineShipmentCleanup.js`, which encodes the one
+  `src/lib/mainlineShipmentCleanup.js`, which encodes the one
   distinction that matters: the ASN and the rejections are artifacts OF the
   shipment and are DELETED, but `mainline_item_receipts` are NetSuite's record of
   goods that physically arrived — they are only UNLINKED
@@ -1521,7 +1521,7 @@ npx eslint@8 --no-eslintrc -c /tmp/eslintrc.json --ext .js \
 
 ### Resolved earlier (kept for the reasoning)
 
-- ✅ RESOLVED (2026-08-12): **`lib/mainlineStatuses.js` was MODULE-BLIND.** `_maps()`
+- ✅ RESOLVED (2026-08-12): **`src/lib/mainlineStatuses.js` was MODULE-BLIND.** `_maps()`
   built `nameToId` as `new Map(rows.map(r => [r.name, r.id]))` — keyed on NAME with
   the `module` column ignored — so for each of the six names present in both modules
   (Booking Pending, Booking Approved, Rejected, In Transit, Delivered, Cancelled) the
@@ -1547,7 +1547,7 @@ npx eslint@8 --no-eslintrc -c /tmp/eslintrc.json --ext .js \
   → SERIAL/IDENTITY. Not addressed: the ids are the app's own strings
   (`mll_15_SKU`, `SHP-6`) and changing them is a data migration, not a schema
   switch.
-- **`lib/mainlineStatuses.js` in-memory cache** never invalidated after a
+- **`src/lib/mainlineStatuses.js` in-memory cache** never invalidated after a
   statuses.json edit (restart required). → drop cache.
 - **Constraints the live data could NOT satisfy** (created as far as the data
   allows; the survivors are recorded in `db/schema.json` `notes[]`).
@@ -1595,9 +1595,6 @@ npx eslint@8 --no-eslintrc -c /tmp/eslintrc.json --ext .js \
 
 ```
 backend/                     Express API on PostgreSQL + Sequelize (MVC)
-  models/                    THE SCHEMA AUTHORITY — one Sequelize model per table.
-                             camelCase attrs == camelCase columns (no `field:`).
-                             .read()/.write(rows) attached by models/index.js
   database/                  the data layer — modelStore (readAll/replaceAll),
                              per-request transactions, verify.js, generateModels.js.
                              See database/README.md.
@@ -1614,23 +1611,41 @@ backend/                     Express API on PostgreSQL + Sequelize (MVC)
                              commercially sensitive in templates/.
     reference/               NOT served — signed agreements, NRI source workbooks
     converted-docs/ archive/ source spreadsheets; superseded backups
-  ── LAYER-FIRST MVC since 2026-09-28. See backend/README.md. ──
-     The FEATURE is the FILENAME PREFIX (mainline*/sms*/po*/nri*/landedCost*),
-     the LAYER is the FOLDER. `backend/modules/` is GONE — do not recreate it.
-  routes/               16   mounted in server.js; one per feature + the 4 that
+  src/                       THE APPLICATION — layer-first MVC since 2026-09-28.
+                             See backend/README.md. The FEATURE is the FILENAME
+                             PREFIX (mainline*/sms*/po*/nri*/landedCost*), the
+                             LAYER is the FOLDER. `backend/modules/` is GONE —
+                             do not recreate it. ⚠ `database/` is deliberately
+                             NOT in here: it carries seed-data/, and the data
+                             layer must never depend on src/.
+    config/              2   env.js — the ONE place .env is loaded; require it
+                             FIRST, before anything reading process.env at load.
+                             db.js — connection entry point, a FACADE over
+                             database/sequelize.js.
+    models/             63   THE SCHEMA AUTHORITY — one Sequelize model per table.
+                             camelCase attrs == camelCase columns (no `field:`).
+                             .read()/.write(rows) attached by models/index.js
+    controllers/        30   HTTP in/out, permission keys, vendor scoping
+    routes/             16   mounted in app.js; one per feature + the 4 that
                              span several (reportRoutes, forecastRoutes,
                              notificationRoutes, documentRoutes — renamed from
                              reports.js/forecast.js/… so routes/ is uniform)
-  controllers/          30   HTTP in/out, permission keys, vendor scoping
-  services/             24   business rules, no req/res. Also the genuinely
+    middlewares/         8   auth, validate, requirePermission, rateLimit, upload
+    services/           24   business rules, no req/res. Also the genuinely
                              cross-cutting ones: integrationService (SuiteQL),
                              fedexService, ciParser, wipParser, asnService,
                              ci/plGenerator, cronJobs, transitTimeService
-  validators/            9   Joi schemas (middleware/validate.js applies them)
-  lib/                  27   domain logic that is no layer — mainlineCiLines,
+    validators/          9   Joi schemas (middlewares/validate.js applies them)
+    lib/                27   domain logic that is no layer — mainlineCiLines,
                              mainlineAtaLoader, mainlineStatuses, smsReceiptMatch,
                              nriRateCard, poWarehouseFacility, email*, the three
                              *Models.js manifests. ⚠ KEEP THE FEATURE PREFIX.
+    utils/               5   shared plumbing — vendorScope, nameKey,
+                             passwordUtils, rolePermissions, pruneStaleReceipts
+    app.js                   BUILDS AND EXPORTS the express app — binds no port,
+                             starts no cron. tests/api.test.js requires THIS.
+    server.js                entry point: env, db ping, cron, app.listen.
+                             ⚠ each one starts its OWN cron scheduler.
      feature prefixes:  po*        PO hierarchy + legs (NetSuite sync; v1 WIP
                                    import retired 2026-09-28)
                         mainline*  bookings, shipments, ci/packing/asn,
@@ -1644,6 +1659,8 @@ backend/                     Express API on PostgreSQL + Sequelize (MVC)
                                    reason (a 3PL's workbook layout must be mapped
                                    in code). API /nri-invoices, UI /invoices — see
                                    NRI_INVOICE_MODULE.md, the source of truth.
+  scripts/              30   maintenance CLIs (idempotent, most take --dry-run)
+  tests/                     jest + supertest
 frontend/tentree-scportal/   Next.js RSC app (shadcn/ui, Tailwind)
   src/modules/mainline/      mainline types/actions/components (DataTable, ColumnPicker,
                              ConfirmDialog, RouteFallbacks are generic — SMS reuses them)
@@ -1662,11 +1679,31 @@ flattened into `routes/ controllers/ services/ validators/ lib/` **at the
 maintainer's explicit direction, after the trade-off was put to him.** It is not
 drift and it is not an accident — **do not "restore" the module folders.**
 
-99 files moved, 272 require specifiers rewritten, 22 files renamed to carry
-their feature prefix. Verified neutral: all **31 read endpoints byte-identical**
-before and after on the same data (three-way compared against the pre-move code
-to separate a concurrent SMS cron write from the refactor), `no-undef` clean,
-tests 2/2, every relative require statically resolved.
+Done in **two steps on the same day**, each verified separately:
+
+1. `modules/<feature>/` → flat `routes/ controllers/ services/ validators/ lib/`
+   at the backend root. 99 files moved, 272 require specifiers rewritten, 22
+   renamed to carry their feature prefix.
+2. those folders → **`src/`**, `middleware/` → **`middlewares/`**, **`config/`**
+   added (`env.js`, `db.js`), and **`app.js` split out of `server.js`** — to
+   match the canonical Express MVC tree Lam's instructor specifies. 183 files
+   moved, 85 require specifiers rewritten.
+
+Verified neutral both times: all **31 read endpoints byte-identical** (step 1
+three-way compared against the pre-move code, to separate a concurrent SMS cron
+write from the refactor), 9/9 write-path probes, `no-undef` clean, tests 2/2,
+every relative require statically resolved.
+
+**`app.js` vs `server.js` is load-bearing, not decoration.** `app.js` builds and
+exports the express app; `server.js` pings the DB, starts cron and binds the
+port. `tests/api.test.js` must require **`../src/app`** — requiring
+`../src/server` boots a second cron scheduler mid-test run.
+
+**`database/` stays OUTSIDE `src/`** (Lam, 2026-09-28): it carries `seed-data/`
+(~85k rows — data, not source), and `src/` consumes the data layer while the
+data layer must never consume `src/` (`scripts/` and `node database/init.js`
+both reach it without going through the app). So `src/config/db.js` is a
+**facade** over `database/sequelize.js`, not a move of it.
 
 **What this costs, so it is not rediscovered as a bug:**
 - **Change locality.** A booking change touches 3 files in 3 folders, not 1.
@@ -1675,8 +1712,8 @@ tests 2/2, every relative require statically resolved.
   `smsBookingController.js` now sit adjacent, which invites the "DRY these up"
   change this file warns against everywhere. The wall is now enforced ONLY by the
   filename prefix + the rule above, and the check is a grep (`backend/README.md`
-  carries it). Today the sole crossing is `lib/mainlineReceiptMatch.js` →
-  `lib/smsReceiptMatch.js`'s `matchPo`, a pure function.
+  carries it). Today the sole crossing is `src/lib/mainlineReceiptMatch.js` →
+  `src/lib/smsReceiptMatch.js`'s `matchPo`, a pure function.
 - **`lib/` is the bag layering has no name for** — 27 files that are no layer.
   **Anything added there MUST keep its feature prefix**; `statuses.js` was
   self-explanatory in `modules/mainline/` and meaningless in a shared `lib/`
@@ -1690,9 +1727,21 @@ in git history (the script has always thrown on load; nothing requires it), and
 created on first use. The move corrected the second; the first is left broken
 and commented, because the right target is a guess.
 
+⚠️ **`database/generateModels.js` is the trap for any future file move, and it
+caught the codemod on BOTH steps.** It emits `src/models/index.js` as STRING
+LITERALS containing `require('../../database/…')` — paths relative to
+`src/models/`, not to the generator. A path codemod resolves them against the
+wrong directory and silently breaks the next regeneration. Scan for `require(`
+inside a string literal before trusting a bulk rewrite, then prove the generator
+round-trips.
+⚠️ And **do not run it to "regenerate models"**: measured 2026-09-28, a re-run
+stripped `cargoReadyDate`, `notes` and `priority` from
+`src/models/MainlineShipments.js` — columns added after the last `schema.json`
+refresh. It is a migration tool, not a build step.
+
 ## Conventions
 
-- **Validation:** every write route has a Joi schema (`middleware/validate.js`);
+- **Validation:** every write route has a Joi schema (`src/middlewares/validate.js`);
   business guards live in controllers/services. Dates validated as real ISO
   calendar dates (see `smsValidators`/`mainlineShipmentValidator` isoDate).
 - **3NF discipline:** ids not names in rows; names joined at read-time; derived
@@ -1751,7 +1800,7 @@ and commented, because the right target is a guess.
 
 ## Auth / Users / Roles
 
-- `backend/utils/passwordUtils.js` — **bcrypt since 2026-09-21** (cost 12,
+- `backend/src/utils/passwordUtils.js` — **bcrypt since 2026-09-21** (cost 12,
   `BCRYPT_ROUNDS` env-overridable). New hashes are `$2b$…`; anything that is
   neither bcrypt nor scrypt fails closed, so a plaintext value written back into
   the store can never become a working credential.
@@ -1775,7 +1824,7 @@ and commented, because the right target is a guess.
   guessable and known to anyone with repo history. **This MUST be rotated before the
   portal is reachable by anyone else** (Settings → Users hashes on write). JWT carries `{id, email, role}`; vendor supplier scoping resolves
   via users.json → suppliers.json at request time.
-- **`JWT_SECRET` is REQUIRED — `middleware/auth.js` throws at load if unset.**
+- **`JWT_SECRET` is REQUIRED — `src/middlewares/auth.js` throws at load if unset.**
   There is deliberately no fallback (the old hardcoded `tentree-dev-secret-2026`
   meant anyone with repo access could forge an Admin token). It lives in
   `backend/.env`; `backend/.env.example` documents it and is the one `.env*` file
@@ -1785,7 +1834,7 @@ and commented, because the right target is a guess.
   valid JWT, reads included. Add new routers BELOW the gate. The per-route
   `requireAuth` calls are now redundant but harmless; `requireAdmin` still carries
   the role check.
-- **`permissions[]` IS enforced server-side** (`middleware/requirePermission.js`,
+- **`permissions[]` IS enforced server-side** (`src/middlewares/requirePermission.js`,
   2026-08-12). Resolves role→permissions from roles.json PER REQUEST, so a
   permission change now applies immediately instead of at next login. Grants on ANY
   listed key — `requirePermission('shipment_import_export', 'shipments')` — because
@@ -1807,7 +1856,7 @@ and commented, because the right target is a guess.
   Freight Forwarder. Route keys map to the key of the PAGE that consumes them, not
   the URL prefix — `/reports/sms/forecast` is fetched by `app/forecast/sms`, so it
   takes `forecast`.
-- **Vendor row scoping**: `utils/vendorScope.js` is the ONE resolver (replaced four
+- **Vendor row scoping**: `src/utils/vendorScope.js` is the ONE resolver (replaced four
   near-identical copies). `onUnlinked:'throw'` → 403 for writes; `'deny'` → the
   NO_SUPPLIER sentinel for reads, so a misconfigured account renders empty instead
   of erroring. Matches on `supplierKey` (utils/nameKey), NOT plain `norm` — the live
@@ -1822,8 +1871,8 @@ and commented, because the right target is a guess.
   **(2) an out-of-scope detail read returns 404, NEVER 403** — a 403 confirms the id
   exists, which is the oracle for enumerating other suppliers' TRNs, PO numbers,
   booking and shipment ids. Sub-resources hanging off a parent id use the guards in
-  `lib/mainlineVendorAccess.js` (booking/shipment/TRN/po_number/leg) and
-  `lib/smsVendorAccess.js` (shipment). **Two traps encoded there:** SMS
+  `src/lib/mainlineVendorAccess.js` (booking/shipment/TRN/po_number/leg) and
+  `src/lib/smsVendorAccess.js` (shipment). **Two traps encoded there:** SMS
   visibility requires ALL of a consignment's POs to be the vendor's (`every`, not
   `some`) or a cross-supplier box leaks B's lines to A; and a junction-less row must
   be explicitly excluded because `[].every()` is `true`, which would expose every
@@ -1857,9 +1906,9 @@ and commented, because the right target is a guess.
   navigation passes through. Three parts: **(1)** `lib/pageAccess.ts` holds the
   route→key table AND the sidebar's rows, so nav and gate cannot disagree (they
   did: that divergence *was* the bug) — a page added there is gated and navigable
-  in one edit. **(2)** `GET /me` (`controllers/meController`, auth-only, below the
+  in one edit. **(2)** `GET /me` (`src/controllers/meController`, auth-only, below the
   gate) returns the caller's permissions re-resolved from roles.json per call, via
-  the same `utils/rolePermissions.permissionsForRole` that `requirePermission` and
+  the same `src/utils/rolePermissions.permissionsForRole` that `requirePermission` and
   login use; the gate and the root layout read it through `lib/serverIdentity`
   (3s cache, keyed per token, shared by both). The session cookie's
   `permissions[]` is a login-time SNAPSHOT and is never an access decision — a
@@ -1891,9 +1940,9 @@ and commented, because the right target is a guess.
   code could set an Authorization header, defeating httpOnly. **Never reintroduce a
   server action that returns the token.**
 - **Perimeter** (2026-08-12): `/login` is rate limited to 10 attempts / 15 min per IP
-  (`middleware/rateLimit.js`, hand-rolled — in-process, so counters reset on restart
+  (`src/middlewares/rateLimit.js`, hand-rolled — in-process, so counters reset on restart
   and are NOT shared across instances; behind a reverse proxy set `trust proxy` or the
-  limit becomes global). `middleware/securityHeaders.js` sets nosniff / DENY frames /
+  limit becomes global). `src/middlewares/securityHeaders.js` sets nosniff / DENY frames /
   no-referrer / CORP same-site, plus HSTS in production only. CORS is an allowlist via
   `CORS_ORIGINS` (was `origin:'*'`). Cookies are `secure` in production
   (`NODE_ENV === 'production'`), plain HTTP in dev.
@@ -1923,20 +1972,20 @@ project at `%TEMP%/pwtest-cols`. **Drive the GUI via `http://localhost:3000`,
 NOT `127.0.0.1`** (HMR websocket rejects it — React never hydrates). Login via
 the real form, with credentials read from `E2E_EMAIL`/`E2E_PASSWORD` in backend/.env
 (never hardcoded — see .env.example); backend needs a manual
-restart after code changes (`node server.js`, port 5000 — no hot reload).
+restart after code changes (`node src/server.js`, port 5000 — no hot reload).
 
 ### Starting the backend so it STAYS up
 
-`node server.js &` from an agent shell dies with that shell, which reads later as
+`node src/server.js &` from an agent shell dies with that shell, which reads later as
 "the server is down" with a healthy log and no crash in it. Start it detached:
 
 ```powershell
-Start-Process node -ArgumentList server.js -WorkingDirectory <repo>\backend `
+Start-Process node -ArgumentList "src/server.js" -WorkingDirectory <repo>\backend `
   -WindowStyle Hidden -RedirectStandardOutput backend\server.out.log `
   -RedirectStandardError backend\server.err.log
 ```
 
-⚠️ **Then check nothing else is already running it.** Every `server.js` process
+⚠️ **Then check nothing else is already running it.** Every `src/server.js` process
 starts its OWN cron scheduler (`services/cronJobs.js`), so two of them means two
 SMS tracking polls, two SMS NetSuite syncs and two mainline PO syncs — concurrent
 writers against one database, each rebuilding tables the other is reading. Four
@@ -1955,5 +2004,5 @@ Get-CimInstance Win32_Process -Filter "Name='node.exe'" |
 | Agent    | Owns                                          | Never touches |
 |----------|-----------------------------------------------|---------------|
 | frontend | `frontend/tentree-scportal/src/`              | `backend/`    |
-| backend  | `backend/server.js`, `backend/{routes,controllers,services,validators,lib}/`, `backend/models/`, `backend/database/` | `frontend/` |
+| backend  | `backend/src/` (app.js, server.js, config, models, controllers, routes, middlewares, services, validators, lib, utils), `backend/database/` | `frontend/` |
 | qa       | Read-only — no writes                         | —             |

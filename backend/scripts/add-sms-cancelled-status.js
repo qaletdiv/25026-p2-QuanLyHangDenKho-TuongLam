@@ -24,7 +24,7 @@
 // Idempotent. `--dry-run` prints and writes nothing.
 
 require('dotenv').config();
-const { models } = require('../models');
+const { models } = require('../src/models');
 const { atomically } = require('../database/tx');
 
 const DRY = process.argv.includes('--dry-run');

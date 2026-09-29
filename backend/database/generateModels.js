@@ -26,7 +26,9 @@ const path = require('path');
 
 const SCHEMA_PATH = path.join(__dirname, 'schema.json');
 // backend/models/ — the MVC models directory, beside controllers/ and routes/.
-const OUT_DIR = path.join(__dirname, '..', 'models');
+// ⚠️ The models live under src/ since 2026-09-28; `database/` deliberately does
+// NOT (it carries seed-data/, and the data layer must not depend on src/).
+const OUT_DIR = path.join(__dirname, '..', 'src', 'models');
 const DRY_RUN = process.argv.includes('--dry-run');
 
 // Postgres type -> Sequelize DataType. The two marked ones do NOT round-trip on
@@ -243,7 +245,7 @@ function buildIndexFile(schema) {
     L.push("const fs = require('fs');");
     L.push("const path = require('path');");
     L.push("const { DataTypes } = require('sequelize');");
-    L.push("const { sequelize, Sequelize } = require('../database/sequelize');");
+    L.push("const { sequelize, Sequelize } = require('../../database/sequelize');");
     L.push('');
     L.push('// Keyed TWICE on purpose: by table name (`models.mainline_shipments`), which');
     L.push('// is what the file registry and the BaseModel facade resolve to, and by the');
@@ -290,10 +292,10 @@ function buildIndexFile(schema) {
     L.push("    // two would see a half-built module. Sequelize's Model has no `read` or");
     L.push('    // `write` static, so neither name shadows anything.');
     L.push('    model.read = function read() {');
-    L.push("        return require('../database/modelStore').readAll(this);");
+    L.push("        return require('../../database/modelStore').readAll(this);");
     L.push('    };');
     L.push('    model.write = function write(rows) {');
-    L.push("        return require('../database/modelStore').replaceAll(this, rows);");
+    L.push("        return require('../../database/modelStore').replaceAll(this, rows);");
     L.push('    };');
     L.push('}');
     L.push('');

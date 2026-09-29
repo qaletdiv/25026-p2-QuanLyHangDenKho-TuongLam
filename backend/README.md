@@ -7,29 +7,80 @@ where it lives.
 
 ```
 backend/
-  routes/        16   mounted in server.js — the entry points
-  controllers/   30   HTTP in/out, permission keys, vendor scoping
-  services/      24   business rules, pure where possible, no req/res
-  validators/     9   Joi schemas (middleware/validate.js applies them)
-  lib/           27   domain logic (mainlineCiLines, nriRateCard, mainlineStatuses, …)
-  models/        63   THE SCHEMA AUTHORITY — one Sequelize model per table
-  database/           connection, per-request transactions, modelStore, verify.js
-  middleware/         auth, validate, requirePermission, rateLimit, upload …
-  utils/              shared plumbing (vendorScope, nameKey, passwordUtils …)
-  scripts/            one-off + maintenance CLIs (idempotent, most take --dry-run)
-  storage/            FILES, not records — see storage/README.md
+  src/                      THE APPLICATION
+    config/          2      env.js (loads .env), db.js (connection entry point)
+    models/         63      THE SCHEMA AUTHORITY — one Sequelize model per table
+    controllers/    30      HTTP in/out, permission keys, vendor scoping
+    routes/         16      mounted in app.js — the entry points
+    middlewares/     8      auth, validate, requirePermission, rateLimit, upload …
+    services/       24      business rules, pure where possible, no req/res
+    validators/      9      Joi schemas (middlewares/validate.js applies them)
+    lib/            27      domain logic (mainlineCiLines, nriRateCard, …)
+    utils/           5      shared plumbing (vendorScope, nameKey, passwordUtils)
+    app.js                  builds and EXPORTS the express app — no port, no cron
+    server.js               entry point: env, db ping, cron, app.listen
+
+  database/                 NOT under src/ — see below
+  scripts/         30       maintenance CLIs (idempotent, most take --dry-run)
+  storage/                  FILES, not records — see storage/README.md
+  tests/                    jest + supertest
 ```
 
-To trace any request: **`server.js` → `routes/<feature>Routes.js` →
+To trace any request: **`src/app.js` → `routes/<feature>Routes.js` →
 `controllers/<feature>Controller.js` → `services/<feature>Service.js`.**
 
-## History: this was feature-first until 2026-09-28
+## app.js vs server.js
+
+`app.js` builds the express app and exports it. It never binds a port and never
+starts the cron scheduler — `server.js` does both. That separation is not
+decoration:
+
+- `tests/api.test.js` drives the **real** app through supertest without
+  occupying port 5000. It must require `../src/app`; requiring `../src/server`
+  would boot a second cron scheduler mid-test run.
+- ⚠️ Every `node src/server.js` starts its OWN scheduler. Two processes = two
+  SMS tracking polls, two SMS NetSuite syncs and two mainline PO syncs, i.e.
+  concurrent writers against one database. Check for strays before starting one
+  (the command is in CLAUDE.md's verification-harness section).
+
+## ⚠️ `database/` is deliberately OUTSIDE `src/`
+
+Two reasons, and both would be violated by moving it in:
+
+1. It carries `seed-data/` (~85k rows across 61 tables). That is **data, not
+   source**, and `src/` is source.
+2. `src/` consumes the data layer; the data layer must never consume `src/`.
+   `database/modelStore`, `database/txContext` and `database/verify` are
+   reachable from `scripts/` and from `node database/init.js`, neither of which
+   goes through the app.
+
+So `src/config/db.js` is a **facade**: it is where application code asks for the
+connection, while `database/sequelize.js` is where the pool, the type parsers
+and the per-request transactions actually live. Read `database/README.md` before
+changing anything behind it.
+
+⚠️ **`node database/generateModels.js` OVERWRITES hand-edited models.** Measured
+2026-09-28: a re-run silently stripped `cargoReadyDate`, `notes` and `priority`
+from `src/models/MainlineShipments.js` — columns added after the last
+`schema.json` refresh. It is a migration tool, not a build step. Do not run it
+to "regenerate models" unless you have refreshed `schema.json` first and have
+reviewed the diff.
+
+## History: feature-first until 2026-09-28, then src/ + layers
 
 The backend spent 2026-07-03 → 2026-09-28 organised the other way, as
 `modules/<feature>/` holding that feature's routes, controller, service and
 validator together. That layout was deliberate and it worked; it was reversed on
-request, and the reversal was verified behaviour-neutral (all 31 read endpoints
-byte-identical before and after, on the same data).
+request, in two steps on the same day:
+
+1. `modules/<feature>/` → flat `routes/ controllers/ services/ validators/ lib/`
+   at the backend root (99 files, 272 require rewrites, 22 renames).
+2. those folders → `src/`, `middleware/` → `middlewares/`, `config/` added, and
+   `app.js` split out of `server.js` (183 files, 85 require rewrites) — to match
+   the canonical Express MVC tree.
+
+Both steps were verified behaviour-neutral: all 31 read endpoints byte-identical
+before and after, on the same data.
 
 **The trade-off it accepted is real, so do not treat it as settled by accident:**
 
@@ -45,15 +96,19 @@ byte-identical before and after, on the same data).
   `nriRateCard.js`, `resolvers.js` → `poResolvers.js`. **Keep the feature prefix
   on anything new**, or `lib/` becomes an unnavigable bag.
 
-⚠️ **If you ever move files again, `database/generateModels.js` is the trap.** It
-emits `models/index.js` as string literals, three of which contain
-`require('../database/…')` — paths that are relative to **`models/`, not to
-`generateModels.js`**. A path codemod resolves them against the wrong directory
-and rewrites them to something that looks right and breaks the next
-`node database/generateModels.js` run, silently. It is the only such file
-(`middleware/auth.js:10` has a `require('crypto')` inside a help string, but
-non-relative specifiers are never rewritten). Scan for the pattern before
-trusting any bulk require rewrite.
+⚠️ **If you ever move files again, `database/generateModels.js` is the trap, and
+it caught the codemod on BOTH steps.** It emits `src/models/index.js` as string
+literals, three of which contain `require('../../database/…')` — paths relative
+to **`src/models/`, not to `generateModels.js`**. A path codemod resolves them
+against the wrong directory and rewrites them to something that looks right,
+then the next `node database/generateModels.js` emits a broken index. It is the
+only such file (`src/middlewares/auth.js:10` has a `require('crypto')` inside a
+help string, but non-relative specifiers are never rewritten).
+
+Before trusting any bulk require rewrite: scan for `require(` occurring inside a
+string literal, and afterwards prove the generator round-trips — regenerate and
+confirm the output matches the live file. ⚠️ Do that against a **copy**: a real
+run overwrites hand-edited models (see the warning above).
 
 ## ⚠️ mainline and SMS are still two separate datasets
 
@@ -73,8 +128,8 @@ practical reason the renames above were not cosmetic:
 
 ```bash
 # an SMS-prefixed file reaching for a mainline one, and the reverse
-grep -rn "require('.*mainline" --include=*.js controllers services lib routes | grep -i "/sms"
-grep -rn "require('.*smsReceiptMatch\|require('.*smsService" --include=*.js controllers services lib routes | grep -i "/mainline"
+grep -rn "require('.*mainline" --include=*.js src/ | grep -i "/sms"
+grep -rn "require('.*smsReceiptMatch\|require('.*smsService" --include=*.js src/ | grep -i "/mainline"
 ```
 
 Today the only crossing is `lib/mainlineReceiptMatch.js` borrowing

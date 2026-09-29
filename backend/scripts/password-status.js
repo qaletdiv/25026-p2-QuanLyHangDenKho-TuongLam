@@ -28,11 +28,11 @@ const path = require('path');
 // "password authentication failed".
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
-const { models } = require('../models');
+const { models } = require('../src/models');
 const { sequelize } = require('../database/sequelize');
 
 const UserModel = models.users;
-const { BCRYPT_ROUNDS } = require('../utils/passwordUtils');
+const { BCRYPT_ROUNDS } = require('../src/utils/passwordUtils');
 
 const isBcrypt = (s) => typeof s === 'string' && /^\$2[aby]\$/.test(s);
 const isScrypt = (s) => typeof s === 'string' && s.startsWith('scrypt:');
