@@ -389,8 +389,11 @@ export default function ShipmentDetail({
                     Revised this shipment's own — the forwarder keeps it current.
                   "Received at Port" below is a different EVENT again (the carrier
                   physically has the cargo), which is why it is not in this group. */}
-              <Cell label="Cargo Ready (PO)" hint="from NetSuite — earliest across this shipment's legs">{s.crd ?? '—'}</Cell>
-              <Cell label="Cargo Ready (booked)" hint="stated by the vendor on the booking">{s.bookedCargoReadyDate ?? '—'}</Cell>
+              {/* Hints removed per Lam — the qualifier in each label carries it.
+                  (PO) = NetSuite custbody46, earliest across this shipment's legs.
+                  (booked) = what the vendor stated on the booking. */}
+              <Cell label="Cargo Ready (PO)">{s.crd ?? '—'}</Cell>
+              <Cell label="Cargo Ready (booked)">{s.bookedCargoReadyDate ?? '—'}</Cell>
               <Cell label="Cargo Ready (revised)" hint={editing ? 'the forwarder’s working date for this consignment' : undefined}>
                 {editing ? dateInput('cargoReadyDate') : (s.cargoReadyDate ?? '—')}
               </Cell>
@@ -398,8 +401,13 @@ export default function ShipmentDetail({
               <Cell label="ETD POL">{editing ? dateInput('etdPol') : (s.etdPol ?? '—')}</Cell>
               <Cell label="ETA POD">{editing ? dateInput('etaPod') : (s.etaPod ?? '—')}</Cell>
               <Cell label="E-DEL">{editing ? dateInput('eDel') : (s.eDel ?? '—')}</Cell>
-              <Cell label="Expected ATA" hint="derived = E-DEL + 5">{s.expectedAta ?? '—'}</Cell>
-              <Cell label="ATA" hint={s.ataSource === 'netsuite' ? 'from NetSuite Item Receipt' : 'actual — received in system'}>
+              <Cell label="Expected ATA">{s.expectedAta ?? '—'}</Cell>
+              {/* The SOURCE moves into the label, replacing the hint. It stays
+                  CONDITIONAL: ATA falls back to a hand-typed value when no Item
+                  Receipt is attributed (ataSource 'manual' — 1 of 9 live rows), and
+                  labelling that "NetSuite IR" would name a source it does not have.
+                  The same reason the value is only read-only in the netsuite case. */}
+              <Cell label={s.ataSource === 'netsuite' ? 'ATA (NetSuite IR)' : 'ATA'}>
                 {s.ataSource === 'netsuite' ? (s.ata ?? '—') : (editing ? dateInput('ata') : (s.ata ?? '—'))}
               </Cell>
             </div>
