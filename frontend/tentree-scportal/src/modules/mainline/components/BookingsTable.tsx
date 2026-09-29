@@ -38,6 +38,8 @@ type RowInput = { units?: string; cartons?: string; weight?: string; cbm?: strin
 
 // base-ui Select cannot hold an empty-string value, so 'no carrier chosen' needs a sentinel.
 const NO_CARRIER = '__none__';
+// base-ui Select can't hold an empty-string value, so "no filter" needs a sentinel.
+const ALL = '__all__';
 
 export default function BookingsTable({ bookings, masters, legs, couriers = [], initialNewSupplier = null }: {
   bookings: MainlineBooking[]; masters: PoMasterSummary[]; legs: PoLegRow[]; couriers?: CourierOption[]; initialNewSupplier?: string | null;
@@ -104,10 +106,39 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
   }, [bookings]);
   const remainingOf = (l: PoLegRow) => l.expectedQty - (bookedByLeg.get(l.id) || 0);
 
+  // The supplier's FULL bookable set. Everything that decides what gets SUBMITTED
+  // reads this list, never the filtered one below.
   const supplierLegs = useMemo(
     () => (effectiveSupplierId ? legs.filter((l) => trnSupplier.get(l.trnNumber || '') === effectiveSupplierId) : []),
     [legs, effectiveSupplierId, trnSupplier]
   );
+
+  // ── Season + TRN filters ────────────────────────────────────────────────
+  // The picker listed every season's POs at once, which only gets worse as
+  // seasons accumulate. These narrow the VIEW ONLY — see the note on
+  // `visibleLegs` below, which is the whole safety property.
+  const [poSeason, setPoSeason] = useState(ALL);
+  const [poTrn, setPoTrn] = useState(ALL);
+
+  const poSeasons = useMemo(() => seasonsFrom(supplierLegs), [supplierLegs]);
+  // TRNs narrow with the chosen season, so the dropdown can't offer a TRN that
+  // would yield an empty table.
+  const poTrns = useMemo(() => {
+    const inSeason = poSeason === ALL
+      ? supplierLegs
+      : supplierLegs.filter((l) => String(l.season || '').split(',').map((s) => s.trim()).includes(poSeason));
+    return [...new Set(inSeason.map((l) => l.trnNumber).filter(Boolean) as string[])].sort();
+  }, [supplierLegs, poSeason]);
+
+  // ⚠️ RENDER-ONLY. `selected`, `selectedRows` and the G3 check below all read
+  // `supplierLegs`, the UNFILTERED list — so narrowing the view can never silently
+  // drop units already typed into a row the filter now hides. Same rule the SMS
+  // booking form's supplier filter follows (see CLAUDE.md).
+  const visibleLegs = useMemo(() => supplierLegs.filter((l) => {
+    if (poSeason !== ALL && !String(l.season || '').split(',').map((s) => s.trim()).includes(poSeason)) return false;
+    if (poTrn !== ALL && (l.trnNumber || '') !== poTrn) return false;
+    return true;
+  }), [supplierLegs, poSeason, poTrn]);
 
   const setField = (legId: string, field: keyof RowInput, value: string) =>
     setRows((r) => ({ ...r, [legId]: { ...r[legId], [field]: value } }));
@@ -127,11 +158,19 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
     () => supplierLegs.filter((l) => (Number(rows[l.id]?.units) || 0) > 0),
     [supplierLegs, rows],
   );
+  // Selected rows the filter is currently hiding. They still submit (selectedRows
+  // reads the unfiltered list), so the form says so rather than letting the
+  // "N selected" count silently disagree with the table.
+  const hiddenSelected = useMemo(() => {
+    const shown = new Set(visibleLegs.map((l) => l.id));
+    return selectedRows.filter((l) => !shown.has(l.id)).length;
+  }, [selectedRows, visibleLegs]);
+
   const destinations = [...new Set(selectedRows.map((l) => l.receivingWarehouse ?? '—'))];
   const modesSel = [...new Set(selectedRows.map((l) => l.mode ?? '—'))];
   const consignmentConflict = selectedRows.length > 1 && (destinations.length > 1 || modesSel.length > 1);
 
-  function resetForm() { setSupplierId(''); setCourierId(''); setRows({}); setWarning(null); setBookingDate(new Date().toISOString().slice(0, 10)); }
+  function resetForm() { setSupplierId(''); setCourierId(''); setRows({}); setWarning(null); setBookingDate(new Date().toISOString().slice(0, 10)); setPoSeason(ALL); setPoTrn(ALL); }
 
   // "Book Now" on the PO masters table lands here with ?new=<supplierId> —
   // open the create dialog with that supplier preselected.
@@ -236,7 +275,12 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }} modal={false}>
         <DialogContent
-          className="w-[95vw] max-w-6xl max-h-[90vh] overflow-y-auto"
+          /* The PO picker is 11 columns wide (TRN + PO + 3 attributes + capacity +
+             4 numeric inputs), which max-w-6xl squeezed into a horizontal scroll.
+             Percentage with a CEILING, the same shape the settings pages use: the
+             table should use the screen, but 95vw of a 2560px monitor would stretch
+             the three text fields at the top across the whole width. */
+          className="w-[95vw] max-w-[1600px] max-h-[90vh] overflow-y-auto"
           /* Don't dismiss the form on any outside click (it's a multi-field form).
              Close only via the X button, Escape, or a successful submit. */
           onInteractOutside={(e) => e.preventDefault()}
@@ -249,7 +293,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label>Supplier</Label>
-                <Select value={effectiveSupplierId} onValueChange={(v) => { setSupplierId(v ?? ''); setRows({}); setWarning(null); }}>
+                <Select value={effectiveSupplierId} onValueChange={(v) => { setSupplierId(v ?? ''); setRows({}); setWarning(null); setPoSeason(ALL); setPoTrn(ALL); }}>
                   {/* Label rendered directly in the trigger, per the Radix Select
                       gotcha in CLAUDE.md. The SelectValue render-prop this replaced
                       never showed its placeholder: `value` is '' (not null/undefined)
@@ -297,11 +341,46 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
 
             {effectiveSupplierId && (
               <div className="space-y-1.5">
-                <Label>POs / legs — enter units to include ({selected.length} selected)</Label>
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <Label>POs / legs — enter units to include ({selected.length} selected)</Label>
+                  {/* Season first, then TRN — TRN options narrow with the season. */}
+                  <div className="flex items-center gap-2">
+                    <Select value={poSeason} onValueChange={(v) => { setPoSeason(v ?? ALL); setPoTrn(ALL); }}>
+                      <SelectTrigger title="Filter by season" className={cn('h-8 w-36 text-xs', poSeason !== ALL && 'text-primary')}>
+                        {poSeason === ALL ? 'All Seasons' : poSeason}
+                      </SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        <SelectItem value={ALL}>All Seasons</SelectItem>
+                        {poSeasons.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Select value={poTrn} onValueChange={(v) => setPoTrn(v ?? ALL)}>
+                      <SelectTrigger title="Filter by TRN" className={cn('h-8 w-40 text-xs', poTrn !== ALL && 'text-primary')}>
+                        {poTrn === ALL ? 'All TRNs' : poTrn}
+                      </SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        <SelectItem value={ALL}>All TRNs</SelectItem>
+                        {poTrns.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {/* Units typed into a row the filter now hides are still SUBMITTED —
+                    that is deliberate (see visibleLegs) but it must never be a
+                    surprise, so say so rather than let the count disagree with the
+                    table. */}
+                {hiddenSelected > 0 && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                    {hiddenSelected} selected {hiddenSelected === 1 ? 'row is' : 'rows are'} hidden by the filter and will still be booked.
+                  </p>
+                )}
                 <div className="max-h-[55vh] overflow-auto rounded-md border border-border">
                   <Table className="bg-card">
                     <TableHeader>
                       <TableRow className="bg-card/80 hover:bg-card/80">
+                        {/* TRN before PO — the vendor recognises the master order
+                            first and finds its component POs under it. */}
+                        <TableHead>TRN</TableHead>
                         <TableHead>PO</TableHead>
                         <TableHead>Mode</TableHead>
                         <TableHead>Destination</TableHead>
@@ -315,10 +394,16 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {supplierLegs.length === 0 && (
-                        <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-6">No bookable legs for this supplier.</TableCell></TableRow>
+                      {visibleLegs.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={11} className="text-center text-muted-foreground py-6">
+                            {supplierLegs.length === 0
+                              ? 'No bookable legs for this supplier.'
+                              : 'No legs match this season / TRN.'}
+                          </TableCell>
+                        </TableRow>
                       )}
-                      {supplierLegs.map((l) => {
+                      {visibleLegs.map((l) => {
                         const r = rows[l.id] || {};
                         const remaining = remainingOf(l);
                         const entered = Number(r.units) || 0;
@@ -332,6 +417,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
                         const unapproved = l.approvalStatus === 'Pending Approval' || l.approvalStatus === 'Rejected';
                         return (
                           <TableRow key={l.id} className={cn('border-border', entered > 0 && 'bg-primary/5', unapproved && 'opacity-60')}>
+                            <TableCell className="whitespace-nowrap text-muted-foreground">{l.trnNumber ?? '—'}</TableCell>
                             <TableCell className="font-medium whitespace-nowrap">
                               <span className="inline-flex items-center gap-2">
                                 {l.poNumber}
