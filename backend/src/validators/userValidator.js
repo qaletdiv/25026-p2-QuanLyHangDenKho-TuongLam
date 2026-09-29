@@ -6,8 +6,8 @@
 
 const { requiredString, optionalString, nullableString, optionalBoolean, OPTIONAL } = require('./rules');
 
-// Joi's .email() neither lowercased nor stripped dots, so neither does this —
-// `normalizeEmail` defaults would otherwise rewrite the address being stored.
+// ⚠️ The address is stored AS TYPED: no lowercasing, no dot-stripping.
+// `normalizeEmail`'s defaults would rewrite it, so it is not applied here.
 const EMAIL_CHECKS = {
     isEmail: { errorMessage: 'must be a valid email address' },
 };
@@ -25,7 +25,7 @@ const create = {
         isLength: { options: { min: 8 }, errorMessage: 'password must be at least 8 characters' },
     },
     role: requiredString("'role' is required"),
-    supplier: nullableString({ trim: true }),   // Joi: .allow('', null)
+    supplier: nullableString({ trim: true }),   // nullable + clearable
 };
 
 const update = {

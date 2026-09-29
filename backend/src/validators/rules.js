@@ -2,12 +2,12 @@
 /**
  * Shared field rules, in express-validator's `checkSchema` format.
  *
- * These replace Joi fragments that were copy-pasted across the validators — the
- * ISO-date check existed five times, character for character.
+ * One definition per field SHAPE, so the nine validator files stay readable.
+ * The ISO-date check alone used to exist five times, character for character.
  *
- * ⚠️ KEEP THIS LAYER (Lam, 2026-09-28). It was flagged at the port as arguably
- * re-creating a little of Joi on top of express-validator, and kept anyway,
- * deliberately. Two reasons:
+ * ⚠️ KEEP THIS LAYER (Lam, 2026-09-28). It was flagged as arguably a small
+ * abstraction on top of express-validator, and kept anyway, deliberately.
+ * Two reasons:
  *
  *   1. Without it the nine validator files roughly double through repetition —
  *      every nullable string becomes four lines of `optional`/`isString`/
@@ -22,41 +22,47 @@
  * ══════════════════════════════════════════════════════════════════════════
  * ⚠️ OPTIONAL, NULLABLE AND BLANKABLE ARE THREE DIFFERENT THINGS.
  *
- * Joi distinguished them and so must this. Collapsing them is not a style
- * choice — it silently widens what the API accepts, and a differential test of
- * the old schemas against the new ones caught exactly that on 15 fields.
+ * Which of the three a field wants is a real decision per field. Collapsing
+ * them is not a style choice — it silently widens what the API accepts, and
+ * doing exactly that wrongly widened 15 fields before it was caught.
  *
- *   Joi                                    | undefined | null | ''  | helper
- *   ---------------------------------------|-----------|------|-----|------------------
- *   .string().required()                   |     ✗     |  ✗   |  ✗  | requiredString
- *   .string().min(1).optional()            |     ✓     |  ✗   |  ✗  | optionalString
- *   .string().allow('').optional()         |     ✓     |  ✗   |  ✓  | blankableString
- *   .string().allow(null, '')              |     ✓     |  ✓   |  ✓  | nullableString
- *   .number().min(0).allow(null)           |     ✓     |  ✓   |  —  | nullableNumber
- *   .boolean()                             |     ✓     |  ✗   |  —  | optionalBoolean
+ *   helper            | undefined | null | ''  | typical use
+ *   ------------------|-----------|------|-----|--------------------------------
+ *   requiredString    |     ✗     |  ✗   |  ✗  | supplierId, poNumber, legId
+ *   optionalString    |     ✓     |  ✗   |  ✗  | a PATCH field that must be real
+ *   blankableString   |     ✓     |  ✗   |  ✓  | description — clearable, not null
+ *   nullableString    |     ✓     |  ✓   |  ✓  | most nullable columns
+ *   nullableNumber    |     ✓     |  ✓   |  —  | units, freight, cbm
+ *   requiredNumber    |     ✗     |  ✗   |  —  | qty on a CI line
+ *   optionalBoolean   |     ✓     |  ✗   |  —  | priority, force_overship
  *
- * `optional: true` skips ONLY undefined. `optional: {values:'null'}` skips
- * undefined AND null. Reach for the second one only where Joi wrote
- * `.allow(null)`.
+ * The mechanism: `optional: true` skips ONLY undefined; `optional:
+ * {values:'null'}` skips undefined AND null; '' is never skipped by either and
+ * has to be permitted by the rule itself. Reach for the second only when the
+ * column is genuinely nullable.
+ *
+ * A number is NOT accepted where a string is declared — `isString` rejects `5`
+ * rather than stringifying it. Deliberate, and asserted by the tests.
  * ══════════════════════════════════════════════════════════════════════════
  *
- * Joi did NOT coerce a number into a string field (`Joi.string()` rejects `5`),
- * so neither do these — verified against the old schemas rather than assumed.
+ * (This layer arrived 2026-09-28 with express-validator. The three-way
+ * distinction above is the one thing a naive port gets wrong — see
+ * backend/README.md for the measured fallout.)
  */
 
-/** Skips undefined only — Joi `.optional()`. */
+/** Skips undefined only. */
 const OPTIONAL = true;
-/** Skips undefined AND null — Joi `.allow(null)`. */
+/** Skips undefined AND null. */
 const NULLABLE = { options: { values: 'null' } };
 
 /**
- * ISO calendar date, `YYYY-MM-DD`, nullable and blankable (every Joi `isoDate`
- * in this codebase carried `.allow(null, '')`).
+ * ISO calendar date, `YYYY-MM-DD`, nullable and blankable — every date field in
+ * this codebase accepts null and '' as "not set".
  *
  * The regex catches the SHAPE and the Date check catches impossible dates like
- * 2026-13-45, which parse to Invalid Date. Both Joi messages are preserved, and
- * a single `custom` is used (rather than `matches` + `custom`) so a malformed
- * value yields ONE error with the right message instead of two.
+ * 2026-13-45, which parse to Invalid Date. A single `custom` is used (rather
+ * than `matches` + `custom`) so a malformed value yields ONE error with the
+ * right message instead of two.
  */
 function isoDate(shapeMessage = 'Dates must be YYYY-MM-DD') {
     return {
@@ -83,7 +89,7 @@ function withLength(rule, { min, max, lengthMessage }) {
     };
 }
 
-/** Required, present and non-empty. Joi `.string().trim().min(1).required()`. */
+/** Required: present, a string, and non-empty after trimming. */
 function requiredString(errorMessage, { max } = {}) {
     return withLength({
         exists: { options: { values: 'undefined' }, errorMessage },
@@ -93,28 +99,28 @@ function requiredString(errorMessage, { max } = {}) {
     }, { max });
 }
 
-/** Optional; non-empty WHEN PRESENT. null and '' are REJECTED. Joi `.string().min(1).optional()`. */
+/** Optional; non-empty WHEN PRESENT. null and '' are REJECTED. */
 function optionalString(errorMessage, { max, trim = true } = {}) {
     const rule = { optional: OPTIONAL, isString: { errorMessage }, notEmpty: { errorMessage } };
     if (trim) rule.trim = true;
     return withLength(rule, { max });
 }
 
-/** Optional; '' allowed, null REJECTED. Joi `.string().allow('').optional()`. */
+/** Optional; '' allowed (the field is clearable), null REJECTED. */
 function blankableString({ max, trim = true } = {}) {
     const rule = { optional: OPTIONAL, isString: { errorMessage: 'must be a string' } };
     if (trim) rule.trim = true;
     return withLength(rule, { max });
 }
 
-/** Optional; null AND '' allowed. Joi `.string().allow(null, '')`. */
+/** Optional; null AND '' both allowed — the usual nullable column. */
 function nullableString({ max, trim = false } = {}) {
     const rule = { optional: NULLABLE, isString: { errorMessage: 'must be a string' } };
     if (trim) rule.trim = true;
     return withLength(rule, { max });
 }
 
-/** Number, null allowed. Joi `.number().min(0).allow(null)`. Coerced like convert:true. */
+/** Number, null allowed. Coerced to a real number, not left as a string. */
 function nullableNumber({ min = 0, max, integer = false, errorMessage } = {}) {
     const options = { min, ...(max === undefined ? {} : { max }) };
     const msg = errorMessage || `must be a number of at least ${min}`;
@@ -123,7 +129,7 @@ function nullableNumber({ min = 0, max, integer = false, errorMessage } = {}) {
         : { optional: NULLABLE, isFloat: { options, errorMessage: msg }, toFloat: true };
 }
 
-/** Required number. Joi `.number().min(0).required()`. */
+/** Required number. Coerced to a real number, not left as a string. */
 function requiredNumber({ min = 0, max, integer = false, errorMessage, missingMessage } = {}) {
     const options = { min, ...(max === undefined ? {} : { max }) };
     const msg = errorMessage || `must be a number of at least ${min}`;
@@ -133,9 +139,9 @@ function requiredNumber({ min = 0, max, integer = false, errorMessage, missingMe
 }
 
 /**
- * One of a fixed vocabulary. `nullable` mirrors whether the Joi field carried
- * `.allow('', null)` — the mainline BOOKING status did, the SHIPMENT status did
- * not, and that difference is load-bearing.
+ * One of a fixed vocabulary. ⚠️ `nullable` differs per field and is load-bearing:
+ * the mainline BOOKING status accepts ''/null (a booking may be unstated), the
+ * SHIPMENT status does not.
  */
 function enumOf(values, errorMessage, { nullable = false } = {}) {
     return {
@@ -150,10 +156,10 @@ function enumOf(values, errorMessage, { nullable = false } = {}) {
     };
 }
 
-/** Boolean, coerced like Joi's convert:true ('true'/1 → true). null REJECTED, as Joi did. */
+/** Boolean, coerced ('true'/1 → true). null REJECTED. */
 const optionalBoolean = { optional: OPTIONAL, isBoolean: { errorMessage: 'must be true or false' }, toBoolean: true };
 
-/** Joi `.array().items(...).min(n).required()` — the array itself. */
+/** Required array (the array itself; its elements are declared as `field.*.x`). */
 function requiredArray({ min, errorMessage, missingMessage } = {}) {
     return {
         exists: { options: { values: 'undefined' }, errorMessage: missingMessage || errorMessage },
@@ -161,7 +167,7 @@ function requiredArray({ min, errorMessage, missingMessage } = {}) {
     };
 }
 
-/** Joi `.array()` optional — null REJECTED unless `nullable`. */
+/** Optional array — null REJECTED unless `nullable` is set. */
 function optionalArray({ min, errorMessage, nullable = false } = {}) {
     return {
         optional: nullable ? NULLABLE : OPTIONAL,

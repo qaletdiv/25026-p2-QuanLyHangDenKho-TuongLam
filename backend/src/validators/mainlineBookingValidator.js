@@ -16,7 +16,8 @@ const legRefFields = (prefix) => ({
   [`${prefix}.*.cbm`]: nullableNumber({ min: 0 }),
 });
 
-// Joi wrote `.allow('', null)` here — unlike the SHIPMENT status.
+// Nullable here — a booking may be submitted with no status stated. Unlike the
+// SHIPMENT status, which is not nullable.
 const bookingStatus = enumOf(MAINLINE_BOOKING_STATUSES,
   `'bookingStatus' must be one of: ${MAINLINE_BOOKING_STATUSES.join(', ')}`, { nullable: true });
 

@@ -3,8 +3,7 @@
 const { requiredString, requiredNumber } = require('./rules');
 
 // ⚠️ These two bodies are TOP-LEVEL ARRAYS, not objects. In checkSchema the
-// empty key '' addresses the body itself and '*.field' each element — the same
-// shape Joi expressed as `Joi.array().items(row)`.
+// empty key '' addresses the body itself and '*.field' each element.
 
 // PUT /landed-costs/rates — whole-table replace (mirrors master-data editors).
 const ratesUpdate = {

@@ -5,7 +5,7 @@ const { isoDate, requiredString, requiredNumber, nullableNumber, nullableString,
 // POST /mainline/bookings/:id/ci — the CI header + SKU line items written to disk.
 // qty must be a non-negative number (a negative or garbage qty corrupts the
 // fulfillment three-way match); dates must be ISO calendar dates.
-// Unknown keys pass through, as they did under Joi's .unknown(true).
+// Unknown keys pass through untouched — see middlewares/validate.js.
 const upsert = {
   invoiceNumber: nullableString(),
   invoiceDate: isoDate(),

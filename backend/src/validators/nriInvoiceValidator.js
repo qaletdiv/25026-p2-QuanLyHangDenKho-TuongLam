@@ -11,11 +11,12 @@ const { requiredString, optionalString, nullableString } = require('./rules');
 // layout in code, not posting a flag.
 const source = {
     label: requiredString("'label' is required", { max: 60 }),
-    // URL code; derived from the label when omitted. Joi rejected null and ''.
+    // URL code; derived from the label when omitted. null and '' are refused —
+    // send the key or leave it out entirely.
     code: optionalString("'code' must not be empty", { max: 40 }),
     // the key the coding legend, rate card and invoice ids turn on
     entity: optionalString("'entity' must not be empty", { max: 20 }),
-    facilityId: nullableString({ trim: true, max: 60 }),   // Joi: .allow('', null)
+    facilityId: nullableString({ trim: true, max: 60 }),   // nullable + clearable
 };
 
 module.exports = { source };

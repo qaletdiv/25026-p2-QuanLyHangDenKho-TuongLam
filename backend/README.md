@@ -111,50 +111,51 @@ string literal, and afterwards prove the generator round-trips — regenerate an
 confirm the output matches the live file. ⚠️ Do that against a **copy**: a real
 run overwrites hand-edited models (see the warning above).
 
-## Validation: express-validator (Joi replaced 2026-09-28)
+## Validation: express-validator
 
-Every write route still reads `validate(schema)` — only the engine changed, so
-no route file moved. The schemas are `checkSchema` objects, which keeps them
-declarative data exactly as the Joi schemas were; `validators/rules.js` holds
-the field vocabulary shared across the nine files.
+Validation runs on **express-validator only** — Joi was removed on 2026-09-28
+and is no longer a dependency. Every write route reads `validate(schema)`; the
+schemas are `checkSchema` objects, which keeps them declarative data, and
+`validators/rules.js` holds the field vocabulary shared across the nine files.
 
-⚠️ **`rules.js` stays** (Lam, 2026-09-28). It was raised at the port as arguably
-re-creating a little of Joi on top of express-validator, and kept deliberately:
-without it the nine files roughly double through repetition (~55 nullable-string
-call sites alone), and it is the only place the distinction below is stated
-once rather than per field — which is precisely how the 15 regressions got
-written. Do not inline these helpers back into the callers.
+⚠️ **`rules.js` stays** (Lam, 2026-09-28). It was raised as arguably a small
+abstraction over express-validator, and kept deliberately: without it the nine
+files roughly double through repetition (~55 nullable-string call sites alone),
+and it is the only place the distinction below is stated once rather than per
+field — which is precisely how the 15 regressions got written. Do not inline
+these helpers back into the callers.
 
-⚠️ **OPTIONAL, NULLABLE and BLANKABLE are three different things**, and this is
-the whole risk of the port. A differential test of the old schemas against the
-new ones over 362 payloads caught **15 fields** where the first pass collapsed
-them and silently widened what the API accepts:
+⚠️ **OPTIONAL, NULLABLE and BLANKABLE are three different things.** Which one a
+field wants is a real per-field decision. A differential test over 362 payloads,
+run against the previous implementation, caught **15 fields** where collapsing
+them had silently widened what the API accepts:
 
-| Joi | undefined | null | `''` | helper in rules.js |
-|---|---|---|---|---|
-| `.string().required()` | ✗ | ✗ | ✗ | `requiredString` |
-| `.string().min(1).optional()` | ✓ | ✗ | ✗ | `optionalString` |
-| `.string().allow('').optional()` | ✓ | ✗ | ✓ | `blankableString` |
-| `.string().allow(null, '')` | ✓ | ✓ | ✓ | `nullableString` |
-| `.number().min(0).allow(null)` | ✓ | ✓ | — | `nullableNumber` |
-| `.boolean()` | ✓ | ✗ | — | `optionalBoolean` |
+| helper in rules.js | undefined | null | `''` |
+|---|---|---|---|
+| `requiredString` | ✗ | ✗ | ✗ |
+| `optionalString` | ✓ | ✗ | ✗ |
+| `blankableString` | ✓ | ✗ | ✓ |
+| `nullableString` | ✓ | ✓ | ✓ |
+| `nullableNumber` | ✓ | ✓ | — |
+| `optionalBoolean` | ✓ | ✗ | — |
 
 `optional: true` skips only `undefined`; `optional: {values:'null'}` skips
-`undefined` **and** `null`. Use the second only where Joi wrote `.allow(null)`.
-The mainline BOOKING status allowed `''`/null and the SHIPMENT status did not —
+`undefined` **and** `null`; `''` is skipped by neither and must be permitted by
+the rule itself. Use the nullable form only where the column really is nullable.
+The mainline BOOKING status accepts `''`/null and the SHIPMENT status does not —
 that asymmetry is real, not an oversight.
 
 Two more behaviours that had to be carried over deliberately:
 
-- **Coercion.** Joi ran with `convert: true`, so `'5'` reached controllers as
-  `5`. express-validator does not coerce unless told, which is why every numeric
+- **Coercion is explicit.** `'5'` must reach controllers as `5`, and
+  express-validator does not coerce unless told — which is why every numeric
   rule pairs its check with `toInt`/`toFloat` and every boolean with
   `toBoolean`. Drop a sanitizer and a controller silently gets a string where it
   did arithmetic.
-- **Unknown keys pass through.** Joi ran `allowUnknown: true` and several
-  schemas were `.unknown(true)`; partial updates depend on it. express-validator
-  only inspects the paths it is given, so this is free — but do **not** add
-  `checkExact()` to "tighten" it.
+- **Unknown keys pass through.** Partial updates depend on it, and several
+  controllers read keys no schema declares. express-validator only inspects the
+  paths it is given, so this is free — but do **not** add `checkExact()` to
+  "tighten" it.
 
 `bail` is NOT a valid `checkSchema` key in express-validator 7 — it is accepted
 silently and ignored. One error per field comes from

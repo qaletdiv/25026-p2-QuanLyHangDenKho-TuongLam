@@ -1756,18 +1756,20 @@ refresh. It is a migration tool, not a build step.
   object (`src/middlewares/validate.js` runs it); business guards live in
   controllers/services. Dates validated as real ISO calendar dates
   (`validators/rules.js` `isoDate`, shared by all five users of it).
-  ⚠️ **Joi was replaced 2026-09-28**, and the trap is that **OPTIONAL, NULLABLE
-  and BLANKABLE are three different things**: `optional: true` skips only
-  `undefined`, `optional: {values:'null'}` also skips `null`, and `''` is a
-  separate question again. A differential test of the old Joi schemas against
-  the new ones over 362 payloads caught **15 fields** where collapsing them had
-  silently widened what the API accepts (the mainline BOOKING status allows
-  `''`/null, the SHIPMENT status does not — that asymmetry is real). The
-  vocabulary is in `validators/rules.js`; the table mapping each Joi form to its
-  helper is in `backend/README.md`. Also carried over deliberately: Joi's
-  `convert:true` became explicit `toInt`/`toFloat`/`toBoolean` sanitizers (drop
-  one and a controller gets a string where it did arithmetic), and unknown keys
-  still pass through — do NOT add `checkExact()`.
+  **express-validator is the ONLY validation library** — Joi was removed
+  2026-09-28 and is not a dependency; do not reintroduce it or mix the two.
+  ⚠️ The trap is that **OPTIONAL, NULLABLE and BLANKABLE are three different
+  things**: `optional: true` skips only `undefined`, `optional:
+  {values:'null'}` also skips `null`, and `''` is skipped by neither and must be
+  permitted by the rule itself. A differential test over 362 payloads caught
+  **15 fields** where collapsing them had silently widened what the API accepts
+  (the mainline BOOKING status allows `''`/null, the SHIPMENT status does not —
+  that asymmetry is real). The vocabulary lives in `validators/rules.js` —
+  **keep that layer** (per Lam) — and the helper table is in `backend/README.md`.
+  Two more things are deliberate: numeric and boolean rules carry explicit
+  `toInt`/`toFloat`/`toBoolean` sanitizers, because express-validator does not
+  coerce unless told and a controller would silently get a string where it did
+  arithmetic; and unknown keys still pass through, so do NOT add `checkExact()`.
 - **3NF discipline:** ids not names in rows; names joined at read-time; derived
   values (totals, statuses, rollups, reconciliation) computed per request,
   never written. `database.dbml` is authoritative — keep it in sync.

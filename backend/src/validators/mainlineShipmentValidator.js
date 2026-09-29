@@ -14,7 +14,7 @@ const date = () => isoDate('Dates must be YYYY-MM-DD');
 // controller whitelists which fields are written; this validates their shape.
 const update = {
   // ⚠️ NOT nullable and NOT blankable — unlike the BOOKING status, which is.
-  // Joi wrote `.valid(...)` here and `.valid(...).allow('', null)` there.
+  // A shipment always has a status; there is no "unstated" for it.
   status: enumOf(MAINLINE_SHIPMENT_STATUSES,
     `'status' must be one of: ${MAINLINE_SHIPMENT_STATUSES.join(', ')}`),
   // cargoReadyDate = the REVISED cargo ready date (the forwarder's). Distinct from

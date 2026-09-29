@@ -8,7 +8,7 @@ const permissionKey = { trim: true, notEmpty: { errorMessage: 'each permission m
 
 const create = {
     name: requiredString("'name' is required"),
-    description: blankableString(),          // Joi: .allow('') but NOT null
+    description: blankableString(),          // clearable to '', but not null
     permissions: requiredArray({ errorMessage: "'permissions' must be an array" }),
     'permissions.*': permissionKey,
 };
