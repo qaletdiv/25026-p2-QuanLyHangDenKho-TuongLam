@@ -315,7 +315,11 @@ export default function BookingDetail({
                 create. Mode is not editable either — see the note above the
                 estimates table. */}
             <Cell label="Supplier">{booking.supplierName ?? booking.supplierId ?? DASH}</Cell>
-            <Cell label="Mode" hint="from the PO legs">{booking.mode ?? DASH}</Cell>
+            {/* Read-only: `mode` is DERIVED (the distinct modes of this booking's
+                legs, joined), so there is nothing to write to. The real value is
+                mainline_po_legs.modeId = NetSuite custbody16, refreshed on every
+                sync. No hint shown — per Lam, the label is enough. */}
+            <Cell label="Mode">{booking.mode ?? DASH}</Cell>
             <Cell label="Cargo Ready" hint={isPending ? 'the vendor’s date — editable until approved' : undefined}>
               {editing
                 ? <Input type="date" value={form.cargoReadyDate} onChange={(e) => setForm((f) => ({ ...f, cargoReadyDate: e.target.value }))} className="h-8 w-[9.5rem]" disabled={busy} />
