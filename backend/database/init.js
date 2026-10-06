@@ -5,6 +5,8 @@
 //   node database/init.js             create tables + load REFERENCE data
 //   node database/init.js --all       also load the transactional snapshot
 //   node database/init.js --force     allow this against a NON-EMPTY database
+//   node database/init.js --if-empty  seed only a fresh database; a non-empty one is
+//                                     SKIPPED with exit 0 (the docker-compose db-init step)
 //   node database/init.js --export    REGENERATE seed-data/ from the live database
 //
 // The schema comes from the MODELS — `sequelize.sync()` reads db/models/*.js, so
@@ -49,6 +51,7 @@ const DRY_RUN = args.has('--dry-run');
 const FORCE = args.has('--force');
 const ALL = args.has('--all');
 const EXPORT = args.has('--export');
+const IF_EMPTY = args.has('--if-empty');
 
 // Which tables are real seed data. Everything else is transactional.
 const REFERENCE = new Set([
@@ -130,6 +133,12 @@ async function exportSeed() {
     }
 
     for (const table of tables) {
+        // The append-only mail log is history of THIS database, not seed data —
+        // replaying it elsewhere would claim mail was sent that never was.
+        if (table === 'email_notifications') {
+            console.log(`skipped    ${table} (append-only mail log, not seed data)`);
+            continue;
+        }
         const data = await store.readAll(models[table]);
         const kind = REFERENCE.has(table) ? 'reference' : 'snapshot';
         fs.writeFileSync(path.join(SEED, kind, `${table}.json`), JSON.stringify(data, null, 2) + '\n');
@@ -189,6 +198,12 @@ async function main() {
     }
 
     const existing = await existingRowCount();
+    // --if-empty: the deploy runs this on EVERY start, so an already-seeded database
+    // is the normal case, not an error — and it must never be overwritten.
+    if (existing.rows > 0 && IF_EMPTY) {
+        console.log(`already seeded (${existing.rows.toLocaleString()} rows in ${existing.tables} tables) — skipping.`);
+        return;
+    }
     if (existing.rows > 0 && !FORCE) {
         throw new Error(
             `refusing to run: the database already holds ${existing.rows.toLocaleString()} rows in ` +

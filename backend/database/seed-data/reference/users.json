@@ -13,7 +13,7 @@
   {
     "id": "2",
     "email": "logistics@tentree.com",
-    "password": "scrypt:85b9e5abdc025553e37a5763f240758d:77ff0ece04d3e6a3120edd57eea038d01141e7fcb605bb607e8d3fddfb2b40de63e85226c54a6c2b6ee324ed16a9f3203a19faa0c0a0f438dd095bf54841b2e7",
+    "password": "$2b$12$e74SrR8iwGEt1tw4sL2cN.nEuYW1wa36L43MsHh8VTenBDD71O6Iu",
     "name": "Logistics Coord",
     "role": "Logistics Coordinator",
     "supplier": null,
@@ -24,7 +24,7 @@
   {
     "id": "3",
     "email": "production@tentree.com",
-    "password": "scrypt:d89693bec32d1b8daa99578db2d1b6be:6d0ca7aa8e3c14c25bc06085d319d416b285ccbf7469f20eb76780ac81bda970df1c2b5e4ec49cfb0d89b3e542640afe79fa0786f3734cc93950c7c401476783",
+    "password": "$2b$12$.jFurVCbbqYZEaCEeTqI9O3IEVbDudfB/BXBNyrRQ4AavLgF7bP0q",
     "name": "Production Team",
     "role": "Production",
     "supplier": null,
@@ -46,7 +46,7 @@
   {
     "id": "1786561787434",
     "email": "ff1@ceva.com",
-    "password": "scrypt:e6f6a1d75b51bc80b793b92e19f105a3:43871001e1fcf4523ccce3dd54ecf56259d4b49a83fc7b0aac00fe141990093f3853bdcd5216c35c3bdebc042df9f150fb3e3feb63344642181ec08f19f4f422",
+    "password": "$2b$12$0gaImv5EoZnZaAQ5A7c/Ze0nsdaPt6ugbAcPgP/FJbsB/sgg27Hr6",
     "name": "ff1",
     "role": "Freight Forwarder",
     "supplier": null,

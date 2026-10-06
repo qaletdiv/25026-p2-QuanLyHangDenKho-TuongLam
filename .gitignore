@@ -71,3 +71,8 @@ frontend/tentree-scportal/dev.err.log
 # Notes of what to set in GitHub → Settings → Secrets and variables (not the real store)
 /.github/workflows/.secrets
 /.github/workflows/.vars
+
+# Local self-signed TLS + logs for docker-compose.local.yml
+/nginx.local/opt/nginx/ssl/*.key
+/nginx.local/logs/*
+!/nginx.local/logs/.keep

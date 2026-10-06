@@ -1923,5 +1923,82 @@
     "confirmedBy": "1",
     "confirmedAt": "2026-09-21T21:25:40.572Z",
     "netsuiteIrTranid": "IR66100"
+  },
+  {
+    "id": "sir_180",
+    "netsuiteIrId": "34175137",
+    "poNumber": "PO04824",
+    "receiptDate": "2026-09-28",
+    "source": "netsuite",
+    "matchedShipmentId": null,
+    "confirmedBy": null,
+    "confirmedAt": null,
+    "netsuiteIrTranid": "IR66253"
+  },
+  {
+    "id": "sir_181",
+    "netsuiteIrId": "34175976",
+    "poNumber": "PO04793",
+    "receiptDate": "2026-09-28",
+    "source": "netsuite",
+    "matchedShipmentId": null,
+    "confirmedBy": null,
+    "confirmedAt": null,
+    "netsuiteIrTranid": "IR66264"
+  },
+  {
+    "id": "sir_182",
+    "netsuiteIrId": "34177821",
+    "poNumber": "PO04799",
+    "receiptDate": "2026-09-28",
+    "source": "netsuite",
+    "matchedShipmentId": null,
+    "confirmedBy": null,
+    "confirmedAt": null,
+    "netsuiteIrTranid": "IR66267"
+  },
+  {
+    "id": "sir_183",
+    "netsuiteIrId": "34180144",
+    "poNumber": "PO04801",
+    "receiptDate": "2026-09-28",
+    "source": "netsuite",
+    "matchedShipmentId": null,
+    "confirmedBy": null,
+    "confirmedAt": null,
+    "netsuiteIrTranid": "IR66268"
+  },
+  {
+    "id": "sir_184",
+    "netsuiteIrId": "34197137",
+    "poNumber": "PO04816",
+    "receiptDate": "2026-10-01",
+    "source": "netsuite",
+    "matchedShipmentId": "49",
+    "confirmedBy": "1",
+    "confirmedAt": "2026-10-02T15:15:43.060Z",
+    "netsuiteIrTranid": "IR66314"
+  },
+  {
+    "id": "sir_185",
+    "netsuiteIrId": "34197446",
+    "poNumber": "PO04815",
+    "receiptDate": "2026-10-01",
+    "source": "netsuite",
+    "matchedShipmentId": "48",
+    "confirmedBy": "1",
+    "confirmedAt": "2026-10-02T15:15:22.807Z",
+    "netsuiteIrTranid": "IR66316"
+  },
+  {
+    "id": "sir_186",
+    "netsuiteIrId": "34208317",
+    "poNumber": "PO04824",
+    "receiptDate": "2026-10-02",
+    "source": "netsuite",
+    "matchedShipmentId": null,
+    "confirmedBy": null,
+    "confirmedAt": null,
+    "netsuiteIrTranid": "IR66333"
   }
 ]

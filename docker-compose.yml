@@ -9,11 +9,10 @@
 # Secrets come from a root-level `.env` beside this file (gitignored) — see
 # `deploy.env.example`. Backend app settings come from `backend/.env`.
 #
-# First boot:
-#   docker compose up -d postgres
-#   docker compose run --rm backend node database/init.js        # schema + reference data
-#   # …or restore live data instead:  pg_restore into the postgres container
-#   docker compose up -d --build
+# First boot needs nothing extra: the one-shot `db-init` service creates the schema
+# and loads backend/database/seed-data (reference + snapshot) when — and only when —
+# the database is EMPTY. Every later start sees data and skips, so it never
+# overwrites live rows. To reseed from scratch: docker compose down -v (DESTROYS data).
 #
 # ⚠ Run exactly ONE backend replica: every backend process starts its own cron
 #   (SMS tracking poll, SMS + mainline NetSuite syncs).
@@ -43,6 +42,24 @@ services:
       retries: 10
       start_period: 20s
 
+  # One-shot: seed an EMPTY database from backend/database/seed-data, then exit.
+  # Same image as the backend. A non-empty database is skipped (exit 0).
+  db-init:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: tentree-backend:latest
+    restart: "no"
+    command: ["node", "database/init.js", "--all", "--if-empty"]
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-tentree}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-tentree_portal}
+      TZ: UTC
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tentree-network
+
   # Backend Express API
   backend:
     build:
@@ -70,8 +87,8 @@ services:
       - outbox:/app/storage/outbox
       - nri_billing:/app/storage/reference/nri-billing
     depends_on:
-      postgres:
-        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     networks:
       - tentree-network
 

@@ -160,5 +160,41 @@
     "cartons": 38,
     "weightKg": 478,
     "cbm": 4.16
+  },
+  {
+    "id": "bpl_11_66",
+    "bookingId": "11",
+    "legId": "66",
+    "units": 162,
+    "cartons": 7,
+    "weightKg": 78.7,
+    "cbm": null
+  },
+  {
+    "id": "bpl_11_85",
+    "bookingId": "11",
+    "legId": "85",
+    "units": 79,
+    "cartons": 4,
+    "weightKg": 41.3,
+    "cbm": null
+  },
+  {
+    "id": "bpl_12_24",
+    "bookingId": "12",
+    "legId": "24",
+    "units": 31,
+    "cartons": 2,
+    "weightKg": null,
+    "cbm": null
+  },
+  {
+    "id": "bpl_12_11",
+    "bookingId": "12",
+    "legId": "11",
+    "units": 22,
+    "cartons": 1,
+    "weightKg": null,
+    "cbm": null
   }
 ]

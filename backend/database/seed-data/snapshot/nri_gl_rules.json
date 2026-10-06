@@ -1,0 +1,3642 @@
+[
+  {
+    "id": "ngr_ca_2026-01_1",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Administration Fee",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_10",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Cross Dock Carton Receiving",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_11",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Cross Dock Storage",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_12",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Cycle Count",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_13",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Cycle Count Units",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_14",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Data Entry Labour",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_15",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "EDI Labels",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_16",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "EDI Transmission",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_17",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Handling",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_18",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Inbound Freight",
+    "gl": 2057,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_19",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Inbound Palletization",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_2",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "ATS Administration",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_20",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Inbound Pallets",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_21",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Inbound Units Audit",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_22",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Insert",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_23",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "IT TIME",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_24",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Manual BOL",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_25",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Order Cancellation",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_26",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Order Manual Data Entry",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_27",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Order Master Pack Carton",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_28",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Order NonMasterPack",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_29",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Order Processing",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_3",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Auto Commercial Invoice",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_30",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Order Restocking",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_31",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Outbound Credit",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_32",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Outbound Freight",
+    "gl": 5206,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_33",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Outbound Shipment Materials",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_34",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Overtime",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_35",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Overtime Labour",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_36",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Pallet Prep",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_37",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Pallet Wrap",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_38",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Quality Control",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_39",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Receipt Mixed Carton Unit",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_4",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Bagging (Ops)",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_40",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Receipt Processing",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_41",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Receiving",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_42",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Recoverable Materials",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_43",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Repackaging",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_44",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Replenishment",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_45",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Restock",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_46",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Returns",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_47",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Returns Freight",
+    "gl": 5207,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_48",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Service Center Labor",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_49",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Shipment Cancellation",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_5",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Call Tags",
+    "gl": 5207,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_50",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Shop Supplies",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_51",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Storage",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_52",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Storage Carton Shipped",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_53",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Stripping",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_54",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Systems Maintenance",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_55",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Tagging",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_56",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Transfer Order fulfillment & receipt",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_57",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Vendor Chargebacks",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_58",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Vendor Compliance",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_59",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Warehouse Labor",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_6",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "CI Generation",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_60",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Warehouse Labour",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_7",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "CI Maintenance",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_8",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "COVID-19 Surcharge",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-01_9",
+    "entity": "CA",
+    "month": "2026-01",
+    "service": "Cross Dock Carton Handling",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_1",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Administration Fee",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_10",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Cross Dock Carton Receiving",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_11",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Cross Dock Storage",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_12",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Cycle Count",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_13",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Cycle Count Units",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_14",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Data Entry Labour",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_15",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "EDI Labels",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_16",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "EDI Transmission",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_17",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Handling",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_18",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Inbound Freight",
+    "gl": 2057,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_19",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Inbound Palletization",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_2",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "ATS Administration",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_20",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Inbound Pallets",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_21",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Inbound Units Audit",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_22",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Insert",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_23",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "IT TIME",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_24",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Manual BOL",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_25",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Order Cancellation",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_26",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Order Manual Data Entry",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_27",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Order Master Pack Carton",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_28",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Order NonMasterPack",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_29",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Order Processing",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_3",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Auto Commercial Invoice",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_30",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Order Restocking",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_31",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Outbound Credit",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_32",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Outbound Freight",
+    "gl": 5206,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_33",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Outbound Shipment Materials",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_34",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Overtime",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_35",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Overtime Labour",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_36",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Pallet Prep",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_37",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Pallet Wrap",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_38",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Quality Control",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_39",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Receipt Mixed Carton Unit",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_4",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Bagging (Ops)",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_40",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Receipt Processing",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_41",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Receiving",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_42",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Recoverable Materials",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_43",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Repackaging",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_44",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Replenishment",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_45",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Restock",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_46",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Returns",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_47",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Returns Freight",
+    "gl": 5207,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_48",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Service Center Labor",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_49",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Shipment Cancellation",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_5",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Call Tags",
+    "gl": 5207,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_50",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Shop Supplies",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_51",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Storage",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_52",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Storage Carton Shipped",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_53",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Stripping",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_54",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Systems Maintenance",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_55",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Tagging",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_56",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Transfer Order fulfillment & receipt",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_57",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Vendor Chargebacks",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_58",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Vendor Compliance",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_59",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Warehouse Labor",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_6",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "CI Generation",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_60",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Warehouse Labour",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_7",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "CI Maintenance",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_8",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "COVID-19 Surcharge",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-04_9",
+    "entity": "CA",
+    "month": "2026-04",
+    "service": "Cross Dock Carton Handling",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_1",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Administration Fee",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_10",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Cross Dock Carton Receiving",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_11",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Cross Dock Storage",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_12",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Cycle Count",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_13",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Cycle Count Units",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_14",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Data Entry Labour",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_15",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "EDI Labels",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_16",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "EDI Transmission",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_17",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Handling",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_18",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Inbound Freight",
+    "gl": 2057,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_19",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Inbound Palletization",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_2",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "ATS Administration",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_20",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Inbound Pallets",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_21",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Inbound Units Audit",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_22",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Insert",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_23",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "IT TIME",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_24",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Manual BOL",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_25",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Order Cancellation",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_26",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Order Manual Data Entry",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_27",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Order Master Pack Carton",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_28",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Order NonMasterPack",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_29",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Order Processing",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_3",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Auto Commercial Invoice",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_30",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Order Restocking",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_31",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Outbound Credit",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_32",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Outbound Freight",
+    "gl": 5206,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_33",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Outbound Shipment Materials",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_34",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Overtime",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_35",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Overtime Labour",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_36",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Pallet Prep",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_37",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Pallet Wrap",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_38",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Quality Control",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_39",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Receipt Mixed Carton Unit",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_4",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Bagging (Ops)",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_40",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Receipt Processing",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_41",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Receiving",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_42",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Recoverable Materials",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_43",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Repackaging",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_44",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Replenishment",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_45",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Restock",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_46",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Returns",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_47",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Returns Freight",
+    "gl": 5207,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_48",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Service Center Labor",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_49",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Shipment Cancellation",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_5",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Call Tags",
+    "gl": 5207,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_50",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Shop Supplies",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_51",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Storage",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_52",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Storage Carton Shipped",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_53",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Stripping",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_54",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Systems Maintenance",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_55",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Tagging",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_56",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Transfer Order fulfillment & receipt",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_57",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Vendor Chargebacks",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_58",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Vendor Compliance",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_59",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Warehouse Labor",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_6",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "CI Generation",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_60",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Warehouse Labour",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_7",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "CI Maintenance",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_8",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "COVID-19 Surcharge",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-06_9",
+    "entity": "CA",
+    "month": "2026-06",
+    "service": "Cross Dock Carton Handling",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_1",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Administration Fee",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_10",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Cross Dock Carton Receiving",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_11",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Cross Dock Storage",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_12",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Cycle Count",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_13",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Cycle Count Units",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_14",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Data Entry Labour",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_15",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "EDI Labels",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_16",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "EDI Transmission",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_17",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Handling",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_18",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Inbound Freight",
+    "gl": 2057,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_19",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Inbound Palletization",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_2",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "ATS Administration",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_20",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Inbound Pallets",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_21",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Inbound Units Audit",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_22",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Insert",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_23",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "IT TIME",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_24",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Manual BOL",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_25",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Order Cancellation",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_26",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Order Manual Data Entry",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_27",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Order Master Pack Carton",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_28",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Order NonMasterPack",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_29",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Order Processing",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_3",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Auto Commercial Invoice",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_30",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Order Restocking",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_31",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Outbound Credit",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_32",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Outbound Freight",
+    "gl": 5206,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_33",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Outbound Shipment Materials",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_34",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Overtime",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_35",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Overtime Labour",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_36",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Pallet Prep",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_37",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Pallet Wrap",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_38",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Quality Control",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_39",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Receipt Mixed Carton Unit",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_4",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Bagging (Ops)",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_40",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Receipt Processing",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_41",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Receiving",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_42",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Recoverable Materials",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_43",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Repackaging",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_44",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Replenishment",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_45",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Restock",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_46",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Returns",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_47",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Returns Freight",
+    "gl": 5207,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_48",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Service Center Labor",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_49",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Shipment Cancellation",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_5",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Call Tags",
+    "gl": 5207,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_50",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Shop Supplies",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_51",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Storage",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_52",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Storage Carton Shipped",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_53",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Stripping",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_54",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Systems Maintenance",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_55",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Tagging",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_56",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Transfer Order fulfillment & receipt",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_57",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Vendor Chargebacks",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_58",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Vendor Compliance",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_59",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Warehouse Labor",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_6",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "CI Generation",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_60",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Warehouse Labour",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_61",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Order Cancel/Mod.",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_7",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "CI Maintenance",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_8",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "COVID-19 Surcharge",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-07_9",
+    "entity": "CA",
+    "month": "2026-07",
+    "service": "Cross Dock Carton Handling",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_1",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Administration Fee",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_10",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Cross Dock Carton Receiving",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_11",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Cross Dock Storage",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_12",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Cycle Count",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_13",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Cycle Count Units",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_14",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Data Entry Labour",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_15",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "EDI Labels",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_16",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "EDI Transmission",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_17",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Handling",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_18",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Inbound Freight",
+    "gl": 2057,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_19",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Inbound Palletization",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_2",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "ATS Administration",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_20",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Inbound Pallets",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_21",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Inbound Units Audit",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_22",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Insert",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_23",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "IT TIME",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_24",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Manual BOL",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_25",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Order Cancellation",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_26",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Order Manual Data Entry",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_27",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Order Master Pack Carton",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_28",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Order NonMasterPack",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_29",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Order Processing",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_3",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Auto Commercial Invoice",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_30",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Order Restocking",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_31",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Outbound Credit",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_32",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Outbound Freight",
+    "gl": 5206,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_33",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Outbound Shipment Materials",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_34",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Overtime",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_35",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Overtime Labour",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_36",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Pallet Prep",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_37",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Pallet Wrap",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_38",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Quality Control",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_39",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Receipt Mixed Carton Unit",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_4",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Bagging (Ops)",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_40",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Receipt Processing",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_41",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Receiving",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_42",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Recoverable Materials",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_43",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Repackaging",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_44",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Replenishment",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_45",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Restock",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_46",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Returns",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_47",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Returns Freight",
+    "gl": 5207,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_48",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Service Center Labor",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_49",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Shipment Cancellation",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_5",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Call Tags",
+    "gl": 5207,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_50",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Shop Supplies",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_51",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Storage",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_52",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Storage Carton Shipped",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_53",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Stripping",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_54",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Systems Maintenance",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_55",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Tagging",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_56",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Transfer Order fulfillment & receipt",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_57",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Vendor Chargebacks",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_58",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Vendor Compliance",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_59",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Warehouse Labor",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_6",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "CI Generation",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_60",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Warehouse Labour",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_61",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Order Cancel/Mod.",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_7",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "CI Maintenance",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_8",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "COVID-19 Surcharge",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-08_9",
+    "entity": "CA",
+    "month": "2026-08",
+    "service": "Cross Dock Carton Handling",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-01T22:04:42.653Z",
+    "updatedBy": "seed: team 2026 coding"
+  },
+  {
+    "id": "ngr_ca_2026-09_1",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Administration Fee",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_10",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Cross Dock Carton Receiving",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_11",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Cross Dock Storage",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_12",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Cycle Count",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_13",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Cycle Count Units",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_14",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Data Entry Labour",
+    "gl": 5211,
+    "glWholesaleOrder": 5211,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_15",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "EDI Labels",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_16",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "EDI Transmission",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_17",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Handling",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_18",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Inbound Freight",
+    "gl": 2057,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_19",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Inbound Palletization",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_2",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "ATS Administration",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_20",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Inbound Pallets",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_21",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Inbound Units Audit",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_22",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Insert",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_23",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "IT TIME",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_24",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Manual BOL",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_25",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Order Cancel/Mod.",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_26",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Order Cancellation",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_27",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Order Manual Data Entry",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_28",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Order Master Pack Carton",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_29",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Order NonMasterPack",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_3",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Auto Commercial Invoice",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_30",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Order Processing",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_31",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Order Restocking",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_32",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Outbound Credit",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_33",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Outbound Freight",
+    "gl": 5206,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_34",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Outbound Shipment Materials",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_35",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Overtime",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_36",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Overtime Labour",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_37",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Pallet Prep",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_38",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Pallet Wrap",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_39",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Quality Control",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_4",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Bagging (Ops)",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_40",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Receipt Mixed Carton Unit",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_41",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Receipt Processing",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_42",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Receiving",
+    "gl": 5202,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_43",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Recoverable Materials",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_44",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Repackaging",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_45",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Replenishment",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_46",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Restock",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_47",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Returns",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_48",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Returns Freight",
+    "gl": 5207,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_49",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Rush Order",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_5",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Call Tags",
+    "gl": 5207,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_50",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Service Center Labor",
+    "gl": 5203,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_51",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Shipment Cancellation",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_52",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Shop Supplies",
+    "gl": 5210,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_53",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Storage",
+    "gl": 5205,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_54",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Storage Carton Shipped",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_55",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Stripping",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_56",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Systems Maintenance",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_57",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Tagging",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_58",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Transfer Order fulfillment & receipt",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_59",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Vendor Chargebacks",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_6",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "CI Generation",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_60",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Vendor Compliance",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_61",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Warehouse Labor",
+    "gl": 5211,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_62",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Warehouse Labour",
+    "gl": 5211,
+    "glWholesaleOrder": 5211,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_7",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "CI Maintenance",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_8",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "COVID-19 Surcharge",
+    "gl": 5204,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  },
+  {
+    "id": "ngr_ca_2026-09_9",
+    "entity": "CA",
+    "month": "2026-09",
+    "service": "Cross Dock Carton Handling",
+    "gl": 5201,
+    "glWholesaleOrder": null,
+    "updatedAt": "2026-10-05T22:07:08.451Z",
+    "updatedBy": "admin@tentree.com"
+  }
+]

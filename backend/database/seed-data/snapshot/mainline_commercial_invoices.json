@@ -78,5 +78,25 @@
     "status": "confirmed",
     "confirmedAt": "2026-08-31T18:59:10.157Z",
     "fileUrl": null
+  },
+  {
+    "id": "ci_11",
+    "bookingId": "11",
+    "invoiceNumber": "INV-11",
+    "invoiceDate": "2026-09-28",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmedAt": "2026-09-28T15:51:13.796Z",
+    "fileUrl": null
+  },
+  {
+    "id": "ci_12",
+    "bookingId": "12",
+    "invoiceNumber": "INV-12",
+    "invoiceDate": "2026-09-29",
+    "source": "shipment_data",
+    "status": "confirmed",
+    "confirmedAt": "2026-09-29T17:12:48.240Z",
+    "fileUrl": null
   }
 ]

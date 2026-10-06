@@ -1,0 +1,38 @@
+[
+  {
+    "id": "nbf_ca_50020",
+    "entity": "CA",
+    "fileName": "NRI CA Invoice Sept 15 2026.csv",
+    "invoiceNo": "50020",
+    "periodEnd": "2026-09-15",
+    "reportDate": "2026-09-21",
+    "lineCount": 12486,
+    "charges": 76850.43,
+    "taxes": 5412.93,
+    "invAmt": 82263.36,
+    "locked": false,
+    "uploadedAt": "2026-10-01T22:15:08.784Z",
+    "uploadedBy": "admin@tentree.com",
+    "storedPath": "storage\\reference\\nri-billing\\ca\\NRI CA Invoice Sept 15 2026.csv",
+    "confirmedAt": null,
+    "confirmedBy": null
+  },
+  {
+    "id": "nbf_ca_50228",
+    "entity": "CA",
+    "fileName": "NRI CA Invoice Sept 30 2026.csv",
+    "invoiceNo": "50228",
+    "periodEnd": "2026-09-30",
+    "reportDate": "2026-10-02",
+    "lineCount": 9648,
+    "charges": 91516.17,
+    "taxes": 5711.34,
+    "invAmt": 97227.51,
+    "locked": false,
+    "uploadedAt": "2026-10-05T21:32:22.918Z",
+    "uploadedBy": "admin@tentree.com",
+    "storedPath": "storage\\reference\\nri-billing\\ca\\NRI CA Invoice Sept 30 2026.csv",
+    "confirmedAt": null,
+    "confirmedBy": null
+  }
+]

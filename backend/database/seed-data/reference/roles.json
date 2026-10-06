@@ -23,7 +23,8 @@
       "shipment_import_export",
       "po_edit",
       "settings_edit",
-      "user_manage"
+      "user_manage",
+      "shipment_flag_priority"
     ]
   },
   {
@@ -49,7 +50,8 @@
       "shipment_import_export",
       "po_edit",
       "settings_edit",
-      "purchase_orders"
+      "purchase_orders",
+      "shipment_flag_priority"
     ]
   },
   {

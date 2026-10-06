@@ -52,6 +52,13 @@ jobs:
           script: |
             set -e
 
+            # Minimal Oracle Ubuntu images ship without git.
+            if ! command -v git >/dev/null || ! command -v curl >/dev/null; then
+              echo "[VM Workflow] Installing git/curl"
+              sudo apt-get update -qq
+              sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git curl ca-certificates
+            fi
+
             echo "[VM Workflow] Updating $APP_DIR to $REPO@$BRANCH"
             mkdir -p "$APP_DIR"
             cd "$APP_DIR"

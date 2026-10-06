@@ -633,7 +633,7 @@
     "id": "47",
     "courierId": "c3",
     "trackingNumber": "CA26032899",
-    "shipDate": null,
+    "shipDate": "2026-09-08",
     "facilityId": "fac_nri_us",
     "manualStatusId": "sms_delivered",
     "createdBy": "1",

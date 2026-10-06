@@ -1,0 +1,93 @@
+# Local rehearsal of the production stack: postgres → backend → frontend → nginx (self-signed TLS).
+#
+#   docker compose -f docker-compose.local.yml up -d --build
+#   (db-init seeds an EMPTY database from backend/database/seed-data automatically;
+#    to reseed: docker compose -f docker-compose.local.yml down -v, then up again)
+#   open https://localhost   (accept the self-signed certificate)
+#
+# ⚠ Deliberately does NOT load backend/.env: that file carries PRODUCTION NetSuite
+#   credentials and LANDED_COST_NS_PUSH=enabled, and the backend's cron would sync
+#   against live NetSuite from this laptop. Without it the cron jobs fail harmlessly
+#   and email lands in the outbox volume instead of being sent.
+name: tentree-local
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: tentree_portal
+      POSTGRES_USER: tentree
+      POSTGRES_PASSWORD: local-only-password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432" # psql from the host
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tentree -d tentree_portal"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  db-init:
+    build:
+      context: ./backend
+    image: tentree-local-backend:latest
+    restart: "no"
+    command: ["node", "database/init.js", "--all", "--if-empty"]
+    environment:
+      DATABASE_URL: postgres://tentree:local-only-password@postgres:5432/tentree_portal
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: ./backend
+    image: tentree-local-backend:latest
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgres://tentree:local-only-password@postgres:5432/tentree_portal
+      JWT_SECRET: local-only-jwt-secret-not-for-production-use-0123456789
+      CORS_ORIGINS: https://localhost
+      APP_URL: https://localhost
+      EMAIL_NOTIFICATIONS: "on"
+    volumes:
+      - uploads:/app/storage/uploads
+      - outbox:/app/storage/outbox
+      - nri_billing:/app/storage/reference/nri-billing
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+
+  frontend:
+    build:
+      context: ./frontend/tentree-scportal
+      args:
+        NEXT_PUBLIC_API_URL: http://backend:5000
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://backend:5000
+      JWT_SECRET: local-only-jwt-secret-not-for-production-use-0123456789
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  nginx:
+    build:
+      context: ./nginx.local
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx.local/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.local/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx.local/opt/nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx.local/logs:/var/log/nginx:rw
+    depends_on:
+      - frontend
+
+volumes:
+  pgdata:
+  uploads:
+  outbox:
+  nri_billing:

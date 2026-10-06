@@ -430,5 +430,113 @@
     "fileUrl": "/uploads/pl_1788202749961_9_PO04756.xlsx",
     "invoiceNumber": "INV-9-PO04756-260831",
     "generatedAt": "2026-08-31T18:59:10.157Z"
+  },
+  {
+    "id": "doc_11_ALL_ci",
+    "bookingId": "11",
+    "legId": null,
+    "docType": "commercial_invoice",
+    "fileUrl": "/uploads/ci_1790610673694_11_ALL.xlsx",
+    "invoiceNumber": "INV-11-ALL-260928",
+    "generatedAt": "2026-09-28T15:51:13.757Z"
+  },
+  {
+    "id": "doc_11_ALL_pl",
+    "bookingId": "11",
+    "legId": null,
+    "docType": "packing_list",
+    "fileUrl": "/uploads/pl_1790610673694_11_ALL.xlsx",
+    "invoiceNumber": "INV-11-ALL-260928",
+    "generatedAt": "2026-09-28T15:51:13.757Z"
+  },
+  {
+    "id": "doc_11_PO04735_ci",
+    "bookingId": "11",
+    "legId": "66",
+    "docType": "commercial_invoice",
+    "fileUrl": "/uploads/ci_1790610673694_11_PO04735.xlsx",
+    "invoiceNumber": "INV-11-PO04735-260928",
+    "generatedAt": "2026-09-28T15:51:13.774Z"
+  },
+  {
+    "id": "doc_11_PO04735_pl",
+    "bookingId": "11",
+    "legId": "66",
+    "docType": "packing_list",
+    "fileUrl": "/uploads/pl_1790610673694_11_PO04735.xlsx",
+    "invoiceNumber": "INV-11-PO04735-260928",
+    "generatedAt": "2026-09-28T15:51:13.774Z"
+  },
+  {
+    "id": "doc_11_PO04763_ci",
+    "bookingId": "11",
+    "legId": "85",
+    "docType": "commercial_invoice",
+    "fileUrl": "/uploads/ci_1790610673694_11_PO04763.xlsx",
+    "invoiceNumber": "INV-11-PO04763-260928",
+    "generatedAt": "2026-09-28T15:51:13.796Z"
+  },
+  {
+    "id": "doc_11_PO04763_pl",
+    "bookingId": "11",
+    "legId": "85",
+    "docType": "packing_list",
+    "fileUrl": "/uploads/pl_1790610673694_11_PO04763.xlsx",
+    "invoiceNumber": "INV-11-PO04763-260928",
+    "generatedAt": "2026-09-28T15:51:13.796Z"
+  },
+  {
+    "id": "doc_12_ALL_ci",
+    "bookingId": "12",
+    "legId": null,
+    "docType": "commercial_invoice",
+    "fileUrl": "/uploads/ci_1790701968189_12_ALL.xlsx",
+    "invoiceNumber": "INV-12-ALL-260929",
+    "generatedAt": "2026-09-29T17:12:48.210Z"
+  },
+  {
+    "id": "doc_12_ALL_pl",
+    "bookingId": "12",
+    "legId": null,
+    "docType": "packing_list",
+    "fileUrl": "/uploads/pl_1790701968189_12_ALL.xlsx",
+    "invoiceNumber": "INV-12-ALL-260929",
+    "generatedAt": "2026-09-29T17:12:48.210Z"
+  },
+  {
+    "id": "doc_12_PO04776_ci",
+    "bookingId": "12",
+    "legId": "24",
+    "docType": "commercial_invoice",
+    "fileUrl": "/uploads/ci_1790701968189_12_PO04776.xlsx",
+    "invoiceNumber": "INV-12-PO04776-260929",
+    "generatedAt": "2026-09-29T17:12:48.226Z"
+  },
+  {
+    "id": "doc_12_PO04776_pl",
+    "bookingId": "12",
+    "legId": "24",
+    "docType": "packing_list",
+    "fileUrl": "/uploads/pl_1790701968189_12_PO04776.xlsx",
+    "invoiceNumber": "INV-12-PO04776-260929",
+    "generatedAt": "2026-09-29T17:12:48.226Z"
+  },
+  {
+    "id": "doc_12_PO04788_ci",
+    "bookingId": "12",
+    "legId": "11",
+    "docType": "commercial_invoice",
+    "fileUrl": "/uploads/ci_1790701968189_12_PO04788.xlsx",
+    "invoiceNumber": "INV-12-PO04788-260929",
+    "generatedAt": "2026-09-29T17:12:48.240Z"
+  },
+  {
+    "id": "doc_12_PO04788_pl",
+    "bookingId": "12",
+    "legId": "11",
+    "docType": "packing_list",
+    "fileUrl": "/uploads/pl_1790701968189_12_PO04788.xlsx",
+    "invoiceNumber": "INV-12-PO04788-260929",
+    "generatedAt": "2026-09-29T17:12:48.240Z"
   }
 ]

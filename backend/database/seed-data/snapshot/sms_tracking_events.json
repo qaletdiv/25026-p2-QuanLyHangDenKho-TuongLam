@@ -5982,5 +5982,13 @@
     "courierCode": "DL",
     "description": "Delivered",
     "location": "KAMLOOPS, BC, CA"
+  },
+  {
+    "id": "ste_749",
+    "shipmentId": "49",
+    "eventTime": "2026-09-25T11:38:00-07:00",
+    "courierCode": "DL",
+    "description": "Delivered",
+    "location": "FONTANA, CA, US"
   }
 ]

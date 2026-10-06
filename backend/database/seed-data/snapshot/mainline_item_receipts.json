@@ -1040,9 +1040,9 @@
     "poNumber": "PO04735",
     "receiptDate": "2026-09-24",
     "source": "netsuite",
-    "matchedShipmentId": null,
-    "confirmedBy": null,
-    "confirmedAt": null
+    "matchedShipmentId": "11",
+    "confirmedBy": "1",
+    "confirmedAt": "2026-09-28T15:57:34.952Z"
   },
   {
     "id": "mir_98",
@@ -1051,8 +1051,30 @@
     "poNumber": "PO04763",
     "receiptDate": "2026-09-24",
     "source": "netsuite",
-    "matchedShipmentId": null,
-    "confirmedBy": null,
-    "confirmedAt": null
+    "matchedShipmentId": "11",
+    "confirmedBy": "1",
+    "confirmedAt": "2026-09-28T15:57:36.195Z"
+  },
+  {
+    "id": "mir_99",
+    "netsuiteIrId": "34182629",
+    "netsuiteIrTranid": "IR66269",
+    "poNumber": "PO04776",
+    "receiptDate": "2026-09-29",
+    "source": "netsuite",
+    "matchedShipmentId": "12",
+    "confirmedBy": "1",
+    "confirmedAt": "2026-09-29T17:21:59.952Z"
+  },
+  {
+    "id": "mir_100",
+    "netsuiteIrId": "34182630",
+    "netsuiteIrTranid": "IR66270",
+    "poNumber": "PO04788",
+    "receiptDate": "2026-09-29",
+    "source": "netsuite",
+    "matchedShipmentId": "12",
+    "confirmedBy": "1",
+    "confirmedAt": "2026-09-29T17:22:01.550Z"
   }
 ]

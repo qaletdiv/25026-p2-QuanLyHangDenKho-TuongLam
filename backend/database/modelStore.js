@@ -122,7 +122,10 @@ function assertKnownKeys(model, rows) {
 
 /** Every row of `model`, in stored order. */
 async function readAll(model) {
-    const rows = await model.findAll({ order: [[SEQ, 'ASC']], raw: true, ...txOptions() });
+    // Tables written through the ORM directly (the NRI billing family) carry no
+    // `_seq`; their stable order is the primary key. ORDER BY "_seq" would throw.
+    const order = model.rawAttributes[SEQ] ? [[SEQ, 'ASC']] : model.primaryKeyAttributes.map((k) => [k, 'ASC']);
+    const rows = await model.findAll({ order, raw: true, ...txOptions() });
     const decoders = decodersFor(model);
     return rows.map((r) => decodeRow(r, decoders));
 }

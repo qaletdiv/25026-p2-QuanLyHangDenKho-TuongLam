@@ -124,5 +124,33 @@
     "legId": "87",
     "lotNumber": 1,
     "expectedQuantity": 1000
+  },
+  {
+    "id": "spl_11_66",
+    "shipmentId": "11",
+    "legId": "66",
+    "lotNumber": 1,
+    "expectedQuantity": 162
+  },
+  {
+    "id": "spl_11_85",
+    "shipmentId": "11",
+    "legId": "85",
+    "lotNumber": 1,
+    "expectedQuantity": 79
+  },
+  {
+    "id": "spl_12_24",
+    "shipmentId": "12",
+    "legId": "24",
+    "lotNumber": 1,
+    "expectedQuantity": 31
+  },
+  {
+    "id": "spl_12_11",
+    "shipmentId": "12",
+    "legId": "11",
+    "lotNumber": 1,
+    "expectedQuantity": 22
   }
 ]
