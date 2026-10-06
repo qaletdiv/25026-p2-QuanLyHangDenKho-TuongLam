@@ -1,4 +1,5 @@
-# tentree Supply Chain Portal — single-host deploy (AWS EC2 + Docker Compose).
+# tentree Supply Chain Portal — single-host deploy (Oracle Cloud VM + Docker Compose).
+# CI/CD: .github/workflows/production_vm.yml (push to `devops`).
 #
 #   Internet → Cloudflare → nginx :443 → frontend :3000 → backend :5000 → postgres :5432
 #

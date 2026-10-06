@@ -68,3 +68,6 @@ frontend/tentree-scportal/dev.err.log
 !/nginx/logs/.keep
 # Excel lock files
 ~$*
+# Notes of what to set in GitHub → Settings → Secrets and variables (not the real store)
+/.github/workflows/.secrets
+/.github/workflows/.vars

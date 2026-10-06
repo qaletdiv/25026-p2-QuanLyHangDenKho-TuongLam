@@ -1,0 +1,103 @@
+name: Build and Deploy VM
+
+# Push to `devops` → SSH into the Oracle Cloud VM → fetch this commit → docker compose build + up.
+#
+# Repository settings (Settings → Secrets and variables → Actions):
+#   secret   SSH_PRIVATE_KEY    private key whose .pub is in the VM's ~/.ssh/authorized_keys
+#   vars     SSH_HOST, SSH_PORT, SSH_USER, SSH_PROJECT_PATH
+#
+# The repo is private, so the VM fetches with this run's short-lived GITHUB_TOKEN —
+# no deploy key or PAT is stored on the server.
+#
+# Host-only files (gitignored, survive every deploy; `git reset --hard` leaves untracked files alone):
+#   $SSH_PROJECT_PATH/.env                         JWT_SECRET, POSTGRES_*, PUBLIC_URL (deploy.env.example)
+#   $SSH_PROJECT_PATH/backend/.env                 NetSuite, FedEx, SMTP…
+#   $SSH_PROJECT_PATH/nginx/opt/nginx/ssl/origin.{pem,key}   Cloudflare origin certificate
+
+on:
+  push:
+    branches:
+      - devops
+  workflow_dispatch:
+
+# Never run two deploys against the one VM at once.
+concurrency:
+  group: production-vm
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Build and Deploy to VM via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          APP_DIR: ${{ vars.SSH_PROJECT_PATH }}
+        with:
+          host: ${{ vars.SSH_HOST }}
+          username: ${{ vars.SSH_USER }}
+          port: ${{ vars.SSH_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: GH_TOKEN,REPO,BRANCH,APP_DIR
+          # Default is 10m; `next build` on the VM alone can take longer.
+          command_timeout: 40m
+          script: |
+            set -e
+
+            echo "[VM Workflow] Updating $APP_DIR to $REPO@$BRANCH"
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+            [ -d .git ] || git init -q
+            # Token only on this command line — never written to .git/config.
+            git fetch -q --depth=1 "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "$BRANCH"
+            git reset -q --hard FETCH_HEAD
+            git log -1 --format='[VM Workflow] Deploying %h %s'
+
+            echo "[VM Workflow] Checking host-only files"
+            missing=""
+            for f in .env backend/.env nginx/opt/nginx/ssl/origin.pem nginx/opt/nginx/ssl/origin.key; do
+              [ -f "$f" ] || missing="$missing $f"
+            done
+            if [ -n "$missing" ]; then
+              echo "[VM Workflow] Missing on the VM:$missing (see deploy.env.example)"; exit 1
+            fi
+
+            sudo chmod +x ./scripts/*.sh
+
+            echo "[VM Workflow] Install Docker"
+            sudo ./scripts/setup-docker.sh
+
+            echo "[VM Workflow] Build images"
+            sudo docker compose build
+
+            echo "[VM Workflow] Update Cloudflare firewall"
+            sudo ./scripts/setup-cloudflare-firewall.sh
+
+            echo "[VM Workflow] Update Docker firewall"
+            sudo ./scripts/setup-docker-firewall.sh
+
+            echo "[VM Workflow] Deploy Docker"
+            # Recreates only changed services; postgres and its volume are untouched.
+            sudo docker compose up -d --remove-orphans
+
+            echo "[VM Workflow] Waiting for healthy"
+            for i in $(seq 1 40); do
+              bad=$(sudo docker compose ps --format '{{.Name}} {{.Health}}' | awk '$2!="" && $2!="healthy"')
+              if [ -z "$bad" ] && curl -fsk -o /dev/null --resolve localhost:443:127.0.0.1 https://localhost/login; then
+                echo "[VM Workflow] Healthy"
+                sudo docker image prune -f >/dev/null
+                exit 0
+              fi
+              sleep 5
+            done
+            echo "[VM Workflow] Not healthy after 200s: $bad"
+            sudo docker compose logs --tail=80 backend frontend
+            exit 1
