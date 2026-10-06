@@ -701,6 +701,205 @@ class IntegrationService {
     }
 
     /**
+     * Item Fulfillments shipped from a 3PL's NetSuite locations — the NRI "order
+     * data" (All Invoices). READ-ONLY.
+     *
+     * An NRI invoice line's `Client Ref 1` IS the fulfillment number (IF…), and the
+     * order data's Ref2 is its internal id, so these records are what the team used
+     * to paste in by hand. Verified against PRODUCTION 2026-10-01 on all 8,824 CA
+     * orders then held: 8,796 found, and the sales-channel segment agrees with NRI's
+     * OrderType on every one (ECOM ↔ "CA - Ecommerce", trade types ↔ wholesale).
+     *
+     * Fields (both copied onto the IF from its sales order):
+     *   custbody6            order type — Online, Prebook, Prebook ATP, POP, Promo, …
+     *   cseg_tt_salechannel  NetSuite's own channel segment — "CA - Ecommerce", …
+     * Transfer-order fulfillments carry neither.
+     *
+     * Scoped by LOCATION (line-level `location` on the mainline row), resolved by
+     * name prefix ("NRI CA" → NRI CA First Inventory + NRI CA Reserved), and by
+     * `trandate` inclusive range — so a pull is one indexed query, not a scan.
+     *
+     * @param {{ locationPrefix: string, from: string, to: string }} opts  ISO dates
+     * @returns {Promise<{ locations: {id,name}[], rows: object[] }>}
+     */
+    async fetchNriItemFulfillments({ locationPrefix, from, to }) {
+        const safe = (s) => String(s).replace(/'/g, "''");
+        const iso = (d) => { if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d))) throw new Error(`bad date ${d}`); return d; };
+        const locations = (await this._suiteqlFetchAll(
+            `SELECT id, name FROM location WHERE name LIKE '${safe(locationPrefix)}%'`,
+        )).map((r) => ({ id: Number(r.id), name: r.name }));
+        if (!locations.length) return { locations, rows: [] };
+        const raw = await this._suiteqlFetchAll(`
+            SELECT f.id AS id, f.tranid AS tranid, f.trandate AS trandate,
+                   BUILTIN.DF(f.entity) AS customer,
+                   BUILTIN.DF(f.custbody6) AS ordertype,
+                   BUILTIN.DF(f.cseg_tt_salechannel) AS saleschannel,
+                   BUILTIN.DF(fl.location) AS location
+              FROM transaction f
+              JOIN transactionline fl ON fl.transaction = f.id AND fl.mainline = 'T'
+             WHERE f.type = 'ItemShip'
+               AND fl.location IN (${locations.map((l) => l.id).join(',')})
+               AND f.trandate >= TO_DATE('${iso(from)}', 'YYYY-MM-DD')
+               AND f.trandate <= TO_DATE('${iso(to)}', 'YYYY-MM-DD')`);
+        // NetSuite returns dates as M/D/YYYY in this account's format — normalise.
+        const isoDate = (v) => {
+            const m = String(v || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/) || String(v || '').match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+            if (!m) return null;
+            return m[1].length === 4 ? `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}` : `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`;
+        };
+        const rows = raw.map((r) => ({
+            orderNo: r.tranid,
+            ref2: r.id === null || r.id === undefined ? null : String(r.id),
+            custName: r.customer || null,
+            orderType: r.ordertype || null,
+            salesChannel: r.saleschannel || null,
+            location: r.location || null,
+            completed: isoDate(r.trandate),
+        }));
+        return { locations, rows };
+    }
+
+    /**
+     * Return Authorizations for the NRI order data (All Invoices) — READ-ONLY.
+     *
+     * A returns line on an NRI invoice (Returns / Restock / Service Center Labor)
+     * quotes its RA three ways, all verified on PRODUCTION 2026-10-01:
+     *   Client Ref 2      = the RA's internal id           (4,774 of 5,124 lines)
+     *   Client Ref 1      = the RA number, "RMA89832"     (numeric form)
+     *                    or its otherrefnum, "RMA #V0NUF99J" (the ecom form)
+     * 1,450 of 1,454 referenced ids resolved, 1,448 of them RtnAuth. The RA carries
+     * the same custbody6 (order type) and cseg_tt_salechannel as a sales order.
+     *
+     * Two modes, combinable:
+     *   { locationPrefix, from, to }       — RAs dated in range at those locations
+     *   { ids, tranids, otherRefs }        — exactly the RAs an invoice references
+     *                                        (a return can quote an RA months old)
+     * @returns {Promise<object[]>} rows shaped like fetchNriItemFulfillments' rows
+     */
+    async fetchNriReturnAuthorizations({ locationPrefix, from, to, ids = [], tranids = [], otherRefs = [] } = {}) {
+        const safe = (s) => String(s).replace(/'/g, "''");
+        const iso = (d) => { if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d))) throw new Error(`bad date ${d}`); return d; };
+        const select = `
+            SELECT t.id AS id, t.tranid AS tranid, t.otherrefnum AS otherrefnum, t.trandate AS trandate,
+                   BUILTIN.DF(t.entity) AS customer,
+                   BUILTIN.DF(t.custbody6) AS ordertype,
+                   BUILTIN.DF(t.cseg_tt_salechannel) AS saleschannel,
+                   BUILTIN.DF(tl.location) AS location
+              FROM transaction t
+              JOIN transactionline tl ON tl.transaction = t.id AND tl.mainline = 'T'
+             WHERE t.type = 'RtnAuth'`;
+        const raw = [];
+        if (locationPrefix && from && to) {
+            raw.push(...await this._suiteqlFetchAll(`${select}
+               AND tl.location IN (SELECT id FROM location WHERE name LIKE '${safe(locationPrefix)}%')
+               AND t.trandate >= TO_DATE('${iso(from)}', 'YYYY-MM-DD')
+               AND t.trandate <= TO_DATE('${iso(to)}', 'YYYY-MM-DD')`));
+        }
+        // exact references, in batches (SuiteQL IN lists stay well under its limits)
+        const batches = (list, fn) => { const out = []; for (let i = 0; i < list.length; i += 500) out.push(fn(list.slice(i, i + 500))); return out; };
+        const numIds = [...new Set(ids.map(String).filter((v) => /^\d+$/.test(v)))];
+        for (const sql of [
+            ...batches(numIds, (b) => `${select} AND t.id IN (${b.join(',')})`),
+            ...batches([...new Set(tranids)], (b) => `${select} AND t.tranid IN (${b.map((v) => `'${safe(v)}'`).join(',')})`),
+            ...batches([...new Set(otherRefs)], (b) => `${select} AND t.otherrefnum IN (${b.map((v) => `'${safe(v)}'`).join(',')})`),
+        ]) raw.push(...await this._suiteqlFetchAll(sql));
+
+        const isoDate = (v) => {
+            const m = String(v || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/) || String(v || '').match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+            if (!m) return null;
+            return m[1].length === 4 ? `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}` : `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`;
+        };
+        const byId = new Map();
+        for (const r of raw) {
+            byId.set(String(r.id), {
+                orderNo: r.tranid,
+                ref2: String(r.id),
+                altRef: r.otherrefnum || null,
+                custName: r.customer || null,
+                orderType: r.ordertype || null,
+                salesChannel: r.saleschannel || null,
+                location: r.location || null,
+                completed: isoDate(r.trandate),
+            });
+        }
+        return [...byId.values()];
+    }
+
+    /**
+     * The other records an NRI invoice line can QUOTE in Client Ref 1, fetched by
+     * exactly the references quoted (All Invoices) — READ-ONLY. Verified on
+     * PRODUCTION 2026-10-02:
+     *   ifTranids   "IF4041479620" — an Item Fulfillment older than the synced window
+     *   soOtherRefs "CA987809"     — a web order: the Sales Order's otherrefnum is
+     *                                "#CA987809" (SO151794169571399, Online). A return
+     *                                quoting it with no RA in NetSuite resolves here.
+     *   poTranids   "PO04728"      — an inbound receipt on a Purchase Order; its
+     *                                LOCATION is the channel (NRI CA First Inventory →
+     *                                Ecomm, NRI CA Reserved → Wholesale), so the row's
+     *                                order type is "PO - <location>" and `channelHint`
+     *                                says which column it belongs in.
+     * @returns {Promise<{ itemShip: object[], salesOrd: object[], purchOrd: object[] }>}
+     *          rows shaped like fetchNriItemFulfillments' rows
+     */
+    async fetchNriReferencedRecords({ ifTranids = [], soOtherRefs = [], poTranids = [] } = {}) {
+        const safe = (s) => String(s).replace(/'/g, "''");
+        const list = (b) => b.map((v) => `'${safe(v)}'`).join(',');
+        const batches = (vals, fn) => { const u = [...new Set(vals)]; const out = []; for (let i = 0; i < u.length; i += 500) out.push(fn(u.slice(i, i + 500))); return out; };
+        const isoDate = (v) => {
+            const m = String(v || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/) || String(v || '').match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+            if (!m) return null;
+            return m[1].length === 4 ? `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}` : `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`;
+        };
+        const header = (type) => `
+            SELECT t.id AS id, t.tranid AS tranid, t.otherrefnum AS otherrefnum, t.trandate AS trandate,
+                   BUILTIN.DF(t.entity) AS customer,
+                   BUILTIN.DF(t.custbody6) AS ordertype,
+                   BUILTIN.DF(t.cseg_tt_salechannel) AS saleschannel,
+                   BUILTIN.DF(tl.location) AS location
+              FROM transaction t
+              JOIN transactionline tl ON tl.transaction = t.id AND tl.mainline = 'T'
+             WHERE t.type = '${type}'`;
+        const shape = (r) => ({
+            orderNo: r.tranid,
+            ref2: r.id === null || r.id === undefined ? null : String(r.id),
+            altRef: r.otherrefnum || null,
+            custName: r.customer || null,
+            orderType: r.ordertype || null,
+            salesChannel: r.saleschannel || null,
+            location: r.location || null,
+            completed: isoDate(r.trandate),
+        });
+        const run = async (sqls) => { const out = []; for (const q of sqls) out.push(...await this._suiteqlFetchAll(q)); return out; };
+
+        const itemShip = (await run(batches(ifTranids, (b) => `${header('ItemShip')} AND t.tranid IN (${list(b)})`))).map(shape);
+        // NRI drops the "#" the web store puts on the order number — ask for both forms
+        const soRefs = soOtherRefs.flatMap((v) => { const bare = String(v).trim().replace(/^#+/, ''); return [bare, `#${bare}`]; });
+        const salesOrd = (await run(batches(soRefs, (b) => `${header('SalesOrd')} AND t.otherrefnum IN (${list(b)})`))).map(shape);
+
+        // a PO's location sits on its item lines (the mainline row often has none):
+        // take the location carrying the most lines
+        const poRaw = await run(batches(poTranids, (b) => `
+            SELECT t.id AS id, t.tranid AS tranid, t.trandate AS trandate,
+                   BUILTIN.DF(t.entity) AS customer,
+                   BUILTIN.DF(tl.location) AS location, COUNT(*) AS n
+              FROM transaction t
+              JOIN transactionline tl ON tl.transaction = t.id
+             WHERE t.type = 'PurchOrd' AND t.tranid IN (${list(b)}) AND tl.location IS NOT NULL
+             GROUP BY t.id, t.tranid, t.trandate, BUILTIN.DF(t.entity), BUILTIN.DF(tl.location)`));
+        const best = new Map();
+        for (const r of poRaw) { const cur = best.get(String(r.id)); if (!cur || Number(r.n) > Number(cur.n)) best.set(String(r.id), r); }
+        const purchOrd = [...best.values()].map((r) => {
+            const where = String(r.location || '').replace(/^NRI\s+(CA|US)\s+/i, '').trim();
+            return {
+                ...shape({ ...r, otherrefnum: null, ordertype: null, saleschannel: null }),
+                orderType: `PO - ${where || 'NO LOCATION'}`,
+                channelHint: /first|ecommerce/i.test(where) ? 'ecomm' : 'whsle',
+            };
+        });
+        return { itemShip, salesOrd, purchOrd };
+    }
+
+    /**
      * Send an email report.
      * Stub — replace with Nodemailer / SendGrid when ready.
      */

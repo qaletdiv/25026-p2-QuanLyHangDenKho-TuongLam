@@ -1,0 +1,37 @@
+# CodeBuild: build the three images, push to ECR, hand CodeDeploy a bundle.
+# Env (set by infra/cicd.yml): AWS_DEFAULT_REGION, ECR_PREFIX (e.g. "tentree-scportal").
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+      - ECR_REGISTRY=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-12)
+      - aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
+      - for s in backend frontend nginx; do docker pull $ECR_REGISTRY/$ECR_PREFIX-$s:latest || true; done
+  build:
+    commands:
+      - docker build --cache-from $ECR_REGISTRY/$ECR_PREFIX-backend:latest  -t $ECR_REGISTRY/$ECR_PREFIX-backend:$IMAGE_TAG  ./backend
+      - docker build --cache-from $ECR_REGISTRY/$ECR_PREFIX-frontend:latest --build-arg NEXT_PUBLIC_API_URL=http://backend:5000 -t $ECR_REGISTRY/$ECR_PREFIX-frontend:$IMAGE_TAG ./frontend/tentree-scportal
+      - docker build -t $ECR_REGISTRY/$ECR_PREFIX-nginx:$IMAGE_TAG ./nginx
+  post_build:
+    commands:
+      - |
+        for s in backend frontend nginx; do
+          docker tag  $ECR_REGISTRY/$ECR_PREFIX-$s:$IMAGE_TAG $ECR_REGISTRY/$ECR_PREFIX-$s:latest
+          docker push $ECR_REGISTRY/$ECR_PREFIX-$s:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_PREFIX-$s:latest
+        done
+      # Pins this exact build for the deploy hooks.
+      - printf 'ECR_REGISTRY=%s\nECR_PREFIX=%s\nIMAGE_TAG=%s\nAWS_REGION=%s\n' $ECR_REGISTRY $ECR_PREFIX $IMAGE_TAG $AWS_DEFAULT_REGION > release.env
+
+artifacts:
+  files:
+    - appspec.yml
+    - release.env
+    - docker-compose.yml
+    - docker-compose.prod.yml
+    - deploy/**/*
+    - nginx/nginx.conf
+    - nginx/conf.d/**/*

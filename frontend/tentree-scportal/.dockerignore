@@ -1,0 +1,11 @@
+# .env.local holds JWT_SECRET — inject at runtime, never bake into the image.
+.env
+.env.*
+node_modules
+.next
+scratch
+dev.out.log
+dev.err.log
+*.log
+tsconfig.tsbuildinfo
+overview.excalidraw

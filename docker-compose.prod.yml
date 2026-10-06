@@ -1,0 +1,12 @@
+# Overlay used by the CI/CD deploy: run the images CodeBuild pushed to ECR instead
+# of building on the host. ECR_REGISTRY / ECR_PREFIX / IMAGE_TAG come from
+# release.env, written by buildspec.yml.
+#   docker compose --env-file .env --env-file release.env \
+#     -f docker-compose.yml -f docker-compose.prod.yml up -d --no-build
+services:
+  backend:
+    image: ${ECR_REGISTRY}/${ECR_PREFIX}-backend:${IMAGE_TAG}
+  frontend:
+    image: ${ECR_REGISTRY}/${ECR_PREFIX}-frontend:${IMAGE_TAG}
+  nginx:
+    image: ${ECR_REGISTRY}/${ECR_PREFIX}-nginx:${IMAGE_TAG}

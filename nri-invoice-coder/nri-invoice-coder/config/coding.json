@@ -1,0 +1,490 @@
+[
+  {
+    "service": "ATS Administration",
+    "gl": 5211,
+    "description": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "CI Generation",
+    "gl": 5201,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "CI Maintenance",
+    "gl": 5201,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Handling",
+    "gl": 5201,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Manual BOL",
+    "gl": 5211,
+    "description": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Order Processing",
+    "gl": 5201,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Order Cancellation",
+    "gl": 5201,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Order Restocking",
+    "gl": 5204,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Inbound Units Audit",
+    "gl": 5202,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Inbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Receipt Mixed Carton Unit",
+    "gl": 5202,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Inbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Receipt Processing",
+    "gl": 5202,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Inbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Receiving",
+    "gl": 5202,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Inbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Repackaging",
+    "gl": 5210,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Supplies",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "EDI Labels",
+    "gl": 5211,
+    "description": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Pallet Wrap",
+    "gl": 5210,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Supplies",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Quality Control",
+    "gl": 5204,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Tagging",
+    "gl": 5211,
+    "description": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Warehouse Labor",
+    "gl": 5211,
+    "description": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Restock",
+    "gl": 5203,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Returns",
+    "class": "CA - Whsle",
+    "usClass": "US - Online",
+    "notes": "Check for wholesale returns in the details tab - majority is usually ecom"
+  },
+  {
+    "service": "Returns",
+    "gl": 5203,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Returns",
+    "class": "CA - Whsle",
+    "usClass": "US - Online",
+    "notes": "Check for wholesale returns in the details tab - majority is usually ecom"
+  },
+  {
+    "service": "Service Center Labor",
+    "gl": 5203,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Returns",
+    "class": "CA - Whsle",
+    "usClass": "US - Online",
+    "notes": "Check for wholesale returns in the details tab - majority is usually ecom"
+  },
+  {
+    "service": "Overtime Labour",
+    "gl": 5204,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Storage Carton Shipped",
+    "gl": 5201,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Outbound Shipment Materials",
+    "gl": 5210,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Supplies",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Shop Supplies",
+    "gl": 5210,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Supplies",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Inbound Palletization",
+    "gl": 5202,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Inbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Outbound Freight",
+    "gl": 5206,
+    "description": "COGS : Distribution/Logistics : Freight Expense - Outbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Returns Freight",
+    "gl": 5207,
+    "description": "COGS : Distribution/Logistics : Freight Expense - Returns",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "COVID-19 Surcharge",
+    "gl": 5204,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Administration Fee",
+    "gl": 5204,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Data Entry Labour",
+    "gl": 5204,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Order Manual Data Entry",
+    "gl": 5201,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Call Tags",
+    "gl": 5207,
+    "description": "COGS : Distribution/Logistics : Freight Expense - Returns",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Inbound Freight",
+    "gl": 2057,
+    "description": "Inventory Related Payable : Freight Clearing",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": "Duty and taxes incorrectly billed to NRI instead of tentree (suppliers via DHLEX)"
+  },
+  {
+    "service": "Insert",
+    "gl": 5211,
+    "description": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Systems Maintenance",
+    "gl": 5204,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "IT TIME",
+    "gl": 5204,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Cycle Count",
+    "gl": 5204,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Storage",
+    "gl": 5205,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Storage",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Bagging (Ops)",
+    "gl": 5211,
+    "description": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Shipment Cancellation",
+    "gl": 5204,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Cross Dock Carton Receiving",
+    "gl": 5202,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Inbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Corp",
+    "notes": "Leedsworld crossdocks"
+  },
+  {
+    "service": "Cross Dock Carton Handling",
+    "gl": 5201,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Corp",
+    "notes": "Leedsworld crossdocks"
+  },
+  {
+    "service": "Cross Dock Storage",
+    "gl": 5205,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Storage",
+    "class": "CA - Whsle",
+    "usClass": "US - Corp",
+    "notes": "Leedsworld crossdocks"
+  },
+  {
+    "service": "Vendor Chargebacks",
+    "gl": 5211,
+    "description": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Outbound Credit",
+    "gl": 5201,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Cycle Count Units",
+    "gl": 5204,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "EDI Transmission",
+    "gl": 5211,
+    "description": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Replenishment",
+    "gl": 5205,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Storage",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Recoverable Materials",
+    "gl": 5205,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Storage",
+    "class": "CA - Whsle",
+    "usClass": "Mobile Mini",
+    "notes": null
+  },
+  {
+    "service": "Vendor Compliance",
+    "gl": 5211,
+    "description": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "EDI Transmission",
+    "gl": 5211,
+    "description": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Order Master Pack Carton",
+    "gl": 5201,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class": "CA - Whsle",
+    "usClass": null,
+    "notes": null
+  },
+  {
+    "service": "Order NonMasterPack",
+    "gl": 5201,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class": "CA - Whsle",
+    "usClass": null,
+    "notes": null
+  },
+  {
+    "service": "Transfer Order fulfillment & receipt",
+    "gl": 5204,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class": "CA - Online",
+    "usClass": null,
+    "notes": null
+  },
+  {
+    "service": "Inbound Pallets",
+    "gl": 5202,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Inbound",
+    "class": "CA - Whsle",
+    "usClass": null,
+    "notes": null
+  },
+  {
+    "service": "Warehouse Labour",
+    "gl": 5204,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class": "CA - Whsle",
+    "usClass": null,
+    "notes": null
+  },
+  {
+    "service": "Pallet Prep",
+    "gl": 5201,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class": "CA - Whsle",
+    "usClass": null,
+    "notes": null
+  },
+  {
+    "service": "Overtime",
+    "gl": 5204,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Extra Charges",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  },
+  {
+    "service": "Auto Commercial Invoice",
+    "gl": 5201,
+    "description": "COGS : Distribution/Logistics : Fulfillment - Outbound",
+    "class": "CA - Whsle",
+    "usClass": null,
+    "notes": null
+  },
+  {
+    "service": "Stripping",
+    "gl": 5211,
+    "description": "COGS : Distribution/Logistics : Fulfillment - VAS",
+    "class": "CA - Whsle",
+    "usClass": "US - Whsle",
+    "notes": null
+  }
+]

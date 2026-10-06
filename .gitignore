@@ -56,3 +56,15 @@ backend/storage/outbox/
 # Next.js dev server logs (local only)
 frontend/tentree-scportal/dev.out.log
 frontend/tentree-scportal/dev.err.log
+
+# docker-compose pg_dump drop zone
+/backups/
+
+# Secrets — never commit: SSH keys, Cloudflare origin cert/key
+/keys/
+/nginx/opt/nginx/ssl/*
+!/nginx/opt/nginx/ssl/.keep
+/nginx/logs/*
+!/nginx/logs/.keep
+# Excel lock files
+~$*

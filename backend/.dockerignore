@@ -1,0 +1,16 @@
+# Never bake secrets into the image — compose injects env at runtime.
+.env
+.env.*
+!.env.example
+# Host node_modules carry Windows-native binaries (bcrypt); the image builds its own.
+node_modules
+npm-debug.log*
+server.out.log
+server.err.log
+*.log
+coverage
+tests
+# Runtime state lives in named volumes, not the image.
+storage/outbox/*
+storage/archive
+storage/converted-docs

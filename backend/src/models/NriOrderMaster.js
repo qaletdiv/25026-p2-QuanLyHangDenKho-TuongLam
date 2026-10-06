@@ -25,6 +25,18 @@ module.exports = (sequelize, DataTypes) => {
         orderType: { type: DataTypes.TEXT },
         country: { type: DataTypes.TEXT },
         completed: { type: DataTypes.DATEONLY },
+        // NetSuite's own sales-channel segment (cseg_tt_salechannel, e.g. "CA - Ecommerce")
+        // — set by the NetSuite pull (lib/nriOrderSync.js); null on rows uploaded from a file.
+        // Added by scripts/add-nri-order-sync-columns.js.
+        salesChannel: { type: DataTypes.TEXT },
+        // 'netsuite' (pulled from NetSuite) | null (uploaded file / workbook sheet)
+        source: { type: DataTypes.TEXT },
+        // NetSuite record type: 'ItemShip' (an order's fulfilment — orderNo = IF…) or
+        // 'RtnAuth' (a return — orderNo = RMA…). null on file rows (all ItemShip).
+        recordType: { type: DataTypes.TEXT },
+        // a second key an invoice line may quote: a Return Authorization's external
+        // reference ("RMA #V0NUF99J", its otherrefnum) — the form ecom returns carry
+        altRef: { type: DataTypes.TEXT },
         _seq: { type: DataTypes.BIGINT, allowNull: false, primaryKey: true },
     }, {
         tableName: 'nri_order_master',

@@ -1,0 +1,18 @@
+{
+  "name": "nri-invoice-coder",
+  "version": "1.0.0",
+  "description": "Node.js replacement for NRI_CA_ALL_Invoices_2026.xlsx — combines NRI CA invoice CSVs, applies GL/class coding, builds pivots.",
+  "type": "module",
+  "main": "src/pipeline.js",
+  "scripts": {
+    "migrate": "node scripts/migrate-from-excel.js",
+    "run": "node src/index.js",
+    "sept15": "node src/index.js --source \"NRI CA Invoice Sept 15 2026.csv\""
+  },
+  "dependencies": {
+    "csv-parse": "^5.5.6",
+    "csv-stringify": "^6.5.2",
+    "exceljs": "^4.4.0"
+  },
+  "engines": { "node": ">=18" }
+}

@@ -1,0 +1,307 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  tentree-scportal CI/CD - CodeCommit -> CodeBuild (images to ECR) -> CodeDeploy
+  (docker compose on one host). Deploy in us-west-2, the CodeCommit region.
+
+Parameters:
+  RepositoryName:
+    Type: String
+    Default: tentree-scportal
+  BranchName:
+    Type: String
+    Default: main
+  ImagePrefix:
+    Type: String
+    Default: tentree-scportal
+    Description: ECR repos are <prefix>-backend, -frontend, -nginx.
+  HostArchitecture:
+    Type: String
+    Default: amd64
+    AllowedValues: [amd64, arm64]
+    Description: CPU of the deploy host (`uname -m` x86_64 = amd64, aarch64 = arm64). Images are built for it.
+  DeployTagValue:
+    Type: String
+    Default: tentree-scportal
+    Description: The host is targeted by tag App=<this> (EC2 tag, or on-premises instance tag).
+
+Conditions:
+  IsArm: !Equals [!Ref HostArchitecture, arm64]
+
+Resources:
+  # ---------------------------------------------------------------- images
+  BackendRepo:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub '${ImagePrefix}-backend'
+      ImageScanningConfiguration: { ScanOnPush: true }
+      LifecyclePolicy:
+        LifecyclePolicyText: '{"rules":[{"rulePriority":1,"description":"keep 20","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":20},"action":{"type":"expire"}}]}'
+  FrontendRepo:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub '${ImagePrefix}-frontend'
+      ImageScanningConfiguration: { ScanOnPush: true }
+      LifecyclePolicy:
+        LifecyclePolicyText: '{"rules":[{"rulePriority":1,"description":"keep 20","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":20},"action":{"type":"expire"}}]}'
+  NginxRepo:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub '${ImagePrefix}-nginx'
+      ImageScanningConfiguration: { ScanOnPush: true }
+      LifecyclePolicy:
+        LifecyclePolicyText: '{"rules":[{"rulePriority":1,"description":"keep 20","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":20},"action":{"type":"expire"}}]}'
+
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 }
+      LifecycleConfiguration:
+        Rules:
+          - { Id: expire-artifacts, Status: Enabled, ExpirationInDays: 30 }
+
+  # ---------------------------------------------------------------- build
+  BuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - { Effect: Allow, Principal: { Service: codebuild.amazonaws.com }, Action: sts:AssumeRole }
+      Policies:
+        - PolicyName: build
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [logs:CreateLogGroup, logs:CreateLogStream, logs:PutLogEvents]
+                Resource: '*'
+              - Effect: Allow
+                Action: [s3:GetObject, s3:PutObject, s3:GetObjectVersion, s3:GetBucketLocation]
+                Resource: [!GetAtt ArtifactBucket.Arn, !Sub '${ArtifactBucket.Arn}/*']
+              - Effect: Allow
+                Action: ecr:GetAuthorizationToken
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:BatchGetImage
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:InitiateLayerUpload
+                  - ecr:UploadLayerPart
+                  - ecr:CompleteLayerUpload
+                  - ecr:PutImage
+                Resource: [!GetAtt BackendRepo.Arn, !GetAtt FrontendRepo.Arn, !GetAtt NginxRepo.Arn]
+
+  BuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub '${RepositoryName}-build'
+      ServiceRole: !GetAtt BuildRole.Arn
+      Source: { Type: CODEPIPELINE, BuildSpec: buildspec.yml }
+      Artifacts: { Type: CODEPIPELINE }
+      TimeoutInMinutes: 45
+      Environment:
+        Type: !If [IsArm, ARM_CONTAINER, LINUX_CONTAINER]
+        ComputeType: BUILD_GENERAL1_MEDIUM   # Next build needs > 3 GB RAM
+        Image: !If [IsArm, 'aws/codebuild/amazonlinux-aarch64-standard:3.0', 'aws/codebuild/amazonlinux-x86_64-standard:5.0']
+        PrivilegedMode: true                 # docker build
+        EnvironmentVariables:
+          - { Name: ECR_PREFIX, Value: !Ref ImagePrefix }
+
+  # ---------------------------------------------------------------- deploy
+  DeployApp:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ApplicationName: !Ref RepositoryName
+      ComputePlatform: Server
+
+  DeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - { Effect: Allow, Principal: { Service: codedeploy.amazonaws.com }, Action: sts:AssumeRole }
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole
+
+  DeployGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+      ApplicationName: !Ref DeployApp
+      DeploymentGroupName: production
+      ServiceRoleArn: !GetAtt DeployServiceRole.Arn
+      DeploymentConfigName: CodeDeployDefault.AllAtOnce
+      # Either kind of host matches - EC2 by instance tag, any other server
+      # (e.g. a non-AWS VM) once registered as an on-premises instance with this tag.
+      Ec2TagFilters:
+        - { Key: App, Value: !Ref DeployTagValue, Type: KEY_AND_VALUE }
+      OnPremisesInstanceTagFilters:
+        - { Key: App, Value: !Ref DeployTagValue, Type: KEY_AND_VALUE }
+      AutoRollbackConfiguration:
+        Enabled: true
+        Events: [DEPLOYMENT_FAILURE]
+
+  # What the HOST needs: read the bundle from S3 and pull images from ECR.
+  HostPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub '${RepositoryName}-deploy-host'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: [s3:GetObject, s3:GetObjectVersion, s3:ListBucket]
+            Resource: [!GetAtt ArtifactBucket.Arn, !Sub '${ArtifactBucket.Arn}/*']
+          - Effect: Allow
+            Action: ecr:GetAuthorizationToken
+            Resource: '*'
+          - Effect: Allow
+            Action: [ecr:BatchCheckLayerAvailability, ecr:BatchGetImage, ecr:GetDownloadUrlForLayer]
+            Resource: [!GetAtt BackendRepo.Arn, !GetAtt FrontendRepo.Arn, !GetAtt NginxRepo.Arn]
+
+  # Used if the host IS an EC2 instance - attach this profile to it.
+  HostRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - { Effect: Allow, Principal: { Service: ec2.amazonaws.com }, Action: sts:AssumeRole }
+      ManagedPolicyArns:
+        - !Ref HostPolicy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  HostInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles: [!Ref HostRole]
+
+  # Used if the host is NOT EC2 - its access key goes in the CodeDeploy
+  # on-premises config AND ~root/.aws/credentials (the deploy hook pulls from ECR).
+  OnPremUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub '${RepositoryName}-deploy-host'
+      ManagedPolicyArns: [!Ref HostPolicy]
+
+  # ---------------------------------------------------------------- pipeline
+  PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - { Effect: Allow, Principal: { Service: codepipeline.amazonaws.com }, Action: sts:AssumeRole }
+      Policies:
+        - PolicyName: pipeline
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [s3:GetObject, s3:PutObject, s3:GetObjectVersion, s3:GetBucketVersioning, s3:GetBucketLocation]
+                Resource: [!GetAtt ArtifactBucket.Arn, !Sub '${ArtifactBucket.Arn}/*']
+              - Effect: Allow
+                Action:
+                  - codecommit:GetBranch
+                  - codecommit:GetCommit
+                  - codecommit:GetRepository
+                  - codecommit:UploadArchive
+                  - codecommit:GetUploadArchiveStatus
+                  - codecommit:CancelUploadArchive
+                Resource: !Sub 'arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${RepositoryName}'
+              - Effect: Allow
+                Action: [codebuild:StartBuild, codebuild:BatchGetBuilds]
+                Resource: !GetAtt BuildProject.Arn
+              - Effect: Allow
+                Action:
+                  - codedeploy:CreateDeployment
+                  - codedeploy:GetDeployment
+                  - codedeploy:GetDeploymentConfig
+                  - codedeploy:GetApplication
+                  - codedeploy:GetApplicationRevision
+                  - codedeploy:RegisterApplicationRevision
+                Resource: '*'
+
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: !Ref RepositoryName
+      PipelineType: V2
+      RoleArn: !GetAtt PipelineRole.Arn
+      ArtifactStore: { Type: S3, Location: !Ref ArtifactBucket }
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: CodeCommit
+              ActionTypeId: { Category: Source, Owner: AWS, Provider: CodeCommit, Version: '1' }
+              Configuration:
+                RepositoryName: !Ref RepositoryName
+                BranchName: !Ref BranchName
+                PollForSourceChanges: false   # EventBridge rule below triggers it
+              OutputArtifacts: [{ Name: Source }]
+        - Name: Build
+          Actions:
+            - Name: Images
+              ActionTypeId: { Category: Build, Owner: AWS, Provider: CodeBuild, Version: '1' }
+              Configuration: { ProjectName: !Ref BuildProject }
+              InputArtifacts: [{ Name: Source }]
+              OutputArtifacts: [{ Name: Bundle }]
+        - Name: Deploy
+          Actions:
+            - Name: Host
+              ActionTypeId: { Category: Deploy, Owner: AWS, Provider: CodeDeploy, Version: '1' }
+              Configuration:
+                ApplicationName: !Ref DeployApp
+                DeploymentGroupName: !Ref DeployGroup
+              InputArtifacts: [{ Name: Bundle }]
+
+  TriggerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - { Effect: Allow, Principal: { Service: events.amazonaws.com }, Action: sts:AssumeRole }
+      Policies:
+        - PolicyName: start-pipeline
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: codepipeline:StartPipelineExecution
+                Resource: !Sub 'arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}'
+
+  PushTrigger:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source: [aws.codecommit]
+        detail-type: [CodeCommit Repository State Change]
+        resources: [!Sub 'arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${RepositoryName}']
+        detail:
+          event: [referenceCreated, referenceUpdated]
+          referenceType: [branch]
+          referenceName: [!Ref BranchName]
+      Targets:
+        - Arn: !Sub 'arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}'
+          RoleArn: !GetAtt TriggerRole.Arn
+          Id: pipeline
+
+Outputs:
+  PipelineUrl:
+    Value: !Sub 'https://${AWS::Region}.console.aws.amazon.com/codesuite/codepipeline/pipelines/${Pipeline}/view'
+  EcrRegistry:
+    Value: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com'
+  Ec2InstanceProfile:
+    Description: Attach to the host if it is EC2.
+    Value: !Ref HostInstanceProfile
+  OnPremUserName:
+    Description: If the host is not EC2 - create an access key for this user and register the host.
+    Value: !Ref OnPremUser

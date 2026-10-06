@@ -1,0 +1,33 @@
+{
+  "fulfillment": [
+    {
+      "name": "Inbound Fulfillment",
+      "channel": null,
+      "fixedFee": 10,
+      "feePerUnit": 0.07,
+      "avgUPT": 2682
+    },
+    {
+      "name": "Outbound Fulfillment",
+      "channel": "Ecomm",
+      "fixedFee": 1.25,
+      "feePerUnit": 0.65,
+      "avgUPT": 2.4
+    },
+    {
+      "name": "Outbound Fulfillment",
+      "channel": "Wholesale",
+      "fixedFee": 2,
+      "feePerUnit": 0.5,
+      "avgUPT": 92
+    }
+  ],
+  "storage": {
+    "tiers": {
+      "<180": "<180",
+      "180-364": "180-364",
+      "365-541": "365-541",
+      ">541": ">541"
+    }
+  }
+}

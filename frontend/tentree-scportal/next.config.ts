@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Docker: emit .next/standalone (self-contained server.js + traced deps).
+  output: 'standalone',
   reactCompiler: true,
   devIndicators: false,
   experimental: {

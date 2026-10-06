@@ -1,0 +1,126 @@
+# tentree Supply Chain Portal — single-host deploy (AWS EC2 + Docker Compose).
+#
+#   Internet → Cloudflare → nginx :443 → frontend :3000 → backend :5000 → postgres :5432
+#
+# Only nginx publishes a port. Backend, frontend and Postgres are reachable on the
+# internal network only (the browser never calls the backend; the Next server does).
+#
+# Secrets come from a root-level `.env` beside this file (gitignored) — see
+# `deploy.env.example`. Backend app settings come from `backend/.env`.
+#
+# First boot:
+#   docker compose up -d postgres
+#   docker compose run --rm backend node database/init.js        # schema + reference data
+#   # …or restore live data instead:  pg_restore into the postgres container
+#   docker compose up -d --build
+#
+# ⚠ Run exactly ONE backend replica: every backend process starts its own cron
+#   (SMS tracking poll, SMS + mainline NetSuite syncs).
+
+services:
+  # PostgreSQL 17
+  postgres:
+    image: postgres:17-alpine
+    container_name: tentree-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tentree_portal}
+      POSTGRES_USER: ${POSTGRES_USER:-tentree}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      TZ: UTC
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backups:/backups # pg_dump / pg_restore drop zone
+    # No published port. For a one-off psql/pg_dump from the host use
+    #   docker compose exec postgres psql -U $POSTGRES_USER $POSTGRES_DB
+    networks:
+      - tentree-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # Backend Express API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: tentree-backend:latest
+    container_name: tentree-backend
+    restart: unless-stopped
+    # NetSuite / FedEx / SMTP / landed-cost settings — the same file used locally.
+    env_file:
+      - ./backend/.env
+    # These OVERRIDE backend/.env (whose DATABASE_URL points at localhost).
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      TZ: UTC
+      DATABASE_URL: postgres://${POSTGRES_USER:-tentree}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-tentree_portal}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      CORS_ORIGINS: ${PUBLIC_URL:?set PUBLIC_URL in .env}
+      APP_URL: ${PUBLIC_URL}
+    volumes:
+      # Generated CI / PL / ASN workbooks, email outbox, NRI billing uploads.
+      # Named volumes are seeded from the image's contents on first creation.
+      - uploads:/app/storage/uploads
+      - outbox:/app/storage/outbox
+      - nri_billing:/app/storage/reference/nri-billing
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tentree-network
+
+  # Frontend Next.js App
+  frontend:
+    build:
+      context: ./frontend/tentree-scportal
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://backend:5000
+    image: tentree-frontend:latest
+    container_name: tentree-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://backend:5000
+      # MUST equal the backend's — src/proxy.ts verifies the session cookie with it.
+      JWT_SECRET: ${JWT_SECRET}
+      TZ: UTC
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - tentree-network
+
+  # Nginx Reverse Proxy (SSL termination, Cloudflare origin cert)
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: tentree-nginx
+    restart: unless-stopped
+    ports:
+      - "443:443" # HTTPS
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/opt/nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/logs:/var/log/nginx:rw
+    depends_on:
+      - frontend
+    networks:
+      - tentree-network
+
+volumes:
+  pgdata:
+  uploads:
+  outbox:
+  nri_billing:
+
+networks:
+  tentree-network:
+    driver: bridge

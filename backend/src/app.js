@@ -106,6 +106,7 @@ app.use('/mainline',           require('./routes/mainlineRoutes')); // mainline 
 app.use('/sms',                require('./routes/smsRoutes'));      // SMS module — separate dataset (sms_* tables); see docs/SMS_MODULE_PLAN.md
 app.use('/landed-costs',       require('./routes/landedCostRoutes')); // freight & duty (Phase 1: SMS estimates) — additive, own tables
 app.use('/nri-invoices',       require('./routes/nriInvoiceRoutes')); // NRI 3PL invoice verification (invoice ↔ detail ↔ rate agreement) — additive, own tables under data/nri/
+app.use('/nri-billing',        require('./routes/nriBillingRoutes')); // NRI rate cards + the year's invoice reports → cost per GL by channel (the CA _ALL Invoices workbook as code)
 app.use('/master-data',        require('./routes/masterDataRoutes'));
 app.use('/contacts',           require('./routes/contactRoutes'));
 app.use('/reports',            require('./routes/reportRoutes'));

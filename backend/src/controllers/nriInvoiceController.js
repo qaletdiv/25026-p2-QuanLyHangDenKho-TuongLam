@@ -114,7 +114,7 @@ exports.uploadOrderData = async (req, res) => {
 
   const existing = arr(await M.orderMaster.read().catch(() => []));
   const byKey = new Map(existing.map((r) => [`${String(r.entity || 'US').toUpperCase()}|${String(r.orderNo || '').toUpperCase()}`, r]));
-  let added = 0, updated = 0, skipped = 0;
+  let added = 0, updated = 0, skipped = 0, keptNetsuite = 0;
   for (const r of rows) {
     const orderNo = norm(r.orderNo);
     if (!orderNo) { skipped++; continue; }
@@ -129,6 +129,9 @@ exports.uploadOrderData = async (req, res) => {
       country: norm(r.country).toUpperCase() || null,
       completed: orderData.isoDate(r.completed),
     };
+    // an order pulled from NetSuite (lib/nriOrderSync.js) is the system of record —
+    // a pasted file never overwrites it, only fills in orders NetSuite lacks
+    if (byKey.has(key) && byKey.get(key).source === 'netsuite') { keptNetsuite++; continue; }
     if (byKey.has(key)) { Object.assign(byKey.get(key), row); updated++; } else { byKey.set(key, row); added++; }
   }
   await M.orderMaster.write([...byKey.values()]);
@@ -139,7 +142,7 @@ exports.uploadOrderData = async (req, res) => {
   const withCountry = rows.filter((r) => norm(r.country)).length;
   res.json({
     entity: ent, file: file.originalname,
-    read: rows.length, added, updated, skipped,
+    read: rows.length, added, updated, skipped, keptNetsuite,
     withOrderType: withChannel, withCountry: withCountry,
     orders: master.orders, covers: master.covers,
   });
@@ -487,7 +490,8 @@ exports.getChargeCodes = async (req, res) => {
 
 // GET /nri-invoices/rate-card — the agreement, as the validator sees it.
 exports.getRateCard = async (req, res) => {
-  res.json(arr(await M.rateCard.read().catch(() => [])));
+  // derived from the uploaded rate cards — the one rate table (lib/nriRateCard)
+  res.json((await rateCard.load()).rows);
 };
 
 // POST /nri-invoices/charge-codes/sync — re-read the legend from the shared drive.

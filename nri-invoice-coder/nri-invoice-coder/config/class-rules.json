@@ -1,0 +1,26 @@
+[
+  {
+    "name": "ecom-orders-online",
+    "description": "NRI order type ECOM -> CA - Online (how past ECOM lines were hand-coded)",
+    "enabled": true,
+    "when": { "orderType": ["ECOM"] },
+    "set": { "class": "CA - Online" }
+  },
+  {
+    "name": "gobolt-transfers-online",
+    "description": "Labour/repack on transfer orders to GoBolt (ecom 3PL) -> CA - Online",
+    "enabled": true,
+    "when": {
+      "service": ["Warehouse Labour", "Overtime", "Repackaging", "Pallet Prep"],
+      "clientRef1": { "startsWith": ["TO#"], "contains": ["gobolt"] }
+    },
+    "set": { "class": "CA - Online" }
+  },
+  {
+    "name": "returns-online",
+    "description": "Returns are mostly ecom (coding note) -> CA - Online. Review wholesale RMAs in Exceptions/Summary_Coded.",
+    "enabled": true,
+    "when": { "service": ["Restock", "Returns", "Service Center Labor"] },
+    "set": { "class": "CA - Online" }
+  }
+]

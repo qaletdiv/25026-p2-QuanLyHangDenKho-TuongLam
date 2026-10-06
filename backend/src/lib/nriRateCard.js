@@ -20,9 +20,20 @@
  *    the rate is checked — the verdict says so rather than pretending.
  */
 
-const { models } = require('../models');
+// ⚠️ ONE RATE TABLE (2026-09-30, per Lam). The rates come from the rate cards
+// uploaded on All Invoices → Rate Cards (`nri_contract_rates` + the card's Contract
+// Info dates), NOT from `nri_rate_card`, which is no longer read (its rows are left
+// in place). `deriveRows` turns the card into the row shape this validator has
+// always used, through the SAME service → rate-code map the billing check uses
+// (lib/nriBillingRates.SERVICE_RATES), so the two checks can never price a service
+// from different numbers. A card carries ONE effective period (US: from
+// 2026-02-01), so a line dated before it reads `noRateOnFile` rather than being
+// priced at a rate nobody uploaded — upload the earlier card to cover it.
 
-const rateTable = models.nri_rate_card;
+const { models } = require('../models');
+const { SERVICE_RATES } = require('./nriBillingRates');
+
+const rateTable = models.nri_contract_rates;
 
 const norm = v => (v === undefined || v === null ? '' : String(v).trim());
 const key = v => norm(v).toUpperCase().replace(/\s+/g, ' ');
@@ -50,9 +61,68 @@ let cache = null;
 
 async function load() {
   if (cache) return cache;
-  const rows = await rateTable.read().catch(() => []);
-  cache = index(Array.isArray(rows) ? rows : []);
+  const [rates, info] = await Promise.all([
+    models.nri_contract_rates.findAll({ raw: true }),
+    models.nri_contract_terms.findAll({ where: { kind: 'info' }, raw: true }),
+  ]);
+  cache = index(deriveRows(rates, info));
   return cache;
+}
+
+/** A Contract Info date ("2026-02-01") → ISO, else null. */
+function infoDate(info, entity, label) {
+  const row = info.find((t) => t.entity === entity && key(t.label) === key(label));
+  const m = row && String(row.value || '').match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : null;
+}
+
+/**
+ * The uploaded cards → one validator row per NRI service, per entity.
+ * passthrough → market · hourly → per_hour · composite → composite (fixed +
+ * per-unit) · Storage (tiers) → per_unit_month with the tier ladder as multiples
+ * of the lowest · the two monthly admin fees → per_month (keeps the double-billing
+ * check) · everything else → per_unit (units × rate). A service whose codes carry
+ * no number on the card → `none` (reads noContractRate, never a guessed price).
+ */
+function deriveRows(rates, info) {
+  const out = [];
+  for (const entity of [...new Set(rates.map((r) => r.entity))]) {
+    const card = new Map(rates.filter((r) => r.entity === entity)
+      .map((r) => [r.id, { ...r, rate: r.rate === null ? null : Number(r.rate) }]));
+    const priced = (code) => {
+      const r = card.get(`${entity}-${code}`);
+      return r && typeof r.rate === 'number' && r.rate > 0 ? r : null;
+    };
+    const effectiveFrom = infoDate(info, entity, 'Effective Date');
+    const effectiveTo = infoDate(info, entity, 'End Date');
+    for (const [service, spec] of Object.entries(SERVICE_RATES[entity] || {})) {
+      const base = {
+        entity, service, fixed: null, tiers: null, effectiveFrom, effectiveTo,
+        source: spec.codes.map((c) => `${entity}-${c}`).join(', '),
+      };
+      if (spec.basis === 'passthrough') { out.push({ ...base, basis: 'market', rate: null, uom: null }); continue; }
+      const first = spec.codes.map(priced).find(Boolean);
+      if (!first) { out.push({ ...base, basis: 'none', rate: null, uom: null }); continue; }
+      if (spec.basis === 'hourly') { out.push({ ...base, basis: 'per_hour', rate: first.rate, uom: 'hour' }); continue; }
+      if (spec.basis === 'composite') {
+        const fixed = priced(spec.fixed);
+        out.push({ ...base, basis: 'composite', fixed: fixed ? fixed.rate : 0, rate: first.rate, uom: 'return + unit' });
+        continue;
+      }
+      if (spec.tiers) {
+        const ladder = spec.tiers.map(priced).filter(Boolean).sort((a, b) => a.rate - b.rate);
+        const low = ladder[0] || first;
+        out.push({
+          ...base, basis: 'per_unit_month', rate: low.rate, uom: 'unit/month',
+          tiers: ladder.map((t) => ({ label: t.service, rate: t.rate, multiple: Math.round((t.rate / low.rate) * 1000) / 1000 })),
+        });
+        continue;
+      }
+      const monthly = /^ADM-0[23]$/.test(spec.codes[0]);
+      out.push({ ...base, basis: monthly ? 'per_month' : 'per_unit', rate: first.rate, uom: first.uom });
+    }
+  }
+  return out;
 }
 function reload() { cache = null; }
 
@@ -210,4 +280,4 @@ function worst(verdicts) {
   return VERDICT.OK;
 }
 
-module.exports = { rateTable, load, reload, index, rateFor, checkLine, worst, tolerance, VERDICT, SEVERITY };
+module.exports = { rateTable, load, reload, index, deriveRows, rateFor, checkLine, worst, tolerance, VERDICT, SEVERITY };

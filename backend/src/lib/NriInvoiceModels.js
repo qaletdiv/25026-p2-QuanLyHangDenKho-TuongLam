@@ -14,7 +14,9 @@ module.exports = {
 
   // Master data (the AGREEMENT and the coding legend — the two validators)
   chargeCodes: models.nri_charge_codes,  // Service -> GL + class per entity
-  rateCard:    models.nri_rate_card,     // effective-dated contracted rates
+  // The rate agreement comes from the uploaded cards (nri_contract_rates, read
+  // through lib/nriRateCard.load). nri_rate_card is no longer read; rows kept.
+  rateCard:    models.nri_contract_rates,
 
   // The ORDER MASTER, uploaded through the UI (the `NRI Order data` sheet or a
   // period CSV). It is what supplies channel (OrderType) and ship-to country —
