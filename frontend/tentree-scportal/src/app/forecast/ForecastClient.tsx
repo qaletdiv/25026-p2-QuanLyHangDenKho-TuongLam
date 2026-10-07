@@ -85,6 +85,37 @@ const STAGE_STYLE: Record<string, string> = {
 
 const fmt = (n: number) => (n > 0 ? n.toLocaleString() : '—');
 
+// Drill-down filters. The column header IS the filter (same convention as the
+// PO leg detail): unset it reads the column name, set it reads the value. One
+// shared state, so a filter chosen in any week applies to every open week.
+type LineFilterKey = 'mode' | 'warehouse' | 'channel' | 'stage';
+type LineFilters = Record<LineFilterKey, string>;
+const NO_FILTERS: LineFilters = { mode: 'all', warehouse: 'all', channel: 'all', stage: 'all' };
+const STAGE_ORDER = Object.keys(STAGE_STYLE);
+
+function HeaderFilter({ label, value, options, onChange }: {
+  label: string; value: string; options: string[]; onChange: (v: string) => void;
+}) {
+  return (
+    <Select value={value} onValueChange={(v) => onChange(v ?? 'all')}>
+      {/* Label rendered directly: SelectValue cannot derive one when the value
+          is set programmatically (see CLAUDE.md). */}
+      <SelectTrigger
+        title={`Filter by ${label.toLowerCase()}`}
+        className={cn('h-6 w-full px-1.5 text-[10px] font-black uppercase tracking-wider',
+          value === 'all' ? 'text-muted-foreground' : 'text-primary normal-case tracking-normal')}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <span className="truncate">{value === 'all' ? label : value}</span>
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All {label.toLowerCase()}s</SelectItem>
+        {options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+      </SelectContent>
+    </Select>
+  );
+}
+
 export default function ForecastClient({ seasons, bySeason }: { seasons: string[]; bySeason: Record<string, ForecastWeek[]> }) {
   const chartRef = useRef<HTMLDivElement>(null);
   const breakdownRef = useRef<HTMLDivElement>(null);
@@ -145,6 +176,30 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
     if (next.has(week)) next.delete(week); else next.add(week);
     return next;
   });
+
+  const [lineFilters, setLineFilters] = useState<LineFilters>(NO_FILTERS);
+  const setFilter = (k: LineFilterKey) => (v: string) => setLineFilters((prev) => ({ ...prev, [k]: v }));
+  const filtersActive = (Object.keys(lineFilters) as LineFilterKey[]).some((k) => lineFilters[k] !== 'all');
+  // Options = the values present in the current season's lines (plus a value
+  // already selected, so switching season never strands the filter unlabeled).
+  const filterOptions = useMemo(() => {
+    const pick = (k: LineFilterKey, get: (l: ForecastLine) => string | null) => {
+      const set = new Set(allLines.map(get).filter((v): v is string => !!v));
+      if (lineFilters[k] !== 'all') set.add(lineFilters[k]);
+      return [...set];
+    };
+    return {
+      mode: pick('mode', (l) => l.mode).sort(),
+      warehouse: pick('warehouse', (l) => l.warehouse).sort(),
+      channel: pick('channel', (l) => l.channel).sort(),
+      stage: pick('stage', (l) => l.stage).sort((a, b) => STAGE_ORDER.indexOf(a) - STAGE_ORDER.indexOf(b)),
+    };
+  }, [allLines, lineFilters]);
+  const matches = (l: ForecastLine) =>
+    (lineFilters.mode === 'all' || l.mode === lineFilters.mode)
+    && (lineFilters.warehouse === 'all' || l.warehouse === lineFilters.warehouse)
+    && (lineFilters.channel === 'all' || l.channel === lineFilters.channel)
+    && (lineFilters.stage === 'all' || l.stage === lineFilters.stage);
 
   // Today at UTC midnight, for the overdue marker on drill-down rows.
   const todayIso = new Date().toISOString().slice(0, 10);
@@ -428,6 +483,8 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
                 <TableBody>
                   {forecast.map((f, i) => {
                     const lines: ForecastLine[] = f.lines || [];
+                    // The week ROW stays unfiltered; the filters narrow its PO lines.
+                    const shown = filtersActive ? lines.filter(matches) : lines;
                     const isOpen = openWeeks.has(f.week);
                     const planned = f.plan?.units ?? 0;
                     const actual = f.actual?.units ?? 0;
@@ -495,22 +552,30 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
                           <TableRow className="border-b border-border bg-muted/20 hover:bg-muted/20">
                             <TableCell colSpan={columns.length + 1 + extraCols} className="p-0">
                               <div className="px-6 py-4">
-                                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                                  {f.week} — {lines.length} PO line{lines.length === 1 ? '' : 's'}
-                                </p>
+                                <div className="mb-2 flex items-center gap-3">
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                    {f.week} — {filtersActive ? `${shown.length} of ${lines.length}` : lines.length} PO line{lines.length === 1 ? '' : 's'}
+                                  </p>
+                                  {filtersActive && (
+                                    <button type="button" onClick={() => setLineFilters(NO_FILTERS)}
+                                      className="text-[10px] font-bold text-primary hover:underline">
+                                      Clear filters
+                                    </button>
+                                  )}
+                                </div>
                                 <div className="overflow-x-auto">
                                   {/* table-fixed + one colgroup: every week's drill-down is its own
                                       <table>, and with auto layout each sized its columns to its own
                                       content, so the weeks did not line up. Fixed widths make every
                                       week's columns identical; Supplier takes the remainder. */}
-                                  <table className="w-full min-w-[1150px] table-fixed text-xs">
+                                  <table className="w-full min-w-[1220px] table-fixed text-xs">
                                     <colgroup>
                                       <col className="w-[88px]" />{/* PO # */}
                                       <col className="w-[88px]" />{/* TRN */}
                                       <col />{/* Supplier */}
-                                      <col className="w-[56px]" />{/* Mode */}
-                                      <col className="w-[110px]" />{/* Warehouse */}
-                                      <col className="w-[84px]" />{/* Channel */}
+                                      <col className="w-[96px]" />{/* Mode */}
+                                      <col className="w-[116px]" />{/* Warehouse */}
+                                      <col className="w-[100px]" />{/* Channel */}
                                       <col className="w-[190px]" />{/* Stage */}
                                       <col className="w-[88px]" />{/* Planned date */}
                                       <col className="w-[120px]" />{/* Actual date */}
@@ -524,10 +589,10 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
                                         <th className="py-1.5 pr-4">PO #</th>
                                         <th className="py-1.5 pr-4">TRN</th>
                                         <th className="py-1.5 pr-4">Supplier</th>
-                                        <th className="py-1.5 pr-4">Mode</th>
-                                        <th className="py-1.5 pr-4">Warehouse</th>
-                                        <th className="py-1.5 pr-4">Channel</th>
-                                        <th className="py-1.5 pr-4">Stage</th>
+                                        <th className="py-1 pr-2"><HeaderFilter label="Mode" value={lineFilters.mode} options={filterOptions.mode} onChange={setFilter('mode')} /></th>
+                                        <th className="py-1 pr-2"><HeaderFilter label="Warehouse" value={lineFilters.warehouse} options={filterOptions.warehouse} onChange={setFilter('warehouse')} /></th>
+                                        <th className="py-1 pr-2"><HeaderFilter label="Channel" value={lineFilters.channel} options={filterOptions.channel} onChange={setFilter('channel')} /></th>
+                                        <th className="py-1 pr-4"><HeaderFilter label="Stage" value={lineFilters.stage} options={filterOptions.stage} onChange={setFilter('stage')} /></th>
                                         <th className="py-1.5 pr-4" title="PO E-DEL">Planned</th>
                                         <th className="py-1.5 pr-4" title="Shipment E-DEL">Actual</th>
                                         <th className="py-1.5 pr-4">Slip</th>
@@ -537,7 +602,10 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
                                       </tr>
                                     </thead>
                                     <tbody>
-                                      {lines.map((l, li) => {
+                                      {shown.length === 0 && (
+                                        <tr><td colSpan={13} className="py-3 text-center italic text-muted-foreground">No PO lines in {f.week.split(' - ')[0]} match the filters.</td></tr>
+                                      )}
+                                      {shown.map((l, li) => {
                                         // Overdue: its PO E-DEL has passed and nothing has shipped.
                                         const overdue = !SHIPPED_STAGES.has(l.stage) && !l.actualDate
                                           && l.planDate && l.planDate < todayIso && l.plannedUnits > 0;
@@ -592,6 +660,18 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
                                           </tr>
                                         );
                                       })}
+                                      {/* Subtotal of the ROWS ON SCREEN. The week row above stays
+                                          the unfiltered total; this says what the filter narrowed it to. */}
+                                      {filtersActive && shown.length > 0 && (
+                                        <tr className="border-t border-border font-black">
+                                          <td colSpan={10} className="py-1.5 pr-4 text-[10px] uppercase tracking-widest text-muted-foreground">
+                                            Filtered total ({shown.length} of {lines.length})
+                                          </td>
+                                          <td className="py-1.5 pr-4 text-right tabular-nums text-foreground">{fmt(shown.reduce((a, l) => a + l.plannedUnits, 0))}</td>
+                                          <td className="py-1.5 pr-4 text-right tabular-nums text-primary">{fmt(shown.reduce((a, l) => a + l.actualUnits, 0))}</td>
+                                          <td className="py-1.5 text-right tabular-nums text-foreground">{fmt(shown.reduce((a, l) => a + l.cartons, 0))}</td>
+                                        </tr>
+                                      )}
                                     </tbody>
                                   </table>
                                 </div>
