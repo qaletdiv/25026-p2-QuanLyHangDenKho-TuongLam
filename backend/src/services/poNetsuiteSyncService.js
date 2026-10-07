@@ -166,22 +166,25 @@ function buildUpserts(pos, existing, ctx) {
         const modeId = resolvers.modeId(po.mode, po.poNumber)
           ?? (existingLeg ? existingLeg.modeId : null);
 
-        // ⚠️ THE PLAN IS WRITTEN ONCE AND NEVER OVERWRITTEN.
-        // `duedate` is what production committed to at the start of the season,
-        // and the forecast measures slippage as (actual − plan). If a later sync
-        // could move it, the plan would chase reality and slippage would always
-        // read zero — the same self-healing trap the week bucketing avoids.
-        const expectedReceiveDate = (existingLeg && existingLeg.expectedReceiveDate)
-          || po.expectedReceiveDate || null;
+        // REFRESHED ON EVERY SYNC (Lam, 2026-10-07). NetSuite's `duedate` is the
+        // current Expected Receive Date, and the leg follows it when a supplier's
+        // date moves. This REVERSES the earlier write-once rule, which froze the
+        // first-synced date as the season plan. Consequence to know: the forecast's
+        // `plan` series now reads NetSuite's LATEST date, not the original
+        // commitment, so slippage only shows where the SHIPMENT's date differs
+        // from it. A blank `duedate` keeps the stored date rather than wiping it.
+        const expectedReceiveDate = po.expectedReceiveDate
+          || (existingLeg && existingLeg.expectedReceiveDate) || null;
 
         // E-DEL is DERIVED: arriving at the DC is the receive date minus the
         // `receiving` transit standard (5 days, equal for sea and air today).
         // Reading it from master data rather than hardcoding 5 keeps this the
         // exact inverse of the report's `expectedAta = eDel + 5`, so editing the
-        // standard corrects both ends at once.
+        // standard corrects both ends at once. Recomputed every sync from the
+        // refreshed receive date, so it can never drift from it.
         const recvDays = receivingDays.get(modeId);
-        const eDel = (existingLeg && existingLeg.eDel)
-          || addDays(expectedReceiveDate, -(recvDays == null ? DEFAULT_RECEIVING_DAYS : recvDays));
+        const eDel = addDays(expectedReceiveDate, -(recvDays == null ? DEFAULT_RECEIVING_DAYS : recvDays))
+          || (existingLeg && existingLeg.eDel) || null;
 
         legs.set(legId, {
           id:         legId,
@@ -191,8 +194,8 @@ function buildUpserts(pos, existing, ctx) {
             ?? (existingLeg ? existingLeg.incotermId : null),
           crd:        po.crd || (existingLeg && existingLeg.crd) || null,   // custbody46
           hod:        po.hod || (existingLeg && existingLeg.hod) || null,   // custbody8
-          expectedReceiveDate,                                              // duedate — frozen
-          eDel,                                                             // derived — frozen
+          expectedReceiveDate,                                              // duedate — refreshed
+          eDel,                                                             // derived — refreshed
           // v2 does not carry etdPol. The real one lives on the SHIPMENT and
           // drives the transit segments; the leg's was never populated (0/87).
           etdPol:     null,

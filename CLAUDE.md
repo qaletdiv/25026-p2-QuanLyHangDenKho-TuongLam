@@ -78,9 +78,15 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   .receiving`** (5 days, sea and air alike) — the exact inverse of the report's
   `expectedAta = eDel + 5`. The FACT is stored and `eDel` derived, not the
   reverse, so editing the standard corrects both ends instead of leaving `eDel`
-  stale. **Both are written ONCE and never overwritten**: this is the plan
-  production committed to at season start, and a plan that could move would make
-  slippage read zero. The ACTUAL delivery date lives on
+  stale. **Both REFRESH on every sync (2026-10-07, per Lam)**, as does `hod`
+  (`custbody8`): the leg follows NetSuite when a supplier's date moves. This
+  REVERSED the original write-once rule, which froze the first-synced date as the
+  season plan so slippage could be measured against it. Consequence: the
+  forecast's `plan` series is now NetSuite's LATEST date, not the original
+  commitment. Do not "restore" write-once without asking. A blank NetSuite
+  value keeps the stored date rather than wiping it. Still NOT refreshed: booked
+  POs (R1 skips them whole), POs outside status A/B, and FW26 WIP legs
+  (`PRE_V2_SEASONS`). The ACTUAL delivery date lives on
   `mainline_shipments.eDel`; the two never write to each other.
   **Three things v2 broke that v1 had hidden, all fixed:**
   (1) v2 legs had no `mainline_po_leg_lines`, so 220,573 units were invisible to
