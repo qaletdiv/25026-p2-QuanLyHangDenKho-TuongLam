@@ -889,9 +889,14 @@ number per week. It now carries the **SAME units on TWO dates** so the page answ
 the planning question directly:
 
 - **plan** — every unit on its PO leg's stated E-DEL. What was ORDERED to happen.
-- **actual** — the best-known date: the derived NetSuite ATA once it has landed,
-  else the **SHIPMENT's** E-DEL once booked and shipped, else the leg E-DEL when
-  nothing has shipped (no better information exists).
+- **actual** — the **SHIPMENT's** E-DEL (`mainline_shipments.eDel`), and nothing
+  else (2026-10-07, per Lam). It USED to prefer the NetSuite receipt date, but the
+  plan is a DELIVERY date (receive − 5 receiving days) and the receipt lands ~5
+  days after delivery, so every received consignment read ~+6d late (median over
+  11) that was really the receiving step. The receipt now decides only the STAGE
+  (Received vs In Transit). Plan = leg `eDel` only — no `etdPol` fallback; a leg
+  with no E-DEL has no plan week. Units with no shipment E-DEL sit on their plan
+  date in the WEEKLY series (so it reconciles) but their line has no actualDate.
 
 The gap between the two IS the slippage. ⚠️ **A unit appears in BOTH series, so
 each totals the whole order book — they are NOT mutually exclusive and must never
@@ -939,8 +944,7 @@ with no plan at all**. 40,468 units slipped later, 2,467 earlier.
   is the honest answer: an unbooked leg has not slipped, it has not been committed
   to yet. Slippage therefore only ever comes from legs that actually shipped.
   ⚠️ That is the WEEKLY series only. A drill-down LINE carries `actualDate` /
-  `slipDays` **only when a shipment backs it** (receipt ATA, else the shipment's
-  E-DEL) — unbooked and booked-not-shipped lines send `null` (2026-10-07, per
+  `slipDays` **only when a shipment backs it** (the shipment's E-DEL) — unbooked and booked-not-shipped lines send `null` (2026-10-07, per
   Lam). Copying the plan into the line made an unbooked PO show an "Actual" date
   nobody had stated. "Overdue" on such a line is judged on its PLANNED date.
   The drill-down is one `<table>` per week, so it uses `table-fixed` + a shared

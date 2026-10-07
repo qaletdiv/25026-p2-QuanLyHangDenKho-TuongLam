@@ -37,7 +37,7 @@ type ForecastLine = {
   cartons: number;
   planDate: string | null;
   planWeek: string | null;
-  actualDate: string | null;   // only when a shipment backs the line (receipt ATA, else shipment E-DEL)
+  actualDate: string | null;   // the shipment's E-DEL; null with no shipment or no E-DEL yet
   slipDays: number | null;     // null when there is no actual date yet
 };
 
@@ -490,7 +490,7 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
                         Projected
                       </TableHead>
                     )}
-                    <TableHead className={cn('h-11 px-4 text-right text-[10px] font-black uppercase tracking-widest text-primary whitespace-nowrap', !showCompare && 'border-l border-border')} title="Units on their best-known date: receipt ATA, else shipment E-DEL, else the PO's own date">
+                    <TableHead className={cn('h-11 px-4 text-right text-[10px] font-black uppercase tracking-widest text-primary whitespace-nowrap', !showCompare && 'border-l border-border')} title="Units on their shipment's E-DEL, else (not shipped, or no E-DEL yet) the PO's planned E-DEL">
                       {showCompare ? 'Actual' : 'Total'}
                     </TableHead>
                     {showCompare && (
@@ -663,7 +663,7 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
                                             </td>
                                             <td className="py-1.5 pr-4 text-muted-foreground whitespace-nowrap">{l.planDate || '—'}</td>
                                             <td className="py-1.5 pr-4 text-foreground whitespace-nowrap">
-                                              {l.actualDate || <span className="text-muted-foreground/40" title="No shipment yet — an actual date comes from the shipment's E-DEL, or its receipt once it lands">—</span>}
+                                              {l.actualDate || <span className="text-muted-foreground/40" title="No actual yet — it comes from the E-DEL on the shipment page">—</span>}
                                               {overdue && (
                                                 <span
                                                   className="ml-1.5 text-[9px] font-black uppercase text-amber-600 dark:text-amber-400"

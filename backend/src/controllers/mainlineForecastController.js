@@ -7,12 +7,14 @@
 // answers the planning question directly by carrying the SAME units on TWO dates:
 //
 //   plan   — every unit on its PO leg's stated E-DEL. What was ORDERED to happen.
-//   actual — the best-known date for that unit: the derived NetSuite ATA once it
-//            has landed, else the SHIPMENT's E-DEL once it is booked and shipped,
-//            else (nothing shipped yet) the leg E-DEL, because no better
-//            information exists. That fallback applies to the WEEKLY series only:
-//            a drill-down LINE carries an actualDate only when a shipment backs it
-//            (2026-10-07, per Lam) — an unbooked PO has a plan, not an actual.
+//   actual — the SHIPMENT's E-DEL (mainline_shipments.eDel), and nothing else
+//            (2026-10-07, per Lam). NOT the NetSuite receipt date: the plan is a
+//            DELIVERY date (receive date − 5 receiving days), and the receipt
+//            lands ~5 days after delivery, so measuring against it built ~+6 days
+//            of false slip into every received consignment (median over 11).
+//            The receipt still decides the STAGE (Received vs In Transit).
+//            A line with no shipment E-DEL has NO actualDate; the WEEKLY series
+//            places those units on their plan date so it still reconciles.
 //
 // The gap between the two series IS the slippage, per week and per PO. A unit
 // appears in BOTH series, so each one totals the whole order book — they are not
@@ -259,8 +261,12 @@ async function getMainlineForecast(req, res) {
     const orderChannel = chanName.get(order.allocationChannelId) || null;
     const supplier = supName.get(master.supplierId) || null;
     const legQty = qtyByLeg.get(leg.id) || 0;
-    // The PLAN date: what the PO said, regardless of what later happened to it.
-    const planDate = leg.eDel || leg.etdPol || null;
+    // The PLAN date: the leg's E-DEL (NetSuite duedate − receiving days), and
+    // nothing else. No etdPol fallback (2026-10-07, per Lam): a departure date is
+    // not a delivery date, so a leg without an E-DEL has NO plan and lands in no
+    // week rather than on a date that means something else. (0 of 111 legs used
+    // the fallback when it was removed.)
+    const planDate = leg.eDel || null;
 
     const ident = {
       poNumber: leg.poNumber,
@@ -282,32 +288,33 @@ async function getMainlineForecast(req, res) {
     // ── ACTUAL series, split into mutually-exclusive parts so it reconciles.
     let counted = 0;
 
-    // shipment legs — landed ones use their derived ATA, in-flight ones the
-    // shipment's own E-DEL. Both are stronger evidence than the leg's E-DEL.
+    // shipment legs — dated by the shipment's own E-DEL (delivery vs delivery,
+    // like the plan). The receipt only decides whether the stage reads Received.
     for (const j of shipLegsByLeg[leg.id] || []) {
       const ship = shipById.get(j.shipmentId) || {};
       const qty = Number(j.expectedQuantity) || 0;
       counted += qty;
       if (qty <= 0) continue;
       const eff = effectiveAta(ataMatch, ship);
-      const actualDate = eff.ata || ship.eDel || ship.etaPod || ship.etdPol || null;
+      const actualDate = ship.eDel || null;
+      // Week the units land in for the WEEKLY series: their actual date, else
+      // (no shipment E-DEL typed yet) the plan date — never dropped.
+      const weekDate = actualDate || planDate;
       const cartonsN = cartonCount(ship.bookingId, leg.id);
       const shipFacility = facName.get(ship.facilityId) || orderFacility;
-      bucket('actual', actualDate, shipFacility, orderChannel, supplier, qty, cartonsN);
+      bucket('actual', weekDate, shipFacility, orderChannel, supplier, qty, cartonsN);
       // `backed` = the SUBSET of actual that rests on a real shipment, i.e. on an
       // approved booking rather than a date typed on a PO. It is the foundation
       // the forecast can be trusted on, so it is aggregated separately with the
       // same three breakdown maps. Received and In Transit both qualify — the
       // evidence is the shipment existing, not whether it has landed yet.
-      bucket('backed', actualDate, shipFacility, orderChannel, supplier, qty, cartonsN);
-      const wk = weekKeyOf(actualDate);
+      bucket('backed', weekDate, shipFacility, orderChannel, supplier, qty, cartonsN);
+      const wk = weekKeyOf(weekDate);
       if (wk) {
         weekAt(wk.key, wk.weekNo, wk.year).lines.push({
           ...ident,
           stage: eff.ata ? 'Received' : 'In Transit',
-          dateBasis: eff.ata ? 'receipt_ata'
-                    : ship.eDel ? 'shipment_e_del'
-                    : ship.etaPod ? 'shipment_eta_pod' : 'shipment_etd_pol',
+          dateBasis: actualDate ? 'shipment_e_del' : 'leg_e_del',
           shipmentId: ship.id || null,
           shipmentNumber: ship.shipmentNumber || null,
           carrierReference: ship.carrierReference || null,
@@ -325,7 +332,7 @@ async function getMainlineForecast(req, res) {
     // series places it on the plan date and it contributes ZERO slippage: an
     // unbooked leg has not slipped, it simply has not been committed to yet.
     // The LINE, though, carries NO actualDate and NO slip — an actual date comes
-    // only from a shipment (receipt ATA, else the shipment's E-DEL). Copying the
+    // only from a shipment's E-DEL. Copying the
     // plan into it made unbooked POs show an "Actual" nobody had ever stated.
     const rem = legQty - counted;
     if (rem > 0) {
@@ -350,7 +357,7 @@ async function getMainlineForecast(req, res) {
         for (const part of parts) weekAt(wk.key, wk.weekNo, wk.year).lines.push({
           ...ident,
           stage: part.stage,
-          dateBasis: leg.eDel ? 'leg_e_del' : 'leg_etd_pol',
+          dateBasis: 'leg_e_del',
           shipmentId: null,
           shipmentNumber: null,
           carrierReference: null,
