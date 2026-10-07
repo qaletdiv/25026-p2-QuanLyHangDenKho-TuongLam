@@ -37,8 +37,8 @@ type ForecastLine = {
   cartons: number;
   planDate: string | null;
   planWeek: string | null;
-  actualDate: string;
-  slipDays: number | null;
+  actualDate: string | null;   // only when a shipment backs the line (receipt ATA, else shipment E-DEL)
+  slipDays: number | null;     // null when there is no actual date yet
 };
 
 // One breakdown cell, and one series (plan or actual) of a week.
@@ -598,7 +598,25 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
                                   {f.week} — {lines.length} PO line{lines.length === 1 ? '' : 's'} arriving (Actual)
                                 </p>
                                 <div className="overflow-x-auto">
-                                  <table className="w-full text-xs">
+                                  {/* table-fixed + one colgroup: every week's drill-down is its own
+                                      <table>, and with auto layout each sized its columns to its own
+                                      content, so W1 and W2 did not line up. Fixed widths make every
+                                      week's columns identical; Supplier takes the remainder. */}
+                                  <table className="w-full min-w-[1080px] table-fixed text-xs">
+                                    <colgroup>
+                                      <col className="w-[88px]" />{/* PO # */}
+                                      <col className="w-[88px]" />{/* TRN */}
+                                      <col />{/* Supplier */}
+                                      <col className="w-[56px]" />{/* Mode */}
+                                      <col className="w-[110px]" />{/* Warehouse */}
+                                      <col className="w-[84px]" />{/* Channel */}
+                                      <col className="w-[190px]" />{/* Stage */}
+                                      <col className="w-[88px]" />{/* Planned */}
+                                      <col className="w-[120px]" />{/* Actual */}
+                                      <col className="w-[56px]" />{/* Slip */}
+                                      <col className="w-[72px]" />{/* Units */}
+                                      <col className="w-[64px]" />{/* Cartons */}
+                                    </colgroup>
                                     <thead>
                                       <tr className="text-left text-[10px] font-black uppercase tracking-wider text-muted-foreground border-b border-border">
                                         <th className="py-1.5 pr-4">PO #</th>
@@ -623,16 +641,18 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
                                         // consignment's units are back to not-moving, so they can
                                         // be overdue again.
                                         const unmoved = !BACKED_STAGES.has(l.stage);
-                                        const overdue = unmoved && l.actualDate && l.actualDate < todayIso;
+                                        // An unmoved line has no actual date, so overdue is judged
+                                        // on the PLANNED date it has missed.
+                                        const overdue = unmoved && l.planDate && l.planDate < todayIso;
                                         const slip = l.slipDays ?? 0;
                                         return (
                                           <tr key={`${l.legId}-${l.shipmentId ?? 'proj'}-${li}`} className="border-b border-border/40 last:border-0">
                                             <td className="py-1.5 pr-4 font-bold text-foreground whitespace-nowrap">{l.poNumber}</td>
                                             <td className="py-1.5 pr-4 text-muted-foreground whitespace-nowrap">{l.trnNumber || '—'}</td>
-                                            <td className="py-1.5 pr-4 text-foreground">{l.supplier || '—'}</td>
+                                            <td className="py-1.5 pr-4 text-foreground truncate" title={l.supplier || undefined}>{l.supplier || '—'}</td>
                                             <td className="py-1.5 pr-4 text-muted-foreground whitespace-nowrap">{l.mode || '—'}</td>
-                                            <td className="py-1.5 pr-4 text-muted-foreground whitespace-nowrap">{l.warehouse}</td>
-                                            <td className="py-1.5 pr-4 text-muted-foreground whitespace-nowrap">{l.channel}</td>
+                                            <td className="py-1.5 pr-4 text-muted-foreground truncate" title={l.warehouse}>{l.warehouse}</td>
+                                            <td className="py-1.5 pr-4 text-muted-foreground truncate" title={l.channel}>{l.channel}</td>
                                             <td className="py-1.5 pr-4 whitespace-nowrap">
                                               <span className={cn('px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wide', STAGE_STYLE[l.stage] || 'bg-muted text-muted-foreground')}>
                                                 {l.stage}
@@ -643,11 +663,11 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
                                             </td>
                                             <td className="py-1.5 pr-4 text-muted-foreground whitespace-nowrap">{l.planDate || '—'}</td>
                                             <td className="py-1.5 pr-4 text-foreground whitespace-nowrap">
-                                              {l.actualDate || '—'}
+                                              {l.actualDate || <span className="text-muted-foreground/40" title="No shipment yet — an actual date comes from the shipment's E-DEL, or its receipt once it lands">—</span>}
                                               {overdue && (
                                                 <span
                                                   className="ml-1.5 text-[9px] font-black uppercase text-amber-600 dark:text-amber-400"
-                                                  title="Expected delivery has already passed and this quantity has not shipped"
+                                                  title="The planned delivery date has passed and this quantity has not shipped"
                                                 >
                                                   overdue
                                                 </span>
@@ -658,7 +678,7 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
                                               slip === 0 ? 'text-muted-foreground/40'
                                                 : slip > 0 ? 'text-amber-600 dark:text-amber-400'
                                                 : 'text-emerald-600 dark:text-emerald-400'
-                                            )} title={slip === 0 ? 'Arrived in its planned week, or not yet committed' : `${Math.abs(slip)} days ${slip > 0 ? 'late' : 'early'} against the PO's stated date`}>
+                                            )} title={l.slipDays == null ? 'No actual date yet — nothing to compare the plan against' : slip === 0 ? 'Arrived on its planned date' : `${Math.abs(slip)} days ${slip > 0 ? 'late' : 'early'} against the PO's stated date`}>
                                               {slip === 0 ? '—' : `${slip > 0 ? '+' : '−'}${Math.abs(slip)}d`}
                                             </td>
                                             <td className="py-1.5 pr-4 text-right font-semibold tabular-nums text-foreground">{(l.units || 0).toLocaleString()}</td>

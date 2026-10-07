@@ -938,6 +938,14 @@ with no plan at all**. 40,468 units slipped later, 2,467 earlier.
 - **The unshipped remainder has actual == plan, contributing ZERO slippage.** That
   is the honest answer: an unbooked leg has not slipped, it has not been committed
   to yet. Slippage therefore only ever comes from legs that actually shipped.
+  ⚠️ That is the WEEKLY series only. A drill-down LINE carries `actualDate` /
+  `slipDays` **only when a shipment backs it** (receipt ATA, else the shipment's
+  E-DEL) — unbooked and booked-not-shipped lines send `null` (2026-10-07, per
+  Lam). Copying the plan into the line made an unbooked PO show an "Actual" date
+  nobody had stated. "Overdue" on such a line is judged on its PLANNED date.
+  The drill-down is one `<table>` per week, so it uses `table-fixed` + a shared
+  `<colgroup>`; with auto layout each week sized its own columns and W1/W2 did
+  not line up.
 - **⚠️ THE TWO GRAND TOTALS DO NOT MATCH (+599), and that is real data.** Plan sums
   `allocated_qty`; actual sums what shipped plus what is left. The difference is
   genuine over-shipment on three legs (38 +30, 57 +120, 77 +449). Do not clamp it

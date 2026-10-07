@@ -10,7 +10,9 @@
 //   actual — the best-known date for that unit: the derived NetSuite ATA once it
 //            has landed, else the SHIPMENT's E-DEL once it is booked and shipped,
 //            else (nothing shipped yet) the leg E-DEL, because no better
-//            information exists.
+//            information exists. That fallback applies to the WEEKLY series only:
+//            a drill-down LINE carries an actualDate only when a shipment backs it
+//            (2026-10-07, per Lam) — an unbooked PO has a plan, not an actual.
 //
 // The gap between the two series IS the slippage, per week and per PO. A unit
 // appears in BOTH series, so each one totals the whole order book — they are not
@@ -319,9 +321,12 @@ async function getMainlineForecast(req, res) {
       }
     }
 
-    // remainder not yet shipped — no better date exists, so actual == plan and
-    // these rows contribute ZERO slippage. That is the honest answer: an unbooked
-    // leg has not slipped, it simply has not been committed to yet.
+    // remainder not yet shipped — no better date exists, so the WEEKLY actual
+    // series places it on the plan date and it contributes ZERO slippage: an
+    // unbooked leg has not slipped, it simply has not been committed to yet.
+    // The LINE, though, carries NO actualDate and NO slip — an actual date comes
+    // only from a shipment (receipt ATA, else the shipment's E-DEL). Copying the
+    // plan into it made unbooked POs show an "Actual" nobody had ever stated.
     const rem = legQty - counted;
     if (rem > 0) {
       bucket('actual', planDate, orderFacility, orderChannel, supplier, rem, 0);
@@ -353,8 +358,8 @@ async function getMainlineForecast(req, res) {
           channel: orderChannel || 'Unassigned',
           units: part.units,
           cartons: 0,
-          actualDate: planDate,
-          slipDays: 0,
+          actualDate: null,
+          slipDays: null,
         });
       }
     }
