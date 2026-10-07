@@ -117,6 +117,19 @@ function enrichShipments(shipments, { shipLegs = [], bookingLegs = [], packingCa
                               : null,
         supplierName:      supName.get(master.supplierId) || null,
       };
+    }).map((l) => {
+      // WHAT TO DISPLAY: the uploaded shipping data once it exists, else the
+      // booking's estimate. Approve copies the booked units/cartons as the plan;
+      // the upload is the truth about what actually shipped, and nothing writes it
+      // back (PO04840: booked 1,000 / 38, shipped 1,025 / 40). expectedQuantity
+      // and cartons stay untouched — the forecast and reports read the plan.
+      const shipped = l.shippedQty != null;
+      return {
+        ...l,
+        quantity:       shipped ? l.shippedQty : l.expectedQuantity,
+        totalCartons:   shipped ? l.shippedCartons : l.cartons,
+        quantitySource: shipped ? 'shipped' : 'booked',
+      };
     });
     const firstTrn = myLegs.find((l) => l.trnNumber)?.trnNumber || null;
     const myPos = [...new Set(myLegs.map((l) => l.poNumber).filter(Boolean))];
@@ -166,6 +179,14 @@ function enrichShipments(shipments, { shipLegs = [], bookingLegs = [], packingCa
       poNumbers:            myPos,
       trnNumber:            firstTrn,
       totalExpectedQuantity: myLegs.reduce((a, l) => a + l.expectedQuantity, 0),
+      // Display totals: per leg, shipped actual if uploaded else booked estimate.
+      // 'mixed' when only some legs have shipping data, so the UI can say so.
+      totalQuantity:         myLegs.reduce((a, l) => a + (Number(l.quantity) || 0), 0),
+      totalCartons:          myLegs.some((l) => l.totalCartons != null)
+                               ? myLegs.reduce((a, l) => a + (Number(l.totalCartons) || 0), 0) : null,
+      quantitySource:        !myLegs.length ? 'booked'
+                               : myLegs.every((l) => l.quantitySource === 'shipped') ? 'shipped'
+                               : myLegs.some((l) => l.quantitySource === 'shipped') ? 'mixed' : 'booked',
     };
   });
 }

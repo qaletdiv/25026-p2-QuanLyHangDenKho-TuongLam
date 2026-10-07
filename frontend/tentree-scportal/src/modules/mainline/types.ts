@@ -232,7 +232,13 @@ export interface MainlineShipmentLeg {
   lotNumber: number | null;
   cartons: number | null;               // booking's per-leg actual carton count
   invoiceValue: number | null;         // Σ totalUsd from the packing list (CI upload)
-  expectedQuantity: number;
+  expectedQuantity: number;             // BOOKED plan, copied at approve
+  shippedQty: number | null;            // from the shipping-data upload; null until uploaded
+  shippedCartons: number | null;
+  // What to DISPLAY: shipped actual once uploaded, else the booked estimate.
+  quantity: number;
+  totalCartons: number | null;
+  quantitySource: 'shipped' | 'booked';
   supplierName: string | null;
 }
 
@@ -298,7 +304,10 @@ export interface MainlineShipment {
   // contents:
   legs: MainlineShipmentLeg[];
   poNumbers: string[];
-  totalExpectedQuantity: number;
+  totalExpectedQuantity: number;       // booked plan
+  totalQuantity: number;               // display: per leg shipped if uploaded, else booked
+  totalCartons: number | null;
+  quantitySource: 'shipped' | 'booked' | 'mixed';
 }
 
 export interface PortOption { id: string; code?: string; name: string; country?: string; role?: string }

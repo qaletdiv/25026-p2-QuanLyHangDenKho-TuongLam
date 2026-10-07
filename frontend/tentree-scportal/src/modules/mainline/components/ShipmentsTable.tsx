@@ -131,7 +131,12 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
     { key: 'mode', label: 'Mode', render: (s) => s.mode ?? '—' },
     { key: 'containerType', label: 'Container', defaultVisible: false, render: (s) => dim(s.containerType) },
     { key: 'pos', label: 'POs', render: (s) => <span className="text-xs">{s.poNumbers.length} PO{s.poNumbers.length === 1 ? '' : 's'}: {s.poNumbers.join(', ') || '—'}</span> },
-    { key: 'total_qty', label: 'Total Qty', align: 'right', render: (s) => <span className="tabular-nums">{s.totalExpectedQuantity.toLocaleString()}</span> },
+    { key: 'total_qty', label: 'Total Qty', align: 'right', render: (s) => (
+      <span className={cn('tabular-nums', s.quantitySource !== 'shipped' && 'text-muted-foreground')}
+        title={s.quantitySource === 'booked' ? 'Booked estimate — no shipping data uploaded for this PO yet' : s.quantitySource === 'mixed' ? 'Some POs show the booked estimate — shipping data not uploaded for them yet' : undefined}>
+        {s.totalQuantity.toLocaleString()}
+      </span>
+    ) },
     { key: 'blNo', label: 'BL No', defaultVisible: false, render: (s) => dim(s.blNo) },
     { key: 'courier', label: 'Carrier', render: (s) => dim(s.courier) },
     { key: 'carrierReference', label: 'Carrier Ref #', stopClick: true, render: (s) => (
@@ -263,7 +268,7 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
                       {visibleCols.map((c) => (
                         <TableCell key={c.key} className={cn('py-1.5 text-sm', c.align === 'right' && 'text-right')}>
                           {c.key === poColKey && <span className="text-muted-foreground">{l.poNumber ?? `#${l.legId}`}</span>}
-                          {c.key === qtyColKey && <span className="tabular-nums text-muted-foreground">{(l.expectedQuantity ?? 0).toLocaleString()}</span>}
+                          {c.key === qtyColKey && <span className="tabular-nums text-muted-foreground" title={l.quantitySource === 'booked' ? 'Booked estimate — no shipping data uploaded for this PO yet' : undefined}>{l.quantity.toLocaleString()}</span>}
                         </TableCell>
                       ))}
                     </TableRow>

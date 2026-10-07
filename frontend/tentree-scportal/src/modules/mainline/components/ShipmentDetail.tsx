@@ -519,15 +519,17 @@ export default function ShipmentDetail({
                   </TableCell>
                   <TableCell className="text-muted-foreground">{l.allocationChannel ?? '—'}</TableCell>
                   <TableCell className="text-muted-foreground">{l.crd ?? '—'}</TableCell>
-                  <TableCell className="text-right tabular-nums">{l.cartons != null ? l.cartons.toLocaleString() : '—'}</TableCell>
-                  <TableCell className="text-right tabular-nums">{(l.expectedQuantity ?? 0).toLocaleString()}</TableCell>
+                  <TableCell className={cn('text-right tabular-nums', l.quantitySource === 'booked' && 'text-muted-foreground')}
+                    title={l.quantitySource === 'booked' ? 'Booked estimate — no shipping data uploaded for this PO yet' : undefined}>{l.totalCartons != null ? l.totalCartons.toLocaleString() : '—'}</TableCell>
+                  <TableCell className={cn('text-right tabular-nums', l.quantitySource === 'booked' && 'text-muted-foreground')}
+                    title={l.quantitySource === 'booked' ? 'Booked estimate — no shipping data uploaded for this PO yet' : undefined}>{l.quantity.toLocaleString()}</TableCell>
                   <TableCell className="text-right tabular-nums">{l.invoiceValue != null ? `$${l.invoiceValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}</TableCell>
                 </TableRow>
               ))}
               <TableRow className="bg-card/80 font-medium border-border">
                 <TableCell colSpan={5}>Total ({s.legs.length} PO{s.legs.length === 1 ? '' : 's'})</TableCell>
-                <TableCell className="text-right tabular-nums">{s.legs.reduce((a, l) => a + (l.cartons ?? 0), 0).toLocaleString()}</TableCell>
-                <TableCell className="text-right tabular-nums">{s.totalExpectedQuantity.toLocaleString()}</TableCell>
+                <TableCell className="text-right tabular-nums">{s.totalCartons != null ? s.totalCartons.toLocaleString() : '—'}</TableCell>
+                <TableCell className="text-right tabular-nums">{s.totalQuantity.toLocaleString()}</TableCell>
                 <TableCell className="text-right tabular-nums">{(() => { const t = s.legs.reduce((a, l) => a + (l.invoiceValue ?? 0), 0); return t ? `$${t.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'; })()}</TableCell>
               </TableRow>
             </TableBody>
