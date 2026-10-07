@@ -1,94 +1,49 @@
 'use strict';
 
-// GET /forecast — mainline inventory pipeline forecast (LIVE migrated data).
+// GET /forecast — mainline inventory pipeline forecast: PLANNED vs ACTUAL as a
+// PIVOT (2026-10-07, per Lam).
 //
-// PLAN vs ACTUAL over the FULL order book (2026-09-10). The page used to answer
-// one question — "what is still incoming?" — with one number per week. It now
-// answers the planning question directly by carrying the SAME units on TWO dates:
+//   planned — the PO leg's E-DEL (mainline_po_legs.eDel). Blank → not planned.
+//   actual  — the SHIPMENT's E-DEL (mainline_shipments.eDel). Blank, or no
+//             shipment → not actual.
 //
-//   plan   — every unit on its PO leg's stated E-DEL. What was ORDERED to happen.
-//   actual — the SHIPMENT's E-DEL (mainline_shipments.eDel), and nothing else
-//            (2026-10-07, per Lam). NOT the NetSuite receipt date: the plan is a
-//            DELIVERY date (receive date − 5 receiving days), and the receipt
-//            lands ~5 days after delivery, so measuring against it built ~+6 days
-//            of false slip into every received consignment (median over 11).
-//            The receipt still decides the STAGE (Received vs In Transit).
-//            A line with no shipment E-DEL has NO actualDate; the WEEKLY series
-//            places those units on their plan date so it still reconciles.
+// Each unit sits in the week of EACH date it has, like a pivot: a PO planned for
+// W1 that ships with E-DEL in W2 shows planned 1,000 in W1 and actual 1,000 in
+// W2. PO E-DEL blank + shipment dated → 0 planned / 1,000 actual. Planned but no
+// shipment E-DEL → 1,000 planned / 0 actual. Nothing is ever moved onto the other
+// side's date. (This REPLACED the "best-known date" model, in which unbooked
+// units counted as actual on their plan date and the receipt date beat the
+// shipment E-DEL — the plan is a DELIVERY date and a receipt lands ~5 days after
+// delivery, so received consignments showed ~+6d of false slip.)
+// The NetSuite receipt still decides the STAGE (Received vs In Transit), and
+// Received units are included — this is the full order book, not incoming-only.
 //
-// The gap between the two series IS the slippage, per week and per PO. A unit
-// appears in BOTH series, so each one totals the whole order book — they are not
-// mutually exclusive buckets and must never be added together.
+// Grain = PO leg, split into mutually-exclusive PARTS (one per live shipment,
+// then the unshipped remainder). The leg's allocation is handed out across its
+// parts in order, capped at the leg, so Σ planned === Σ allocatedQty exactly;
+// actual is the shipped qty, so a genuine over-shipment shows (planned 1,000 vs
+// actual 1,025) and is NOT clamped — G2 permits it by design.
 //
-// ⚠️ RECEIVED UNITS ARE INCLUDED. This is the deliberate reversal of the old
-// behaviour, which `continue`d on any shipment with a derived ATA because
-// receipted goods are in stock, not incoming. Excluding them made the actual
-// series structurally empty — all 9 mainline shipments are receipted, so there
-// was nothing to compare the plan against. Consequence to know: `/forecast` is
-// now the full order book (~264k units), NOT an incoming-only view, and its
-// grand total therefore includes goods already in the warehouse. `stage` says
-// which is which, and the UI leads with the still-to-arrive figure.
-//
-// Output:
-//   { seasons: ["FW26", …],        // present in the mainline order book, newest first
-//     bySeason: { all: [week…], FW26: [week…], … } }
-//
-// and per week (sorted by chronology):
-//   { week: "W29 - 2026", weekNum,
+// Output: { seasons: ["SS27", …], bySeason: { all: [week…], SS27: [week…] } }
+// per week, chronological:
+//   { week: "W1 - 2027", weekNum,
 //     plan:   { units, cartons, warehouses, warehouseChannels, suppliers },
 //     actual: { units, cartons, warehouses, warehouseChannels, suppliers },
-//     backed: { … },                                              // ⊆ actual
-//     units, cartons, warehouses, warehouseChannels, suppliers,  // = actual
-//     lines: [ … ] }                                              // actual-week grain
+//     lines:  [ { …ident, stage, plannedUnits, actualUnits, cartons,
+//                 planDate, actualDate, slipDays } ] }
+// Σ lines.plannedUnits === plan.units and Σ lines.actualUnits === actual.units on
+// every week. A part whose two dates fall in different weeks is TWO lines (one
+// per week, the other side 0); slipDays exists only when both dates do.
 //
-// ⚠️ `backed` IS THE FOUNDATION, and it is a SUBSET of `actual` — never add them.
-// It holds only the units resting on a real shipment (stage Received or In
-// Transit), i.e. on an approved booking, as opposed to a date typed on a PO that
-// nobody has committed to. `backed.units / actual.units` is the week's
-// CONFIDENCE, and it is the honest answer to "does this forecast have a
-// foundation?". Received and In Transit both qualify: the evidence is that the
-// shipment EXISTS, not that it has landed.
-// Measured 2026-09-15 — the answer today is sobering and explains why the split
-// is worth carrying: bookings are being recorded RETROSPECTIVELY. Median lead
-// time from booking approval to the shipment's own E-DEL is **−5 days**, 8 of 9
-// bookings were approved AFTER their E-DEL and 5 of 9 after the goods had
-// already landed, so shipment-backed units in the FUTURE total **0** while
-// 42,935 sit in the past. That is a process gap, not a modelling one — no
-// restructuring makes the shipment table predictive while bookings are entered
-// after the fact. The split is built so the page tells the truth about that now
-// and becomes shipment-dominant on its own as booking discipline moves earlier.
+// ⚠️ A CANCELLED consignment is not actual: its units fall back to the unshipped
+// remainder as `Booked — Not Shipped` while the booking is still approved.
+// ⚠️ CARTONS exist only on the actual side (from the uploaded packing list) — a
+// plan has none. Do NOT estimate them from units: pcsPerCtn is inconsistent
+// (range 4–230 on live data), so a divisor would invent a capacity figure.
 //
-// SEASON: the whole rollup is RE-RUN per season rather than filtered client-side.
-// The expensive joins (ATA resolution, receipt matching, carton sets, status
-// lookups) are computed ONCE and only the cheap aggregation loop repeats, so with
-// a handful of seasons the payload is tiny and switching is instant — while every
-// series, every breakdown map, the cartons and the drill-down stay exact by
-// construction, because they come from the SAME code path as the unfiltered view.
-// Filtering client-side would have meant re-deriving the plan series in the
-// browser, and the plan is leg-grained while the lines are part-grained, so the
-// two would have had to be reconciled by hand. Season is DERIVED at read
-// (leg → po_orders.trnNumber → po_masters.seasonId → seasons.code), per the
-// 3NF rule; `seasons` lists only what the order book actually holds, so the
-// dropdown can never offer a season that renders an empty page.
-//
-// Grain = PO leg. Each leg's expected qty (Σ allocatedQty) is placed whole onto
-// the plan series, and split into mutually-exclusive parts on the actual series
-// (shipment legs + unshipped remainder) so the actual series reconciles too.
-// All derived at read-time; nothing stored.
-//
-// ⚠️ CARTONS ONLY EXIST ON THE ACTUAL SERIES, and a 0 can be TRUE. A carton is
-// known only once a packing list has been uploaded, which happens when a
-// consignment SHIPS — a plan has no cartons, and an unbooked leg has none either.
-// Do NOT estimate them from units: only 27% of forecast SKUs (726/2,736) have any
-// packing history and 622 of 748 packed SKUs have an inconsistent `pcsPerCtn`
-// (range 4–230, median 39, mean 50), so a flat divisor would put a confident
-// wrong number into a warehouse capacity plan.
-//
-// ⚠️ THE TWO GRAND TOTALS DO NOT MATCH, and that is real data. Plan sums
-// `allocatedQty` (264,349); actual sums what shipped plus what is left
-// (264,948). The 599-unit difference is genuine over-shipment on three legs
-// (38 +30, 57 +120, 77 +449). Do not clamp it away — an over-ship is something a
-// planner needs to see, and G2 permits it by design.
+// SEASON: the rollup is RE-RUN per season (cheap aggregation over shared joins),
+// so every season view reconciles exactly. Season is DERIVED (leg → order → TRN
+// master → season code); `seasons` lists only what the order book holds.
 
 const { models } = require('../models');
 const status = require('../lib/mainlineStatuses');
@@ -227,7 +182,7 @@ async function getMainlineForecast(req, res) {
     let w = weeks.get(key);
     if (!w) {
       w = { week: key, weekNum: weekNo, _year: year,
-            plan: emptySeries(), actual: emptySeries(), backed: emptySeries(), lines: [] };
+            plan: emptySeries(), actual: emptySeries(), lines: [] };
       weeks.set(key, w);
     }
     return w;
@@ -261,11 +216,7 @@ async function getMainlineForecast(req, res) {
     const orderChannel = chanName.get(order.allocationChannelId) || null;
     const supplier = supName.get(master.supplierId) || null;
     const legQty = qtyByLeg.get(leg.id) || 0;
-    // The PLAN date: the leg's E-DEL (NetSuite duedate − receiving days), and
-    // nothing else. No etdPol fallback (2026-10-07, per Lam): a departure date is
-    // not a delivery date, so a leg without an E-DEL has NO plan and lands in no
-    // week rather than on a date that means something else. (0 of 111 legs used
-    // the fallback when it was removed.)
+    // PLANNED date = the leg's E-DEL, nothing else. Blank → no planned week.
     const planDate = leg.eDel || null;
 
     const ident = {
@@ -276,120 +227,106 @@ async function getMainlineForecast(req, res) {
       mode: modeName.get(leg.modeId) || null,
       legId: leg.id,
       crd: leg.crd || null,
-      planDate: planDate,
+      planDate,
       planWeek: weekKeyOf(planDate)?.key || null,
     };
 
-    // ── PLAN series: the whole leg, on the PO's stated date. Placed once, even
-    // for legs that have since shipped — the plan does not change because
-    // reality did; that divergence is what we are trying to show.
-    bucket('plan', planDate, orderFacility, orderChannel, supplier, legQty, 0);
-
-    // ── ACTUAL series, split into mutually-exclusive parts so it reconciles.
-    let counted = 0;
-
-    // shipment legs — dated by the shipment's own E-DEL (delivery vs delivery,
-    // like the plan). The receipt only decides whether the stage reads Received.
+    // ── Split the leg into mutually-exclusive PARTS: one per live shipment, then
+    // the unshipped remainder. Each part carries BOTH quantities (the pivot):
+    //   plannedUnits — the leg's allocation, handed out across the parts in order
+    //                  and capped at legQty, so Σ planned === the leg exactly;
+    //   actualUnits  — the shipment's qty, ONLY when the shipment has an E-DEL.
+    // A blank date leaves that side empty: no planned week, or no actual week.
+    let planLeft = legQty;
+    const parts = [];
     for (const j of shipLegsByLeg[leg.id] || []) {
       const ship = shipById.get(j.shipmentId) || {};
       const qty = Number(j.expectedQuantity) || 0;
-      counted += qty;
       if (qty <= 0) continue;
-      const eff = effectiveAta(ataMatch, ship);
-      const actualDate = ship.eDel || null;
-      // Week the units land in for the WEEKLY series: their actual date, else
-      // (no shipment E-DEL typed yet) the plan date — never dropped.
-      const weekDate = actualDate || planDate;
-      const cartonsN = cartonCount(ship.bookingId, leg.id);
-      const shipFacility = facName.get(ship.facilityId) || orderFacility;
-      bucket('actual', weekDate, shipFacility, orderChannel, supplier, qty, cartonsN);
-      // `backed` = the SUBSET of actual that rests on a real shipment, i.e. on an
-      // approved booking rather than a date typed on a PO. It is the foundation
-      // the forecast can be trusted on, so it is aggregated separately with the
-      // same three breakdown maps. Received and In Transit both qualify — the
-      // evidence is the shipment existing, not whether it has landed yet.
-      bucket('backed', weekDate, shipFacility, orderChannel, supplier, qty, cartonsN);
-      const wk = weekKeyOf(weekDate);
-      if (wk) {
-        weekAt(wk.key, wk.weekNo, wk.year).lines.push({
-          ...ident,
-          stage: eff.ata ? 'Received' : 'In Transit',
-          dateBasis: actualDate ? 'shipment_e_del' : 'leg_e_del',
-          shipmentId: ship.id || null,
-          shipmentNumber: ship.shipmentNumber || null,
-          carrierReference: ship.carrierReference || null,
-          warehouse: facName.get(ship.facilityId) || orderFacility || 'Unknown',
-          channel: orderChannel || 'Unassigned',
-          units: qty,
-          cartons: cartonsN,
-          actualDate: actualDate,
-          slipDays: dayDiff(planDate, actualDate),
-        });
-      }
+      const planned = Math.min(qty, Math.max(planLeft, 0));
+      planLeft -= planned;
+      const actualDate = ship.eDel || null;              // ACTUAL = shipment E-DEL only
+      parts.push({
+        plannedUnits: planned,
+        actualUnits: actualDate ? qty : 0,
+        actualDate,
+        cartons: actualDate ? cartonCount(ship.bookingId, leg.id) : 0,
+        // The NetSuite receipt decides the STAGE only, never the date.
+        stage: effectiveAta(ataMatch, ship).ata ? 'Received' : 'In Transit',
+        dateBasis: actualDate ? 'shipment_e_del' : null,
+        shipmentId: ship.id || null,
+        shipmentNumber: ship.shipmentNumber || null,
+        carrierReference: ship.carrierReference || null,
+        warehouse: facName.get(ship.facilityId) || orderFacility || 'Unknown',
+      });
     }
-
-    // remainder not yet shipped — no better date exists, so the WEEKLY actual
-    // series places it on the plan date and it contributes ZERO slippage: an
-    // unbooked leg has not slipped, it simply has not been committed to yet.
-    // The LINE, though, carries NO actualDate and NO slip — an actual date comes
-    // only from a shipment's E-DEL. Copying the
-    // plan into it made unbooked POs show an "Actual" nobody had ever stated.
-    const rem = legQty - counted;
+    // Unshipped remainder: planned only, never actual. Split into Booked — Not
+    // Shipped (its consignment was cancelled, booking still approved) and the rest.
+    const rem = Math.max(planLeft, 0);
     if (rem > 0) {
-      bucket('actual', planDate, orderFacility, orderChannel, supplier, rem, 0);
-      // The remainder can be TWO different things at once, so it is split rather
-      // than labelled by whichever booking happens to touch the leg: units whose
-      // consignment was cancelled are BOOKED and not shipped, while the rest was
-      // never committed to. Capped at `rem` so a leg that later shipped part of a
-      // cancelled quantity cannot push the split past what is actually left.
       const bookedNotShipped = approvedLegs.has(leg.id)
         ? Math.min(cancelledByLeg.get(leg.id) || 0, rem)
         : 0;
-      const parts = [
+      const remParts = [
         bookedNotShipped > 0 && { units: bookedNotShipped, stage: 'Booked — Not Shipped' },
         rem - bookedNotShipped > 0 && {
           units: rem - bookedNotShipped,
           stage: pendingLegs.has(leg.id) ? 'Booking Pending' : 'Awaiting Booking',
         },
       ].filter(Boolean);
-      const wk = weekKeyOf(planDate);
-      if (wk) {
-        for (const part of parts) weekAt(wk.key, wk.weekNo, wk.year).lines.push({
-          ...ident,
-          stage: part.stage,
-          dateBasis: 'leg_e_del',
-          shipmentId: null,
-          shipmentNumber: null,
-          carrierReference: null,
-          warehouse: orderFacility || 'Unknown',
-          channel: orderChannel || 'Unassigned',
-          units: part.units,
-          cartons: 0,
-          actualDate: null,
-          slipDays: null,
-        });
+      for (const p of remParts) parts.push({
+        plannedUnits: p.units, actualUnits: 0, actualDate: null, cartons: 0,
+        stage: p.stage, dateBasis: null,
+        shipmentId: null, shipmentNumber: null, carrierReference: null,
+        warehouse: orderFacility || 'Unknown',
+      });
+    }
+
+    // ── Place each part: planned qty in the PLAN week, actual qty in the ACTUAL
+    // week. Same week → one line carrying both; different weeks → one line in
+    // each, with the other side 0. Σ lines' planned/actual === the week's series.
+    const planWk = weekKeyOf(planDate);
+    for (const p of parts) {
+      const actWk = weekKeyOf(p.actualDate);
+      if (planWk && p.plannedUnits > 0) bucket('plan', planDate, orderFacility, orderChannel, supplier, p.plannedUnits, 0);
+      if (actWk && p.actualUnits > 0) bucket('actual', p.actualDate, p.warehouse, orderChannel, supplier, p.actualUnits, p.cartons);
+
+      const line = (planned, actual, cartonsN) => ({
+        ...ident,
+        stage: p.stage,
+        dateBasis: p.dateBasis,
+        shipmentId: p.shipmentId,
+        shipmentNumber: p.shipmentNumber,
+        carrierReference: p.carrierReference,
+        warehouse: p.warehouse,
+        channel: orderChannel || 'Unassigned',
+        plannedUnits: planned,
+        actualUnits: actual,
+        cartons: cartonsN,
+        actualDate: p.actualDate,
+        // Slip only exists when BOTH dates do.
+        slipDays: dayDiff(planDate, p.actualDate),
+      });
+      const planHere = planWk && p.plannedUnits > 0;
+      const actHere = actWk && p.actualUnits > 0;
+      if (planHere && actHere && planWk.key === actWk.key) {
+        weekAt(planWk.key, planWk.weekNo, planWk.year).lines.push(line(p.plannedUnits, p.actualUnits, p.cartons));
+      } else {
+        if (planHere) weekAt(planWk.key, planWk.weekNo, planWk.year).lines.push(line(p.plannedUnits, 0, 0));
+        if (actHere) weekAt(actWk.key, actWk.weekNo, actWk.year).lines.push(line(0, p.actualUnits, p.cartons));
       }
     }
   }
 
   // sort by real chronology (year, then week); strip the private _year field.
-  // `units`/`cartons`/`warehouses`/`warehouseChannels`/`suppliers` are mirrored
-  // at the top level from the ACTUAL series — that is the best-known answer, and
-  // it keeps the matrix cells, the drill-down and the Actual column all reading
-  // the same figure. Drill-down lines sort biggest-first: the week is opened to
-  // find out what is driving it.
+  // Drill-down lines sort biggest-first (actual, then planned): a week is opened
+  // to find out what is driving it.
   return [...weeks.values()]
     .sort((a, b) => a._year - b._year || a.weekNum - b.weekNum)
     .map(({ _year, ...w }) => {
-      w.lines.sort((a, b) => b.units - a.units || a.poNumber.localeCompare(b.poNumber));
-      return {
-        ...w,
-        units: w.actual.units,
-        cartons: w.actual.cartons,
-        warehouses: w.actual.warehouses,
-        warehouseChannels: w.actual.warehouseChannels,
-        suppliers: w.actual.suppliers,
-      };
+      w.lines.sort((a, b) => (b.actualUnits + b.plannedUnits) - (a.actualUnits + a.plannedUnits)
+        || a.poNumber.localeCompare(b.poNumber));
+      return w;
     });
   };
 

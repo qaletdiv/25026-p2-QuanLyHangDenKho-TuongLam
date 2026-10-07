@@ -884,6 +884,21 @@ not individual units.
 
 ## Mainline forecast = PLAN vs ACTUAL over the full order book (2026-09-10)
 
+> ⚠️ **SUPERSEDED 2026-10-07 (per Lam): the forecast is now a PIVOT.** Read the
+> header of `mainlineForecastController.js` first; parts of the history below no
+> longer describe the code. The rules now:
+> **planned = PO leg E-DEL** (`mainline_po_legs.eDel`, no `etdPol` fallback);
+> **actual = SHIPMENT E-DEL** (`mainline_shipments.eDel`, NOT the NetSuite
+> receipt date — that now only decides the Received stage). Each unit sits in the
+> week of each date it HAS; a blank date leaves that side empty — nothing is
+> moved onto the other side's date (unbooked → planned only; shipped with no
+> E-DEL → planned only; no PO E-DEL + dated shipment → actual only). Lines carry
+> `plannedUnits` + `actualUnits`; a part whose weeks differ is two lines.
+> Σ lines === each series per week. `backed` and the top-level mirrors are GONE
+> (every actual is shipment-dated), and the page's toggle is Planned / Actual.
+> The "best-known date", "actual == plan for the remainder" and "+599 totals"
+> notes below are history.
+
 `/forecast` used to answer one question — "what is still incoming?" — with one
 number per week. It now carries the **SAME units on TWO dates** so the page answers
 the planning question directly:
