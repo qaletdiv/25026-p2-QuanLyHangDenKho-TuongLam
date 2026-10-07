@@ -21,6 +21,7 @@ import ConfirmDialog from './ConfirmDialog';
 import ApprovalBadge from './ApprovalBadge';
 import { SeasonScopeFilter, seasonsFrom, applySeasonScope, type Scope } from '@/components/SeasonScopeFilter';
 import type { MainlineBooking, PoMasterSummary, PoLegRow, CourierOption } from '@/modules/mainline/types';
+import { formatOverbook, type OverbookWarning } from '../overbook';
 
 // A booking's work is done once it's Approved (it has spawned its shipment) or
 // terminal (Cancelled/Rejected). "Active" = still Pending approval.
@@ -74,7 +75,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
   const [bookingDate, setBookingDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [rows, setRows] = useState<Record<string, RowInput>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [warning, setWarning] = useState<null | { warnings: Array<{ poNumber: string; capacity: number; already_booked: number; requested: number }> }>(null);
+  const [warning, setWarning] = useState<null | { warnings: OverbookWarning[] }>(null);
 
   const trnSupplier = useMemo(() => new Map(masters.map((m) => [m.trnNumber, m.supplierId])), [masters]);
   const suppliers = useMemo(() => {
@@ -437,7 +438,6 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
                                 title={unapproved ? 'This PO is not approved in NetSuite yet — it cannot be booked' : undefined}
                                 className={cn('w-20 h-8 ml-auto', over && 'border-amber-500 focus-visible:ring-amber-500')} placeholder="0"
                                 value={r.units ?? ''} onChange={(e) => setField(l.id, 'units', e.target.value)} />
-                              {over && <div className="text-[10px] text-amber-600 mt-0.5">over by {(entered - remaining).toLocaleString()}</div>}
                             </TableCell>
                             <TableCell className="text-right"><Input type="number" min={0} disabled={unapproved} className="w-20 h-8 ml-auto" placeholder="—" value={r.cartons ?? ''} onChange={(e) => setField(l.id, 'cartons', e.target.value)} /></TableCell>
                             <TableCell className="text-right"><Input type="number" min={0} step="0.01" disabled={unapproved} className="w-24 h-8 ml-auto" placeholder="—" value={r.weight ?? ''} onChange={(e) => setField(l.id, 'weight', e.target.value)} /></TableCell>
@@ -461,7 +461,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
             {warning && (
               <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700 space-y-1">
                 <p className="font-medium">Overbooking warning</p>
-                {warning.warnings.map((w, i) => <p key={i}>{w.poNumber}: {w.already_booked}+{w.requested} &gt; capacity {w.capacity}</p>)}
+                {warning.warnings.map((w, i) => <p key={i}>{formatOverbook(w)}</p>)}
               </div>
             )}
           </div>

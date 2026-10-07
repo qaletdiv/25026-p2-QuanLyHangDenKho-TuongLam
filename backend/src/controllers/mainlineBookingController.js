@@ -150,6 +150,7 @@ async function create(req, res) {
       capacities: svc.legCapacities(ctx.legLines),
       bookedByLeg,
       legPo: new Map(ctx.legs.map((l) => [l.id, l.poNumber])),
+      bookingsByLeg: svc.bookingNumbersByLeg(statusNamed, ctx.bookingLegs),
     });
     if (warnings.length) return res.status(409).json({ overbook_warning: true, warnings });
   }
@@ -394,11 +395,13 @@ async function update(req, res) {
     // counted against itself and every edit would look like an overbooking.
     if (!req.body.force_overbook) {
       const others = await _enrich(ctx.bookings.filter((b) => b.id !== booking.id), ctx);
-      const bookedByLeg = svc.bookedUnitsByLeg(others, ctx.bookingLegs.filter((bl) => bl.bookingId !== booking.id));
+      const otherLegs = ctx.bookingLegs.filter((bl) => bl.bookingId !== booking.id);
+      const bookedByLeg = svc.bookedUnitsByLeg(others, otherLegs);
       const warnings = svc.overbookWarnings(req.body.poLegs, {
         capacities: svc.legCapacities(ctx.legLines),
         bookedByLeg,
         legPo: new Map(ctx.legs.map((l) => [l.id, l.poNumber])),
+        bookingsByLeg: svc.bookingNumbersByLeg(others, otherLegs),
       });
       if (warnings.length) return res.status(409).json({ overbook_warning: true, warnings });
     }

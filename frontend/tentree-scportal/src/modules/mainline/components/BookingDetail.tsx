@@ -20,6 +20,7 @@ import { useSession } from '@/components/providers/SessionProvider';
 import { APPROVE_DENIED_HINT, hasPermission } from '@/lib/permissions';
 import ConfirmDialog from './ConfirmDialog';
 import type { MainlineBooking, CommercialInvoice, PackingSummary, PackingByPo, MainlineDocument } from '@/modules/mainline/types';
+import { formatOverbook, type OverbookWarning } from '../overbook';
 
 const STATUS_STYLES: Record<string, string> = {
   'Booking Pending': 'bg-amber-500/10 text-amber-600 border-amber-500/20',
@@ -116,11 +117,9 @@ export default function BookingDetail({
     // G2 is SOFT and still applies to an estimate revision: the server answers 409
     // with the legs that would exceed capacity rather than silently accepting it.
     if (res?.overbook_warning) {
-      type OverbookWarning = { legId: string; poNumber?: string | null; overage: number };
-      const w = ((res.warnings ?? []) as OverbookWarning[])
-        .map((x) => `${x.poNumber ?? x.legId} over by ${x.overage}`).join('; ');
+      const w = ((res.warnings ?? []) as OverbookWarning[]).map(formatOverbook).join(' ');
       setForceOverbook(true);   // the next Save carries force_overbook
-      toast.warning(`Over allocation — ${w}. Press Save again to book it anyway.`, { duration: 10000 });
+      toast.warning(`Over allocation — ${w} Press Save again to book it anyway.`, { duration: 10000 });
       return;
     }
     if (res?.error) { toast.error(res.error); return; }

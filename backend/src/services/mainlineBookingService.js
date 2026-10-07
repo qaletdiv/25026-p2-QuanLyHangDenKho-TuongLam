@@ -93,8 +93,27 @@ function bookedUnitsByLeg(bookings, bookingLegs, { excludeBookingId } = {}) {
   return booked;
 }
 
+// Booking numbers holding units on each leg — same liveness rule as
+// bookedUnitsByLeg, so the warning can name WHAT the already-booked units are.
+// Without it "1000+1025 > capacity 1000" reads as the form double-counting.
+function bookingNumbersByLeg(bookings, bookingLegs, { excludeBookingId } = {}) {
+  const live = new Map(
+    bookings.filter((b) => !['Cancelled', 'Rejected'].includes(b._status_name) && b.id !== excludeBookingId)
+      .map((b) => [b.id, b.bookingNumber || String(b.id)])
+  );
+  const out = new Map();
+  bookingLegs.forEach((bl) => {
+    if (!live.has(bl.bookingId) || !(Number(bl.units) > 0)) return;
+    const list = out.get(bl.legId) || [];
+    const n = live.get(bl.bookingId);
+    if (!list.includes(n)) list.push(n);
+    out.set(bl.legId, list);
+  });
+  return out;
+}
+
 // G2: soft overbooking — returns one warning per leg that would exceed capacity.
-function overbookWarnings(requestedLegs, { capacities, bookedByLeg, legPo }) {
+function overbookWarnings(requestedLegs, { capacities, bookedByLeg, legPo, bookingsByLeg }) {
   const warnings = [];
   requestedLegs.forEach((rl) => {
     const cap = capacities.get(rl.legId) || 0;
@@ -105,6 +124,7 @@ function overbookWarnings(requestedLegs, { capacities, bookedByLeg, legPo }) {
         legId: rl.legId,
         poNumber: legPo.get(rl.legId) || null,
         already_booked: already,
+        booked_in: (bookingsByLeg && bookingsByLeg.get(rl.legId)) || [],
         capacity: cap,
         requested,
         overage: already + requested - cap,
@@ -161,5 +181,5 @@ function enrichBookings(bookings, { bookingLegs, legs, suppliers, modes = [], or
 
 module.exports = {
   legSupplierMap, checkVendorMatch, checkSameConsignment, checkApproved,
-  legCapacities, bookedUnitsByLeg, overbookWarnings, enrichBookings,
+  legCapacities, bookedUnitsByLeg, bookingNumbersByLeg, overbookWarnings, enrichBookings,
 };
