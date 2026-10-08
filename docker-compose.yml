@@ -99,6 +99,8 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://backend:5000
+        # The deployed commit — version-skew protection (set by the deploy workflow).
+        NEXT_DEPLOYMENT_ID: ${NEXT_DEPLOYMENT_ID:-}
     image: tentree-frontend:latest
     container_name: tentree-frontend
     restart: unless-stopped

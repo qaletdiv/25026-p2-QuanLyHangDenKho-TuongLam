@@ -13,6 +13,10 @@ COPY . .
 # through the Next server), but Next inlines NEXT_PUBLIC_* at build time.
 ARG NEXT_PUBLIC_API_URL=http://backend:5000
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# Version-skew id (the deployed commit). next.config.ts reads it as deploymentId;
+# empty = protection off. Set by the deploy workflow.
+ARG NEXT_DEPLOYMENT_ID=
+ENV NEXT_DEPLOYMENT_ID=$NEXT_DEPLOYMENT_ID
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build
@@ -22,6 +26,9 @@ RUN npm run build
 FROM node:22.15.1-alpine3.20 AS runner
 
 WORKDIR /app
+# Same id at runtime: /api/version reports it so open tabs can tell they are stale.
+ARG NEXT_DEPLOYMENT_ID=
+ENV NEXT_DEPLOYMENT_ID=$NEXT_DEPLOYMENT_ID
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \

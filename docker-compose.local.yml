@@ -65,6 +65,7 @@ services:
       context: ./frontend/tentree-scportal
       args:
         NEXT_PUBLIC_API_URL: http://backend:5000
+        NEXT_DEPLOYMENT_ID: ${NEXT_DEPLOYMENT_ID:-}
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_API_URL: http://backend:5000

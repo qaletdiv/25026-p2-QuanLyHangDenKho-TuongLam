@@ -3,6 +3,16 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Docker: emit .next/standalone (self-contained server.js + traced deps).
   output: 'standalone',
+  // Version-skew protection: the build's commit, passed in at build time
+  // (Dockerfile ARG NEXT_DEPLOYMENT_ID, set by the deploy workflow). A tab rendered
+  // by an older build hard-reloads on navigation, and components/VersionWatcher
+  // prompts a reload before a stale Save hits an unknown Server Action. Unset in
+  // `next dev`, which turns both off.
+  deploymentId: process.env.NEXT_DEPLOYMENT_ID || undefined,
+  // The same id INLINED into the client bundle for components/VersionWatcher.
+  // (Next also writes data-dpl-id on <html>, but React strips it on hydration —
+  // measured: present in the raw HTML, gone from the live DOM.)
+  env: { NEXT_PUBLIC_DEPLOYMENT_ID: process.env.NEXT_DEPLOYMENT_ID || '' },
   reactCompiler: true,
   devIndicators: false,
   experimental: {

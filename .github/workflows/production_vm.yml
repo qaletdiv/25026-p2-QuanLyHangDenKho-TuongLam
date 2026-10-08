@@ -83,7 +83,9 @@ jobs:
             sudo ./scripts/setup-docker.sh
 
             echo "[VM Workflow] Build images"
-            sudo docker compose build
+            # The commit becomes the frontend's deploymentId, so open tabs from the
+            # previous build are told to reload instead of failing on Save.
+            sudo env NEXT_DEPLOYMENT_ID="$(git rev-parse --short HEAD)" docker compose build
 
             echo "[VM Workflow] Update Cloudflare firewall"
             sudo ./scripts/setup-cloudflare-firewall.sh

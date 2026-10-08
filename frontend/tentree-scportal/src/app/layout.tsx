@@ -7,6 +7,7 @@ import { SessionProvider } from "@/components/providers/SessionProvider";
 import { getSession, getAuthToken } from "@/app/actions/auth";
 import { fetchIdentity } from "@/lib/serverIdentity";
 import { Toaster } from "sonner";
+import VersionWatcher from "@/components/VersionWatcher";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
@@ -61,6 +62,7 @@ export default async function RootLayout({
             {children}
           </AppLayout>
           <Toaster />
+          <VersionWatcher />
         </SessionProvider>
       </body>
     </html>
