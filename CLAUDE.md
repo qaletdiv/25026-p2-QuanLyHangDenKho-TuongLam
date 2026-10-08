@@ -2085,10 +2085,14 @@ restart after code changes (`node src/server.js`, port 5000 — no hot reload).
 "the server is down" with a healthy log and no crash in it. Start it detached:
 
 ```powershell
-$cmd = "cmd.exe /c node src\server.js > server.out.log 2> server.err.log"
+$cmd = 'cmd.exe /c start "tentree-backend" /MIN cmd.exe /c "node src\server.js > server.out.log 2> server.err.log"'
 Invoke-CimMethod -ClassName Win32_Process -MethodName Create `
   -Arguments @{ CommandLine = $cmd; CurrentDirectory = "<repo>\backend" }
 ```
+
+The `start … /MIN` matters: it gives the backend its OWN console (a minimised
+"tentree-backend" window — close it to stop the backend). Without it the process
+still received a Ctrl+C from elsewhere and died — `server.err.log` ended in `^C`.
 
 ⚠️ **Not `Start-Process`** (2026-10-08): a backend started that way from an agent's
 PowerShell tool still died with the tool session — TWICE in one day, each time
