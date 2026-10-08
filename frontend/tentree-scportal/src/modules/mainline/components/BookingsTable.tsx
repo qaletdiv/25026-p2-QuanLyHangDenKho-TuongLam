@@ -22,6 +22,7 @@ import ApprovalBadge from './ApprovalBadge';
 import { SeasonScopeFilter, seasonsFrom, applySeasonScope, type Scope } from '@/components/SeasonScopeFilter';
 import type { MainlineBooking, PoMasterSummary, PoLegRow, CourierOption } from '@/modules/mainline/types';
 import { formatOverbook, type OverbookWarning } from '../overbook';
+import { CARGO_READY } from '../cargoReady';
 
 // A booking's work is done once it's Approved (it has spawned its shipment) or
 // terminal (Cancelled/Rejected). "Active" = still Pending approval.
@@ -231,7 +232,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
     { key: 'approved', label: 'Approved', defaultVisible: false, accessor: (b) => b.approvedAt, render: (b) => <span className="text-muted-foreground">{b.approvedAt ? b.approvedAt.slice(0, 10) : '—'}</span> },
     // The BOOKED cargo ready date — the vendor's. The PO's own sits on each leg row
     // in the expansion below, and the forwarder's revised one lives on the shipment.
-    { key: 'cargoReadyDate', label: 'Cargo Ready (booked)', accessor: (b) => b.cargoReadyDate, render: (b) => <span className="text-muted-foreground">{b.cargoReadyDate ?? '—'}</span> },
+    { key: 'cargoReadyDate', label: CARGO_READY.revised.label, hint: CARGO_READY.revised.hint, accessor: (b) => b.cargoReadyDate, render: (b) => <span className="text-muted-foreground">{b.cargoReadyDate ?? '—'}</span> },
     { key: 'bookingStatus', label: 'Status', accessor: (b) => b.bookingStatus, render: (b) => <Badge variant="outline" className={cn(STATUS_STYLES[b.bookingStatus || ''])}>{b.bookingStatus ?? '—'}</Badge> },
     // Approve stays VISIBLE and goes DISABLED for a role that may not press it —
     // a vendor watching their own booking should still see that it is sitting on
@@ -339,7 +340,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
                 <Input type="date" value={bookingDate} onChange={(e) => setBookingDate(e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="booking-cargo-ready">Cargo Ready (revised)</Label>
+                <Label htmlFor="booking-cargo-ready" title={CARGO_READY.revised.hint} className="cursor-help underline decoration-dotted underline-offset-2">{CARGO_READY.revised.label}</Label>
                 <Input id="booking-cargo-ready" type="date" value={effectiveCargoReady}
                   title={cargoReady == null ? 'Defaults to the latest PO CRD of the selected POs — change it if the goods are ready on another date' : 'Your Cargo Ready date for this booking'}
                   onChange={(e) => setCargoReady(e.target.value)} />
@@ -400,7 +401,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
                         <TableHead>Mode</TableHead>
                         <TableHead>Destination</TableHead>
                         <TableHead>Channel</TableHead>
-                        <TableHead title="Cargo ready date on the PO (NetSuite)">PO CRD</TableHead>
+                        <TableHead title={CARGO_READY.po.hint} className="cursor-help">PO CRD</TableHead>
                         <TableHead className="text-right">Remaining / Cap.</TableHead>
                         <TableHead className="text-right">Units</TableHead>
                         <TableHead className="text-right">Cartons</TableHead>

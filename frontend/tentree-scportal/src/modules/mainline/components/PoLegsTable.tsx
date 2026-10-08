@@ -14,6 +14,7 @@ import { syncNetSuite } from '@/modules/mainline/actions';
 import DataTable, { type DataColumn } from './DataTable';
 import ApprovalBadge from './ApprovalBadge';
 import type { PoLegRow } from '@/modules/mainline/types';
+import { CARGO_READY } from '../cargoReady';
 
 // Mainline POs come from the NetSuite sync, which since 2026-09-25 also creates
 // ONE leg per PO for SS27 onward. The v1 WIP import was RETIRED 2026-09-28, so
@@ -118,7 +119,7 @@ export default function PoLegsTable({ legs }: { legs: PoLegRow[] }) {
     { key: 'receivingWarehouse', label: 'Destination', accessor: (l) => l.receivingWarehouse, render: (l) => <span className="text-muted-foreground">{l.receivingWarehouse ?? '—'}</span> },
     { key: 'allocationChannel', label: 'Channel', accessor: (l) => l.allocationChannel, render: (l) => <span className="text-muted-foreground">{l.allocationChannel ?? '—'}</span> },
     { key: 'incoterm', label: 'Incoterm', accessor: (l) => l.incoterm, render: (l) => <span className="text-muted-foreground">{l.incoterm ?? '—'}</span> },
-    { key: 'crd', label: 'Cargo Ready (PO)', accessor: (l) => l.crd, render: (l) => <span className="text-muted-foreground">{l.crd ?? '—'}</span> },
+    { key: 'crd', label: CARGO_READY.po.label, hint: CARGO_READY.po.hint, accessor: (l) => l.crd, render: (l) => <span className="text-muted-foreground">{l.crd ?? '—'}</span> },
     // Hand-over date (NetSuite custbody8) — the supplier hands the goods to the
     // forwarder. A DIFFERENT event from Cargo Ready: 7 days later on live rows.
     // v2 only, so FW26 legs show '—'.

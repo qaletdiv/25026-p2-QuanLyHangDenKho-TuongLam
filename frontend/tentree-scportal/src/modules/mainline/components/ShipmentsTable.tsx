@@ -16,6 +16,7 @@ import { updateMainlineShipment } from '@/modules/mainline/actions';
 import ColumnPicker from './ColumnPicker';
 import { SeasonScopeFilter, seasonsFrom, applySeasonScope, type Scope } from '@/components/SeasonScopeFilter';
 import type { MainlineShipment, MainlineShipmentStatus } from '@/modules/mainline/types';
+import { CARGO_READY } from '../cargoReady';
 
 // A mainline shipment is done once Received (or Delivered), or terminal (Cancelled).
 const SHIP_DONE = new Set(['Received', 'Delivered', 'Cancelled']);
@@ -35,6 +36,7 @@ const STORAGE_KEY = 'mainline_shipment_columns';
 type ShipColumn = {
   key: string;
   label: string;
+  hint?: string;               // hover tooltip on the header (e.g. where a date comes from)
   align?: 'right';
   defaultVisible?: boolean;    // default true; hidden columns stay selectable in the picker
   stopClick?: boolean;         // cell contains its own control — don't toggle the row expander
@@ -155,8 +157,8 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
     { key: 'coo', label: 'COO', defaultVisible: false, render: (s) => dim(s.coo.join(', ')) },
     // THREE distinct cargo-ready dates — see MainlineShipment in types.ts. Labelled
     // in full here because a bare "CRD" column next to two others is unreadable.
-    { key: 'crd', label: 'Cargo Ready (PO)', defaultVisible: false, render: (s) => dim(s.crd) },
-    { key: 'cargoReadyDate', label: 'Cargo Ready (revised)', render: (s) => dim(s.cargoReadyDate) },
+    { key: 'crd', label: CARGO_READY.po.label, hint: CARGO_READY.po.hint, defaultVisible: false, render: (s) => dim(s.crd) },
+    { key: 'cargoReadyDate', label: CARGO_READY.forwarder.label, hint: CARGO_READY.forwarder.hint, render: (s) => dim(s.cargoReadyDate) },
     { key: 'etdPol', label: 'ETD POL', defaultVisible: false, render: (s) => dim(s.etdPol) },
     { key: 'etaPod', label: 'ETA POD', defaultVisible: false, render: (s) => dim(s.etaPod) },
     { key: 'eDel', label: 'E-DEL', render: (s) => dim(s.eDel) },
@@ -228,7 +230,7 @@ export default function ShipmentsTable({ shipments }: { shipments: MainlineShipm
             <TableRow className="bg-card/80 hover:bg-card/80">
               <TableHead className="w-8" />
               {visibleCols.map((c) => (
-                <TableHead key={c.key} className={cn('whitespace-nowrap', c.align === 'right' && 'text-right')}>{c.label}</TableHead>
+                <TableHead key={c.key} title={c.hint} className={cn('whitespace-nowrap', c.align === 'right' && 'text-right', c.hint && 'cursor-help')}>{c.label}</TableHead>
               ))}
             </TableRow>
           </TableHeader>

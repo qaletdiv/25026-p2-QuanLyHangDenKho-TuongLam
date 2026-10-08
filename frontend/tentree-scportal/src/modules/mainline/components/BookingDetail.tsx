@@ -21,6 +21,7 @@ import { APPROVE_DENIED_HINT, hasPermission } from '@/lib/permissions';
 import ConfirmDialog from './ConfirmDialog';
 import type { MainlineBooking, CommercialInvoice, PackingSummary, PackingByPo, MainlineDocument } from '@/modules/mainline/types';
 import { formatOverbook, type OverbookWarning } from '../overbook';
+import { CARGO_READY } from '../cargoReady';
 
 const STATUS_STYLES: Record<string, string> = {
   'Booking Pending': 'bg-amber-500/10 text-amber-600 border-amber-500/20',
@@ -32,10 +33,12 @@ const STATUS_STYLES: Record<string, string> = {
 const DASH = '—';
 
 // label + value cell (mirrors the shipment detail layout)
-function Cell({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
+// `tip` = hover text on the LABEL (where the value comes from); `hint` = the
+// small line under the value while editing.
+function Cell({ label, children, hint, tip }: { label: string; children: React.ReactNode; hint?: string; tip?: string }) {
   return (
     <div className="space-y-1">
-      <div className="text-xs font-medium text-muted-foreground">{label}</div>
+      <div className={cn('text-xs font-medium text-muted-foreground', tip && 'cursor-help underline decoration-dotted underline-offset-2')} title={tip}>{label}</div>
       <div className="text-sm">{children ?? DASH}</div>
       {hint && <div className="text-[10px] text-muted-foreground/70">{hint}</div>}
     </div>
@@ -319,7 +322,7 @@ export default function BookingDetail({
                 mainline_po_legs.modeId = NetSuite custbody16, refreshed on every
                 sync. No hint shown — per Lam, the label is enough. */}
             <Cell label="Mode">{booking.mode ?? DASH}</Cell>
-            <Cell label="Cargo Ready" hint={isPending ? 'the vendor’s date — editable until approved' : undefined}>
+            <Cell label={CARGO_READY.revised.label} tip={CARGO_READY.revised.hint} hint={isPending ? 'the vendor’s date — editable until approved' : undefined}>
               {editing
                 ? <Input type="date" value={form.cargoReadyDate} onChange={(e) => setForm((f) => ({ ...f, cargoReadyDate: e.target.value }))} className="h-8 w-[9.5rem]" disabled={busy} />
                 : (booking.cargoReadyDate ?? DASH)}

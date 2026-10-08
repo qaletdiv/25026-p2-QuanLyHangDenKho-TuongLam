@@ -12,6 +12,7 @@ import ColumnPicker from './ColumnPicker';
 export type DataColumn<T> = {
   key: string;
   label: string;
+  hint?: string;                                        // hover tooltip on the header (e.g. where a date comes from)
   align?: 'right';
   sortable?: boolean;                                   // default true
   defaultVisible?: boolean;                             // default true; hidden columns stay selectable in the picker
@@ -143,6 +144,7 @@ export default function DataTable<T>({
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={() => onDrop(key)}
                     className={cn('cursor-move select-none whitespace-nowrap', col.align === 'right' && 'text-right')}
+                    title={col.hint}
                   >
                     <button onClick={() => toggleSort(key)} disabled={!sortable}
                       className={cn('inline-flex items-center gap-1', sortable && 'hover:text-foreground', col.align === 'right' && 'flex-row-reverse', !sortable && 'cursor-default')}>

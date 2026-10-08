@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { cn } from '@/lib/utils';
 import ApprovalBadge from './ApprovalBadge';
 import type { PoLegDetail as PoLegDetailT, PoReconcile, LegShipment } from '@/modules/mainline/types';
+import { CARGO_READY } from '../cargoReady';
 
 const DASH = '—';
 // Same palette as ShipmentsTable / ShipmentDetail so one status reads identically
@@ -26,10 +27,10 @@ const STATUS_STYLES: Record<string, string> = {
   'Cancelled': 'bg-red-500/10 text-red-600 border-red-500/20',
 };
 
-function Meta({ label, value }: { label: string; value: React.ReactNode }) {
+function Meta({ label, value, tip }: { label: string; value: React.ReactNode; tip?: string }) {
   return (
     <div className="space-y-0.5">
-      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className={tip ? 'text-xs text-muted-foreground cursor-help underline decoration-dotted underline-offset-2' : 'text-xs text-muted-foreground'} title={tip}>{label}</div>
       <div className="text-sm font-medium">{value ?? '—'}</div>
     </div>
   );
@@ -144,7 +145,7 @@ export default function PoLegDetail({ leg, reconcile, shipments = [] }: { leg: P
               which is a different EVENT (the forwarder has the cargo), 0–32 days
               later on live rows. These were once labelled "CRD (target)" and
               "CRD (actual)", which read as two measurements of one date. */}
-          <Meta label="Cargo Ready" value={leg.crd} />
+          <Meta label={CARGO_READY.po.label} value={leg.crd} tip={CARGO_READY.po.hint} />
           {/* HAND OVER (NetSuite custbody8) — the supplier hands the goods to the
               forwarder. A THIRD distinct event, not a restatement of the two
               above: it sits 7 days after Cargo Ready on live rows, and earlier

@@ -20,6 +20,7 @@ import { useSession } from '@/components/providers/SessionProvider';
 import { hasPermission } from '@/lib/permissions';
 import ConfirmDialog from './ConfirmDialog';
 import type { MainlineShipment, MainlineShipmentStatus, MainlineDocument, PortOption, ContainerTypeOption, CourierOption } from '@/modules/mainline/types';
+import { CARGO_READY } from '../cargoReady';
 
 // The PROGRESS pipeline, which is all this dropdown sets. 'Cancelled' is not in
 // it: cancelling is a decision with guards (handed over? received? costed?) behind
@@ -37,10 +38,12 @@ const STATUS_STYLES: Record<string, string> = {
 const NONE = '__none__';   // base-ui Select can't hold an empty-string value
 
 // One label + value/control cell. `hint` is a small sub-note (e.g. "derived").
-function Cell({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
+// `tip` = hover text on the LABEL (where the value comes from); `hint` = the
+// small line under the value while editing.
+function Cell({ label, children, hint, tip }: { label: string; children: React.ReactNode; hint?: string; tip?: string }) {
   return (
     <div className="space-y-1">
-      <div className="text-xs font-medium text-muted-foreground">{label}</div>
+      <div className={cn('text-xs font-medium text-muted-foreground', tip && 'cursor-help underline decoration-dotted underline-offset-2')} title={tip}>{label}</div>
       <div className="text-sm">{children ?? '—'}</div>
       {hint && <div className="text-[10px] text-muted-foreground/70">{hint}</div>}
     </div>
@@ -392,9 +395,9 @@ export default function ShipmentDetail({
               {/* Hints removed per Lam — the qualifier in each label carries it.
                   (PO) = NetSuite custbody46, earliest across this shipment's legs.
                   (booked) = what the vendor stated on the booking. */}
-              <Cell label="Cargo Ready (PO)">{s.crd ?? '—'}</Cell>
-              <Cell label="Cargo Ready (booked)">{s.bookedCargoReadyDate ?? '—'}</Cell>
-              <Cell label="Cargo Ready (revised)" hint={editing ? 'the forwarder’s working date for this consignment' : undefined}>
+              <Cell label={CARGO_READY.po.label} tip={CARGO_READY.po.hint}>{s.crd ?? '—'}</Cell>
+              <Cell label={CARGO_READY.revised.label} tip={CARGO_READY.revised.hint}>{s.bookedCargoReadyDate ?? '—'}</Cell>
+              <Cell label={CARGO_READY.forwarder.label} tip={CARGO_READY.forwarder.hint} hint={editing ? 'the forwarder’s working date for this consignment' : undefined}>
                 {editing ? dateInput('cargoReadyDate') : (s.cargoReadyDate ?? '—')}
               </Cell>
               <Cell label="Received at Port" hint={editing ? 'the carrier has the cargo — later than Cargo Ready' : undefined}>{editing ? dateInput('cargoReceivedDate') : (s.cargoReceivedDate ?? '—')}</Cell>
