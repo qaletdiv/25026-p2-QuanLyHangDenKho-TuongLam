@@ -7,6 +7,7 @@ import { TrendingUp, PackageSearch, CalendarClock, Building2, Boxes as BoxesIcon
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { cn } from '@/lib/utils';
 import ForecastTabs from './ForecastTabs';
+import HeaderFilter from '@/components/HeaderFilter';
 import CopyImageButton from '../reports/CopyImageButton';
 
 const TOOLTIP_STYLE = {
@@ -97,38 +98,6 @@ type LineFilters = Record<LineFilterKey, string>;
 const NO_FILTERS: LineFilters = { supplier: 'all', mode: 'all', warehouse: 'all', channel: 'all', stage: 'all' };
 const STAGE_ORDER = Object.keys(STAGE_STYLE);
 
-// SelectItem hard-codes `shrink-0 whitespace-nowrap` on its text (ui/select.tsx),
-// so a long supplier name would be clipped at the column width. These options
-// override it on the direct children (*:) so names WRAP inside a list no wider
-// than the column, without changing the shared component for every other Select.
-const FILTER_ITEM = 'text-xs py-1 pr-6 leading-tight *:min-w-0 *:shrink *:whitespace-normal *:break-words';
-
-function HeaderFilter({ label, value, options, onChange }: {
-  label: string; value: string; options: string[]; onChange: (v: string) => void;
-}) {
-  return (
-    <Select value={value} onValueChange={(v) => onChange(v ?? 'all')}>
-      {/* Label rendered directly: SelectValue cannot derive one when the value
-          is set programmatically (see CLAUDE.md). */}
-      <SelectTrigger
-        title={value === 'all' ? `Filter by ${label.toLowerCase()}` : `${label}: ${value}`}
-        className={cn('h-6 w-full px-0 gap-1 border-0 bg-transparent dark:bg-transparent shadow-none hover:text-foreground focus-visible:ring-1 text-[10px] font-black uppercase tracking-wider',
-          value === 'all' ? 'text-muted-foreground' : 'text-primary normal-case tracking-normal')}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <span className="truncate">{value === 'all' ? label : value}</span>
-      </SelectTrigger>
-      {/* Opens BELOW the header. The default (alignItemWithTrigger) lays the list
-          over the trigger to line up the selected option, which covered the header.
-          min-w-0 drops the 144px floor so the list is never wider than its column
-          (it is already w-(--anchor-width)); long names wrap instead. */}
-      <SelectContent alignItemWithTrigger={false} side="bottom" align="start" sideOffset={4} className="min-w-0">
-        <SelectItem value="all" className={FILTER_ITEM}>All {label.toLowerCase()}s</SelectItem>
-        {options.map((o) => <SelectItem key={o} value={o} className={FILTER_ITEM}>{o}</SelectItem>)}
-      </SelectContent>
-    </Select>
-  );
-}
 
 export default function ForecastClient({ seasons, bySeason }: { seasons: string[]; bySeason: Record<string, ForecastWeek[]> }) {
   const chartRef = useRef<HTMLDivElement>(null);

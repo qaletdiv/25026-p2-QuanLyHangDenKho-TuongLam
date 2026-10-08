@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+import HeaderFilter from '@/components/HeaderFilter';
 import { createSmsShipment } from '@/modules/sms/actions';
 import { facilityLabel } from './smsStatus';
 import type { SmsPo, CourierOption } from '@/modules/sms/types';
@@ -35,8 +36,11 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
   const [trackingNumber, setTrackingNumber] = useState('');
   const [shipDate, setShipDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [facilityId, setFacilityId] = useState('');
-  // View filter over the PO list only — NOT a constraint on the consignment.
+  // View filters over the PO list only — NOT constraints on the consignment.
+  // They live in the Supplier and Season column headers. Supplier filters on
+  // supplierId, never the name (the name match once found 0 POs for the live vendor).
   const [filterSupplierId, setFilterSupplierId] = useState('');
+  const [filterSeason, setFilterSeason] = useState('');
   const [rows, setRows] = useState<Record<string, RowInput>>({});
   const [submitting, setSubmitting] = useState(false);
   const [shippingFile, setShippingFile] = useState<File | null>(null);
@@ -72,20 +76,25 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
     [eligible, facilityId],
   );
 
-  // Suppliers present at the chosen destination. One or none → no filter rendered,
-  // which is the vendor case (their POs are all one supplier).
+  // Suppliers / seasons present at the chosen destination. A header becomes a
+  // filter only when it has more than one value — never the vendor's supplier case.
   const supplierOptions = useMemo(() => {
     const m = new Map<string, string>();
     displayed.forEach((p) => { if (p.supplierId && !m.has(p.supplierId)) m.set(p.supplierId, p.supplier ?? p.supplierId); });
     return [...m.entries()].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
   }, [displayed]);
+  const seasonOptions = useMemo(
+    () => [...new Set(displayed.map((p) => p.season).filter((v): v is string => !!v))].sort(),
+    [displayed],
+  );
 
   // `selected` reads `displayed`, not this — narrowing the view must never silently
   // drop units already entered on a PO the filter happens to hide. That matters more
   // here than on the booking form, since a box MAY span suppliers.
   const visible = useMemo(
-    () => (filterSupplierId ? displayed.filter((p) => p.supplierId === filterSupplierId) : displayed),
-    [displayed, filterSupplierId],
+    () => displayed.filter((p) => (!filterSupplierId || p.supplierId === filterSupplierId)
+      && (!filterSeason || p.season === filterSeason)),
+    [displayed, filterSupplierId, filterSeason],
   );
 
   const setField = (po: string, field: keyof RowInput, value: string) =>
@@ -100,12 +109,12 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
     .filter((x): x is NonNullable<typeof x> => x !== null);
 
   // switching destination clears any units entered for the previous one
-  const changeDestination = (id: string) => { setFacilityId(id); setRows({}); setWarning(null); setFilterSupplierId(''); };
+  const changeDestination = (id: string) => { setFacilityId(id); setRows({}); setWarning(null); setFilterSupplierId(''); setFilterSeason(''); };
 
   function reset() {
     setRows({}); setWarning(null); setTrackingNumber('');
     setShippingFile(null); setFileKey((k) => k + 1);
-    setShipDate(new Date().toISOString().slice(0, 10)); setFacilityId(''); setFilterSupplierId('');
+    setShipDate(new Date().toISOString().slice(0, 10)); setFacilityId(''); setFilterSupplierId(''); setFilterSeason('');
   }
 
   async function submit(force = false) {
@@ -193,32 +202,28 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
           <div className="space-y-1.5">
             <div className="flex flex-wrap items-end justify-between gap-2">
               <Label>POs in this shipment — enter units to include ({selected.length} selected)</Label>
-              {/* Find-aid only. Unlike the BOOKING form there is NO supplier lock here:
-                  a courier box may legitimately carry POs from more than one supplier
-                  (there is no same-supplier guard server-side either), so restricting
-                  it would contradict the multi-PO consignment design. Hidden when the
-                  destination holds one supplier, which is always the vendor case. */}
-              {supplierOptions.length > 1 && (
-                <Select value={filterSupplierId || 'all'} onValueChange={(v) => setFilterSupplierId(v === 'all' ? '' : (v ?? ''))}>
-                  <SelectTrigger className="h-8 w-56 text-xs">
-                    <span className={cn(!filterSupplierId && 'text-muted-foreground')}>
-                      {supplierOptions.find((s) => s.id === filterSupplierId)?.name || 'All suppliers'}
-                    </span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All suppliers</SelectItem>
-                    {supplierOptions.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              )}
             </div>
             <div className="max-h-72 overflow-auto rounded-md border border-border">
               <Table className="bg-card">
                 <TableHeader>
                   <TableRow className="bg-card/80 hover:bg-card/80">
                     <TableHead>PO</TableHead>
-                    <TableHead>Supplier</TableHead>
-                    <TableHead>Season</TableHead>
+                    {/* Find-aids only. Unlike the BOOKING form there is NO supplier lock:
+                        a courier box may legitimately carry POs from more than one
+                        supplier (no same-supplier guard server-side either). */}
+                    <TableHead className="py-1">
+                      {supplierOptions.length > 1
+                        ? <HeaderFilter size="default" label="Supplier" value={filterSupplierId || 'all'}
+                            options={supplierOptions.map((o) => ({ value: o.id, label: o.name }))}
+                            onChange={(v) => setFilterSupplierId(v === 'all' ? '' : v)} />
+                        : 'Supplier'}
+                    </TableHead>
+                    <TableHead className="py-1">
+                      {seasonOptions.length > 1
+                        ? <HeaderFilter size="default" label="Season" value={filterSeason || 'all'} options={seasonOptions}
+                            onChange={(v) => setFilterSeason(v === 'all' ? '' : v)} />
+                        : 'Season'}
+                    </TableHead>
                     <TableHead>HOD</TableHead>
                     <TableHead className="text-right">Remaining / Ordered</TableHead>
                     <TableHead className="text-right">Units</TableHead>
@@ -233,7 +238,7 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
                     <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">No open POs for this destination.</TableCell></TableRow>
                   )}
                   {facilityId && displayed.length > 0 && visible.length === 0 && (
-                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">No POs for this supplier at this destination.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">No POs match the filters at this destination.</TableCell></TableRow>
                   )}
                   {visible.map((p) => {
                     const r = rows[p.poNumber] || {};
