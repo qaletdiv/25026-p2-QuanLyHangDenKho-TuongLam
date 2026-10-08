@@ -401,7 +401,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
                         <TableHead>Mode</TableHead>
                         <TableHead>Destination</TableHead>
                         <TableHead>Channel</TableHead>
-                        <TableHead>CRD</TableHead>
+                        <TableHead title="Cargo ready date on the PO (NetSuite)">PO CRD</TableHead>
                         <TableHead className="text-right">Remaining / Cap.</TableHead>
                         <TableHead className="text-right">Units</TableHead>
                         <TableHead className="text-right">Cartons</TableHead>
