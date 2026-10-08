@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+import HeaderFilter from '@/components/HeaderFilter';
 import { createSmsBooking } from '@/modules/sms/actions';
 import { facilityLabel } from './smsStatus';
 import type { SmsPo, IncotermOption, CourierOption, ModeOption } from '@/modules/sms/types';
@@ -49,6 +50,7 @@ export default function SmsBookingForm({ open, onClose, pos, incoterms = [], cou
   // destination otherwise get every supplier's POs interleaved with no way to narrow;
   // vendors never see this control at all (their list is one supplier, so it hides).
   const [filterSupplierId, setFilterSupplierId] = useState('');
+  const [filterSeason, setFilterSeason] = useState('');
   const [rows, setRows] = useState<Record<string, RowInput>>({});
   const [submitting, setSubmitting] = useState(false);
   const [warnings, setWarnings] = useState<Warning[] | null>(null);
@@ -80,20 +82,25 @@ export default function SmsBookingForm({ open, onClose, pos, incoterms = [], cou
     [eligible, facilityId],
   );
 
-  // Suppliers present at the chosen destination. One or none → the filter is not
-  // rendered, which is exactly the vendor case (their POs are all one supplier).
+  // Suppliers / seasons present at the chosen destination. A column header becomes
+  // a filter only when it has more than one value — never the vendor's supplier case.
   const supplierOptions = useMemo(() => {
     const m = new Map<string, string>();
     displayed.forEach((p) => { if (p.supplierId && !m.has(p.supplierId)) m.set(p.supplierId, p.supplier ?? p.supplierId); });
     return [...m.entries()].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
   }, [displayed]);
+  const seasonOptions = useMemo(
+    () => [...new Set(displayed.map((p) => p.season).filter((v): v is string => !!v))].sort(),
+    [displayed],
+  );
 
   // What the table renders. `selected` deliberately reads `displayed`, NOT this —
   // narrowing the view must never silently drop units already entered on a PO that
   // the filter happens to hide.
   const visible = useMemo(
-    () => (filterSupplierId ? displayed.filter((p) => p.supplierId === filterSupplierId) : displayed),
-    [displayed, filterSupplierId],
+    () => displayed.filter((p) => (!filterSupplierId || p.supplierId === filterSupplierId)
+      && (!filterSeason || p.season === filterSeason)),
+    [displayed, filterSupplierId, filterSeason],
   );
 
   // G1: one supplier per booking. Which supplier is implied by the POs chosen.
@@ -124,9 +131,9 @@ export default function SmsBookingForm({ open, onClose, pos, incoterms = [], cou
   const setField = (po: string, field: keyof RowInput, value: string) =>
     setRows((r) => ({ ...r, [po]: { ...r[po], [field]: value } }));
 
-  const changeDestination = (id: string) => { setFacilityId(id); setRows({}); setWarnings(null); setFilterSupplierId(''); };
+  const changeDestination = (id: string) => { setFacilityId(id); setRows({}); setWarnings(null); setFilterSupplierId(''); setFilterSeason(''); };
 
-  function reset() { setRows({}); setWarnings(null); setCrd(''); setIncotermId(''); setFacilityId(''); setCourierId(''); setModeId(''); setFilterSupplierId(''); }
+  function reset() { setRows({}); setWarnings(null); setCrd(''); setIncotermId(''); setFacilityId(''); setCourierId(''); setModeId(''); setFilterSupplierId(''); setFilterSeason(''); }
 
   async function submit(force = false) {
     if (selected.length === 0) { toast.error('Enter units on at least one PO'); return; }
@@ -225,23 +232,6 @@ export default function SmsBookingForm({ open, onClose, pos, incoterms = [], cou
           <div className="space-y-1.5">
             <div className="flex flex-wrap items-end justify-between gap-2">
               <Label>POs to authorize — enter units to include ({selected.length} selected)</Label>
-              {/* Rendered only when the destination actually holds more than one
-                  supplier — so a vendor never sees it. Filtering is a VIEW change:
-                  `selected` reads the unfiltered list, so hiding a row cannot drop
-                  units already entered on it. */}
-              {supplierOptions.length > 1 && (
-                <Select value={filterSupplierId || 'all'} onValueChange={(v) => setFilterSupplierId(v === 'all' ? '' : (v ?? ''))}>
-                  <SelectTrigger className="h-8 w-56 text-xs">
-                    <span className={cn(!filterSupplierId && 'text-muted-foreground')}>
-                      {supplierOptions.find((s) => s.id === filterSupplierId)?.name || 'All suppliers'}
-                    </span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All suppliers</SelectItem>
-                    {supplierOptions.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              )}
             </div>
             {lockedSupplierName && supplierOptions.length > 1 && (
               <p className="text-xs text-muted-foreground">
@@ -254,7 +244,21 @@ export default function SmsBookingForm({ open, onClose, pos, incoterms = [], cou
                 <TableHeader>
                   <TableRow className="bg-card/80 hover:bg-card/80">
                     <TableHead>PO</TableHead>
-                    <TableHead>Supplier</TableHead>
+                    {/* Header filters are a VIEW change: `selected` reads the
+                        unfiltered list, so hiding a row cannot drop units entered on it. */}
+                    <TableHead className="py-1">
+                      {supplierOptions.length > 1
+                        ? <HeaderFilter size="default" label="Supplier" value={filterSupplierId || 'all'}
+                            options={supplierOptions.map((o) => ({ value: o.id, label: o.name }))}
+                            onChange={(v) => setFilterSupplierId(v === 'all' ? '' : v)} />
+                        : 'Supplier'}
+                    </TableHead>
+                    <TableHead className="py-1">
+                      {seasonOptions.length > 1
+                        ? <HeaderFilter size="default" label="Season" value={filterSeason || 'all'} options={seasonOptions}
+                            onChange={(v) => setFilterSeason(v === 'all' ? '' : v)} />
+                        : 'Season'}
+                    </TableHead>
                     <TableHead>HOD</TableHead>
                     <TableHead className="text-right">Remaining / Ordered</TableHead>
                     <TableHead className="text-right">Units</TableHead>
@@ -264,13 +268,13 @@ export default function SmsBookingForm({ open, onClose, pos, incoterms = [], cou
                 </TableHeader>
                 <TableBody>
                   {!facilityId && (
-                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Pick a destination above to list its POs.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">Pick a destination above to list its POs.</TableCell></TableRow>
                   )}
                   {facilityId && displayed.length === 0 && (
-                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">No open POs for this destination.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">No open POs for this destination.</TableCell></TableRow>
                   )}
                   {facilityId && displayed.length > 0 && visible.length === 0 && (
-                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">No POs for this supplier at this destination.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">No POs match the filters at this destination.</TableCell></TableRow>
                   )}
                   {visible.map((p) => {
                     const r = rows[p.poNumber] || {};
@@ -281,6 +285,7 @@ export default function SmsBookingForm({ open, onClose, pos, incoterms = [], cou
                       <TableRow key={p.poNumber} className={cn('border-border', entered > 0 && 'bg-primary/5', locked && 'opacity-40')}>
                         <TableCell className="font-medium whitespace-nowrap">{p.poNumber}</TableCell>
                         <TableCell className="text-muted-foreground whitespace-nowrap">{p.supplier ?? '—'}</TableCell>
+                        <TableCell className="text-muted-foreground whitespace-nowrap">{p.season ?? '—'}</TableCell>
                         <TableCell className="text-muted-foreground whitespace-nowrap">{p.hod ?? '—'}</TableCell>
                         <TableCell className="text-right tabular-nums whitespace-nowrap">
                           <span className="text-red-600">{p.remainingQty.toLocaleString()}</span>
