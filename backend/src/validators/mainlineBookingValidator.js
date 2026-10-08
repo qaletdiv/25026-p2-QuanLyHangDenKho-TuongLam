@@ -34,6 +34,9 @@ const create = {
   }),
   ...legRefFields('poLegs'),
   bookingStatus,
+  // The vendor's Cargo Ready, set in the create form's header. Optional: the
+  // controller falls back to the latest PO CRD of the booked legs when absent.
+  cargoReadyDate: isoDate('Cargo Ready must be YYYY-MM-DD'),
 };
 
 const update = {

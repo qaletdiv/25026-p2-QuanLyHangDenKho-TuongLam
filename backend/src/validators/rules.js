@@ -71,7 +71,12 @@ function isoDate(shapeMessage = 'Dates must be YYYY-MM-DD') {
             options: (v) => {
                 if (v === '') return true;
                 if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) throw new Error(shapeMessage);
-                if (Number.isNaN(new Date(v).getTime())) throw new Error('Not a valid calendar date');
+                // Round-trip, not just NaN: JS ROLLS an impossible day over
+                // (2027-02-30 → 2027-03-02) instead of failing, so a NaN check
+                // passed it and Postgres then threw a 500. A real date reads back
+                // as itself.
+                const d = new Date(`${v}T00:00:00Z`);
+                if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== v) throw new Error('Not a valid calendar date');
                 return true;
             },
         },

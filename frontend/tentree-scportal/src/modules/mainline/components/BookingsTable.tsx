@@ -73,6 +73,9 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
   const [supplierId, setSupplierId] = useState('');
   const [courierId, setCourierId] = useState('');      // planned carrier (optional)
   const [bookingDate, setBookingDate] = useState(() => new Date().toISOString().slice(0, 10));
+  // Cargo Ready typed in the header; null = untouched, so the field follows the
+  // latest PO CRD of the selected POs (effectiveCargoReady below).
+  const [cargoReady, setCargoReady] = useState<string | null>(null);
   const [rows, setRows] = useState<Record<string, RowInput>>({});
   const [submitting, setSubmitting] = useState(false);
   const [warning, setWarning] = useState<null | { warnings: OverbookWarning[] }>(null);
@@ -167,11 +170,17 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
     return selectedRows.filter((l) => !shown.has(l.id)).length;
   }, [selectedRows, visibleLegs]);
 
+  // Default Cargo Ready = the LATEST PO CRD (custbody46) among the selected POs —
+  // the same seed the server applies when none is sent. DERIVED, not a
+  // useEffect+setState, so it follows the selection until the user types a date.
+  const latestCrd = selectedRows.reduce<string | null>((mx, l) => (l.crd && (!mx || l.crd > mx) ? l.crd : mx), null);
+  const effectiveCargoReady = cargoReady ?? latestCrd ?? '';
+
   const destinations = [...new Set(selectedRows.map((l) => l.receivingWarehouse ?? '—'))];
   const modesSel = [...new Set(selectedRows.map((l) => l.mode ?? '—'))];
   const consignmentConflict = selectedRows.length > 1 && (destinations.length > 1 || modesSel.length > 1);
 
-  function resetForm() { setSupplierId(''); setCourierId(''); setRows({}); setWarning(null); setBookingDate(new Date().toISOString().slice(0, 10)); setPoSeason(ALL); setPoTrn(ALL); }
+  function resetForm() { setSupplierId(''); setCourierId(''); setRows({}); setWarning(null); setBookingDate(new Date().toISOString().slice(0, 10)); setCargoReady(null); setPoSeason(ALL); setPoTrn(ALL); }
 
   // "Book Now" on the PO masters table lands here with ?new=<supplierId> —
   // open the create dialog with that supplier preselected.
@@ -187,7 +196,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
     if (!effectiveSupplierId || selected.length === 0) { toast.error('Pick a supplier and enter units on at least one PO'); return; }
     if (consignmentConflict) { toast.error('Multiple POs can be booked together only when they share one destination and one mode.'); return; }
     setSubmitting(true);
-    const res = await createMainlineBooking({ supplierId: effectiveSupplierId, courierId: courierId || null, booking_date: bookingDate || undefined, poLegs: selected, force_overbook: force });
+    const res = await createMainlineBooking({ supplierId: effectiveSupplierId, courierId: courierId || null, booking_date: bookingDate || undefined, cargoReadyDate: effectiveCargoReady || undefined, poLegs: selected, force_overbook: force });
     setSubmitting(false);
     if (res?.overbook_warning) { setWarning(res); return; }
     if (res?.error) { toast.error(res.error); return; }
@@ -291,7 +300,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
             <p className="text-sm text-muted-foreground">Single PO, or multiple POs from the same supplier (G1). Cartons / gross weight are booking estimates for the freight forwarder — actuals come from the CI &amp; packing list.</p>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div className="space-y-1.5">
                 <Label>Supplier</Label>
                 <Select value={effectiveSupplierId} onValueChange={(v) => { setSupplierId(v ?? ''); setRows({}); setWarning(null); setPoSeason(ALL); setPoTrn(ALL); }}>
@@ -329,6 +338,12 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
               <div className="space-y-1.5">
                 <Label>Booking Date</Label>
                 <Input type="date" value={bookingDate} onChange={(e) => setBookingDate(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="booking-cargo-ready">Cargo Ready</Label>
+                <Input id="booking-cargo-ready" type="date" value={effectiveCargoReady}
+                  title={cargoReady == null ? 'Defaults to the latest PO CRD of the selected POs — change it if the goods are ready on another date' : 'Your Cargo Ready date for this booking'}
+                  onChange={(e) => setCargoReady(e.target.value)} />
               </div>
             </div>
             {selectedCarrier && selectedCarrier.providesCostInvoices === false && (
