@@ -146,7 +146,7 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
             width — overriding the table's own overflow-x-auto and pushing the form
             past the dialog edge on narrow screens. Same fix as SmsBookingForm. */}
         <div className="space-y-4 min-w-0">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
             <div className="space-y-1.5">
               <Label>Courier</Label>
               <Select value={courierId} onValueChange={(v) => v && setCourierId(v)}>
@@ -174,21 +174,20 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
                 <SelectContent>{destinations.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="sms-shipping-file">Shipping data <span className="text-destructive">*</span></Label>
-            <Input
-              key={fileKey}
-              id="sms-shipping-file"
-              type="file"
-              accept=".xlsx,.xls"
-              className="max-w-md"
-              onChange={(e) => { setShippingFile(e.target.files?.[0] ?? null); setWarning(null); }}
-            />
-            <p className="text-xs text-muted-foreground">
-              The packing Excel for this box. Units (and cartons, if entered) per PO must match the file.
-            </p>
+            {/* In the header row with the other four fields. The hint moved to the
+                tooltip so the row stays one line tall. */}
+            <div className="space-y-1.5 min-w-0">
+              <Label htmlFor="sms-shipping-file">Shipping data <span className="text-destructive">*</span></Label>
+              <Input
+                key={fileKey}
+                id="sms-shipping-file"
+                type="file"
+                accept=".xlsx,.xls"
+                title="The packing Excel for this box. Units (and cartons, if entered) per PO must match the file."
+                className="w-full text-xs file:mr-2 file:text-xs"
+                onChange={(e) => { setShippingFile(e.target.files?.[0] ?? null); setWarning(null); }}
+              />
+            </div>
           </div>
 
           <div className="space-y-1.5">
