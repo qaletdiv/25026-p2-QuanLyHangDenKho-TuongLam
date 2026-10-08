@@ -88,9 +88,9 @@ const fmt = (n: number) => (n > 0 ? n.toLocaleString() : '—');
 // Drill-down filters. The column header IS the filter (same convention as the
 // PO leg detail): unset it reads the column name, set it reads the value. One
 // shared state, so a filter chosen in any week applies to every open week.
-type LineFilterKey = 'mode' | 'warehouse' | 'channel' | 'stage';
+type LineFilterKey = 'supplier' | 'mode' | 'warehouse' | 'channel' | 'stage';
 type LineFilters = Record<LineFilterKey, string>;
-const NO_FILTERS: LineFilters = { mode: 'all', warehouse: 'all', channel: 'all', stage: 'all' };
+const NO_FILTERS: LineFilters = { supplier: 'all', mode: 'all', warehouse: 'all', channel: 'all', stage: 'all' };
 const STAGE_ORDER = Object.keys(STAGE_STYLE);
 
 function HeaderFilter({ label, value, options, onChange }: {
@@ -101,8 +101,8 @@ function HeaderFilter({ label, value, options, onChange }: {
       {/* Label rendered directly: SelectValue cannot derive one when the value
           is set programmatically (see CLAUDE.md). */}
       <SelectTrigger
-        title={`Filter by ${label.toLowerCase()}`}
-        className={cn('h-6 w-full px-1.5 text-[10px] font-black uppercase tracking-wider',
+        title={value === 'all' ? `Filter by ${label.toLowerCase()}` : `${label}: ${value}`}
+        className={cn('h-6 w-full px-0 gap-1 border-0 bg-transparent dark:bg-transparent shadow-none hover:text-foreground focus-visible:ring-1 text-[10px] font-black uppercase tracking-wider',
           value === 'all' ? 'text-muted-foreground' : 'text-primary normal-case tracking-normal')}
         onClick={(e) => e.stopPropagation()}
       >
@@ -189,6 +189,7 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
       return [...set];
     };
     return {
+      supplier: pick('supplier', (l) => l.supplier).sort(),
       mode: pick('mode', (l) => l.mode).sort(),
       warehouse: pick('warehouse', (l) => l.warehouse).sort(),
       channel: pick('channel', (l) => l.channel).sort(),
@@ -196,7 +197,8 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
     };
   }, [allLines, lineFilters]);
   const matches = (l: ForecastLine) =>
-    (lineFilters.mode === 'all' || l.mode === lineFilters.mode)
+    (lineFilters.supplier === 'all' || l.supplier === lineFilters.supplier)
+    && (lineFilters.mode === 'all' || l.mode === lineFilters.mode)
     && (lineFilters.warehouse === 'all' || l.warehouse === lineFilters.warehouse)
     && (lineFilters.channel === 'all' || l.channel === lineFilters.channel)
     && (lineFilters.stage === 'all' || l.stage === lineFilters.stage);
@@ -588,7 +590,7 @@ export default function ForecastClient({ seasons, bySeason }: { seasons: string[
                                       <tr className="text-left text-[10px] font-black uppercase tracking-wider text-muted-foreground border-b border-border">
                                         <th className="py-1.5 pr-4">PO #</th>
                                         <th className="py-1.5 pr-4">TRN</th>
-                                        <th className="py-1.5 pr-4">Supplier</th>
+                                        <th className="py-1 pr-4"><HeaderFilter label="Supplier" value={lineFilters.supplier} options={filterOptions.supplier} onChange={setFilter('supplier')} /></th>
                                         <th className="py-1 pr-2"><HeaderFilter label="Mode" value={lineFilters.mode} options={filterOptions.mode} onChange={setFilter('mode')} /></th>
                                         <th className="py-1 pr-2"><HeaderFilter label="Warehouse" value={lineFilters.warehouse} options={filterOptions.warehouse} onChange={setFilter('warehouse')} /></th>
                                         <th className="py-1 pr-2"><HeaderFilter label="Channel" value={lineFilters.channel} options={filterOptions.channel} onChange={setFilter('channel')} /></th>
