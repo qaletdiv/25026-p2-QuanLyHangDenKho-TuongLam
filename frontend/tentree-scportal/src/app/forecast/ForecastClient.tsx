@@ -108,9 +108,11 @@ function HeaderFilter({ label, value, options, onChange }: {
       >
         <span className="truncate">{value === 'all' ? label : value}</span>
       </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="all">All {label.toLowerCase()}s</SelectItem>
-        {options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+      {/* Opens BELOW the header. The default (alignItemWithTrigger) lays the list
+          over the trigger to line up the selected option, which covered the header. */}
+      <SelectContent alignItemWithTrigger={false} side="bottom" align="start" sideOffset={4} className="min-w-40">
+        <SelectItem value="all" className="text-xs py-1">All {label.toLowerCase()}s</SelectItem>
+        {options.map((o) => <SelectItem key={o} value={o} className="text-xs py-1">{o}</SelectItem>)}
       </SelectContent>
     </Select>
   );
