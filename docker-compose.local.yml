@@ -5,15 +5,18 @@
 #    to reseed: docker compose -f docker-compose.local.yml down -v, then up again)
 #   open https://localhost   (accept the self-signed certificate)
 #
-# ⚠ Deliberately does NOT load backend/.env: that file carries PRODUCTION NetSuite
-#   credentials and LANDED_COST_NS_PUSH=enabled, and the backend's cron would sync
-#   against live NetSuite from this laptop. Without it the cron jobs fail harmlessly
-#   and email lands in the outbox volume instead of being sent.
+# The backend here is ALSO the local dev backend for `next dev` on :3000 (published
+# on 127.0.0.1:5000). ⚠ It loads backend/.env, which carries PRODUCTION NetSuite
+# credentials and LANDED_COST_NS_PUSH=enabled — exactly what the hand-started dev
+# backend always ran with: the cron syncs live NetSuite into this local database,
+# and mail follows the .env allowlist. Run only ONE backend (not also a Windows
+# `node src/server.js`), or the crons run twice.
 name: tentree-local
 
 services:
   postgres:
     image: postgres:17-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: tentree_portal
       POSTGRES_USER: tentree
@@ -40,18 +43,27 @@ services:
       postgres:
         condition: service_healthy
 
+  # Also THE local dev backend (2026-10-08): published on 127.0.0.1:5000 for the
+  # `next dev` frontend on :3000, with restart: unless-stopped. A node process
+  # started by hand on Windows kept dying from a stray Ctrl+C (its log ended in
+  # ^C), which read as "all the data is gone". It loads backend/.env — the same
+  # settings the hand-started dev backend used (incl. NetSuite + SMTP, so the
+  # cron syncs and the mail allowlist behave as before) — and the JWT_SECRET there
+  # must match frontend/tentree-scportal/.env.local, or :3000 can't verify logins.
+  # Rebuild after backend code changes:  docker compose -f docker-compose.local.yml up -d --build backend
   backend:
     build:
       context: ./backend
     image: tentree-local-backend:latest
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
     environment:
       NODE_ENV: production
       PORT: 5000
       DATABASE_URL: postgres://tentree:local-only-password@postgres:5432/tentree_portal
-      JWT_SECRET: local-only-jwt-secret-not-for-production-use-0123456789
-      CORS_ORIGINS: https://localhost
-      APP_URL: https://localhost
-      EMAIL_NOTIFICATIONS: "on"
+    ports:
+      - "127.0.0.1:5000:5000"
     volumes:
       - uploads:/app/storage/uploads
       - outbox:/app/storage/outbox
@@ -69,7 +81,9 @@ services:
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_API_URL: http://backend:5000
-      JWT_SECRET: local-only-jwt-secret-not-for-production-use-0123456789
+    # Same JWT_SECRET as the backend (both read the dev .env files).
+    env_file:
+      - ./frontend/tentree-scportal/.env.local
     depends_on:
       backend:
         condition: service_healthy

@@ -2081,6 +2081,21 @@ restart after code changes (`node src/server.js`, port 5000 — no hot reload).
 
 ### Starting the backend so it STAYS up
 
+**Use the local Docker backend (2026-10-08).** It is published on
+`127.0.0.1:5000` with `restart: unless-stopped`, loads `backend/.env`, and serves
+the `next dev` frontend on :3000 as well as https://localhost. After backend code
+changes, rebuild it (from WSL):
+
+```bash
+docker compose -f docker-compose.local.yml up -d --build backend
+```
+
+Every hand-started Windows `node src/server.js` below died within the hour from a
+stray Ctrl+C (the log ended in `^C`), three times in one day, each read by the
+user as "all the data is gone". Do NOT also start one on Windows while the
+container runs — two backends = two crons. The detached recipe is kept only for
+when Docker is unavailable:
+
 `node src/server.js &` from an agent shell dies with that shell, which reads later as
 "the server is down" with a healthy log and no crash in it. Start it detached:
 

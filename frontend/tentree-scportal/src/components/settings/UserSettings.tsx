@@ -8,11 +8,11 @@ import { useSession } from '@/components/providers/SessionProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { SettingsTable, type SettingsColumn } from './SettingsTable';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Trash2, Save, UserCog, KeyRound, Eye, EyeOff, Pencil, Check } from 'lucide-react';
+import { Plus, Trash2, Save, UserCog, KeyRound, Eye, EyeOff, Pencil } from 'lucide-react';
 
 const roleBadgeClass: Record<string, string> = {
   'Admin':                 'bg-destructive/10 border-destructive/30 text-destructive',
@@ -26,6 +26,15 @@ const roleBadgeClass: Record<string, string> = {
 const emptyForm: { name: string; email: string; password: string; roleId: string; supplierId: string; courierId: string } =
   { name: '', email: '', password: '', roleId: '', supplierId: '', courierId: '' };
 type Option = { id: string; name: string };
+
+// fetchApi reports a failed call as "<Status text>: <response body>", e.g.
+// 'Conflict: {"success":false,"error":"Email already in use"}'. Show the API's own
+// message ("Email already in use") instead of the raw body.
+const readableError = (raw: unknown): string => {
+  const text = String(raw ?? '');
+  const body = text.replace(/^[A-Za-z ]+:s*/, '');
+  try { const j = JSON.parse(body); return j.error || j.message || text; } catch { return text; }
+};
 
 export function UserSettings() {
   const { user: sessionUser } = useSession();
@@ -48,7 +57,6 @@ export function UserSettings() {
 
   // Inline pending edits keyed by user id
   const [edits, setEdits] = useState<Record<string, any>>({});
-  const [savingId, setSavingId] = useState<string | null>(null);
 
   // Add user dialog
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -84,23 +92,36 @@ export function UserSettings() {
 
   const isDirty = (id: string) => !!edits[id] && Object.keys(edits[id]).length > 0;
 
-  // Done: re-lock and drop any unsaved inline edits (rows are saved individually).
-  const handleDone = () => { setEdits({}); setEditing(false); };
+  // ONE Save button (Lam, 2026-10-08): it saves every edited row, then re-locks.
+  // There used to be a Save icon per row plus a "Done" that silently DROPPED
+  // unsaved edits — rename a user, click Done, and the name came back. If any
+  // row fails, stay in edit mode with its changes intact; nothing is thrown away.
+  const [savingAll, setSavingAll] = useState(false);
+  const handleDone = async () => {
+    const dirty = users.filter((u) => isDirty(u.id));
+    if (!dirty.length) { setEditing(false); return; }
+    setSavingAll(true);
+    let failed = 0;
+    for (const u of dirty) if (!(await handleSave(u))) failed++;
+    setSavingAll(false);
+    if (failed) toast.error(`${failed} user${failed === 1 ? '' : 's'} not saved — fix and click Save again.`);
+    else setEditing(false);
+  };
 
-  const handleSave = async (user: any) => {
-    if (!isDirty(user.id)) return;
-    setSavingId(user.id);
+  // Returns true when the row saved (or had nothing to save).
+  const handleSave = async (user: any): Promise<boolean> => {
+    if (!isDirty(user.id)) return true;
     try {
       const result = await updateUser(user.id, edits[user.id]);
-      if (result?.error) throw new Error(result.error);
+      if (result?.error) throw new Error(`${user.name}: ${readableError(result.error)}`);
       // The response carries the joined role / supplier / courier NAMES.
       setUsers(prev => prev.map(u => u.id === user.id ? result : u));
       setEdits(prev => { const n = { ...prev }; delete n[user.id]; return n; });
       toast.success(`${user.name} updated.`);
+      return true;
     } catch (e: any) {
       toast.error(e.message || 'Failed to update user.');
-    } finally {
-      setSavingId(null);
+      return false;
     }
   };
 
@@ -246,15 +267,6 @@ export function UserSettings() {
           >
             <KeyRound className="w-3.5 h-3.5" />
           </Button>
-          <Button
-            variant="ghost" size="icon"
-            className="h-8 w-8 text-primary"
-            title="Save changes"
-            disabled={!isDirty(u.id) || savingId === u.id}
-            onClick={() => handleSave(u)}
-          >
-            <Save className="w-3.5 h-3.5" />
-          </Button>
           {u.id !== sessionUser?.id && (
             <Button
               variant="ghost" size="icon"
@@ -284,8 +296,8 @@ export function UserSettings() {
             <Plus className="w-4 h-4 mr-1" /> Add User
           </Button>
           {editing ? (
-            <Button size="sm" onClick={handleDone}>
-              <Check className="w-4 h-4 mr-1" /> Done
+            <Button size="sm" onClick={handleDone} disabled={savingAll} title="Save all changes">
+              <Save className="w-4 h-4 mr-1" /> {savingAll ? 'Saving…' : 'Save'}
             </Button>
           ) : (
             <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
