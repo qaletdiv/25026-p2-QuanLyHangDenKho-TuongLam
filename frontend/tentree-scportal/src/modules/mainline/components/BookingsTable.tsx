@@ -286,11 +286,10 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }} modal={false}>
         <DialogContent
           /* The PO picker is 11 columns wide (TRN + PO + 3 attributes + capacity +
-             4 numeric inputs), which max-w-6xl squeezed into a horizontal scroll.
-             Percentage with a CEILING, the same shape the settings pages use: the
-             table should use the screen, but 95vw of a 2560px monitor would stretch
-             the three text fields at the top across the whole width. */
-          className="w-[95vw] max-w-[1600px] max-h-[90vh] overflow-y-auto"
+             4 numeric inputs). It used to be max-w-[1600px], which on a desktop
+             stretched every column (1,520px dialog, a 144px PO CRD column). Now
+             max-w-6xl with an xs table and narrow inputs: compact, no h-scroll. */
+          className="w-[95vw] max-w-6xl max-h-[90vh] overflow-y-auto"
           /* Don't dismiss the form on any outside click (it's a multi-field form).
              Close only via the X button, Escape, or a successful submit. */
           onInteractOutside={(e) => e.preventDefault()}
@@ -340,7 +339,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
                 <Input type="date" value={bookingDate} onChange={(e) => setBookingDate(e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="booking-cargo-ready">Cargo Ready</Label>
+                <Label htmlFor="booking-cargo-ready">Cargo Ready (revised)</Label>
                 <Input id="booking-cargo-ready" type="date" value={effectiveCargoReady}
                   title={cargoReady == null ? 'Defaults to the latest PO CRD of the selected POs — change it if the goods are ready on another date' : 'Your Cargo Ready date for this booking'}
                   onChange={(e) => setCargoReady(e.target.value)} />
@@ -391,7 +390,7 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
                   </p>
                 )}
                 <div className="max-h-[55vh] overflow-auto rounded-md border border-border">
-                  <Table className="bg-card">
+                  <Table className="bg-card text-xs">
                     <TableHeader>
                       <TableRow className="bg-card/80 hover:bg-card/80">
                         {/* TRN before PO — the vendor recognises the master order
@@ -451,12 +450,12 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
                             <TableCell className="text-right">
                               <Input type="number" min={0} disabled={unapproved}
                                 title={unapproved ? 'This PO is not approved in NetSuite yet — it cannot be booked' : undefined}
-                                className={cn('w-20 h-8 ml-auto', over && 'border-amber-500 focus-visible:ring-amber-500')} placeholder="0"
+                                className={cn('w-16 h-7 text-xs ml-auto', over && 'border-amber-500 focus-visible:ring-amber-500')} placeholder="0"
                                 value={r.units ?? ''} onChange={(e) => setField(l.id, 'units', e.target.value)} />
                             </TableCell>
-                            <TableCell className="text-right"><Input type="number" min={0} disabled={unapproved} className="w-20 h-8 ml-auto" placeholder="—" value={r.cartons ?? ''} onChange={(e) => setField(l.id, 'cartons', e.target.value)} /></TableCell>
-                            <TableCell className="text-right"><Input type="number" min={0} step="0.01" disabled={unapproved} className="w-24 h-8 ml-auto" placeholder="—" value={r.weight ?? ''} onChange={(e) => setField(l.id, 'weight', e.target.value)} /></TableCell>
-                            <TableCell className="text-right"><Input type="number" min={0} step="0.001" disabled={unapproved} className="w-20 h-8 ml-auto" placeholder="—" value={r.cbm ?? ''} onChange={(e) => setField(l.id, 'cbm', e.target.value)} /></TableCell>
+                            <TableCell className="text-right"><Input type="number" min={0} disabled={unapproved} className="w-16 h-7 text-xs ml-auto" placeholder="—" value={r.cartons ?? ''} onChange={(e) => setField(l.id, 'cartons', e.target.value)} /></TableCell>
+                            <TableCell className="text-right"><Input type="number" min={0} step="0.01" disabled={unapproved} className="w-20 h-7 text-xs ml-auto" placeholder="—" value={r.weight ?? ''} onChange={(e) => setField(l.id, 'weight', e.target.value)} /></TableCell>
+                            <TableCell className="text-right"><Input type="number" min={0} step="0.001" disabled={unapproved} className="w-16 h-7 text-xs ml-auto" placeholder="—" value={r.cbm ?? ''} onChange={(e) => setField(l.id, 'cbm', e.target.value)} /></TableCell>
                           </TableRow>
                         );
                       })}
