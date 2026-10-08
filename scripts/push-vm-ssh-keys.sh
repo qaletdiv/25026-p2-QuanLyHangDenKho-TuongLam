@@ -4,13 +4,13 @@
 #
 # Run from the repo root in Git Bash or WSL (NOT on the VM):
 #   ./scripts/push-vm-ssh-keys.sh
-#   ./scripts/push-vm-ssh-keys.sh -h 129.153.57.126 -u ubuntu -i keys/ssh-key-2026-10-06.key
+#   ./scripts/push-vm-ssh-keys.sh -h 129.153.57.126 -u ubuntu -i keys/oracle/ssh-key-2026-10-06.key
 #   ./scripts/push-vm-ssh-keys.sh -a     # also authorize keys/vm/id_rsa.pub for VM login
 #
 # Options (env var in brackets):
 #   -h HOST   VM address                          [VM_HOST]  default 129.153.57.126
 #   -u USER   VM user                             [VM_USER]  default ubuntu
-#   -i KEY    private key used to LOG IN to the VM [VM_LOGIN_KEY] default keys/ssh-key-2026-10-06.key
+#   -i KEY    private key used to LOG IN to the VM [VM_LOGIN_KEY] default keys/oracle/ssh-key-2026-10-06.key
 #   -s DIR    local folder holding the files      [SRC_DIR]  default keys/vm
 #   -a        also append id_rsa.pub to ~/.ssh/authorized_keys (idempotent)
 #
@@ -21,7 +21,7 @@ set -euo pipefail
 
 VM_HOST="${VM_HOST:-129.153.57.126}"
 VM_USER="${VM_USER:-ubuntu}"
-VM_LOGIN_KEY="${VM_LOGIN_KEY:-keys/ssh-key-2026-10-06.key}"
+VM_LOGIN_KEY="${VM_LOGIN_KEY:-keys/oracle/ssh-key-2026-10-06.key}"
 SRC_DIR="${SRC_DIR:-keys/vm}"
 AUTHORIZE=0
 
