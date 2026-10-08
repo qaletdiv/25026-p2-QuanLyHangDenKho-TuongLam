@@ -69,15 +69,19 @@ export type ForecastWeek = {
   lines: ForecastLine[];
 };
 
-// A line whose units are on a shipment (landed or not).
-const SHIPPED_STAGES = new Set(['Received', 'In Transit']);
+// A line whose units are on a shipment (whatever that shipment's status).
+const SHIPPED_STAGES = new Set(['Received', 'Delivered', 'At Port', 'In Transit', 'Ready to Ship']);
 
-// Stage → pill styling, in confidence order: landed, shipped, approved with no
-// consignment carrying it (its shipment was cancelled), booked but unapproved,
-// and nobody has booked it.
+// Stage → pill styling, in pipeline order (this order also sorts the Stage
+// filter): received in NetSuite, then the SHIPMENT's own status from furthest
+// to nearest, then approved with no consignment carrying it (its shipment was
+// cancelled), booked but unapproved, and nobody has booked it.
 const STAGE_STYLE: Record<string, string> = {
   'Received':            'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400',
+  'Delivered':           'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
+  'At Port':             'bg-primary/15 text-primary',
   'In Transit':          'bg-primary/20 text-primary',
+  'Ready to Ship':       'bg-violet-500/20 text-violet-700 dark:text-violet-400',
   'Booked — Not Shipped': 'bg-sky-500/20 text-sky-700 dark:text-sky-400',
   'Booking Pending':     'bg-amber-500/20 text-amber-700 dark:text-amber-400',
   'Awaiting Booking':    'bg-muted text-muted-foreground',

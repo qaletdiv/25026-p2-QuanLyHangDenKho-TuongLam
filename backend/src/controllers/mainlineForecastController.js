@@ -136,7 +136,10 @@ async function getMainlineForecast(req, res) {
   // also label rejected and cancelled bookings as pending.
   const bookingById = new Map(bookings.map((b) => [b.id, b]));
   const statusName = new Map();
-  await Promise.all([...new Set(bookings.map((b) => b.bookingStatusId))]
+  // Booking AND shipment status ids, resolved once — a shipment line's stage is
+  // its shipment's own status (see the parts loop).
+  await Promise.all([...new Set([...bookings.map((b) => b.bookingStatusId), ...shipments.map((s) => s.statusId)])]
+    .filter(Boolean)
     .map(async (id) => statusName.set(id, await status.nameForId(id))));
   const pendingLegs = new Set(
     bookingLegs
@@ -251,8 +254,14 @@ async function getMainlineForecast(req, res) {
         actualUnits: actualDate ? qty : 0,
         actualDate,
         cartons: actualDate ? cartonCount(ship.bookingId, leg.id) : 0,
-        // The NetSuite receipt decides the STAGE only, never the date.
-        stage: effectiveAta(ataMatch, ship).ata ? 'Received' : 'In Transit',
+        // STAGE: a matched NetSuite receipt says Received (it outranks a typed
+        // status); otherwise the SHIPMENT's own status — Ready to Ship, In
+        // Transit, At Port, Delivered. It used to be "In Transit" for anything
+        // not received, so a consignment still at Ready to Ship (SHP-15/16/18/19:
+        // no ETD, no BL, nothing moved) read as on the water. The receipt never
+        // sets the DATE, only this label.
+        stage: effectiveAta(ataMatch, ship).ata ? 'Received'
+          : (statusName.get(ship.statusId) || 'In Transit'),
         dateBasis: actualDate ? 'shipment_e_del' : null,
         shipmentId: ship.id || null,
         shipmentNumber: ship.shipmentNumber || null,
