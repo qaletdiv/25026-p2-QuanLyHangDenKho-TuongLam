@@ -257,7 +257,6 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
                         <TableCell className="text-right">
                           <Input type="number" min={0} className={cn('w-20 h-8 ml-auto', over && 'border-amber-500 focus-visible:ring-amber-500')} placeholder="0"
                             value={r.units ?? ''} onChange={(e) => setField(p.poNumber, 'units', e.target.value)} />
-                          {over && <div className="text-[10px] text-amber-600 mt-0.5">over by {(entered - p.remainingQty).toLocaleString()}</div>}
                         </TableCell>
                         <TableCell className="text-right">
                           <Input type="number" min={0} className="w-20 h-8 ml-auto" placeholder="—" value={r.cartons ?? ''} onChange={(e) => setField(p.poNumber, 'cartons', e.target.value)} />
