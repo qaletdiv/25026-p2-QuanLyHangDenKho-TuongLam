@@ -4,6 +4,9 @@
 // boxes to the courier: PO(s) with units & cartons, one tracking number + courier.
 // No approval step. The server enforces vendor scope (own POs only) and the
 // overship guard (409 → explicit "Ship anyway"); lot numbers are server-assigned.
+// The SHIPPING DATA file is required: the shipment and its packing data are
+// created in one request, and each PO's units (and cartons, if typed) must match
+// the file — the server refuses a mismatch and saves nothing.
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -36,6 +39,9 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
   const [filterSupplierId, setFilterSupplierId] = useState('');
   const [rows, setRows] = useState<Record<string, RowInput>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [shippingFile, setShippingFile] = useState<File | null>(null);
+  // A file input cannot be cleared by state; remounting it via its key can.
+  const [fileKey, setFileKey] = useState(0);
   const [warning, setWarning] = useState<null | { warnings: Array<{ poNumber: string; ordered: number; already_shipped: number; requested: number }> }>(null);
 
   // No client-side supplier filter: `/sms/pos` is ALREADY vendor-scoped at one
@@ -98,12 +104,14 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
 
   function reset() {
     setRows({}); setWarning(null); setTrackingNumber('');
+    setShippingFile(null); setFileKey((k) => k + 1);
     setShipDate(new Date().toISOString().slice(0, 10)); setFacilityId(''); setFilterSupplierId('');
   }
 
   async function submit(force = false) {
     if (!courierId) { toast.error('Pick a courier'); return; }
     if (selected.length === 0) { toast.error('Enter units on at least one PO'); return; }
+    if (!shippingFile) { toast.error('Attach the shipping-data file'); return; }
     setSubmitting(true);
     const res = await createSmsShipment({
       courierId: courierId,
@@ -112,11 +120,11 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
       facilityId: facilityId || null,
       pos: selected,
       force_overship: force,
-    });
+    }, shippingFile);
     setSubmitting(false);
     if (res?.overship_warning) { setWarning(res); return; }
     if (res?.error) { toast.error(res.error); return; }
-    toast.success(`Shipment created — ${selected.length} PO${selected.length === 1 ? '' : 's'}, lot number${selected.length === 1 ? '' : 's'} assigned automatically`);
+    toast.success(`Shipment created — ${selected.length} PO${selected.length === 1 ? '' : 's'} with shipping data, lot number${selected.length === 1 ? '' : 's'} assigned automatically`);
     onClose(); reset(); router.refresh();
   }
 
@@ -166,6 +174,21 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
                 <SelectContent>{destinations.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="sms-shipping-file">Shipping data <span className="text-destructive">*</span></Label>
+            <Input
+              key={fileKey}
+              id="sms-shipping-file"
+              type="file"
+              accept=".xlsx,.xls"
+              className="max-w-md"
+              onChange={(e) => { setShippingFile(e.target.files?.[0] ?? null); setWarning(null); }}
+            />
+            <p className="text-xs text-muted-foreground">
+              The packing Excel for this box. Units (and cartons, if entered) per PO must match the file.
+            </p>
           </div>
 
           <div className="space-y-1.5">
@@ -257,7 +280,7 @@ export default function SmsShipmentForm({ open, onClose, pos, couriers }: {
           <Button variant="outline" disabled={submitting} onClick={() => { onClose(); reset(); }}>Cancel</Button>
           {warning
             ? <Button variant="destructive" disabled={submitting} onClick={() => submit(true)}>Ship anyway</Button>
-            : <Button disabled={submitting || selected.length === 0} onClick={() => submit(false)}>{submitting ? 'Creating…' : `Create shipment (${selected.length} PO${selected.length === 1 ? '' : 's'})`}</Button>}
+            : <Button disabled={submitting || selected.length === 0 || !shippingFile} title={!shippingFile ? 'Attach the shipping-data file first' : undefined} onClick={() => submit(false)}>{submitting ? 'Creating…' : `Create shipment (${selected.length} PO${selected.length === 1 ? '' : 's'})`}</Button>}
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -124,6 +124,8 @@ export async function getSmsShipment(id: string): Promise<SmsShipment | null> {
   if (!data || data.error) return null;
   return data;
 }
+// Multipart: the shipping-data file is REQUIRED at creation, so the fields travel
+// as one JSON `payload` beside it (the route unpacks it before validating).
 export async function createSmsShipment(data: {
   courierId: string;
   trackingNumber?: string | null;
@@ -131,8 +133,11 @@ export async function createSmsShipment(data: {
   facilityId?: string | null;
   pos: Array<{ poNumber: string; units: number; cartons?: number | null }>;
   force_overship?: boolean;
-}) {
-  const result = await fetchApi('/sms/shipments', { method: 'POST', body: JSON.stringify(data) });
+}, file: File) {
+  const formData = new FormData();
+  formData.append('payload', JSON.stringify(data));
+  formData.append('file', file);
+  const result = await fetchApi('/sms/shipments', { method: 'POST', body: formData });
   const overship = parse409(result, 'overship_warning');
   if (overship) return overship;
   revalidateSms();

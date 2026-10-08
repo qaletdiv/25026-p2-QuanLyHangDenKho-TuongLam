@@ -18,6 +18,7 @@ const { receivedByShipment } = require('../lib/smsReceiptMatch');
 const { resolveVendorSupplierId } = require('../utils/vendorScope');
 const { shipmentVisibilityFn, vendorScopeFor } = require('../lib/smsVendorAccess');
 const { notifyChange } = require('../lib/emailNotifier');
+const packing = require('../services/smsShippingDataService');
 
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
 
@@ -194,6 +195,13 @@ function _checkPos(entries, c, vendorSupplierId, { excludeShipmentId = null } = 
 }
 
 async function create(req, res) {
+  // A consignment cannot be created without its shipping data (2026-10-08, per
+  // Lam): the packing file arrives WITH the create, is checked against the form,
+  // and is written in the same request — so a failure anywhere leaves neither the
+  // shipment nor its data behind (the request transaction rolls back on 4xx).
+  // Booking-approved DRAFTS are created by approve, not here, and still take
+  // their file afterwards via POST /shipments/:id/shipping-data.
+  if (!req.file) err('Upload the shipping-data file — a shipment cannot be created without it.', 400);
   const vendorSupplierId = await _vendorSupplierId(req.user);
   const c = await _ctx();
   const { courierId, modeId, trackingNumber, shipDate, facilityId, pos: entries, force_overbook, force_overship } = req.body;
@@ -205,6 +213,24 @@ async function create(req, res) {
   }
 
   const warnings = _checkPos(entries, c, vendorSupplierId);
+
+  // The file must describe exactly this consignment: every PO in the form is in
+  // the file (and parseShippingFile refuses a file PO that is not in the form),
+  // and each PO's typed units — and cartons, when typed — equal the file's. One
+  // truth for shipped quantities: the junction and the packing rows can't disagree.
+  const rows = packing.parseShippingFile(req.file.buffer, entries.map((e) => e.poNumber));
+  const fileTotals = packing.totalsByPo(rows);
+  const problems = [];
+  for (const e of entries) {
+    const t = fileTotals.get(e.poNumber);
+    if (!t) { problems.push(`${e.poNumber}: not in the file`); continue; }
+    if (Number(e.units) !== t.units) problems.push(`${e.poNumber}: ${Number(e.units).toLocaleString()} units entered, the file has ${t.units.toLocaleString()}`);
+    if (e.cartons != null && e.cartons !== '' && Number(e.cartons) !== t.cartons) {
+      problems.push(`${e.poNumber}: ${Number(e.cartons).toLocaleString()} cartons entered, the file has ${t.cartons.toLocaleString()}`);
+    }
+  }
+  if (problems.length) err(`The shipping-data file does not match the form — ${problems.join('; ')}.`, 422);
+
   if (warnings.length && !(force_overship || force_overbook)) {
     return res.status(409).json({ overship_warning: true, warnings });
   }
@@ -232,14 +258,16 @@ async function create(req, res) {
     poNumber: e.poNumber,
     lotNumber: maxLot(e.poNumber) + 1,        // server-owned, per PO
     units: Number(e.units),
-    cartons: e.cartons != null ? Number(e.cartons) : null,
+    // cartons from the FILE when the form left them blank — it is the count
+    cartons: e.cartons != null && e.cartons !== '' ? Number(e.cartons) : (fileTotals.get(e.poNumber) || {}).cartons ?? null,
   }));
 
   await M.shipments.write([...c.shipments, shipment]);
   await M.shipmentPos.write([...c.shipmentPos, ...junctions]);
+  const shippingData = await packing.persistShippingData(shipment, rows);
 
   const c2 = await _ctx();
-  res.status(201).json(_enrich(c2.shipments.find((s) => s.id === id), c2));
+  res.status(201).json({ ..._enrich(c2.shipments.find((s) => s.id === id), c2), shippingData });
 }
 
 async function update(req, res) {

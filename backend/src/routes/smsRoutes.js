@@ -69,7 +69,15 @@ router.delete('/bookings/:id', requirePermission('booking_delete'), asyncWrap(bo
 router.get('/shipments',                    asyncWrap(shipmentController.getAll));
 // `shipments` only — see the note above: no `shipment_create` key exists, and the
 // vendor entering their own consignment is the primary SMS flow.
-router.post('/shipments',      requirePermission('shipments'), validate(schemas.shipmentCreate), asyncWrap(shipmentController.create));
+// Multipart since 2026-10-08: the shipping-data FILE is required at creation, so
+// the form fields travel as one JSON string in the `payload` field beside it and
+// are unpacked here, before the same validator as before runs on them.
+const unpackPayload = (req, res, next) => {
+  if (typeof req.body?.payload !== 'string') return next();
+  try { req.body = JSON.parse(req.body.payload); return next(); }
+  catch { return res.status(400).json({ error: "'payload' must be valid JSON" }); }
+};
+router.post('/shipments',      requirePermission('shipments'), upload.single('file'), unpackPayload, validate(schemas.shipmentCreate), asyncWrap(shipmentController.create));
 router.get('/shipments/:id',                asyncWrap(shipmentController.getOne));
 router.put('/shipments/:id',   requirePermission('shipment_update_status', 'shipments'), validate(schemas.shipmentUpdate), asyncWrap(shipmentController.update));
 // Cancel calls off a consignment that has not been handed to the carrier — in

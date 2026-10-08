@@ -383,6 +383,16 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   lot re-bookable). `cancel` is the way out of an approved booking — it deletes the
   untracked drafts and 409s once anything shipped. Booked vs shipped units are
   derived (booking junction vs shipment junction), never stored.
+- **A shipment cannot be created without its shipping data (2026-10-08, per Lam).**
+   is MULTIPART: the packing Excel () plus the form fields as
+  one JSON  (unpacked in the route before the validator). The file is
+  checked against the form — every PO in both, each PO's units (and cartons, if
+  typed) equal to the file's — and written in the SAME request, so a 4xx leaves
+  neither the shipment nor its data. Parse/save lives in
+   (, ,
+  ), shared with  so the two
+  doors cannot parse a file differently. Booking-approved DRAFTS are created by
+  approve, not this route, and still take their file afterwards via that upload.
 - **Own dataset:** `sms_pos`/`sms_po_lines` (NetSuite-owned, wholesale upsert) +
   `sms_shipments` (one consignment = one tracking number; nullable `booking_id` +
   `customs_entry_number`/`freight`/`duty` for booked ones) + `sms_shipment_pos`
