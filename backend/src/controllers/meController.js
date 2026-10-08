@@ -17,6 +17,7 @@
 const { permissionsForRole } = require('../utils/rolePermissions');
 const { models } = require('../models');
 const UserModel = models.users;
+const { loadUserRefs, presentUser } = require('../lib/userRefs');
 
 async function me(req, res) {
     const { id, email, role } = req.user || {};
@@ -27,13 +28,15 @@ async function me(req, res) {
     // that has since been deleted still gets its token's claims back (the token
     // stays valid until it expires) but no profile fields.
     const row = await UserModel.findByPk(id, { raw: true }).catch(() => null);
+    const shown = row ? presentUser(row, await loadUserRefs()) : null;
 
     res.json({
         id,
         email,
         role,
-        name: row?.name ?? null,
-        supplier: row?.supplier ?? null,
+        name: shown?.name ?? null,
+        supplier: shown?.supplier ?? null,
+        courier: shown?.courier ?? null,
         permissions,
     });
 }

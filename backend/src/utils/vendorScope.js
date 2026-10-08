@@ -22,7 +22,6 @@
 // needle in a filter, where "matches nothing" is the desired outcome.
 
 const { models } = require('../models');
-const { supplierKey } = require('./nameKey');
 
 // suppliers.json / users.json live in data/ root, not data/migrated
 const UsersModel = models.users;
@@ -32,14 +31,10 @@ const SuppliersModel = models.suppliers;
 // always false and every filter using it yields an empty set.
 const NO_SUPPLIER = '__no_supplier__';
 
-// Match on `supplierKey`, NOT the plain `norm` the four originals used. norm is
-// punctuation-SENSITIVE, and the live vendor account proves that breaks: users.json
-// holds "Best Star Fashions Co Ltd" while suppliers.json holds "Best Star Fashions
-// Co., Ltd.". Under norm those are different keys, so that account resolved to NO
-// supplier — 403 on every SMS write, zero notifications. supplierKey (utils/nameKey,
-// added 2026-08-12 for this exact pair during the duplicate-supplier merge) treats
-// punctuation as a space and matches them. Using it here is what makes vendor row
-// scoping meaningful: keyed on norm, a scoped read would return an empty set.
+// users is 3NF since 2026-10-08: the vendor's supplier is `users.supplierId`, an
+// FK, so this is an id lookup — no name matching. (It used to match the stored
+// supplier NAME with supplierKey, because "Best Star Fashions Co Ltd" on the user
+// vs "Best Star Fashions Co., Ltd." on the supplier defeated an exact match.)
 
 /**
  * Resolve the supplier a caller is restricted to.
@@ -64,7 +59,7 @@ async function resolveVendorSupplierId(user, opts = {}) {
   // error — a scoping bug that looks like missing data. ids are unique, so
   // coercing cannot create a false match.
   const u = users.find((x) => String(x.id) === String(user.id));
-  const sup = u?.supplier ? suppliers.find((s) => supplierKey(s.name) === supplierKey(u.supplier)) : null;
+  const sup = u?.supplierId ? suppliers.find((s) => s.id === u.supplierId) : null;
 
   if (!sup) {
     if (onUnlinked === 'deny') return NO_SUPPLIER;

@@ -87,10 +87,16 @@ function warnUnknownRole(role) {
  * @returns {Promise<Array<{email:string,name:string,role:string}>>}
  */
 async function recipientsFor(ev) {
-  const users = await models.users.read().catch(() => []);
+  const [users, roles] = await Promise.all([
+    models.users.read().catch(() => []),
+    models.roles.read().catch(() => []),
+  ]);
+  // users is 3NF: the role is users.roleId; the NAME keys ROLE_EMAIL_RULES.
+  const roleName = new Map(roles.map((r) => [r.id, r.name]));
   const out = [];
 
-  for (const u of users) {
+  for (const row of users) {
+    const u = { ...row, role: roleName.get(row.roleId) ?? null };
     if (!u.email) continue;
     if (ev.actorId != null && String(u.id) === String(ev.actorId)) continue;
 

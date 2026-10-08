@@ -15,11 +15,13 @@ module.exports = (sequelize, DataTypes) => {
         email: { type: DataTypes.TEXT, allowNull: false },
         password: { type: DataTypes.TEXT },
         name: { type: DataTypes.TEXT },
-        role: { type: DataTypes.TEXT },
-        supplier: { type: DataTypes.TEXT },
         mustChangePassword: { type: DataTypes.BOOLEAN },
+        // 3NF (2026-10-08): ids only — the role / supplier / courier NAMES are
+        // joined at read (src/lib/userRefs). The old `role` / `supplier` text
+        // columns were dropped by scripts/users-3nf.js.
         roleId: { type: DataTypes.TEXT, references: { model: 'roles', key: 'id', deferrable: Deferrable.INITIALLY_DEFERRED } },
-        supplierId: { type: DataTypes.TEXT, references: { model: 'suppliers', key: 'id', deferrable: Deferrable.INITIALLY_DEFERRED } },
+        supplierId: { type: DataTypes.TEXT, references: { model: 'suppliers', key: 'id', deferrable: Deferrable.INITIALLY_DEFERRED } },   // Vendor
+        courierId: { type: DataTypes.TEXT, references: { model: 'couriers', key: 'id', deferrable: Deferrable.INITIALLY_DEFERRED } },     // Freight Forwarder
         _seq: { type: DataTypes.BIGINT, allowNull: false },
     }, {
         tableName: 'users',
@@ -31,6 +33,7 @@ module.exports = (sequelize, DataTypes) => {
     Users.associate = (models) => {
         Users.belongsTo(models.Roles, { as: 'roleId_ref', foreignKey: 'roleId', targetKey: 'id', constraints: false });
         Users.belongsTo(models.Suppliers, { as: 'supplierId_ref', foreignKey: 'supplierId', targetKey: 'id', constraints: false });
+        Users.belongsTo(models.Couriers, { as: 'courierId_ref', foreignKey: 'courierId', targetKey: 'id', constraints: false });
     };
 
     return Users;

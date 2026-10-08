@@ -5,6 +5,7 @@ const { verifyPassword, needsRehash, hashPassword } = require('../utils/password
 const UserModel = models.users;
 const { txOptions } = require('../../database/txContext');
 const { permissionsForRole } = require('../utils/rolePermissions');
+const { loadUserRefs, presentUser } = require('../lib/userRefs');
 
 async function login(req, res) {
     const { email, password } = req.body;
@@ -36,11 +37,13 @@ async function login(req, res) {
             }
         }
 
-        // `_seq` carries row order and is an implementation detail of the store;
-        // it must not travel out in the login payload.
-        const { password: _pw, _seq, ...userWithoutPassword } = user;
+        // users is 3NF: the row holds roleId / supplierId / courierId and the
+        // NAMES are joined here (lib/userRefs, which also drops password + _seq).
+        // The JWT keeps carrying the role NAME — requireAdmin, ROLE_RULES and
+        // permissionsForRole all key on it.
+        const userWithoutPassword = presentUser(user, await loadUserRefs());
         const token = jwt.sign(
-            { id: user.id, email: user.email, role: user.role },
+            { id: user.id, email: user.email, role: userWithoutPassword.role },
             JWT_SECRET,
             { expiresIn: '24h' }
         );
@@ -48,7 +51,7 @@ async function login(req, res) {
         // has them. This is a SNAPSHOT — it goes stale the moment a role is edited,
         // which is why the frontend re-resolves them from GET /me per navigation
         // rather than trusting this copy for access decisions.
-        const permissions = await permissionsForRole(user.role);
+        const permissions = await permissionsForRole(userWithoutPassword.role);
         res.json({ ...userWithoutPassword, token, permissions });
     } else {
         const err = new Error('Invalid credentials');

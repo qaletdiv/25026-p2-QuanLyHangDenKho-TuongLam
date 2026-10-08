@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getUsers, createUser, updateUser, deleteUser } from '@/app/actions/users';
-import { getSuppliers } from '@/app/actions/master-data';
+import { getSuppliers, getCouriers } from '@/app/actions/master-data';
 import { getRoles } from '@/app/actions/roles';
 import { useSession } from '@/components/providers/SessionProvider';
 import { Button } from '@/components/ui/button';
@@ -22,13 +22,18 @@ const roleBadgeClass: Record<string, string> = {
   'Freight Forwarder':     'bg-purple-500/10 border-purple-500/30 text-purple-700',
 };
 
-const emptyForm: { name: string; email: string; password: string; role: string; supplier: string | null } = { name: '', email: '', password: '', role: '', supplier: '' };
+// users is 3NF: the form holds IDS. Names come back from the API for display.
+const emptyForm: { name: string; email: string; password: string; roleId: string; supplierId: string; courierId: string } =
+  { name: '', email: '', password: '', roleId: '', supplierId: '', courierId: '' };
+type Option = { id: string; name: string };
 
 export function UserSettings() {
   const { user: sessionUser } = useSession();
   const [users, setUsers] = useState<any[]>([]);
-  const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [roleOptions, setRoleOptions] = useState<string[]>([]);
+  const [suppliers, setSuppliers] = useState<Option[]>([]);
+  const [couriers, setCouriers] = useState<Option[]>([]);
+  const [roleOptions, setRoleOptions] = useState<Option[]>([]);
+  const roleNameOf = (id: string | null | undefined) => roleOptions.find((r) => r.id === id)?.name ?? '';
   const [isLoading, setIsLoading] = useState(true);
   const [editing, setEditing] = useState(false);   // screen is read-only until Edit
 
@@ -58,13 +63,15 @@ export function UserSettings() {
   const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
-    Promise.all([getUsers(), getSuppliers(), getRoles()]).then(([u, s, r]) => {
+    Promise.all([getUsers(), getSuppliers(), getRoles(), getCouriers()]).then(([u, s, r, c]) => {
       if (!Array.isArray(u)) {
         toast.error(`Failed to load users: ${(u as any)?.error || 'Unknown error'}`);
       }
       setUsers(Array.isArray(u) ? u : []);
-      setSuppliers(Array.isArray(s) ? s : []);
-      setRoleOptions(Array.isArray(r) ? r.map((role: any) => role.name) : []);
+      const toOptions = (v: unknown): Option[] => (Array.isArray(v) ? v.map((x: Option) => ({ id: x.id, name: x.name })) : []);
+      setSuppliers(toOptions(s));
+      setRoleOptions(toOptions(r));
+      setCouriers(toOptions(c));
       setIsLoading(false);
     });
   }, []);
@@ -86,7 +93,8 @@ export function UserSettings() {
     try {
       const result = await updateUser(user.id, edits[user.id]);
       if (result?.error) throw new Error(result.error);
-      setUsers(prev => prev.map(u => u.id === user.id ? { ...u, ...edits[user.id] } : u));
+      // The response carries the joined role / supplier / courier NAMES.
+      setUsers(prev => prev.map(u => u.id === user.id ? result : u));
       setEdits(prev => { const n = { ...prev }; delete n[user.id]; return n; });
       toast.success(`${user.name} updated.`);
     } catch (e: any) {
@@ -112,7 +120,7 @@ export function UserSettings() {
   };
 
   const handleCreate = async () => {
-    if (!form.name || !form.email || !form.password || !form.role) {
+    if (!form.name || !form.email || !form.password || !form.roleId) {
       toast.error('Name, email, password and role are required.');
       return;
     }
@@ -122,9 +130,11 @@ export function UserSettings() {
     }
     setIsCreating(true);
     try {
+      const roleName = roleNameOf(form.roleId);
       const result = await createUser({
-        ...form,
-        supplier: form.role === 'Vendor' ? form.supplier || null : null,
+        name: form.name, email: form.email, password: form.password, roleId: form.roleId,
+        supplierId: roleName === 'Vendor' ? form.supplierId || null : null,
+        courierId: roleName === 'Freight Forwarder' ? form.courierId || null : null,
       });
       if (result?.error) throw new Error(result.error);
       setUsers(prev => [...prev, result]);
@@ -181,7 +191,7 @@ export function UserSettings() {
     },
     {
       key: 'role', label: 'Role',
-      accessor: (u) => getEdit(u.id, 'role', u.role),
+      accessor: (u) => roleNameOf(getEdit(u.id, 'roleId', u.roleId)) || u.role,
       // w-full on the trigger: SelectTrigger is `w-fit` by default, so every row
       // sized itself to its own value ("Admin" vs "Logistics Coordinator", one
       // supplier name vs another) and the column read as a ragged stack of
@@ -189,31 +199,40 @@ export function UserSettings() {
       cell: (u) => (u.id === sessionUser?.id ? (
         <Badge variant="outline" className={`text-xs ${roleBadgeClass[u.role] || ''}`}>{u.role}</Badge>
       ) : (
-        <Select value={getEdit(u.id, 'role', u.role)} onValueChange={v => setEdit(u.id, 'role', v)}>
-          <SelectTrigger className="h-8 w-full text-sm"><SelectValue /></SelectTrigger>
+        <Select value={getEdit(u.id, 'roleId', u.roleId)} onValueChange={v => setEdit(u.id, 'roleId', v)}>
+          {/* label rendered directly: SelectValue would show the raw id */}
+          <SelectTrigger className="h-8 w-full text-sm"><span className="truncate">{roleNameOf(getEdit(u.id, 'roleId', u.roleId)) || u.role || 'Select role'}</span></SelectTrigger>
           <SelectContent>
-            {roleOptions.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+            {roleOptions.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
           </SelectContent>
         </Select>
       )),
     },
     {
-      key: 'supplier', label: 'Supplier',
-      accessor: (u) => getEdit(u.id, 'supplier', u.supplier || ''),
-      cell: (u) => (getEdit(u.id, 'role', u.role) === 'Vendor' ? (
-        <Select
-          value={getEdit(u.id, 'supplier', u.supplier || '')}
-          onValueChange={v => setEdit(u.id, 'supplier', v)}
-          disabled={u.id === sessionUser?.id}
-        >
-          <SelectTrigger className="h-8 w-full text-sm"><SelectValue placeholder="Select supplier" /></SelectTrigger>
-          <SelectContent>
-            {suppliers.map((s: any) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      ) : (
-        <span className="text-xs text-muted-foreground">—</span>
-      )),
+      // A Vendor is linked to a SUPPLIER, a Freight Forwarder to a FORWARDER (the
+      // Couriers master). The link decides what they can see; unlinked = nothing.
+      key: 'supplier', label: 'Supplier / Forwarder',
+      accessor: (u) => u.supplier || u.courier || '',
+      cell: (u) => {
+        const role = roleNameOf(getEdit(u.id, 'roleId', u.roleId)) || u.role;
+        if (role !== 'Vendor' && role !== 'Freight Forwarder') return <span className="text-xs text-muted-foreground">—</span>;
+        const isVendor = role === 'Vendor';
+        const key = isVendor ? 'supplierId' : 'courierId';
+        const list = isVendor ? suppliers : couriers;
+        const value = getEdit(u.id, key, (isVendor ? u.supplierId : u.courierId) || '');
+        return (
+          <Select value={value} onValueChange={v => setEdit(u.id, key, v)} disabled={u.id === sessionUser?.id}>
+            <SelectTrigger className="h-8 w-full text-sm">
+              <span className={value ? 'truncate' : 'truncate text-muted-foreground'}>
+                {list.find((o) => o.id === value)?.name || (isVendor ? 'Select supplier' : 'Select forwarder')}
+              </span>
+            </SelectTrigger>
+            <SelectContent>
+              {list.map((o) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        );
+      },
     },
     {
       key: 'actions', label: 'Actions', sortable: false, movable: false, headClassName: 'w-[130px]',
@@ -336,25 +355,39 @@ export function UserSettings() {
             </div>
             <div className="space-y-1">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Role</label>
-              <Select value={form.role} onValueChange={v => setForm(f => ({ ...f, role: v ?? f.role, supplier: '' }))}>
+              <Select value={form.roleId} onValueChange={v => setForm(f => ({ ...f, roleId: v ?? f.roleId, supplierId: '', courierId: '' }))}>
                 <SelectTrigger className="w-full">
-                  <SelectValue />
+                  <span className={form.roleId ? '' : 'text-muted-foreground'}>{roleNameOf(form.roleId) || 'Select role'}</span>
                 </SelectTrigger>
                 <SelectContent>
-                  {roleOptions.map((r: string) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                  {roleOptions.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            {form.role === 'Vendor' && (
+            {roleNameOf(form.roleId) === 'Freight Forwarder' && (
               <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Supplier</label>
-                <Select value={form.supplier} onValueChange={v => setForm(f => ({ ...f, supplier: v }))}>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Forwarder</label>
+                <Select value={form.courierId} onValueChange={v => setForm(f => ({ ...f, courierId: v ?? '' }))}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select supplier" />
+                    <span className={form.courierId ? '' : 'text-muted-foreground'}>{couriers.find((c) => c.id === form.courierId)?.name || 'Select forwarder'}</span>
                   </SelectTrigger>
                   <SelectContent>
-                    {suppliers.map((s: any) => (
-                      <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
+                    {couriers.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">They see only bookings and shipments where this forwarder was chosen.</p>
+              </div>
+            )}
+            {roleNameOf(form.roleId) === 'Vendor' && (
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Supplier</label>
+                <Select value={form.supplierId} onValueChange={v => setForm(f => ({ ...f, supplierId: v ?? '' }))}>
+                  <SelectTrigger className="w-full">
+                    <span className={form.supplierId ? '' : 'text-muted-foreground'}>{suppliers.find((s) => s.id === form.supplierId)?.name || 'Select supplier'}</span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {suppliers.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

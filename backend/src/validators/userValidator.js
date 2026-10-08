@@ -1,8 +1,8 @@
 'use strict';
 
-// Role name validation is intentionally kept as a plain string here.
-// The controller validates the role against the live roles list so that adding
-// a new role in settings immediately works without touching this file.
+// users is 3NF: the role, supplier and courier arrive as IDS. The controller
+// checks each id against its master list (roles / suppliers / couriers), so a
+// role added in settings works immediately without touching this file.
 
 const { requiredString, optionalString, nullableString, optionalBoolean, OPTIONAL } = require('./rules');
 
@@ -24,8 +24,9 @@ const create = {
         isString: { errorMessage: "'password' must be a string" },
         isLength: { options: { min: 8 }, errorMessage: 'password must be at least 8 characters' },
     },
-    role: requiredString("'role' is required"),
-    supplier: nullableString({ trim: true }),   // nullable + clearable
+    roleId: requiredString("'roleId' is required"),
+    supplierId: nullableString({ trim: true }),   // Vendor only — nullable + clearable
+    courierId: nullableString({ trim: true }),    // Freight Forwarder only
 };
 
 const update = {
@@ -36,8 +37,9 @@ const update = {
         isString: { errorMessage: "'password' must be a string" },
         isLength: { options: { min: 8 }, errorMessage: 'password must be at least 8 characters' },
     },
-    role: optionalString("'role' must not be empty"),
-    supplier: nullableString({ trim: true }),
+    roleId: optionalString("'roleId' must not be empty"),
+    supplierId: nullableString({ trim: true }),
+    courierId: nullableString({ trim: true }),
     mustChangePassword: optionalBoolean,
 };
 

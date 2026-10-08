@@ -49,7 +49,7 @@ async function remove(req, res) {
     }
     // Guard: reject if any user has this role
     const users = await UserModel.read().catch(() => []);
-    const inUse = users.some(u => u.role === role.name);
+    const inUse = users.some(u => u.roleId === role.id);
     if (inUse) {
         const err = new Error(`Role "${role.name}" is assigned to one or more users. Reassign them first.`); err.statusCode = 409; throw err;
     }

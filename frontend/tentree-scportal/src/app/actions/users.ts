@@ -9,12 +9,14 @@ export async function getUsers() {
   return data;
 }
 
+// users is 3NF: role / supplier / courier travel as IDS (the backend joins names).
 export async function createUser(data: {
   name: string;
   email: string;
   password: string;
-  role: string;
-  supplier?: string | null;
+  roleId: string;
+  supplierId?: string | null;
+  courierId?: string | null;
 }) {
   const result = await fetchApi('/users', {
     method: 'POST',
@@ -28,8 +30,9 @@ export async function updateUser(id: string, data: {
   name?: string;
   email?: string;
   password?: string;
-  role?: string;
-  supplier?: string | null;
+  roleId?: string;
+  supplierId?: string | null;
+  courierId?: string | null;
   mustChangePassword?: boolean;
 }) {
   const result = await fetchApi(`/users/${id}`, {
