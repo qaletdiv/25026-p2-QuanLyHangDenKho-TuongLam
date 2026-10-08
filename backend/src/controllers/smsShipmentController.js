@@ -16,7 +16,8 @@ const M = require('../lib/SmsModels');
 const status = require('../services/smsService');
 const { receivedByShipment } = require('../lib/smsReceiptMatch');
 const { resolveVendorSupplierId } = require('../utils/vendorScope');
-const { shipmentVisibilityFn, vendorScopeFor } = require('../lib/smsVendorAccess');
+const { shipmentVisibilityFn, vendorScopeFor, assertShipmentVisible } = require('../lib/smsVendorAccess');
+const { resolveForwarderCourierId, courierMatches } = require('../utils/forwarderScope');
 const { notifyChange } = require('../lib/emailNotifier');
 const packing = require('../services/smsShippingDataService');
 
@@ -156,9 +157,10 @@ function _enrich(s, c) {
 // junction — see lib/smsVendorAccess for why visibility requires ALL POs to be
 // the vendor's and why a junction-less draft is staff-only.
 async function getAll(req, res) {
-  const [c, vendorSid] = await Promise.all([_ctx(), vendorScopeFor(req)]);
+  const [c, vendorSid, fwd] = await Promise.all([_ctx(), vendorScopeFor(req), resolveForwarderCourierId(req.user)]);
   const visible = shipmentVisibilityFn(c.shipmentPos, new Map(c.pos.map((p) => [p.poNumber, p.supplierId])), vendorSid);
-  res.json(c.shipments.filter((s) => visible(s.id)).map((s) => _enrich(s, c)));
+  // _enrich reads the FULL context per row, so filtering first is safe here.
+  res.json(c.shipments.filter((s) => visible(s.id) && courierMatches(s.courierId, fwd)).map((s) => _enrich(s, c)));
 }
 
 async function getOne(req, res) {
@@ -167,6 +169,7 @@ async function getOne(req, res) {
   const visible = shipmentVisibilityFn(c.shipmentPos, new Map(c.pos.map((p) => [p.poNumber, p.supplierId])), vendorSid);
   // 404 (not 403) when it exists but isn't theirs — a 403 confirms the id is real.
   if (!s || !visible(s.id)) err('SMS shipment not found', 404);
+  if (!courierMatches(s.courierId, await resolveForwarderCourierId(req.user))) err('SMS shipment not found', 404);
   res.json(_enrich(s, c));
 }
 
@@ -202,6 +205,12 @@ async function create(req, res) {
   // Booking-approved DRAFTS are created by approve, not here, and still take
   // their file afterwards via POST /shipments/:id/shipping-data.
   if (!req.file) err('Upload the shipping-data file — a shipment cannot be created without it.', 400);
+  // A forwarder may create a consignment only under THEIR carrier — any other
+  // courier would vanish from their own view the moment it was saved.
+  const fwd = await resolveForwarderCourierId(req.user);
+  if (fwd != null && !courierMatches(req.body.courierId, fwd)) {
+    err('Forwarders can only create shipments for their own carrier.', 403);
+  }
   const vendorSupplierId = await _vendorSupplierId(req.user);
   const c = await _ctx();
   const { courierId, modeId, trackingNumber, shipDate, facilityId, pos: entries, force_overbook, force_overship } = req.body;
@@ -271,6 +280,7 @@ async function create(req, res) {
 }
 
 async function update(req, res) {
+  await assertShipmentVisible(req, req.params.id);   // forwarder: own carrier only (404)
   const vendorSupplierId = await _vendorSupplierId(req.user);
   const c = await _ctx();
   const idx = c.shipments.findIndex((s) => s.id === req.params.id);
@@ -448,6 +458,7 @@ async function remove(req, res) {
 // re-approving it issues a fresh draft. Calling off the whole consignment is a
 // decision taken on the booking.
 async function cancel(req, res) {
+  await assertShipmentVisible(req, req.params.id);   // forwarder: own carrier only (404)
   const vendorSupplierId = await _vendorSupplierId(req.user);
   const c = await _ctx();
   const idx = c.shipments.findIndex((s) => s.id === req.params.id);

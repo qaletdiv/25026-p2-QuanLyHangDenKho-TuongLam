@@ -8,7 +8,14 @@
 const M = require('../lib/SmsModels');
 const { poRollups, reconcilePo, deriveStatus, priceByPoSku } = require('../services/smsService');
 const { receivedByShipment } = require('../lib/smsReceiptMatch');
-const { resolveVendorSupplierId } = require('../utils/vendorScope');
+const { resolveVendorSupplierId, NO_SUPPLIER } = require('../utils/vendorScope');
+const { resolveForwarderCourierId } = require('../utils/forwarderScope');
+
+// Vendor scope for the PO reads; FORWARDERS never see POs, so they get the
+// "matches nothing" sentinel and every read comes back empty.
+const _scope = async (req) => ((await resolveForwarderCourierId(req.user)) != null
+  ? NO_SUPPLIER
+  : resolveVendorSupplierId(req.user, { onUnlinked: 'deny' }));
 
 const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; throw e; };
 
@@ -80,13 +87,13 @@ function enrichPo(po, c, rollups) {
 }
 
 async function getAll(req, res) {
-  const c = await _ctx(await resolveVendorSupplierId(req.user, { onUnlinked: 'deny' }));
+  const c = await _ctx(await _scope(req));
   const rollups = poRollups(c);
   res.json(c.pos.map((po) => enrichPo(po, c, rollups)));
 }
 
 async function getOne(req, res) {
-  const c = await _ctx(await resolveVendorSupplierId(req.user, { onUnlinked: 'deny' }));
+  const c = await _ctx(await _scope(req));
   const po = c.pos.find((p) => p.poNumber === req.params.poNumber);
   if (!po) err('SMS PO not found', 404);
   const rollups = poRollups(c);
@@ -152,7 +159,7 @@ async function getOne(req, res) {
 // GET /sms/po-lines — EVERY SKU order line across all SMS POs, enriched with PO
 // context + SKU descriptions. Feeds the "item lines" download on the PO list.
 async function getAllLines(req, res) {
-  const c = await _ctx(await resolveVendorSupplierId(req.user, { onUnlinked: 'deny' }));
+  const c = await _ctx(await _scope(req));
   const poByNumber = new Map(c.pos.map((p) => [p.poNumber, p]));
   const rows = c.poLines.map((l) => {
     const po = poByNumber.get(l.poNumber) || {};

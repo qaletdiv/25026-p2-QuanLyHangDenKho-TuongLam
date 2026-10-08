@@ -28,6 +28,7 @@ const router = express.Router();
 const { asyncWrap } = require('../middlewares/errorHandler');
 const { models } = require('../models');
 const { resolveVendorSupplierId } = require('../utils/vendorScope');
+const { resolveForwarderCourierId } = require('../utils/forwarderScope');
 const mainlineAccess = require('../lib/mainlineVendorAccess');
 const smsAccess = require('../lib/smsVendorAccess');
 
@@ -72,8 +73,10 @@ router.get('/:filename', asyncWrap(async (req, res) => {
         // so fail CLOSED for vendors and let staff through. Freight exports
         // (freight_<id>.xlsx) land here too, which is right: only the `freight`
         // permission reaches those records, and no vendor holds it.
+        // Forwarders fail closed here too: an orphan can't be attributed to a carrier.
         const vendorSid = await resolveVendorSupplierId(req.user, { onUnlinked: 'deny' });
         if (vendorSid != null) notFound();
+        if ((await resolveForwarderCourierId(req.user)) != null) notFound();
     }
 
     // res.download sets Content-Disposition: attachment, so a spreadsheet can never be

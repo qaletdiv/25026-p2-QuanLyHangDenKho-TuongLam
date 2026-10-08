@@ -21,6 +21,7 @@
 const M = require('../lib/SmsModels');
 const svc = require('../services/smsBookingService');
 const { resolveVendorSupplierId } = require('../utils/vendorScope');
+const { resolveForwarderCourierId, courierMatches } = require('../utils/forwarderScope');
 
 const { notifyChange } = require('../lib/emailNotifier');
 
@@ -143,6 +144,9 @@ async function getAll(req, res) {
   if (vendorSupplierId != null) {
     out = out.filter((b) => String(b.supplierId) === String(vendorSupplierId));
   }
+  // A forwarder sees only bookings that name them as the carrier.
+  const fwd = await resolveForwarderCourierId(req.user);
+  if (fwd != null) out = out.filter((b) => courierMatches(b.courierId, fwd));
   res.json(out);
 }
 
@@ -156,6 +160,7 @@ async function getOne(req, res) {
   if (vendorSupplierId != null && !_vendorOwnsBooking(b.id, c, vendorSupplierId)) {
     err('SMS booking not found', 404);
   }
+  if (!courierMatches(b.courierId, await resolveForwarderCourierId(req.user))) err('SMS booking not found', 404);
   res.json(_enrichOne(b, c));
 }
 

@@ -13,6 +13,7 @@ const upload = require('../middlewares/upload');
 // (requireAdmin dropped with the WIP import — it was that route's only user; the
 //  remaining mainline writes are gated on permission keys, not on the role.)
 const requirePermission = require('../middlewares/requirePermission');
+const refuseForwarder = require('../middlewares/refuseForwarder');
 const validate = require('../middlewares/validate');
 const bookingController = require('../controllers/mainlineBookingController');
 const bookingSchemas = require('../validators/mainlineBookingValidator');
@@ -80,13 +81,13 @@ router.get('/fulfillment/:trn',                  asyncWrap(fulfillmentController
 // Receiving/reconciliation is a logistics function — `shipment_update_status` is
 // the closest existing key (no `receipt_match` key exists). Vendors lack it, which
 // is correct: a vendor must not confirm receipt of their own goods.
-router.post('/receipts/manual-match',   requirePermission('shipment_update_status'), asyncWrap(receiptController.manualMatch));
-router.post('/receipts/:id/match',       requirePermission('shipment_update_status'), asyncWrap(receiptController.setMatch));
-router.delete('/receipts/:id/match',     requirePermission('shipment_update_status'), asyncWrap(receiptController.clearMatch));
+router.post('/receipts/manual-match',   requirePermission('shipment_update_status'), refuseForwarder, asyncWrap(receiptController.manualMatch));
+router.post('/receipts/:id/match',       requirePermission('shipment_update_status'), refuseForwarder, asyncWrap(receiptController.setMatch));
+router.delete('/receipts/:id/match',     requirePermission('shipment_update_status'), refuseForwarder, asyncWrap(receiptController.clearMatch));
 // ...and its negative: reject a suggested (receipt × shipment) pair so the matcher
 // stops offering it. Same permission — it is the same decision, answered "no".
-router.post('/receipts/:id/reject',      requirePermission('shipment_update_status'), asyncWrap(receiptController.rejectMatch));
-router.delete('/receipts/:id/reject',    requirePermission('shipment_update_status'), asyncWrap(receiptController.unrejectMatch));
+router.post('/receipts/:id/reject',      requirePermission('shipment_update_status'), refuseForwarder, asyncWrap(receiptController.rejectMatch));
+router.delete('/receipts/:id/reject',    requirePermission('shipment_update_status'), refuseForwarder, asyncWrap(receiptController.unrejectMatch));
 
 // PO leg → its consignments (read; the Shipments section on the PO leg detail).
 // Auth-only like every other transactional mainline read — the handler row-scopes

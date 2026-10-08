@@ -53,8 +53,10 @@ const ROLE_EMAIL_RULES = {
   // The forwarder ACTS on this mail — they move the freight. Both modules,
   // bookings included, field edits included, because a changed ETD or cargo
   // ready date is an instruction to them.
+  // …but ONLY about records that name them as the carrier (2026-10-08): the
+  // forwarder twin of the vendor's supplier scoping, enforced below.
   'Freight Forwarder':     { types: ['booking_status', 'booking_updated', 'shipment_status', 'shipment_updated'],
-                             modules: ALL, scoped: false },
+                             modules: ALL, scoped: false, courierScoped: true },
 
   // A vendor hears about their OWN supplier's records and nobody else's. The
   // scoping is enforced below, not here.
@@ -83,6 +85,7 @@ function warnUnknownRole(role) {
  * @param {string} ev.type       one of EVENT_TYPES
  * @param {string} ev.module     'mainline' | 'sms'
  * @param {string|null} ev.supplierId  the record's supplier, for vendor scoping
+ * @param {string|null} [ev.courierId] the record's carrier, for forwarder scoping
  * @param {string|null} ev.actorId     the user who made the change — never mailed
  * @returns {Promise<Array<{email:string,name:string,role:string}>>}
  */
@@ -113,6 +116,12 @@ async function recipientsFor(ev) {
       const sid = await resolveVendorSupplierId(u, { onUnlinked: 'deny' });
       if (sid === NO_SUPPLIER || sid == null) continue;
       if (String(sid) !== String(ev.supplierId)) continue;
+    }
+
+    if (rule.courierScoped) {
+      // No carrier on the record (or a mixed batch) ⇒ no forwarder is mailed.
+      if (!ev.courierId) continue;
+      if (!u.courierId || String(u.courierId) !== String(ev.courierId)) continue;
     }
 
     out.push({ email: u.email, name: u.name || u.email, role: u.role });

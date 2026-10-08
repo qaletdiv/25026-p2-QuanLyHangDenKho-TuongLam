@@ -15,6 +15,7 @@ const ModeModel = models.modes;
 const status = require('../lib/mainlineStatuses');
 const svc = require('../services/mainlineBookingService');
 const { resolveVendorSupplierId } = require('../utils/vendorScope');
+const { resolveForwarderCourierId, courierMatches } = require('../utils/forwarderScope');
 const { permissionsForRole } = require('../utils/rolePermissions');
 // The SHIPMENT's own cancel guards, reused so a booking-level cancel can never
 // override what the consignment itself would refuse.
@@ -75,8 +76,10 @@ const mineOnly = (bookings, vendorSid) =>
   vendorSid == null ? bookings : bookings.filter((b) => String(b.supplierId) === String(vendorSid));
 
 async function getAll(req, res) {
-  const [ctx, vendorSid] = await Promise.all([_loadContext(), bookingScope(req)]);
-  res.json(await _enrich(mineOnly(ctx.bookings, vendorSid), ctx));
+  const [ctx, vendorSid, fwd] = await Promise.all([_loadContext(), bookingScope(req), resolveForwarderCourierId(req.user)]);
+  // A forwarder sees only bookings that name them as the carrier.
+  const mine = mineOnly(ctx.bookings, vendorSid).filter((b) => courierMatches(b.courierId, fwd));
+  res.json(await _enrich(mine, ctx));
 }
 
 async function getOne(req, res) {
@@ -85,6 +88,7 @@ async function getOne(req, res) {
   // 404 (not 403) when it exists but isn't theirs — a 403 would confirm the id is
   // real, letting a vendor enumerate other suppliers' bookings by probing ids.
   if (!b || (vendorSid != null && String(b.supplierId) !== String(vendorSid))) err('Booking not found', 404);
+  if (!courierMatches(b.courierId, await resolveForwarderCourierId(req.user))) err('Booking not found', 404);
   res.json((await _enrich([b], ctx))[0]);
 }
 

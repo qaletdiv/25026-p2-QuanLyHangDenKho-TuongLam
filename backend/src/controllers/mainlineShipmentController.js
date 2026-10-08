@@ -12,7 +12,8 @@ const { resolveVendorSupplierId } = require('../utils/vendorScope');
 // Resolved PER REQUEST (not from the JWT), so a granted/revoked key applies
 // immediately — same as requirePermission and the booking-approve in-handler check.
 const { permissionsForRole } = require('../utils/rolePermissions');
-const { assertLegVisible } = require('../lib/mainlineVendorAccess');
+const { assertLegVisible, assertShipmentVisible } = require('../lib/mainlineVendorAccess');
+const { resolveForwarderCourierId, courierMatches } = require('../utils/forwarderScope');
 const { cascadeShipmentDelete } = require('../lib/mainlineShipmentCleanup');
 const lifecycle = require('../lib/mainlineShipmentLifecycle');
 
@@ -112,7 +113,15 @@ function visibleShipments(shipments, ctx, vendorSid) {
 }
 
 async function getAll(req, res) {
-  const [shipments, ctx, vendorSid] = await Promise.all([models.mainline_shipments.read(), _ctx(), shipmentScope(req)]);
+  const [shipments, ctx, vendorSid, fwd] = await Promise.all([models.mainline_shipments.read(), _ctx(), shipmentScope(req), resolveForwarderCourierId(req.user)]);
+  if (fwd != null) {
+    // FORWARDER: enrich the WHOLE table first, then keep their carrier's rows.
+    // Received units are allocated FIFO across all of a PO's shipments, and one PO
+    // can ship with two carriers — filtering first would change that allocation.
+    // (Vendor scoping filters first; it is closed over PO → booking → shipment.)
+    const all = await _enrich(shipments, ctx);
+    return res.json(all.filter((s) => courierMatches(s.courierId, fwd)));
+  }
   res.json(await _enrich(visibleShipments(shipments, ctx, vendorSid), ctx));
 }
 
@@ -121,6 +130,7 @@ async function getOne(req, res) {
   const s = shipments.find((x) => x.id === req.params.id);
   // 404, not 403 — see the booking controller: a 403 confirms the id exists.
   if (!s || !visibleShipments([s], ctx, vendorSid).length) err('Shipment not found', 404);
+  if (!courierMatches(s.courierId, await resolveForwarderCourierId(req.user))) err('Shipment not found', 404);
   res.json((await _enrich([s], ctx))[0]);
 }
 
@@ -201,6 +211,7 @@ async function getByLeg(req, res) {
 }
 
 async function update(req, res) {
+  await assertShipmentVisible(req, req.params.id);   // a forwarder may edit only their carrier's shipments (404 otherwise)
   const shipments = await models.mainline_shipments.read();
   const idx = shipments.findIndex((s) => s.id === req.params.id);
   if (idx < 0) err('Shipment not found', 404);
@@ -304,6 +315,9 @@ async function update(req, res) {
 
 async function bulkStatus(req, res) {
   const { ids, status: statusName } = req.body;
+  // Every id must be the caller's (404 on the first that isn't) — a forwarder
+  // must not be able to move another carrier's consignments through the batch.
+  for (const id of ids) await assertShipmentVisible(req, id);
   const shipments = await models.mainline_shipments.read();
   const statusId = await status.idForName(statusName);
   const idSet = new Set(ids);
@@ -371,6 +385,7 @@ async function _lifecycleCtx() {
 // next week. If the whole consignment is off, that is a decision about the BOOKING,
 // taken on the booking.
 async function cancel(req, res) {
+  await assertShipmentVisible(req, req.params.id);
   const shipments = await models.mainline_shipments.read();
   const idx = shipments.findIndex((s) => s.id === req.params.id);
   if (idx < 0) err('Shipment not found', 404);

@@ -30,6 +30,7 @@ async function uploadShippingData(req, res) {
   ]);
   const shipment = shipments.find((s) => s.id === req.params.id);
   if (!shipment) err('SMS shipment not found', 404);
+  await assertShipmentVisible(req, shipment.id);   // forwarder: own carrier only (404)
 
   const myJunctions = shipmentPos.filter((j) => j.shipmentId === shipment.id);
   const poByNumber = new Map(pos.map((p) => [p.poNumber, p]));

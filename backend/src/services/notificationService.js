@@ -21,7 +21,10 @@ const ROLE_RULES = {
   'Logistics Coordinator': { types: '*', scoped: false },
   'Production':            { types: ['leg_unbooked_past_crd', 'sms_overdue'], scoped: false },
   'Vendor':               { types: ['sms_overdue', 'sms_overship', 'sms_tracking_exception', 'booking_pending'], scoped: true },
-  'Freight Forwarder':    { types: ['leg_unbooked_past_crd'], scoped: false },
+  // No bell items (2026-10-08): the only one was the unbooked-POs-past-CRD
+  // summary, which spans every supplier's POs — and forwarders never see POs.
+  // Their channel is email, scoped to their carrier (lib/emailRecipients).
+  'Freight Forwarder':    { types: [], scoped: false },
 };
 
 // ── mainline derivations ─────────────────────────────────────────────────────

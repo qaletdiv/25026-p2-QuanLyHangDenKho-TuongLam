@@ -10,9 +10,14 @@
 // would use to enumerate other suppliers' booking numbers, TRNs and shipment ids.
 //
 // Staff (non-Vendor) resolve to null and pass through untouched.
+//
+// FREIGHT FORWARDERS (2026-10-08) are scoped here too, by CARRIER: a booking or
+// shipment is theirs only when its courierId is their users.courierId. They never
+// see POs, so the TRN / PO / leg guards 404 for them outright.
 
 const { models } = require('../models');
 const { resolveVendorSupplierId } = require('../utils/vendorScope');
+const { resolveForwarderCourierId, courierMatches } = require('../utils/forwarderScope');
 
 const notFound = (msg) => { const e = new Error(msg); e.statusCode = 404; throw e; };
 const scope = (req) => resolveVendorSupplierId(req.user, { onUnlinked: 'deny' });
@@ -23,6 +28,12 @@ const same = (a, b) => String(a) === String(b);
  * @returns {Promise<string|null>} the resolved vendor supplier id (null for staff)
  */
 async function assertBookingVisible(req, bookingId, label = 'Booking not found') {
+  const fwd = await resolveForwarderCourierId(req.user);
+  if (fwd != null) {
+    const b = (await models.mainline_bookings.read()).find((x) => x.id === bookingId);
+    if (!b || !courierMatches(b.courierId, fwd)) notFound(label);
+    return null;
+  }
   const vendorSid = await scope(req);
   if (vendorSid == null) return null;
   const bookings = await models.mainline_bookings.read();
@@ -36,6 +47,12 @@ async function assertBookingVisible(req, bookingId, label = 'Booking not found')
  * from its booking.
  */
 async function assertShipmentVisible(req, shipmentId, label = 'Shipment not found') {
+  const fwd = await resolveForwarderCourierId(req.user);
+  if (fwd != null) {
+    const s = (await models.mainline_shipments.read()).find((x) => x.id === shipmentId);
+    if (!s || !courierMatches(s.courierId, fwd)) notFound(label);
+    return null;
+  }
   const vendorSid = await scope(req);
   if (vendorSid == null) return null;
   const [shipments, bookings] = await Promise.all([
@@ -54,6 +71,7 @@ async function assertShipmentVisible(req, shipmentId, label = 'Shipment not foun
  * po_masters; a master with a null supplier is never a vendor's.
  */
 async function assertTrnVisible(req, trn, label = 'PO master not found') {
+  if (await resolveForwarderCourierId(req.user) != null) notFound(label);   // forwarders never see POs
   const vendorSid = await scope(req);
   if (vendorSid == null) return null;
   const masters = await models.po_masters.read();
@@ -64,6 +82,7 @@ async function assertTrnVisible(req, trn, label = 'PO master not found') {
 
 /** 404s unless the caller may see this component PO (poNumber → order → master). */
 async function assertPoNumberVisible(req, poNumber, label = 'PO not found') {
+  if (await resolveForwarderCourierId(req.user) != null) notFound(label);   // forwarders never see POs
   const vendorSid = await scope(req);
   if (vendorSid == null) return null;
   const [orders, masters] = await Promise.all([models.po_orders.read(), models.po_masters.read()]);
@@ -75,6 +94,7 @@ async function assertPoNumberVisible(req, poNumber, label = 'PO not found') {
 
 /** 404s unless the caller may see this leg (leg → order → master). */
 async function assertLegVisible(req, legId, label = 'PO leg not found') {
+  if (await resolveForwarderCourierId(req.user) != null) notFound(label);   // forwarders never see POs
   const vendorSid = await scope(req);
   if (vendorSid == null) return null;
   const [legs, orders, masters] = await Promise.all([

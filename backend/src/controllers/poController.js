@@ -6,7 +6,8 @@
 // Lifecycle state and totals are DERIVED live (never stored), per the schema rule.
 
 const { models } = require('../models');
-const { resolveVendorSupplierId } = require('../utils/vendorScope');
+const { resolveVendorSupplierId, NO_SUPPLIER } = require('../utils/vendorScope');
+const { resolveForwarderCourierId } = require('../utils/forwarderScope');
 // pure date helper only — reused so the "expected ATA = E-DEL + 5" rule has ONE
 // definition shared with /reports/mainline rather than a second copy here.
 const { addDays } = require('../services/transitTimeService');
@@ -23,7 +24,11 @@ const notFound = (msg) => { const e = new Error(msg); e.statusCode = 404; throw 
 // Vendor row scoping for every read in this file. Reads use onUnlinked:'deny', so a
 // vendor account that resolves to no supplier sees an empty order book rather than
 // a 403 on a page load.
-const scopeOf = (req) => resolveVendorSupplierId(req.user, { onUnlinked: 'deny' });
+// FORWARDERS never see POs (2026-10-08): they get the same "matches nothing"
+// sentinel an unlinked vendor does, so every read here comes back empty.
+const scopeOf = async (req) => ((await resolveForwarderCourierId(req.user)) != null
+  ? NO_SUPPLIER
+  : resolveVendorSupplierId(req.user, { onUnlinked: 'deny' }));
 
 // id → name lookup from a master-data file
 const nameMap = (rows, key = 'name') => new Map((Array.isArray(rows) ? rows : []).map((r) => [r.id, r[key]]));

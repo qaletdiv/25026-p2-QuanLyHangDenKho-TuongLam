@@ -22,6 +22,7 @@
 
 const M = require('./SmsModels');
 const { resolveVendorSupplierId } = require('../utils/vendorScope');
+const { resolveForwarderCourierId, courierMatches } = require('../utils/forwarderScope');
 
 const notFound = (msg) => { const e = new Error(msg); e.statusCode = 404; throw e; };
 const scope = (req) => resolveVendorSupplierId(req.user, { onUnlinked: 'deny' });
@@ -57,6 +58,13 @@ const vendorScopeFor = (req) => scope(req);
  * so callers that don't already hold them stay simple.
  */
 async function assertShipmentVisible(req, shipmentId, label = 'SMS shipment not found') {
+  // FORWARDER (2026-10-08): only consignments whose courier is theirs.
+  const fwd = await resolveForwarderCourierId(req.user);
+  if (fwd != null) {
+    const s = (await M.shipments.read()).find((x) => x.id === shipmentId);
+    if (!s || !courierMatches(s.courierId, fwd)) notFound(label);
+    return null;
+  }
   const vendorSid = await scope(req);
   if (vendorSid == null) return null;
   const [shipments, shipmentPos, pos] = await Promise.all([

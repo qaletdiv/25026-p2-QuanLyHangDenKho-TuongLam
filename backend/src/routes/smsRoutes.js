@@ -9,6 +9,7 @@ const router = express.Router();
 const { asyncWrap } = require('../middlewares/errorHandler');
 const requireAdmin = require('../middlewares/requireAdmin');
 const requirePermission = require('../middlewares/requirePermission');
+const refuseForwarder = require('../middlewares/refuseForwarder');
 const validate = require('../middlewares/validate');
 const upload = require('../middlewares/upload');
 const poController = require('../controllers/smsPoController');
@@ -102,12 +103,12 @@ router.get('/documents/:docId/file', asyncWrap(packingController.downloadDocumen
 router.get('/shipments/:id/receipt-matches', asyncWrap(receiptController.suggestForShipment));
 // Receiving confirmation — staff only; a vendor must not confirm receipt of their
 // own goods (`shipment_update_status`, which Vendor does not hold).
-router.post('/receipts/manual-match', requirePermission('shipment_update_status'), validate(schemas.receiptManualMatch), asyncWrap(receiptController.manualMatch));
-router.post('/receipts/:id/match',   requirePermission('shipment_update_status'), validate(schemas.receiptMatch), asyncWrap(receiptController.setMatch));
-router.delete('/receipts/:id/match', requirePermission('shipment_update_status'), asyncWrap(receiptController.clearMatch));
+router.post('/receipts/manual-match', requirePermission('shipment_update_status'), refuseForwarder, validate(schemas.receiptManualMatch), asyncWrap(receiptController.manualMatch));
+router.post('/receipts/:id/match',   requirePermission('shipment_update_status'), refuseForwarder, validate(schemas.receiptMatch), asyncWrap(receiptController.setMatch));
+router.delete('/receipts/:id/match', requirePermission('shipment_update_status'), refuseForwarder, asyncWrap(receiptController.clearMatch));
 // ...and its negative: reject a suggested (receipt × shipment) pair so the matcher
 // stops offering it. Same permission — it is the same decision, answered "no".
-router.post('/receipts/:id/reject',   requirePermission('shipment_update_status'), validate(schemas.receiptMatch), asyncWrap(receiptController.rejectMatch));
-router.delete('/receipts/:id/reject', requirePermission('shipment_update_status'), asyncWrap(receiptController.unrejectMatch));
+router.post('/receipts/:id/reject',   requirePermission('shipment_update_status'), refuseForwarder, validate(schemas.receiptMatch), asyncWrap(receiptController.rejectMatch));
+router.delete('/receipts/:id/reject', requirePermission('shipment_update_status'), refuseForwarder, asyncWrap(receiptController.unrejectMatch));
 
 module.exports = router;

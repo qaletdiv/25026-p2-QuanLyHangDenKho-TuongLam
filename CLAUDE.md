@@ -1936,6 +1936,40 @@ refresh. It is a migration tool, not a build step.
   vendor account holds "Best Star Fashions Co Ltd" against a suppliers.json
   "Best Star Fashions Co., Ltd." and resolved to NOTHING under `norm` (403 on every
   SMS write, zero notifications) until fixed 2026-08-12.
+- **users is 3NF (2026-10-08, per Lam).** A row stores `roleId` / `supplierId`
+  (Vendor) / `courierId` (Freight Forwarder), FKs to roles / suppliers / couriers;
+  the old `role` / `supplier` NAME columns are gone. Names are joined at read in
+  ONE place, `src/lib/userRefs.js` (login, /me, GET /users, email recipients). The
+  JWT still carries the role NAME. POST/PUT /users take ids and clear the link that
+  doesn't fit the role (supplier only on a Vendor, courier only on a Forwarder).
+  `vendorScope` resolves `users.supplierId` directly — the old supplierKey name
+  match is gone. Migration: `scripts/users-3nf.js` (idempotent, --dry-run): run it,
+  deploy, then run it with `--drop-names`. ⚠️ New code on an un-migrated DB has
+  null roleIds ⇒ every login gets a null role, so migrate BEFORE (or with) deploy.
+- **Freight Forwarder ROW scoping (2026-10-08, per Lam)** — `src/utils/forwarderScope.js`,
+  the twin of vendorScope. A forwarder sees a booking or shipment ONLY when the
+  supplier chose them as the carrier: record `courierId` === `users.courierId`.
+  Unlinked forwarder ⇒ the NO_COURIER sentinel ⇒ sees nothing; a record with no
+  carrier ("Decide later") matches no forwarder. Carrier changes go through
+  cancel + rebook (Lam), so booking and shipment carriers agree and each is scoped
+  by its own `courierId`. Where it is enforced: `lib/mainlineVendorAccess` +
+  `lib/smsVendorAccess` (booking/shipment guards check the carrier; the TRN / PO /
+  leg guards 404 a forwarder outright — forwarders never see POs), the list + detail
+  handlers of mainline/SMS bookings + shipments, the writes a forwarder's keys reach
+  (mainline shipment PUT / bulk-status / cancel, SMS shipment PUT / cancel /
+  shipping-data upload; SMS create only under their OWN carrier), `poController` /
+  `smsPoController` (forwarder ⇒ NO_SUPPLIER ⇒ empty), orphan /uploads (fail
+  closed), receipt matching (`middlewares/refuseForwarder`, 403 — receipts belong to
+  POs; the `shipment_update_status` key alone can't separate the two jobs). Bell:
+  forwarders get NO items (the unbooked-past-CRD summary spans every supplier's
+  POs). Email: still booking + shipment events across both modules, but only when
+  the record's carrier is theirs — `emailNotifier.courierOfEvent` resolves it from
+  the entity (a mixed-carrier batch mails no forwarder). ⚠️ The mainline shipment
+  LIST enriches the WHOLE table and filters after for forwarders: received units are
+  allocated FIFO across a PO's shipments and one PO can ship with two carriers, so
+  filtering first would change the numbers (vendor scoping is closed over PO →
+  booking → shipment, forwarder scoping is not). Verified: forwarder rows are
+  byte-identical to the admin's.
 - **Vendor READ scoping is now enforced too** (2026-08-12). Two conventions hold
   everywhere: **(1) scope at ONE point per read path** — `poController.loadAll(sid)`
   and `smsPoController._ctx(sid)` filter their source tables once, so every handler
@@ -2025,10 +2059,8 @@ refresh. It is a migration tool, not a build step.
   `GET /master-data/suppliers` still hands every vendor the full supplier roster
   (deliberately left: many pages read it for dropdowns). Reports/forecast/landed-costs
   are denied to vendors by nav key rather than scoped, so there is no vendor-facing
-  KPI view. Freight Forwarder is still not data-scoped, but it now CAN be:
-  `mainline_shipments.courier_id` (2026-08-24) is the `forwarder_id` this note used to
-  say did not exist. Until a scope filter actually uses it, FF still sees all mainline.
-  There is no `shipment_create` key, so `POST /sms/shipments` is gated on `shipments`,
+  KPI view. Freight Forwarder IS data-scoped since 2026-10-08 — see the forwarder
+  bullet below. There is no `shipment_create` key, so `POST /sms/shipments` is gated on `shipments`,
   which every role holds (semantically right, not a real restriction). JWTs cannot be
   revoked before their 24h expiry.
 - `/users` + `/roles` CRUD (Admin); login injects `permissions[]` into the

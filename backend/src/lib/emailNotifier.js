@@ -33,6 +33,30 @@ const email = require('../services/emailService');
 const { diffRecord, FIELD_SPECS } = require('./emailEvents');
 const { recipientsFor } = require('./emailRecipients');
 
+// The record's CARRIER, for forwarder scoping (2026-10-08): a forwarder is mailed
+// only about bookings / shipments that name them. Resolved here from the entity
+// the 15 callers already pass, rather than threading a new argument through each.
+// A batch (comma-joined entityId) counts only when every row shares ONE carrier —
+// a mixed batch mails no forwarder, the same rule a mixed-supplier batch applies
+// to vendors. An explicit p.courierId wins.
+const ENTITY_TABLE = {
+  mainline_booking: 'mainline_bookings', mainline_shipment: 'mainline_shipments',
+  sms_booking: 'sms_bookings', sms_shipment: 'sms_shipments',
+};
+async function courierOfEvent(p) {
+  if (p.courierId !== undefined) return p.courierId || null;
+  const ids = String(p.entityId ?? '').split(',').map((x) => x.trim()).filter(Boolean);
+  if (ids.length === 1 && (p.after || p.before)) {
+    const c = (p.after && p.after.courierId) || (p.before && p.before.courierId);
+    if (c) return c;
+  }
+  const table = ENTITY_TABLE[p.entity];
+  if (!table || !ids.length) return null;
+  const rows = await models[table].read().catch(() => []);
+  const found = new Set(rows.filter((r) => ids.includes(String(r.id))).map((r) => r.courierId || null));
+  return found.size === 1 ? [...found][0] : null;
+}
+
 const APP_URL = () => (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
 
 // ── value rendering ──────────────────────────────────────────────────────────
@@ -195,6 +219,7 @@ async function notifyChange(p) {
     const dispatch = async () => {
       const to = await recipientsFor({
         type, module: p.module, supplierId: p.supplierId || null,
+        courierId: await courierOfEvent(p),
         actorId: p.actor ? p.actor.id : null,
       });
       if (!to.length) return;
