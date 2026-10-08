@@ -20,10 +20,12 @@ const err = (msg, code) => { const e = new Error(msg); e.statusCode = code; thro
 
 async function generateAsn(req, res) {
   const shipmentId = req.params.id;
-  const [shipments, shipLegs, bookings, legs, invoices, cartons, suppliers] = await Promise.all([
+  const [shipments, shipLegs, bookings, legs, invoices, cartons, suppliers, skus] = await Promise.all([
     models.mainline_shipments.read(), models.mainline_shipment_legs.read(), models.mainline_bookings.read(),
     models.mainline_po_legs.read(), models.mainline_commercial_invoices.read(), models.mainline_packing_cartons.read(), SupplierModel.read().catch(() => []),
+    models.product_skus.read().catch(() => []),
   ]);
+  const skuByCode = new Map(skus.map((k) => [k.skuCode, k]));
 
   const shipment = shipments.find((s) => s.id === shipmentId);
   if (!shipment) err('Shipment not found', 404);
@@ -52,7 +54,20 @@ async function generateAsn(req, res) {
     po_details: myJunctions.map((j) => ({ poNumber: poByLeg(j.legId), units: j.expectedQuantity })),
     commercial_invoice: {
       status: 'confirmed', invoiceNumber: ci.invoiceNumber,
-      line_items: legLines.map((l) => ({ skuCode: l.skuCode, qty: l.qty, weightKg: l.weightKg, cbm: l.cbm, matched_po: poByLeg(l.matched_leg_id) })),
+      // match_status is REQUIRED: asnService keeps only 'matched' lines, and these
+      // are matched by construction (filtered to this shipment's legs above).
+      // Without it every line was dropped and the ASN shipped with an empty item
+      // table and TOTAL 0 (found 2026-10-08).
+      line_items: legLines.map((l) => {
+        const sku = skuByCode.get(l.skuCode) || {};
+        return {
+          skuCode: l.skuCode,
+          description: sku.description || sku.itemName || '',
+          qty: l.qty, weightKg: l.weightKg, cbm: l.cbm,
+          matched_po: poByLeg(l.matched_leg_id),
+          match_status: 'matched',
+        };
+      }),
     },
   };
   const fileUrl = await generatePackingList(legacy);
