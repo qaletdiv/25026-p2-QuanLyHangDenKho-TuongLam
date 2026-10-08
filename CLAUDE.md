@@ -2085,10 +2085,18 @@ restart after code changes (`node src/server.js`, port 5000 — no hot reload).
 "the server is down" with a healthy log and no crash in it. Start it detached:
 
 ```powershell
-Start-Process node -ArgumentList "src/server.js" -WorkingDirectory <repo>\backend `
-  -WindowStyle Hidden -RedirectStandardOutput backend\server.out.log `
-  -RedirectStandardError backend\server.err.log
+$cmd = "cmd.exe /c node src\server.js > server.out.log 2> server.err.log"
+Invoke-CimMethod -ClassName Win32_Process -MethodName Create `
+  -Arguments @{ CommandLine = $cmd; CurrentDirectory = "<repo>\backend" }
 ```
+
+⚠️ **Not `Start-Process`** (2026-10-08): a backend started that way from an agent's
+PowerShell tool still died with the tool session — TWICE in one day, each time
+read by the user as "all the data is gone" (the frontend on :3000 renders empty
+pages when :5000 is down; the log ends cleanly, no crash). `Win32_Process.Create`
+starts it outside the session's process tree, so it survives. Note that a filter
+on `*server.js*` also matches Next's `start-server.js` — check the command line
+before concluding two backends are running.
 
 ⚠️ **Then check nothing else is already running it.** Every `src/server.js` process
 starts its OWN cron scheduler (`services/cronJobs.js`), so two of them means two
