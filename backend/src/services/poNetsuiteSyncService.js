@@ -17,30 +17,31 @@ const integrationService = require('./integrationService');
 const { pruneStaleReceipts, dropOrphanRejections } = require('../utils/pruneStaleReceipts');
 
 // ---------------------------------------------------------------------------
-//  v2 STARTS AT SS27. v1 (the WIP import) was RETIRED 2026-09-28.
+//  EVERY SEASON IS LEGGED FROM NETSUITE (WIP retired 2026-09-28; the FW26
+//  season exclusion retired 2026-10-09, per Lam).
 //
-//  v2 is now the only way a leg is created: 1 PO = 1 warehouse = 1 method =
-//  ONE LEG (`leg_ns_<poNumber>`, `source:'netsuite'`), built right here from the
-//  NetSuite record. No channel (everything lands in …First), no air/sea split.
+//  1 PO = 1 warehouse = 1 method = ONE LEG (`leg_ns_<poNumber>`,
+//  `source:'netsuite'`), built right here from the NetSuite record, refreshed
+//  on every sync. No channel (everything lands in …First), no air/sea split.
 //
-//  ⚠️ FW26 IS EXCLUDED BELOW AND THAT EXCLUSION IS LOAD-BEARING — it is NOT
-//  leftover v1. Its 87 legs were built by the retired WIP import and encode
-//  something NetSuite cannot say:
-//      87 legs = 64 POs + 16 air/sea splits + 7 staged-CRD splits
-//  NetSuite has ONE mode per PO header and ONE custbody46, so it can express
-//  none of those 23 extras. The legs are kept as history and are never
-//  refreshed; the WIP sheets that produced them can no longer be re-imported.
+//  The 87 legs the retired WIP import built (numeric ids, source != 'netsuite')
+//  are handled PER PO, not per season:
+//    • a WIP leg something points at (booking, shipment, packing carton,
+//      document — `frozenLegIds`) is HISTORY: the PO keeps its WIP legs and
+//      gets no NetSuite leg. They encode what NetSuite cannot (air/sea and
+//      staged-CRD splits), and a booking cannot be re-pointed.
+//    • a PO whose WIP legs NOTHING points at has them RETIRED (removed with
+//      their lines) and gets its NetSuite leg instead — reported in
+//      `legs_retired_wip`. All 87 were archived first by
+//      scripts/archive-wip-legs.js.
+//  ⚠️ Never build a NetSuite leg BESIDE a WIP leg: both would carry the PO's
+//  units and every leg-grained rollup (forecast plan, order book,
+//  /reports/mainline) would double-count — 265,349 units if done to all 64.
+//  The `existingLeg` lookup cannot see WIP legs (numeric ids), so the
+//  per-PO test below is what prevents it.
 //
-//  ⚠️ DO NOT DELETE THE CONDITION to "finish retiring v1". The guard at
-//  `existingLeg.source !== 'netsuite'` below CANNOT catch these: it looks up
-//  `leg_ns_<poNumber>` while WIP legs carry numeric ids (1, 2, 3…), so it fires
-//  0 times out of 64. Removing the exclusion creates 64 NEW legs ALONGSIDE the
-//  87 existing ones and double-counts 265,349 units in every leg-grained rollup
-//  (forecast plan, order book, /reports/mainline). Measured 2026-09-28.
-//
-//  `source` still records which built a row ('wip' = pre-retirement | 'netsuite').
+//  `source` still records which built a row ('wip' | 'netsuite').
 // ---------------------------------------------------------------------------
-const PRE_V2_SEASONS = new Set(['FW26']);   // legs predate v2 — never re-leg these
 
 // Fallback only — the real value comes from transit_time_standards.receiving,
 // which is editable master data (5 days for both sea and air today).
@@ -52,7 +53,7 @@ const { addDays } = require('./transitTimeService');
 // existing = { masters, orders, orderLines, legs }
 // ctx      = { resolvers, lockedPoNumbers:Set, lockedTrns:Set, receivingDays:Map }
 function buildUpserts(pos, existing, ctx) {
-  const { resolvers, lockedPoNumbers, lockedTrns, receivingDays } = ctx;
+  const { resolvers, lockedPoNumbers, lockedTrns, receivingDays, frozenLegIds = new Set() } = ctx;
   const masters    = new Map(existing.masters.map((m) => [m.trnNumber, m]));
   const orders     = new Map(existing.orders.map((o) => [o.poNumber, o]));
   // order lines indexed by poNumber → keep other POs' lines intact
@@ -72,11 +73,11 @@ function buildUpserts(pos, existing, ctx) {
     (mp, l) => ((mp[l.legId] = mp[l.legId] || []).push(l), mp), {},
   );
   let legUpsert = 0;
-  const legsSkippedPreV2 = [];
-  // POs that already carry a leg this sync did not build (the 87 FW26 WIP legs,
-  // numeric ids). These — and only these — are what PRE_V2_SEASONS protects.
-  const posWithForeignLegs = new Set(
-    (existing.legs || []).filter((l) => l.source !== 'netsuite').map((l) => l.poNumber),
+  const legsSkippedPreV2 = [];      // POs kept on referenced WIP legs (history)
+  const legsRetiredWip = [];        // POs whose unreferenced WIP legs were replaced
+  // WIP legs (built by the retired import) per PO — see the header.
+  const wipLegsByPo = (existing.legs || []).filter((l) => l.source !== 'netsuite').reduce(
+    (mp, l) => ((mp[l.poNumber] = mp[l.poNumber] || []).push(l), mp), {},
   );
 
   const protectedPos = [];
@@ -154,13 +155,17 @@ function buildUpserts(pos, existing, ctx) {
     });
     oUpsert++;
 
-    // --- ONE LEG PER PO, straight from NetSuite (SS27 onward) ---------------
-    const seasonCode = String(po.season || '').toUpperCase();
-    // A pre-v2 season is skipped ONLY for a PO that already has WIP legs —
-    // re-legging those double-counts their units in every leg-grained rollup.
-    // A FW26 PO raised AFTER the WIP retirement has no legs at all, and without
-    // this it could never be booked (PO04841, 2026-10-09: "not split into legs").
-    if (!PRE_V2_SEASONS.has(seasonCode) || !posWithForeignLegs.has(po.poNumber)) {
+    // --- ONE LEG PER PO, straight from NetSuite (every season) -------------
+    const wipLegs = wipLegsByPo[po.poNumber] || [];
+    const wipFrozen = wipLegs.some((l) => frozenLegIds.has(String(l.id)));
+    if (wipFrozen) {
+      legsSkippedPreV2.push(po.poNumber);   // history — see the header
+    } else {
+      // Unreferenced WIP legs give way to the NetSuite leg (never sit beside it).
+      if (wipLegs.length) {
+        wipLegs.forEach((l) => { legs.delete(l.id); delete legLinesByLeg[l.id]; });
+        legsRetiredWip.push(po.poNumber);
+      }
       const legId = `leg_ns_${po.poNumber}`;
       const existingLeg = legs.get(legId);
 
@@ -298,7 +303,7 @@ function buildUpserts(pos, existing, ctx) {
     skus:       [...skus.values()],
     stats: {
       masters_upserted: mUpsert, orders_upserted: oUpsert, lines_upserted: lUpsert,
-      legs_upserted: legUpsert, legs_skipped_foreign_source: legsSkippedPreV2, skus_added: skusAdded,
+      legs_upserted: legUpsert, legs_skipped_foreign_source: legsSkippedPreV2, legs_retired_wip: legsRetiredWip, skus_added: skusAdded,
       protected: protectedPos, rejected_skipped: rejectedPos,
     },
   };
@@ -400,6 +405,13 @@ async function computeReferenced() {
   return referenced;
 }
 
+// Every leg id a booking, shipment, packing carton or document points at.
+async function computeFrozenLegIds() {
+  const tables = ['mainline_booking_po_legs', 'mainline_shipment_legs', 'mainline_packing_cartons', 'mainline_documents'];
+  const rows = await Promise.all(tables.map((t) => models[t].read()));
+  return new Set(rows.flat().map((r) => r.legId).filter((id) => id != null).map(String));
+}
+
 async function computeLocked() {
   const [legs, bookingLegs, shipments] = await Promise.all([
     models.mainline_po_legs.read(),
@@ -475,6 +487,8 @@ async function sync({ fetchPos } = {}) {
     models.transit_time_standards.read().catch(() => []),
     loadResolvers(), computeLocked(),
   ]);
+  // Legs something points at — a WIP leg in here is history and stays.
+  const frozenLegIds = await computeFrozenLegIds();
   // modeId -> days for the `receiving` segment (E-DEL -> booked into NetSuite).
   // Master data, so editing it corrects every derived E-DEL on the next sync.
   const receivingDays = new Map(
@@ -488,7 +502,7 @@ async function sync({ fetchPos } = {}) {
   const result = buildUpserts(
     pos,
     { masters, orders, orderLines, legs: existingLegs, legLines: existingLegLines, skus: existingSkus },
-    { resolvers, lockedPoNumbers, lockedTrns, receivingDays },
+    { resolvers, lockedPoNumbers, lockedTrns, receivingDays, frozenLegIds },
   );
 
   // Rejected POs the portal is ALREADY holding. The pull can't surface these —
