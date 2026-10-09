@@ -20,7 +20,7 @@ const integrationService = require('./integrationService');
 const { splitWarehouseName, channelIdByName } = require('../lib/poWarehouseFacility');
 
 const { norm, supplierKey } = require('../utils/nameKey');
-const { pruneStaleReceipts } = require('../utils/pruneStaleReceipts');
+const { pruneStaleReceipts, dropOrphanRejections } = require('../utils/pruneStaleReceipts');
 
 // NS location string → { facility name, channel name }. The location conflates a
 // physical facility with an allocation channel (Reserved / First); SMS keeps BOTH.
@@ -283,6 +283,10 @@ async function sync({ fetchPos, fetchReceipts } = {}) {
   };
 
   const out = buildUpserts(nsPos, nsReceipts, existing);
+  // A pruned receipt takes its rejection rows with it (deferred FK — see
+  // utils/pruneStaleReceipts.dropOrphanRejections).
+  const rejections = await M.receiptRejections.read();
+  const keptRejections = dropOrphanRejections(rejections, out.receipts);
 
   await Promise.all([
     M.suppliers.write(out.suppliers),
@@ -292,6 +296,7 @@ async function sync({ fetchPos, fetchReceipts } = {}) {
     M.poLines.write(out.poLines),
     M.receipts.write(out.receipts),
     M.receiptLines.write(out.receiptLines),
+    ...(keptRejections.length !== rejections.length ? [M.receiptRejections.write(keptRejections)] : []),
   ]);
 
   return { ...out.stats, warnings: [...new Set(out.warnings)] };

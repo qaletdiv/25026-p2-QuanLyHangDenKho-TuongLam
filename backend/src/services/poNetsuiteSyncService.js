@@ -14,7 +14,7 @@
 const { loadResolvers } = require('../lib/poResolvers');
 const { models } = require('../models');
 const integrationService = require('./integrationService');
-const { pruneStaleReceipts } = require('../utils/pruneStaleReceipts');
+const { pruneStaleReceipts, dropOrphanRejections } = require('../utils/pruneStaleReceipts');
 
 // ---------------------------------------------------------------------------
 //  v2 STARTS AT SS27. v1 (the WIP import) was RETIRED 2026-09-28.
@@ -73,6 +73,11 @@ function buildUpserts(pos, existing, ctx) {
   );
   let legUpsert = 0;
   const legsSkippedPreV2 = [];
+  // POs that already carry a leg this sync did not build (the 87 FW26 WIP legs,
+  // numeric ids). These — and only these — are what PRE_V2_SEASONS protects.
+  const posWithForeignLegs = new Set(
+    (existing.legs || []).filter((l) => l.source !== 'netsuite').map((l) => l.poNumber),
+  );
 
   const protectedPos = [];
   const rejectedPos = [];
@@ -151,7 +156,11 @@ function buildUpserts(pos, existing, ctx) {
 
     // --- ONE LEG PER PO, straight from NetSuite (SS27 onward) ---------------
     const seasonCode = String(po.season || '').toUpperCase();
-    if (!PRE_V2_SEASONS.has(seasonCode)) {
+    // A pre-v2 season is skipped ONLY for a PO that already has WIP legs —
+    // re-legging those double-counts their units in every leg-grained rollup.
+    // A FW26 PO raised AFTER the WIP retirement has no legs at all, and without
+    // this it could never be booked (PO04841, 2026-10-09: "not split into legs").
+    if (!PRE_V2_SEASONS.has(seasonCode) || !posWithForeignLegs.has(po.poNumber)) {
       const legId = `leg_ns_${po.poNumber}`;
       const existingLeg = legs.get(legId);
 
@@ -561,9 +570,14 @@ async function sync({ fetchPos } = {}) {
         models.mainline_item_receipt_lines.read(),
       ]);
       const folded = foldReceipts(nsReceipts, exR, exL, new Set(scoped.map((o) => o.poNumber)));
+      const rejections = await models.mainline_receipt_match_rejections.read();
+      const keptRejections = dropOrphanRejections(rejections, folded.receipts);
       await Promise.all([
         models.mainline_item_receipts.write(folded.receipts),
         models.mainline_item_receipt_lines.write(folded.receiptLines),
+        // must ride with the prune, or the deferred FK rolls back the whole sync
+        ...(keptRejections.length !== rejections.length
+          ? [models.mainline_receipt_match_rejections.write(keptRejections)] : []),
       ]);
       receipts_upserted = nsReceipts.length;
       receipts_removed = folded.removed;

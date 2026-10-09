@@ -69,4 +69,17 @@ function pruneStaleReceipts({ nsReceipts = [], queriedPoNumbers = [], receipts =
     };
 }
 
-module.exports = { pruneStaleReceipts };
+/**
+ * Rejection rows ("this IR is NOT that shipment's") point at a receipt by a
+ * DEFERRED FK. When a prune removes the receipt the rejection must go with it,
+ * or the FK fails at COMMIT and rolls back the WHOLE sync — which is how the
+ * mainline PO sync failed every run on 2026-10-09 and stopped legging new POs.
+ * A rejection of a receipt that no longer exists asserts nothing, so dropping
+ * it loses nothing.
+ */
+function dropOrphanRejections(rejections, receipts) {
+  const live = new Set((receipts || []).map((r) => String(r.id)));
+  return (rejections || []).filter((x) => live.has(String(x.receiptId)));
+}
+
+module.exports = { pruneStaleReceipts, dropOrphanRejections };

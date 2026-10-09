@@ -114,7 +114,9 @@ export default function BookingsTable({ bookings, masters, legs, couriers = [], 
   // The supplier's FULL bookable set. Everything that decides what gets SUBMITTED
   // reads this list, never the filtered one below.
   const supplierLegs = useMemo(
-    () => (effectiveSupplierId ? legs.filter((l) => trnSupplier.get(l.trnNumber || '') === effectiveSupplierId) : []),
+    // `bookable` drops the forecast_<po> rows /po/legs also returns for a PO with
+    // no leg yet — offering them only produced "Unknown legId(s)" at submit.
+    () => (effectiveSupplierId ? legs.filter((l) => l.bookable && trnSupplier.get(l.trnNumber || '') === effectiveSupplierId) : []),
     [legs, effectiveSupplierId, trnSupplier]
   );
 

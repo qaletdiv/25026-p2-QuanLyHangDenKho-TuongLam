@@ -28,7 +28,7 @@
 
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const integrationService = require('../src/services/integrationService');
-const { pruneStaleReceipts } = require('../src/utils/pruneStaleReceipts');
+const { pruneStaleReceipts, dropOrphanRejections } = require('../src/utils/pruneStaleReceipts');
 const { models } = require('../src/models');
 const { atomically, shutdown } = require('../database/tx');
 
@@ -51,12 +51,14 @@ const MODULES = {
     posFile: 'po_orders.json',
     receiptsFile: 'mainline_item_receipts.json',
     linesFile: 'mainline_item_receipt_lines.json',
+    rejectionsFile: 'mainline_receipt_match_rejections.json',
   },
   sms: {
     label: 'SMS',
     posFile: 'sms_pos.json',
     receiptsFile: 'sms_item_receipts.json',
     linesFile: 'sms_item_receipt_lines.json',
+    rejectionsFile: 'sms_receipt_match_rejections.json',
   },
 };
 
@@ -90,6 +92,10 @@ async function run(cfg) {
   await atomically(async () => {
     await write(cfg.linesFile, out.receiptLines);
     await write(cfg.receiptsFile, out.receipts);
+    // rejections of a removed receipt would fail the deferred FK at COMMIT
+    const rej = await read(cfg.rejectionsFile);
+    const kept = dropOrphanRejections(rej, out.receipts);
+    if (kept.length !== rej.length) await write(cfg.rejectionsFile, kept);
   });
   console.log('Written.');
 }

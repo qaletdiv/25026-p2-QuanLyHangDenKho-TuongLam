@@ -63,6 +63,15 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   it fires **0 times out of 64**. Removing the condition creates 64 NEW legs
   ALONGSIDE the 87 existing ones and double-counts **265,349 units** in every
   leg-grained rollup (forecast plan, order book, `/reports/mainline`). Measured.
+  **Refined 2026-10-09:** the skip applies only to a PO that already HAS a
+  non-netsuite (WIP) leg. A FW26 PO raised after the retirement has none, and
+  under the season-wide skip it could never be legged or booked (PO04841:
+  "Unknown legId(s): forecast_PO04841"). Measured: 87 WIP legs unchanged, 0 POs
+  with both kinds of leg.
+  ⚠️ **A pruned Item Receipt must take its `*_receipt_match_rejections` rows with
+  it** (`dropOrphanRejections`). That FK is deferred, so a leftover rejection
+  failed COMMIT and rolled back the WHOLE mainline sync on every run — the reason
+  no new leg was being created on the VM.
   Restore point for the pre-retirement state: tag **`v1-v2-mixed-2026-09-28`**
   (code only) + `tentree_portal-FULL-BACKUP-2026-09-28.xlsx` (all 62 tables,
   93,649 rows).
