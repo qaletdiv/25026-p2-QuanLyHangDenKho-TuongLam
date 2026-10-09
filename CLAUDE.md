@@ -45,8 +45,8 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
 - **✅ v1 IS RETIRED (2026-09-28). v2 STARTS AT SS27.** The WIP import —
   `POST /mainline/wip-import`, `wipImportController`, `src/services/wipParser`,
   `legReconciliationService`, the **Upload WIP** button and the `importWip` action
-  — was DELETED. `PRE_V2_SEASONS` (née `V1_SEASONS`) was
-  RETIRED 2026-10-09 too — see below; `mainline_po_legs.source` (`'wip' | 'netsuite'`) still records which
+  — was DELETED. `V1_SEASONS` was renamed **`PRE_V2_SEASONS`** and still holds
+  `{'FW26'}`; `mainline_po_legs.source` (`'wip' | 'netsuite'`) still records which
   built a row.
   - **FW26 = HISTORY.** Its **87** WIP-built legs stay in the database, are never
     refreshed, and can no longer be re-imported. They encode what NetSuite cannot
@@ -56,27 +56,22 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   - **SS27+ = v2.** 1 PO = 1 warehouse = 1 method = **ONE leg**, built by the sync
     (`leg_ns_<poNumber>`). No channel (everything lands in …First), no air/sea
     split.
-  **✅ EVERY SEASON IS LEGGED FROM NETSUITE — `PRE_V2_SEASONS` RETIRED
-  2026-10-09 (per Lam).** The season-wide FW26 skip also blocked FW26 POs raised
-  AFTER the WIP retirement, which then could never be booked (PO04841: "Unknown
-  legId(s): forecast_PO04841"). The rule is now PER PO, season-agnostic:
-  a PO holding a WIP leg that something points at (booking / shipment / packing
-  carton / document — `computeFrozenLegIds`) keeps its WIP legs and gets no
-  NetSuite leg; a PO whose WIP legs nothing points at has them REPLACED by
-  `leg_ns_<po>` (`legs_retired_wip`). ⚠️ Never a NetSuite leg BESIDE a WIP leg:
-  the `existingLeg` lookup cannot see WIP legs (numeric ids), so that per-PO
-  test is the only thing between the sync and double-counting **265,349 units**
-  in every leg-grained rollup. Measured on migration: **all 64 WIP-legged POs are
-  outside NetSuite's A/B pull** (received/closed), so the sync retired NONE —
-  legs 114 → 114, units 491,772 → 491,772, 0 POs with both kinds. The 87 WIP legs
-  stay as history. **Archived first** by `scripts/archive-wip-legs.js` (read-only,
-  new timestamped file each run) → `backend/storage/archive/wip-legs-*.json`:
-  87 legs, 10,002 lines, and the 22 booking / 22 shipment / 2,296 carton / 40
-  document rows pointing at them.
+  ⚠️ **DO NOT DELETE THE `PRE_V2_SEASONS` CONDITION to "finish the job."** It is
+  NOT leftover v1 — it is what stops the sync re-legging a closed season. The
+  `existingLeg.source !== 'netsuite'` guard beside it **cannot** catch these: it
+  looks up `leg_ns_<poNumber>` while WIP legs carry **numeric** ids (1, 2, 3…), so
+  it fires **0 times out of 64**. Removing the condition creates 64 NEW legs
+  ALONGSIDE the 87 existing ones and double-counts **265,349 units** in every
+  leg-grained rollup (forecast plan, order book, `/reports/mainline`). Measured.
+  **Refined 2026-10-09:** the skip applies only to a PO that already HAS a
+  non-netsuite (WIP) leg. A FW26 PO raised after the retirement has none, and
+  under the season-wide skip it could never be legged or booked (PO04841:
+  "Unknown legId(s): forecast_PO04841"). Measured: 87 WIP legs unchanged, 0 POs
+  with both kinds of leg.
   ⚠️ **A pruned Item Receipt must take its `*_receipt_match_rejections` rows with
   it** (`dropOrphanRejections`). That FK is deferred, so a leftover rejection
-  failed COMMIT and rolled back the WHOLE mainline sync on every run (VM,
-  2026-10-09) — which is also why no new leg was being created there.
+  failed COMMIT and rolled back the WHOLE mainline sync on every run — the reason
+  no new leg was being created on the VM.
   Restore point for the pre-retirement state: tag **`v1-v2-mixed-2026-09-28`**
   (code only) + `tentree_portal-FULL-BACKUP-2026-09-28.xlsx` (all 62 tables,
   93,649 rows).
@@ -99,8 +94,8 @@ was deleted 2026-09-21 along with the `purchase_orders`, `bookings`, `shipments`
   forecast's `plan` series is now NetSuite's LATEST date, not the original
   commitment. Do not "restore" write-once without asking. A blank NetSuite
   value keeps the stored date rather than wiping it. Still NOT refreshed: booked
-  POs (R1 skips them whole), POs outside status A/B, and POs held on referenced
-  WIP legs (history). The ACTUAL delivery date lives on
+  POs (R1 skips them whole), POs outside status A/B, and FW26 WIP legs
+  (`PRE_V2_SEASONS`). The ACTUAL delivery date lives on
   `mainline_shipments.eDel`; the two never write to each other.
   **Three things v2 broke that v1 had hidden, all fixed:**
   (1) v2 legs had no `mainline_po_leg_lines`, so 220,573 units were invisible to
